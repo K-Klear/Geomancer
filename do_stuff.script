@@ -1,0 +1,141 @@
+local string_start = "{\"NORMALSection\":[{\"name\":\"Empty\",\"distance\":\"-12\",\"properties\":[{\"startUnit\":\"-12\"}]}],\"Volume\":["
+local string_end = "],\"Decor\":[],\"DecorGroups\":[]}"
+local vol_1 = "{\"type\":\"Additive\",\"offset\":\"("
+local vol_2 = ")\",\"scale\":\"("
+local vol_3 = ")\",\"worldPosition\":\"("
+local vol_4 = ")\",\"localScale\":\"("
+local vol_5 = ")\",\"groupIndex\":\""
+local vol_6 = "\",\"processingOrder\":\""
+local vol_7 = "\"}"
+
+local walkway = "{\"type\":\"Subtractive\",\"offset\":\"(-1, -1, -4)\",\"scale\":\"(2, 1, 249)\",\"worldPosition\":\"(0.00, -0.25, 60.25)\",\"localScale\":\"(1.00, 0.50, 124.50)\",\"groupIndex\":\"1\",\"processingOrder\":\"1000\"},"
+
+local comma = ", "
+
+local image_data = {}
+local max_image_z = 1800
+
+local filter = 0
+local threshold = 128
+local invert = false
+local create_additive = true
+local create_subtractive = false
+
+local min_x, max_x = 0, 165
+local min_y, max_y = 0, 165
+
+local z_depth = 1
+local processing_order = "1500"
+
+--[[
+local function get_pixel_rgba(pixels, width, x, y)
+	local index = y * width * 4 + x * 4 + 1
+	local r = pixels[index + 0]
+	local g = pixels[index + 1]
+	local b = pixels[index + 2]
+	local a = pixels[index + 3]
+	return r,g,b,a
+end
+--]]
+
+local function is_geo(pixels, width, x, y)
+	local index = y * width * 4 + x * 4 + 1
+	local value = pixels[index + filter]
+	if invert then
+		return value < threshold
+	end
+	return value > threshold
+end
+
+
+local function get_volume(pos_x, pos_y, pos_z, scale_x, scale_y, scale_z, group_index)
+	local vol = vol_1..tostring(pos_x)..comma..tostring(pos_y)..comma..tostring(pos_z)..vol_2..tostring(scale_x)..comma..tostring(scale_y)..comma..tostring(scale_z)
+	vol = vol..vol_3..tostring(((scale_x * 0.5) + pos_x) * 0.5)..comma..tostring(((scale_y * 0.5) + pos_y) * 0.5)..comma..tostring(((scale_z * 0.5) + pos_z) * 0.5)
+	vol = vol..vol_4..tostring(scale_x * 0.5)..comma..tostring(scale_y * 0.5)..comma..tostring(scale_z * 0.5)..vol_5..group_index..vol_6..processing_order..vol_7
+	return vol
+end
+
+local function add_warning(err)
+	
+end
+
+local function load_images()
+	image_data = {}
+	local _w, _h
+	for z = -16, max_image_z do
+		local f = io.open(tostring(z)..".png", rb)
+		if f then
+			local image = f:read("*a")
+			local buf, w, h = png.decode_rgba(image, true)
+			local pixels = buffer.get_stream(buf, hash("pixels"))
+			table.insert(image_data, {pixels = pixels, w = w, h = h, z = z)
+			if not _w then
+				_w = w; _h = h
+			elseif not ((_w == w) and (_h == h)) then
+				add_warning(hash("size_mismatch"))
+				if _w > w then
+					_w = w
+				end
+				if _h > h then
+					_h = h
+				end
+			end
+		end
+	end
+	if #image_data < 1 then
+		print("No file found in the input directory.")
+	else
+		print(tostring(#image_data).." images loaded.")
+	end
+end
+
+local function create_volumes()
+	local pos_x, scale_x
+	local volumes = {}
+
+	for group_index, val in ipairs(image_data) do
+		for y = min_y, max_y do
+			pos_x = -83 + min_y
+			scale_x = 0
+			for x = min_x, max_x do
+				if is_geo(val.pixels, val.w, x, y) then
+
+end
+
+function init(self)
+
+	local pos_x, scale_x = -83, 1
+	local volumes = {}
+
+	for y = 0, 165 do
+		pos_x = -83
+		scale_x = 0
+		for x = 0, 165 do
+			if is_white(pixels, w, x, y) then
+				scale_x = scale_x + 1
+			else
+				if scale_x > 0 then 
+					table.insert(volumes, get_volume(pos_x, -80 + y, 150, scale_x, 1, z_depth, 2))
+				end
+				pos_x = x - 82
+				scale_x = 0
+			end
+		end
+		if scale_x > 0 then 
+			table.insert(volumes, get_volume(pos_x, -80 + y, 150, scale_x, 1, 5, 2))
+		end
+	end
+
+	local output_string = ""
+	for key, val in ipairs(volumes) do
+		output_string = output_string..val
+		if key < #volumes then
+			output_string = output_string..","
+		end
+	end
+
+	io.output("output\volume_data.txt")
+	io.write(walkway..output_string)
+	io.output("output\do_not_ship.pw_meta")
+	io.write(string_start..walkway..output_string..string_end)
+end
