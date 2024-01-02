@@ -12,6 +12,14 @@ height = 640
 input_method = HiddenInputField
 
 [project]
-title = pic_to_geo
+title = Geomancer
+version = 0.2
+developer = Klear
 dependencies#0 = https://github.com/britzl/defold-png/archive/master.zip
+dependencies#1 = https://github.com/britzl/gooey-dirtylarry/archive/main.zip
+dependencies#2 = https://github.com/britzl/gooey/archive/master.zip
+
+[graphics]
+default_texture_min_filter = nearest
+default_texture_mag_filter = nearest
 
