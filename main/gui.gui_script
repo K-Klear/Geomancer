@@ -18,16 +18,19 @@ local comma = ", "
 local volume_type = {[true] = "Additive", [false] = "Subtractive"}
 
 local image_data = {}
-local max_image_z = 1800
+local MAX_Z = 3600
 
 local filter = 0
-local threshold = 128
+local filter_threshold = 128
 local invert = false
 local create_additive = true
 local create_subtractive = false
+local delete_walkway = false
+local walkway_seconds = 60
 
-local min_x, max_x = 0, 165
-local min_y, max_y = 0, 165
+local MIN_X, MAX_X, MIN_Y, MAX_Y = 0, 0, 165, 165
+local min_x, max_x, min_y, max_y = MIN_X, MAX_X, MIN_Y, MAX_Y
+
 local offset_x, offset_y = 0, 0
 
 local z_depth = 1
@@ -42,9 +45,9 @@ local function is_geo(pixels, width, x, y)
 	local index = y * width * 4 + x * 4 + 1
 	local value = pixels[index + filter]
 	if invert then
-		return value < threshold
+		return value < filter_threshold
 	end
-	return value > threshold
+	return value > filter_threshold
 end
 
 local function get_volume(pos_x, pos_y, pos_z, scale_x, scale_y, scale_z, group_index, is_additive)
@@ -61,6 +64,7 @@ end
 local function set_preview_image(image)
 	current_preview = image or current_preview
 	gui.set_texture(preview_node, tostring(image_data[current_preview].z))
+	gui.set_text(gui.get_node("preview_label"), "Z position: "..tostring(image_data[current_preview].z))
 end
 
 local function load_images()
@@ -69,7 +73,7 @@ local function load_images()
 	end
 	image_data = {}
 	local _w, _h
-	for z = -16, max_image_z do
+	for z = -16, MAX_Z do
 		local filename = "input/"..tostring(z)..".png"
 		local f = io.open(filename, "rb")
 		if f then
@@ -146,19 +150,38 @@ local function divide_picture(index)
 				local y = -80 + min_y + offset_y + math.floor(starting_pixel / width)
 				table.insert(volumes, get_volume(x, y, image_data[index].z, volume_width, volume_height, z_depth, index + 1, is_additive))
 			end
-			--table.insert(volume_list, {starting_pixel = starting_pixel, w = volume_width, h = volume_height, type = is_additive})
 		end
+	end
+end
+
+local function update_radio(radio)
+	if radio.released_now then
+		if radio.selected then
+			gui.play_flipbook(radio.node, hash("radio_selected"))
+		else
+			gui.play_flipbook(radio.node, hash("radio_normal"))
+		end
+	elseif not radio.pressed and radio.over_now then
+		gui.play_flipbook(radio.node, hash("radio_over"))
+	elseif not radio.pressed and radio.out_now then
+		gui.play_flipbook(radio.node, hash("radio_normal"))
 	end
 end
 
 function init(self)
 	msg.post(".", hash("acquire_input_focus"))
 	gooey.checkbox("additive/box").set_checked(true)
+	gooey.checkbox("show_path/box").set_checked(true)
 	gooey.input("depth/text", gui.KEYBOARD_TYPE_DEFAULT).set_text("1")
 	gooey.input("min_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text("0")
 	gooey.input("max_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text("165")
 	gooey.input("min_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text("0")
 	gooey.input("max_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text("165")
+	gooey.input("offset_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text("0")
+	gooey.input("offset_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text("0")
+	gooey.input("processing_order/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(processing_order)
+	update_radio(gooey.radio("filter_white/bg").set_selected(true))
+	update_radio(gooey.radio("filter_alpha/bg").set_selected(false))
 	preview_node = gui.get_node("preview")
 	message_box = gui.get_node("message_box")
 	crop_stencil = gui.get_node("crop_stencil")
@@ -185,17 +208,22 @@ local function set_stencil_size()
 	gui.set_position(range_box, vmath.vector3(min_x * -3, min_y * -3, 0))
 end
 
+local function node_text_to_number(node)
+	return tonumber(gui.get_text(gui.get_node(node)))
+end
+
 local function update_input(input)
+	local value
 	if input.node_id == hash("depth/text") then
-		local value = tonumber(input.text)
+			value = tonumber(input.text)
 		if not value or value < 1 then
 			value = 1
 			gooey.input("depth/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
 		end
 		z_depth = value
 	elseif input.node_id == hash("min_x/text") then
-		local value = tonumber(input.text)
-		local max_value = tonumber(gui.get_text(gui.get_node("max_x/text")))
+		value = tonumber(input.text)
+		local max_value = node_text_to_number("max_x/text")
 		if not value or value < 0 then
 			value = 0
 			gooey.input("min_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
@@ -206,8 +234,8 @@ local function update_input(input)
 		min_x = value
 		set_stencil_size()
 	elseif input.node_id == hash("min_y/text") then
-		local value = tonumber(input.text)
-		local max_value = tonumber(gui.get_text(gui.get_node("max_y/text")))
+		value = tonumber(input.text)
+		local max_value = node_text_to_number("max_y/text")
 		if not value or value < 0 then
 			value = 0
 			gooey.input("min_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
@@ -218,8 +246,8 @@ local function update_input(input)
 		min_y = value
 		set_stencil_size()
 	elseif input.node_id == hash("max_x/text") then
-		local value = tonumber(input.text)
-		local min_value = tonumber(gui.get_text(gui.get_node("min_x/text")))
+		value = tonumber(input.text)
+		local min_value = node_text_to_number("min_x/text")
 		if not value or value > 165 then
 			value = 165
 			gooey.input("max_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
@@ -230,8 +258,8 @@ local function update_input(input)
 		max_x = value
 		set_stencil_size()
 	elseif input.node_id == hash("max_y/text") then
-		local value = tonumber(input.text)
-		local min_value = tonumber(gui.get_text(gui.get_node("min_y/text")))
+		value = tonumber(input.text)
+		local min_value = node_text_to_number("min_y/text")
 		if not value or value > 165 then
 			value = 165
 			gooey.input("max_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
@@ -241,6 +269,25 @@ local function update_input(input)
 		end
 		max_y = value
 		set_stencil_size()
+	elseif input.node_id == hash("processing_order/text") then
+		value = tonumber(input.text)
+		if not value or value < 1 then
+			value = 0
+		end
+		gooey.input("processing_order/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
+		processing_order = value
+	elseif input.node_id == hash("offset_x/text") then
+		value = tonumber(input.text)
+		if value < 166 and value > -166 then
+			gooey.input("offset_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
+			offset_x = value
+		end
+	elseif input.node_id == hash("offset_y/text") then
+		value = tonumber(input.text)
+		if value < 166 and value > -166 then
+			gooey.input("offset_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
+			offset_y = value
+		end
 	end
 end
 
@@ -251,8 +298,28 @@ local function on_checked(checkbox)
 		create_subtractive = checkbox.checked
 	elseif checkbox.node_id == hash("invert/box") then
 		invert = checkbox.checked
+	elseif checkbox.node_id == hash("show_path") then
+		gui.set_visible(gui.get_node("player_path"), checkbox.checked)
 	end
 end
+
+local text_field_button_data = {}
+text_field_button_data["min_x_down/bg"] = {change = -1, node_id = "min_x/text"}
+text_field_button_data["min_x_up/bg"] = {change = 1, node_id = "min_x/text"}
+text_field_button_data["max_x_down/bg"] = {change = -1, node_id = "max_x/text"}
+text_field_button_data["max_x_up/bg"] = {change = 1, node_id = "max_x/text"}
+text_field_button_data["min_y_down/bg"] = {change = -1, node_id = "min_y/text"}
+text_field_button_data["min_y_up/bg"] = {change = 1, node_id = "min_y/text"}
+text_field_button_data["max_y_down/bg"] = {change = -1, node_id = "max_y/text"}
+text_field_button_data["max_y_up/bg"] = {change = 1, node_id = "max_y/text"}
+text_field_button_data["depth_up/bg"] = {change = 1, node_id = "depth/text"}
+text_field_button_data["depth_down/bg"] = {change = -1, node_id = "depth/text"}
+text_field_button_data["order_up/bg"] = {change = 1, node_id = "processing_order/text"}
+text_field_button_data["order_down/bg"] = {change = -1, node_id = "processing_order/text"}
+text_field_button_data["offset_x_down/bg"] = {change = -1, node_id = "offset_x/text"}
+text_field_button_data["offset_x_up/bg"] = {change = 1, node_id = "offset_x/text"}
+text_field_button_data["offset_y_down/bg"] = {change = -1, node_id = "offset_y/text"}
+text_field_button_data["offset_y_up/bg"] = {change = 1, node_id = "offset_y/text"}
 
 local function on_pressed(button)
 	if button.node_id == hash("load_images/bg") then
@@ -269,10 +336,11 @@ local function on_pressed(button)
 			end
 			if #volumes > 1 then
 				gui.set_text(message_box, #volumes.." volumes created.")
-			else
+			elseif #volumes == 1 then
 				gui.set_text(message_box, "One volume created.")
+			else
+				gui.set_text(message_box, "No volumes created for some reason.")
 			end
-
 			local output_string = ""
 			for key, val in ipairs(volumes) do
 				output_string = output_string..val
@@ -280,11 +348,17 @@ local function on_pressed(button)
 					output_string = output_string..","
 				end
 			end
-
-			io.output("output/volume_data.txt")
-			io.write(walkway..output_string)
-			io.output("output/do_not_ship.pw_meta")
-			io.write(string_start..walkway..output_string..string_end)
+			if delete_walkway then
+				io.output("output/volume_data.txt")
+				io.write(walkway..output_string)
+				io.output("output/do_not_ship.pw_meta")
+				io.write(string_start..walkway..output_string..string_end)
+			else
+				io.output("output/volume_data.txt")
+				io.write(output_string)
+				io.output("output/do_not_ship.pw_meta")
+				io.write(string_start..output_string..string_end)
+			end
 		end
 	elseif button.node_id == hash("left/bg") then
 		if current_preview > 1 then
@@ -296,8 +370,13 @@ local function on_pressed(button)
 			current_preview = current_preview + 1
 			set_preview_image()
 		end
+	elseif text_field_button_data[button.node_id] then
+		local data = text_field_button_data[button.node_id]
+		local new_val = node_text_to_number(data.node_id) + data.change
+		update_input({node_id = node, text = tostring(new_val)})
 	end
 end
+
 
 function on_input(self, action_id, action)
 	dirtylarry.button("load_images", action_id, action, on_pressed, update_button)
@@ -307,10 +386,42 @@ function on_input(self, action_id, action)
 	dirtylarry.checkbox("additive", action_id, action, on_checked, update_checkbox)
 	dirtylarry.checkbox("subtractive", action_id, action, on_checked, update_checkbox)
 	dirtylarry.checkbox("invert", action_id, action, on_checked, update_checkbox)
-	local text_config = {max_length = 3, allowed_characters ="[%d]"}
+	local text_config = {max_length = 3, allowed_characters ="[%d-]"}
 	dirtylarry.input("depth", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
 	dirtylarry.input("min_x", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
 	dirtylarry.input("max_x", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
 	dirtylarry.input("min_y", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
 	dirtylarry.input("max_y", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
+
+	dirtylarry.input("processing_order", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
+	dirtylarry.button("order_down", action_id, action, on_pressed, update_button)
+	dirtylarry.button("order_up", action_id, action, on_pressed, update_button)
+	dirtylarry.button("min_x_down", action_id, action, on_pressed, update_button)
+	dirtylarry.button("min_x_up", action_id, action, on_pressed, update_button)
+	dirtylarry.button("max_x_down", action_id, action, on_pressed, update_button)
+	dirtylarry.button("max_x_up", action_id, action, on_pressed, update_button)
+	dirtylarry.button("min_y_down", action_id, action, on_pressed, update_button)
+	dirtylarry.button("min_y_up", action_id, action, on_pressed, update_button)
+	dirtylarry.button("max_y_down", action_id, action, on_pressed, update_button)
+	dirtylarry.button("max_y_up", action_id, action, on_pressed, update_button)
+	dirtylarry.button("depth_up", action_id, action, on_pressed, update_button)
+	dirtylarry.button("depth_down", action_id, action, on_pressed, update_button)
+	dirtylarry.input("offset_x", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
+	dirtylarry.input("offset_y", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
+	dirtylarry.button("offset_x_up", action_id, action, on_pressed, update_button)
+	dirtylarry.button("offset_x_down", action_id, action, on_pressed, update_button)
+	dirtylarry.button("offset_y_up", action_id, action, on_pressed, update_button)
+	dirtylarry.button("offset_y_down", action_id, action, on_pressed, update_button)
+	dirtylarry.checkbox("show_path", action_id, action, on_checked, update_checkbox)
+
+	dirtylarry.radiogroup("filter", action_id, action, function(group_id, action_id, action)
+		dirtylarry.radio("filter_white/bg", group_id, action_id, action, function(radio)
+			print("selected white", radio.selected)
+			filter = 0
+		end, update_radio)
+		dirtylarry.radio("filter_alpha", group_id, action_id, action, function(radio)
+			print("selected alpha", radio.selected)
+			filter = 3
+		end), update_radio)
+	end)
 end
