@@ -12,7 +12,7 @@ local vol_5 = ")\",\"groupIndex\":\""
 local vol_6 = "\",\"processingOrder\":\""
 local vol_7 = "\"}"
 
-local walkway = "{\"type\":\"Subtractive\",\"offset\":\"(-1, -1, -4)\",\"scale\":\"(2, 1, 249)\",\"worldPosition\":\"(0.00, -0.25, 60.25)\",\"localScale\":\"(1.00, 0.50, 124.50)\",\"groupIndex\":\"1\",\"processingOrder\":\"1000\"},"
+local walkway = "{\"type\":\"Subtractive\",\"offset\":\"(-1, -1, -4)\",\"scale\":\"(2, 1, 250)\",\"worldPosition\":\"(0.00, -0.25, 60.50)\",\"localScale\":\"(1.00, 0.50, 125.00)\",\"groupIndex\":\"1\",\"processingOrder\":\"1000\"},"
 
 local comma = ", "
 local volume_type = {[true] = "Additive", [false] = "Subtractive"}
@@ -28,10 +28,11 @@ local create_subtractive = false
 local delete_walkway = false
 local walkway_seconds = 60
 
-local MIN_X, MAX_X, MIN_Y, MAX_Y = 0, 0, 165, 165
+local MIN_X, MAX_X, MIN_Y, MAX_Y = -84, 82, -80, 85
 local min_x, max_x, min_y, max_y = MIN_X, MAX_X, MIN_Y, MAX_Y
 
 local offset_x, offset_y = 0, 0
+local path_centre = vmath.vector3(321.5, 251.5, 0)
 
 local z_depth = 1
 local processing_order = "1500"
@@ -40,6 +41,7 @@ local volumes = {}
 
 local preview_node, message_box, crop_stencil, range_box
 local current_preview = 0
+
 
 local function is_geo(pixels, width, x, y)
 	local index = y * width * 4 + x * 4 + 1
@@ -72,32 +74,21 @@ local function load_images()
 		gui.delete_texture(tostring(val.z))
 	end
 	image_data = {}
-	local _w, _h
 	for z = -16, MAX_Z do
 		local filename = "input/"..tostring(z)..".png"
 		local f = io.open(filename, "rb")
 		if f then
 			local image = f:read("*a")
 			local buf, w, h = png.decode_rgba(image, true)
-			local pixels = buffer.get_stream(buf, hash("pixels"))
-			
-			gui.new_texture(tostring(z), w, h, "rgba", buffer.get_bytes(buf, hash("pixels")), true)
-			
-			table.insert(image_data, {pixels = pixels, w = w, h = h, z = z})
-			if not _w then
-				_w = w; _h = h
-			elseif not ((_w == w) and (_h == h)) then
-				add_warning(hash("size_mismatch"))
-				if _w > w then
-					_w = w
-				end
-				if _h > h then
-					_h = h
-				end
+			if not (w == 167 and h == 166) then
+				add_warning(hash("wrong_size_image"))
+			else
+				local pixels = buffer.get_stream(buf, hash("pixels"))
+				gui.new_texture(tostring(z), w, h, "rgba", buffer.get_bytes(buf, hash("pixels")), true)
+				table.insert(image_data, {pixels = pixels, w = w, h = h, z = z})
 			end
 		end
 	end
-	max_x = _w; max_y = _h
 	if #image_data < 1 then
 		gui.set_text(message_box, "No files found in the input directory.")
 	else
@@ -106,12 +97,15 @@ local function load_images()
 	end
 end
 
-local function divide_picture(index)
+local function divide_picture(index, group_index)
 	local pixel_values = {}
-	local width = max_x - min_x
-	local height = max_y - min_y
+	local width = max_x - min_x + 1
+	local height = max_y - min_y + 1
+	local volume_created = false
 	for i = 1, width * height do
-		table.insert(pixel_values, is_geo(image_data[index].pixels, image_data[index].w, (i - 1) % width, math.floor((i - 1) / width)))
+		local x = (i - 1) % width + (min_x - MIN_X)
+		local y = math.floor((i - 1) / width) + (min_y - MIN_Y)
+		table.insert(pixel_values, is_geo(image_data[index].pixels, image_data[index].w, x, y))
 	end
 	for starting_pixel = 1, width * height do
 		if not (pixel_values[starting_pixel] == nil) then
@@ -146,12 +140,14 @@ local function divide_picture(index)
 				end
 			until height_found
 			if (is_additive and create_additive) or (create_subtractive and not is_additive) then
-				local x = -83 + min_x + offset_x + (starting_pixel - 1) % width
-				local y = -80 + min_y + offset_y + math.floor(starting_pixel / width)
-				table.insert(volumes, get_volume(x, y, image_data[index].z, volume_width, volume_height, z_depth, index + 1, is_additive))
+				local x = min_x + offset_x + (starting_pixel - 1) % width
+				local y = min_y + offset_y + math.floor(starting_pixel / width)
+				table.insert(volumes, get_volume(x, y, image_data[index].z, volume_width, volume_height, z_depth, group_index, is_additive))
+				volume_created = true
 			end
 		end
 	end
+	return volume_created
 end
 
 local function update_radio(radio)
@@ -172,16 +168,16 @@ function init(self)
 	msg.post(".", hash("acquire_input_focus"))
 	gooey.checkbox("additive/box").set_checked(true)
 	gooey.checkbox("show_path/box").set_checked(true)
-	gooey.input("depth/text", gui.KEYBOARD_TYPE_DEFAULT).set_text("1")
-	gooey.input("min_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text("0")
-	gooey.input("max_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text("165")
-	gooey.input("min_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text("0")
-	gooey.input("max_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text("165")
+	gooey.input("depth/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(z_depth))
+	gooey.input("min_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(MIN_X))
+	gooey.input("max_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(MAX_X))
+	gooey.input("min_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(MIN_Y))
+	gooey.input("max_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(MAX_Y))
 	gooey.input("offset_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text("0")
 	gooey.input("offset_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text("0")
 	gooey.input("processing_order/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(processing_order)
-	update_radio(gooey.radio("filter_white/bg").set_selected(true))
-	update_radio(gooey.radio("filter_alpha/bg").set_selected(false))
+	update_radio(gooey.radio("filter_white/button").set_selected(true))
+	update_radio(gooey.radio("filter_alpha/button").set_selected(false))
 	preview_node = gui.get_node("preview")
 	message_box = gui.get_node("message_box")
 	crop_stencil = gui.get_node("crop_stencil")
@@ -201,94 +197,138 @@ local function update_button(button)
 end
 
 local function set_stencil_size()
-	local w = (max_x - min_x) * 3 + 3
-	local h = (max_y - min_y) * 3 + 3
+	local w = (max_x - min_x + 1) * 3
+	local h = (max_y - min_y + 1) * 3
+	local x = -250.5 + (min_x + math.abs(MIN_X)) * 3
+	local y = -249 + (min_y + math.abs(MIN_Y)) * 3
 	gui.set_size(crop_stencil, vmath.vector3(w, h, 1))
-	gui.set_position(crop_stencil, vmath.vector3(-249 + (min_x * 3), -249 + (min_y * 3), 0))
-	gui.set_position(range_box, vmath.vector3(min_x * -3, min_y * -3, 0))
+	gui.set_position(crop_stencil, vmath.vector3(x, y, 0))
+	gui.set_position(range_box, vmath.vector3(min_x * -3 -252, min_y * -3 - 239.5, 0))
 end
 
 local function node_text_to_number(node)
 	return tonumber(gui.get_text(gui.get_node(node)))
 end
 
+local function refresh_input(input, config, node_id)
+	local cursor = gui.get_node(node_id .. "/cursor")
+	if input.selected then
+		gui.set_enabled(cursor, true)
+		gui.set_position(cursor, vmath.vector3(14 + input.total_width, 0, 0))
+		gui.cancel_animation(cursor, gui.PROP_COLOR)
+		gui.set_color(cursor, vmath.vector4(1))
+		gui.animate(cursor, gui.PROP_COLOR, vmath.vector4(1,1,1,0), gui.EASING_INSINE, 0.8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	else
+		gui.set_enabled(cursor, false)
+		gui.cancel_animation(cursor, gui.PROP_COLOR)
+	end
+end
+function dirtylarry.input(node_id, keyboard_type, action_id, action, config)
+	return gooey.input(node_id .. "/text", keyboard_type, action_id, action, config, function(input)
+		refresh_input(input, config, node_id)
+	end)
+end
+
 local function update_input(input)
 	local value
 	if input.node_id == hash("depth/text") then
-			value = tonumber(input.text)
+		value = tonumber(input.text)
 		if not value or value < 1 then
 			value = 1
-			gooey.input("depth/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
 		end
 		z_depth = value
+		gooey.input("depth/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
 	elseif input.node_id == hash("min_x/text") then
-		value = tonumber(input.text)
+		value = tonumber(input.text) or 0
 		local max_value = node_text_to_number("max_x/text")
-		if not value or value < 0 then
-			value = 0
-			gooey.input("min_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
-		elseif not (value < max_value) then
-			value = max_value - 1
-			gooey.input("min_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
+		if value > max_value then
+			value = max_value
+		elseif value < MIN_X then
+			value = MIN_X
 		end
 		min_x = value
+		gooey.input("min_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
 		set_stencil_size()
 	elseif input.node_id == hash("min_y/text") then
-		value = tonumber(input.text)
+		value = tonumber(input.text) or 0
 		local max_value = node_text_to_number("max_y/text")
-		if not value or value < 0 then
-			value = 0
-			gooey.input("min_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
-		elseif not (value < max_value) then
-			value = max_value - 1
-			gooey.input("min_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
+		if value > max_value then
+			value = max_value
+		elseif value < MIN_Y then
+			value = MIN_Y
 		end
 		min_y = value
+		gooey.input("min_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
 		set_stencil_size()
 	elseif input.node_id == hash("max_x/text") then
-		value = tonumber(input.text)
+		value = tonumber(input.text) or 0
 		local min_value = node_text_to_number("min_x/text")
-		if not value or value > 165 then
-			value = 165
-			gooey.input("max_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
-		elseif not (value > min_value) then
-			value = min_value + 1
-			gooey.input("max_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
+		if value > MAX_X then
+			value = MAX_X
+		elseif value < min_value then
+			value = min_value
 		end
 		max_x = value
+		gooey.input("max_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
 		set_stencil_size()
 	elseif input.node_id == hash("max_y/text") then
-		value = tonumber(input.text)
+		value = tonumber(input.text) or 0
 		local min_value = node_text_to_number("min_y/text")
-		if not value or value > 165 then
-			value = 165
-			gooey.input("max_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
-		elseif not (value > min_value) then
-			value = min_value + 1
-			gooey.input("max_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
+		if value > MAX_Y then
+			value = MAX_Y
+		elseif value < min_value then
+			value = min_value
 		end
 		max_y = value
+		gooey.input("max_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
 		set_stencil_size()
 	elseif input.node_id == hash("processing_order/text") then
-		value = tonumber(input.text)
-		if not value or value < 1 then
-			value = 0
-		end
+		value = tonumber(input.text) or 0
 		gooey.input("processing_order/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
 		processing_order = value
 	elseif input.node_id == hash("offset_x/text") then
-		value = tonumber(input.text)
-		if value < 166 and value > -166 then
-			gooey.input("offset_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
-			offset_x = value
+		value = tonumber(input.text) or 0
+		if value > 82 then
+			value = 82
+		elseif value < -82 then
+			value = -82
 		end
+		gooey.input("offset_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
+		offset_x = value
+		gui.set_position(gui.get_node("player_path"), vmath.vector3(path_centre.x - (offset_x * 3), path_centre.y - (offset_y * 3), 0))
 	elseif input.node_id == hash("offset_y/text") then
-		value = tonumber(input.text)
-		if value < 166 and value > -166 then
-			gooey.input("offset_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
-			offset_y = value
+		value = tonumber(input.text) or 0
+		if value > 82 then
+			value = 82
+		elseif value < -82 then
+			value = -82
 		end
+		gooey.input("offset_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
+		offset_y = value
+		gui.set_position(gui.get_node("player_path"), vmath.vector3(path_centre.x - (offset_x * 3), path_centre.y - (offset_y * 3), 0))
 	end
+end
+
+local function refresh_input(input, config, node_id)
+	local cursor = gui.get_node(node_id .. "/cursor")
+	if input.selected then
+		gui.set_enabled(cursor, true)
+		gui.set_position(cursor, vmath.vector3(14 + input.total_width, 0, 0))
+		gui.cancel_animation(cursor, gui.PROP_COLOR)
+		gui.set_color(cursor, vmath.vector4(1))
+		gui.animate(cursor, gui.PROP_COLOR, vmath.vector4(1,1,1,0), gui.EASING_INSINE, 0.8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	else
+		gui.set_enabled(cursor, false)
+		gui.cancel_animation(cursor, gui.PROP_COLOR)
+	end
+end
+function dirtylarry.input(node_id, keyboard_type, action_id, action, config)
+	return gooey.input(node_id .. "/text", keyboard_type, action_id, action, config, function(input)
+		refresh_input(input, config, node_id)
+		if input.deselected_now then
+			update_input(input)
+		end
+	end)
 end
 
 local function on_checked(checkbox)
@@ -298,28 +338,27 @@ local function on_checked(checkbox)
 		create_subtractive = checkbox.checked
 	elseif checkbox.node_id == hash("invert/box") then
 		invert = checkbox.checked
-	elseif checkbox.node_id == hash("show_path") then
+		msg.post("@render:", hash("invert_preview"), {invert = invert})
+	elseif checkbox.node_id == hash("show_path/box") then
 		gui.set_visible(gui.get_node("player_path"), checkbox.checked)
 	end
 end
 
 local text_field_button_data = {}
-text_field_button_data["min_x_down/bg"] = {change = -1, node_id = "min_x/text"}
-text_field_button_data["min_x_up/bg"] = {change = 1, node_id = "min_x/text"}
-text_field_button_data["max_x_down/bg"] = {change = -1, node_id = "max_x/text"}
-text_field_button_data["max_x_up/bg"] = {change = 1, node_id = "max_x/text"}
-text_field_button_data["min_y_down/bg"] = {change = -1, node_id = "min_y/text"}
-text_field_button_data["min_y_up/bg"] = {change = 1, node_id = "min_y/text"}
-text_field_button_data["max_y_down/bg"] = {change = -1, node_id = "max_y/text"}
-text_field_button_data["max_y_up/bg"] = {change = 1, node_id = "max_y/text"}
-text_field_button_data["depth_up/bg"] = {change = 1, node_id = "depth/text"}
-text_field_button_data["depth_down/bg"] = {change = -1, node_id = "depth/text"}
-text_field_button_data["order_up/bg"] = {change = 1, node_id = "processing_order/text"}
-text_field_button_data["order_down/bg"] = {change = -1, node_id = "processing_order/text"}
-text_field_button_data["offset_x_down/bg"] = {change = -1, node_id = "offset_x/text"}
-text_field_button_data["offset_x_up/bg"] = {change = 1, node_id = "offset_x/text"}
-text_field_button_data["offset_y_down/bg"] = {change = -1, node_id = "offset_y/text"}
-text_field_button_data["offset_y_up/bg"] = {change = 1, node_id = "offset_y/text"}
+text_field_button_data[hash("min_x_down/bg")] = {change = -1, node_id = "min_x/text"}
+text_field_button_data[hash("min_x_up/bg")] = {change = 1, node_id = "min_x/text"}
+text_field_button_data[hash("max_x_down/bg")] = {change = -1, node_id = "max_x/text"}
+text_field_button_data[hash("max_x_up/bg")] = {change = 1, node_id = "max_x/text"}
+text_field_button_data[hash("min_y_down/bg")] = {change = -1, node_id = "min_y/text"}
+text_field_button_data[hash("min_y_up/bg")] = {change = 1, node_id = "min_y/text"}
+text_field_button_data[hash("max_y_down/bg")] = {change = -1, node_id = "max_y/text"}
+text_field_button_data[hash("max_y_up/bg")] = {change = 1, node_id = "max_y/text"}
+text_field_button_data[hash("depth_up/bg")] = {change = 1, node_id = "depth/text"}
+text_field_button_data[hash("depth_down/bg")] = {change = -1, node_id = "depth/text"}
+text_field_button_data[hash("offset_x_down/bg")] = {change = -1, node_id = "offset_x/text"}
+text_field_button_data[hash("offset_x_up/bg")] = {change = 1, node_id = "offset_x/text"}
+text_field_button_data[hash("offset_y_down/bg")] = {change = -1, node_id = "offset_y/text"}
+text_field_button_data[hash("offset_y_up/bg")] = {change = 1, node_id = "offset_y/text"}
 
 local function on_pressed(button)
 	if button.node_id == hash("load_images/bg") then
@@ -331,8 +370,14 @@ local function on_pressed(button)
 			gui.set_text(message_box, "No volumes created. Select additive or subtractive to generate volumes.")
 		else
 			volumes = {}
-			for group_index, val in ipairs(image_data) do
-				divide_picture(group_index)
+			local group_index = 1
+			if delete_walkway then
+				group_index = 2
+			end
+			for index, val in ipairs(image_data) do
+				if divide_picture(index, group_index) then
+					group_index = group_index + 1
+				end
 			end
 			if #volumes > 1 then
 				gui.set_text(message_box, #volumes.." volumes created.")
@@ -348,16 +393,21 @@ local function on_pressed(button)
 					output_string = output_string..","
 				end
 			end
+			local f
 			if delete_walkway then
-				io.output("output/volume_data.txt")
+				f = io.output("output/volume_data.txt")
 				io.write(walkway..output_string)
-				io.output("output/do_not_ship.pw_meta")
+				io.close(f)
+				f = io.output("output/do_not_ship.pw_meta")
 				io.write(string_start..walkway..output_string..string_end)
+				io.close(f)
 			else
-				io.output("output/volume_data.txt")
+				f = io.output("output/volume_data.txt")
 				io.write(output_string)
-				io.output("output/do_not_ship.pw_meta")
+				io.close(f)
+				f = io.output("output/do_not_ship.pw_meta")
 				io.write(string_start..output_string..string_end)
+				io.close(f)
 			end
 		end
 	elseif button.node_id == hash("left/bg") then
@@ -373,7 +423,7 @@ local function on_pressed(button)
 	elseif text_field_button_data[button.node_id] then
 		local data = text_field_button_data[button.node_id]
 		local new_val = node_text_to_number(data.node_id) + data.change
-		update_input({node_id = node, text = tostring(new_val)})
+		update_input({node_id = hash(data.node_id), text = tostring(new_val)})
 	end
 end
 
@@ -392,10 +442,7 @@ function on_input(self, action_id, action)
 	dirtylarry.input("max_x", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
 	dirtylarry.input("min_y", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
 	dirtylarry.input("max_y", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
-
-	dirtylarry.input("processing_order", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
-	dirtylarry.button("order_down", action_id, action, on_pressed, update_button)
-	dirtylarry.button("order_up", action_id, action, on_pressed, update_button)
+	dirtylarry.input("processing_order", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, {max_length = 4, allowed_characters ="[%d]"}, update_input)
 	dirtylarry.button("min_x_down", action_id, action, on_pressed, update_button)
 	dirtylarry.button("min_x_up", action_id, action, on_pressed, update_button)
 	dirtylarry.button("max_x_down", action_id, action, on_pressed, update_button)
@@ -415,13 +462,11 @@ function on_input(self, action_id, action)
 	dirtylarry.checkbox("show_path", action_id, action, on_checked, update_checkbox)
 
 	dirtylarry.radiogroup("filter", action_id, action, function(group_id, action_id, action)
-		dirtylarry.radio("filter_white/bg", group_id, action_id, action, function(radio)
-			print("selected white", radio.selected)
+		dirtylarry.radio("filter_white", group_id, action_id, action, function(radio)
 			filter = 0
-		end, update_radio)
+		end)
 		dirtylarry.radio("filter_alpha", group_id, action_id, action, function(radio)
-			print("selected alpha", radio.selected)
 			filter = 3
-		end), update_radio)
+		end)
 	end)
 end
