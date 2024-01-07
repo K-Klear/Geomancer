@@ -1,1 +1,9 @@
 script: "/render/default.render_script"
+materials {
+  name: "preview"
+  material: "/render/preview.material"
+}
+materials {
+  name: "gui"
+  material: "/builtins/materials/gui.material"
+}

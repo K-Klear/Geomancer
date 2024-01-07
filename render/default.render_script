@@ -141,6 +141,8 @@ function init(self)
     self.invert_preview = render.constant_buffer()
     self.invert_preview.invert = vmath.vector4(0, 0, 0, 0)
 
+    self.preview_material = "preview"
+
     -- default is stretch projection. copy from builtins and change for different projection
     -- or send a message to the render script to change projection:
     -- msg.post("@render:", "use_stretch_projection", { near = -1, far = 1 })
@@ -207,9 +209,13 @@ function update(self)
 
     render.enable_state(render.STATE_STENCIL_TEST)
 
+    render.enable_material(self.preview_material)
     render.draw(predicates.preview, {frustrum = camera_gui.frustum, constants = self.invert_preview})
+    render.disable_material()
+    
     render.draw(predicates.gui, camera_gui.frustum)
     render.draw(predicates.text, camera_gui.frustum)
+    
     render.disable_state(render.STATE_STENCIL_TEST)
     render.disable_state(render.STATE_BLEND)
 end
@@ -243,5 +249,7 @@ function on_message(self, message_id, message)
         else
             self.invert_preview.invert = vmath.vector4(0, 0, 0, 0)
         end
+    elseif message_id == hash("change_preview_material") then
+        self.preview_material = message.mat
     end
 end
