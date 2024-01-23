@@ -1,0 +1,13 @@
+Bugs:
+
+- Rightmost column sometimes generates wrong
+- Images don't reload correctly
+
+To do:
+
+- Preview now optionally shows which pixels will turn into what type of geo according to current settings
+
+Done:
+
+- Option to set starting group index
+- Option for all generated slices to be grouped together

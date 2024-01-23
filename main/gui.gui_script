@@ -37,6 +37,9 @@ local path_centre = vmath.vector3(321.5, 251.5, 0)
 local z_depth = 1
 local processing_order = "1500"
 
+local starting_group_index = 1
+local separate_group_index = true
+
 local volumes = {}
 
 local preview_node, message_box, crop_stencil, range_box
@@ -87,6 +90,7 @@ local function load_images()
 				gui.new_texture(tostring(z), w, h, "rgba", buffer.get_bytes(buf, hash("pixels")), true)
 				table.insert(image_data, {pixels = pixels, w = w, h = h, z = z})
 			end
+			io.close(f)
 		end
 	end
 	if #image_data < 1 then
@@ -168,6 +172,8 @@ function init(self)
 	msg.post(".", hash("acquire_input_focus"))
 	gooey.checkbox("additive/box").set_checked(true)
 	gooey.checkbox("show_path/box").set_checked(true)
+	gooey.checkbox("image_group/box").set_checked(true)
+	gooey.input("group_index/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(starting_group_index))
 	gooey.input("depth/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(z_depth))
 	gooey.input("min_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(MIN_X))
 	gooey.input("max_x/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(MAX_X))
@@ -223,7 +229,7 @@ local function refresh_input(input, config, node_id)
 		gui.cancel_animation(cursor, gui.PROP_COLOR)
 	end
 end
-function dirtylarry.input(node_id, keyboard_type, action_id, action, config)
+function dirtylarry_input(node_id, keyboard_type, action_id, action, config)
 	return gooey.input(node_id .. "/text", keyboard_type, action_id, action, config, function(input)
 		refresh_input(input, config, node_id)
 	end)
@@ -306,6 +312,13 @@ local function update_input(input)
 		gooey.input("offset_y/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
 		offset_y = value
 		gui.set_position(gui.get_node("player_path"), vmath.vector3(path_centre.x - (offset_x * 3), path_centre.y - (offset_y * 3), 0))
+	elseif input.node_id == hash("group_index/text") then
+		value = tonumber(input.text) or 0
+		if value < 1 then
+			value = 1
+		end
+		gooey.input("group_index/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(tostring(value))
+		starting_group_index = value
 	end
 end
 
@@ -322,7 +335,7 @@ local function refresh_input(input, config, node_id)
 		gui.cancel_animation(cursor, gui.PROP_COLOR)
 	end
 end
-function dirtylarry.input(node_id, keyboard_type, action_id, action, config)
+local function dirtylarry_input(node_id, keyboard_type, action_id, action, config)
 	return gooey.input(node_id .. "/text", keyboard_type, action_id, action, config, function(input)
 		refresh_input(input, config, node_id)
 		if input.deselected_now then
@@ -341,6 +354,8 @@ local function on_checked(checkbox)
 		msg.post("@render:", hash("invert_preview"), {invert = invert})
 	elseif checkbox.node_id == hash("show_path/box") then
 		gui.set_visible(gui.get_node("player_path"), checkbox.checked)
+	elseif checkbox.node_id == hash("image_group/box") then
+		separate_group_index = checkbox.checked
 	end
 end
 
@@ -370,12 +385,12 @@ local function on_pressed(button)
 			gui.set_text(message_box, "No volumes created. Select additive or subtractive to generate volumes.")
 		else
 			volumes = {}
-			local group_index = 1
+			local group_index = starting_group_index
 			if delete_walkway then
-				group_index = 2
+				group_index = group_index + 1
 			end
 			for index, val in ipairs(image_data) do
-				if divide_picture(index, group_index) then
+				if divide_picture(index, group_index) and separate_group_index then
 					group_index = group_index + 1
 				end
 			end
@@ -424,11 +439,15 @@ local function on_pressed(button)
 		local data = text_field_button_data[button.node_id]
 		local new_val = node_text_to_number(data.node_id) + data.change
 		update_input({node_id = hash(data.node_id), text = tostring(new_val)})
+	elseif button.node_id == hash("mode/bg") then
+		msg.post(".", hash("disable"))
+		msg.post("#material_changer", hash("enable"))
 	end
 end
 
 
 function on_input(self, action_id, action)
+	dirtylarry.button("mode", action_id, action, on_pressed, update_button)
 	dirtylarry.button("load_images", action_id, action, on_pressed, update_button)
 	dirtylarry.button("create", action_id, action, on_pressed, update_button)
 	dirtylarry.button("left", action_id, action, on_pressed, update_button)
@@ -436,13 +455,15 @@ function on_input(self, action_id, action)
 	dirtylarry.checkbox("additive", action_id, action, on_checked, update_checkbox)
 	dirtylarry.checkbox("subtractive", action_id, action, on_checked, update_checkbox)
 	dirtylarry.checkbox("invert", action_id, action, on_checked, update_checkbox)
+	dirtylarry.checkbox("image_group", action_id, action, on_checked, update_checkbox)
 	local text_config = {max_length = 3, allowed_characters ="[%d-]"}
-	dirtylarry.input("depth", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
-	dirtylarry.input("min_x", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
-	dirtylarry.input("max_x", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
-	dirtylarry.input("min_y", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
-	dirtylarry.input("max_y", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
-	dirtylarry.input("processing_order", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, {max_length = 4, allowed_characters ="[%d]"}, update_input)
+	dirtylarry_input("depth", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
+	dirtylarry_input("min_x", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
+	dirtylarry_input("max_x", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
+	dirtylarry_input("min_y", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
+	dirtylarry_input("max_y", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
+	dirtylarry_input("group_index", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
+	dirtylarry_input("processing_order", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, {max_length = 4, allowed_characters ="[%d]"}, update_input)
 	dirtylarry.button("min_x_down", action_id, action, on_pressed, update_button)
 	dirtylarry.button("min_x_up", action_id, action, on_pressed, update_button)
 	dirtylarry.button("max_x_down", action_id, action, on_pressed, update_button)
@@ -453,8 +474,8 @@ function on_input(self, action_id, action)
 	dirtylarry.button("max_y_up", action_id, action, on_pressed, update_button)
 	dirtylarry.button("depth_up", action_id, action, on_pressed, update_button)
 	dirtylarry.button("depth_down", action_id, action, on_pressed, update_button)
-	dirtylarry.input("offset_x", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
-	dirtylarry.input("offset_y", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
+	dirtylarry_input("offset_x", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
+	dirtylarry_input("offset_y", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, text_config, update_input)
 	dirtylarry.button("offset_x_up", action_id, action, on_pressed, update_button)
 	dirtylarry.button("offset_x_down", action_id, action, on_pressed, update_button)
 	dirtylarry.button("offset_y_up", action_id, action, on_pressed, update_button)

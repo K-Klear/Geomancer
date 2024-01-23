@@ -135,6 +135,7 @@ function M.dynamic_list(list_id, stencil_id, item_id, data, action_id, action, c
 	return l
 end
 
+
 function M.horizontal_dynamic_list(list_id, stencil_id, item_id, data, action_id, action, config, fn, refresh_fn)
 	config = config or {}
 	config.horizontal = true
@@ -209,6 +210,39 @@ function M.group(id, fn)
 	end
 	group.consumed = consumed
 	return group
+end
+
+local LISTITEM_SELECTED = hash("button_pressed")
+local LISTITEM_PRESSED = hash("button_pressed")
+local LISTITEM_OVER = hash("button_normal")
+local LISTITEM_NORMAL = hash("button_normal")
+
+local function update_listitem(list, item)
+	local pos = gui.get_position(item.root)
+	if item == list.selected_item then
+		pos.x = 4
+		gui.play_flipbook(item.root, LISTITEM_PRESSED)
+	elseif item == list.pressed_item then
+		pos.x = 1
+		gui.play_flipbook(item.root, LISTITEM_SELECTED)
+	elseif item == list.over_item_now then
+		pos.x = 1
+		gui.play_flipbook(item.root, LISTITEM_OVER)
+	elseif item == list.out_item_now then
+		pos.x = 0
+		gui.play_flipbook(item.root, LISTITEM_NORMAL)
+	elseif item ~= list.over_item then
+		pos.x = 0
+		gui.play_flipbook(item.root, LISTITEM_NORMAL)
+	end
+	gui.set_position(item.root, pos)
+end
+
+function M.update_dynamic_list(list)
+	for _,item in ipairs(list.items) do
+		update_listitem(list, item)
+		gui.set_text(item.nodes[hash(string.sub(list.id, 1, -4) .. "/listitem_text")], tostring(item.data or "-"))
+	end
 end
 
 return M

@@ -1,0 +1,258 @@
+local gooey = require "gooey.gooey"
+local dirtylarry = require "gooey-dirtylarry.dirtylarry"
+
+local model_list = {}
+local part_names = {[false] = {}}
+local selected_model = false
+local selected_model_index
+local selected_part_index
+local current_material
+
+local model_names = {}
+
+local string_beginning
+local model_strings = {}
+local custom_material = "(DoNotEdit)LiveMat_"
+
+local button_highlight
+
+function init(self)
+	msg.post("#", hash("disable"))
+	button_highlight = gui.get_node("button_highlight")
+	gooey.input("custom_mat/text", gui.KEYBOARD_TYPE_DEFAULT).set_text("(DoNotEdit)LiveMat_")
+end
+
+local function update_list(list)
+	for i,item in ipairs(list.items) do
+		gui.set_text(item.nodes[hash("listitem_text")], item.data)
+	end
+end
+
+local current_name = ""
+local current_model = ""
+
+local function find_substring(string, substring, count, index)
+	index = index or 1
+	repeat
+		local found = string.find(string, substring, index)
+		if found then
+			index = found + 1
+			count = count - 1
+		else
+			return nil
+		end
+	until count < 1
+	return index - 1
+end
+
+
+local function load_models()
+	local function find_section(tab, model_index)
+		if type(tab) == "table" then
+			if tab.name then
+				current_name = tab.name
+			end
+			if tab.materials then
+				for key, val in ipairs(tab.materials) do
+					table.insert(model_list[model_index].parts, val)
+					table.insert(part_names[current_model], current_name)
+				end
+			else
+				for key, val in pairs(tab) do
+					find_section(val, model_index)
+				end
+			end
+		end
+	end
+
+	local f = io.open("input/map_SharedArt.pw_art", "rb")
+	if f then
+		local full_string = f:read("*a")
+		local tab = json.decode(full_string)
+		model_list = {}
+		model_names = {}
+		part_names = {[false] = {}}
+		for k, v in ipairs(tab.propsDictionary) do
+			if k > 1 and v.key then
+				table.insert(model_names, v.key)
+				table.insert(model_list, {name = v.key, parts = {}})
+				current_model = v.key
+				part_names[current_model] = {}
+				find_section(v, #model_list)
+			end
+		end
+
+		local dictionary_start = string.find(full_string, "propsDictionary")
+		string_beginning = string.sub(full_string, 1, dictionary_start + 1016)
+		local start_index = dictionary_start + 1017
+		local search_string = "{\"key"
+
+		local key_indices = {}
+		local safety = 1000
+		repeat
+			local next_key_index = string.find(full_string, search_string, start_index)
+			if next_key_index then
+				table.insert(key_indices, next_key_index)
+				start_index = next_key_index + 5
+			end
+			safety = safety - 1
+			if safety < 1 then
+				print("fucked that up")
+				break
+			end
+		until not next_key_index
+		for i = 1, #key_indices - 1 do
+			model_list[i].string = string.sub(full_string, key_indices[i], key_indices[i + 1] - 2)
+		end
+		model_list[#key_indices].string = string.sub(full_string, key_indices[#key_indices], -3)
+	end
+end
+
+local function sort_models()
+	table.sort(model_names, function(a, b) return string.lower(a) < string.lower(b) end)
+	table.sort(model_list, function(a, b) return string.lower(a.name) < string.lower(b.name) end)
+end
+
+local highlight_position = {}
+highlight_position["(DoNotEdit)LiveMat_Props"] = vmath.vector3(540, 595, 0)
+highlight_position["(DoNotEdit)LiveMat_Glow"] = vmath.vector3(540, 517, 0)
+highlight_position["(DoNotEdit)LiveMat_GlowInvert"] = vmath.vector3(748, 517, 0)
+highlight_position["(DoNotEdit)LiveMat_LevelGeoSimple"] = vmath.vector3(748, 595, 0)
+highlight_position["(DoNotEdit)LiveMat_PedestriansAlt"] = vmath.vector3(540, 439, 0)
+highlight_position["(DoNotEdit)LiveMat_Enemies"] = vmath.vector3(748, 439, 0)
+highlight_position["(DoNotEdit)LiveMat_EnemyGlow"] = vmath.vector3(540, 364, 0)
+highlight_position["(DoNotEdit)LiveMat_Squirtgun_drops"] = vmath.vector3(748, 364, 0)
+highlight_position["(DoNotEdit)LiveMat_PlayerRingOuter2"] = vmath.vector3(540, 288, 0)
+highlight_position["custom"] = vmath.vector3(748, 209, 0)
+
+local materials = {}
+materials[hash("props/bg")] = "(DoNotEdit)LiveMat_Props"
+materials[hash("geo_simple/bg")] = "(DoNotEdit)LiveMat_LevelGeoSimple"
+materials[hash("glow/bg")] = "(DoNotEdit)LiveMat_Glow"
+materials[hash("glow_invert/bg")] = "(DoNotEdit)LiveMat_GlowInvert"
+materials[hash("peds_alt/bg")] = "(DoNotEdit)LiveMat_PedestriansAlt"
+materials[hash("enemies/bg")] = "(DoNotEdit)LiveMat_Enemies"
+materials[hash("enemy_glow/bg")] = "(DoNotEdit)LiveMat_EnemyGlow"
+materials[hash("squirtgun/bg")] = "(DoNotEdit)LiveMat_Squirtgun_drops"
+materials[hash("ring_outer/bg")] = "(DoNotEdit)LiveMat_PlayerRingOuter2"
+
+local function on_pressed(button)
+	if button.node_id == hash("mode/bg") then
+		msg.post("#", hash("disable"))
+		msg.post("#gui", hash("enable"))
+	elseif button.node_id == hash("load_models/bg") then
+		load_models()
+	elseif button.node_id == hash("sort/bg") then
+		sort_models()
+	elseif materials[button.node_id] and selected_part_index then
+		gui.set_visible(button_highlight, true)
+		local model_tab = model_list[selected_model_index]
+		local str_start = find_substring(model_tab.string, "(DoNotEdit)", selected_part_index) - 2
+		local str_end = str_start + #current_material + 1
+		current_material = materials[button.node_id]
+		model_tab.parts[selected_part_index] = current_material
+		model_tab.string = string.sub(model_tab.string, 1, str_start)..current_material..string.sub(model_tab.string, str_end)
+		gui.set_position(button_highlight, highlight_position[current_material])
+	elseif button.node_id == hash("custom/bg") then
+		gui.set_visible(button_highlight, true)
+		local model_tab = model_list[selected_model_index]
+		local str_start = find_substring(model_tab.string, "(DoNotEdit)", selected_part_index) - 2
+		local str_end = str_start + #current_material + 1
+		current_material = custom_material
+		model_tab.parts[selected_part_index] = current_material
+		model_tab.string = string.sub(model_tab.string, 1, str_start)..current_material..string.sub(model_tab.string, str_end)
+		gui.set_position(button_highlight, highlight_position.custom)
+	elseif button.node_id == hash("export/bg") then
+		local f = io.output("output/map_SharedArt.pw_art")
+		local final_string = string_beginning
+		for key, val in ipairs(model_list) do
+			if key < #model_list then
+				final_string = final_string..val.string..","
+			else
+				final_string = final_string..val.string
+			end
+		end
+		io.write(final_string.."]}")
+		io.close(f)
+	end
+end
+
+local function on_item_selected(list)
+	if list.id == "model_list/bg" then
+		selected_model = list.selected_item.data
+		selected_model_index = list.selected_item.index
+		gui.set_visible(button_highlight, false)
+		selected_part_index = nil
+		current_material = nil
+	elseif list.id == "parts_list/bg" then
+		gui.set_visible(button_highlight, true)
+		selected_part_index = list.selected_item.index
+		current_material = model_list[selected_model_index].parts[selected_part_index]
+		if not highlight_position[current_material] then
+			gui.set_position(button_highlight, highlight_position.custom)
+			gooey.input("custom_mat/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(current_material)
+		else
+			gui.set_position(button_highlight, highlight_position[current_material])
+		end
+	end
+end
+
+local function update_input(input)
+	if input.node_id == hash("custom_mat/text") then
+		custom_material = input.text
+	end
+end
+
+local function refresh_input(input, config, node_id)
+	local cursor = gui.get_node(node_id .. "/cursor")
+	if input.selected then
+		gui.set_enabled(cursor, true)
+		gui.set_position(cursor, vmath.vector3(14 + input.total_width, 0, 0))
+		gui.cancel_animation(cursor, gui.PROP_COLOR)
+		gui.set_color(cursor, vmath.vector4(1))
+		gui.animate(cursor, gui.PROP_COLOR, vmath.vector4(1,1,1,0), gui.EASING_INSINE, 0.8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	else
+		gui.set_enabled(cursor, false)
+		gui.cancel_animation(cursor, gui.PROP_COLOR)
+	end
+end
+local function dirtylarry_input(node_id, keyboard_type, action_id, action, config)
+	return gooey.input(node_id .. "/text", keyboard_type, action_id, action, config, function(input)
+		refresh_input(input, config, node_id)
+		if input.deselected_now then
+			update_input(input)
+		end
+	end)
+end
+
+local function update_button(button)
+	if button.pressed_now then
+		gui.play_flipbook(button.node, hash("button_pressed"))
+	elseif button.released_now then
+		gui.play_flipbook(button.node, hash("button_normal"))
+	elseif not button.pressed and button.over_now then
+		gui.play_flipbook(button.node, hash("button_over"))
+	elseif not button.pressed and button.out_now then
+		gui.play_flipbook(button.node, hash("button_normal"))
+	end
+end
+
+function on_input(self, action_id, action)
+	dirtylarry.button("mode", action_id, action, on_pressed, update_button)
+	dirtylarry.button("load_models", action_id, action, on_pressed, update_button)
+	dirtylarry.button("sort", action_id, action, on_pressed, update_button)
+	dirtylarry.button("props", action_id, action, on_pressed, update_button)
+	dirtylarry.button("geo_simple", action_id, action, on_pressed, update_button)
+	dirtylarry.button("glow", action_id, action, on_pressed, update_button)
+	dirtylarry.button("glow_invert", action_id, action, on_pressed, update_button)
+	dirtylarry.button("peds_alt", action_id, action, on_pressed, update_button)
+	dirtylarry.button("enemies", action_id, action, on_pressed, update_button)
+	dirtylarry.button("enemy_glow", action_id, action, on_pressed, update_button)
+	dirtylarry.button("squirtgun", action_id, action, on_pressed, update_button)
+	dirtylarry.button("ring_outer", action_id, action, on_pressed, update_button)
+	dirtylarry.button("custom", action_id, action, on_pressed, update_button)
+	dirtylarry.button("export", action_id, action, on_pressed, update_button)
+	gooey.dynamic_list("model_list/bg", "model_list/stencil", "model_list/listitem_bg", model_names, action_id, action, nil, on_item_selected, gooey.update_dynamic_list)
+	gooey.dynamic_list("parts_list/bg", "parts_list/stencil", "parts_list/listitem_bg", part_names[selected_model], action_id, action, nil, on_item_selected, gooey.update_dynamic_list)
+	dirtylarry_input("custom_mat", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, {}, update_input)
+end

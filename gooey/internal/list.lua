@@ -60,7 +60,6 @@ local function update_static_listitems(items, start, horizontal)
 	end
 end
 
-
 -- instance functions
 local LIST = {}
 function LIST.refresh(list)
@@ -151,7 +150,7 @@ local function handle_input(list, action_id, action, click_fn)
 			list.scroll_speed = 0
 		end
 		list.scroll_speed = list.scroll_speed or 0
-		list.scroll_speed = math.min(list.scroll_speed + 0.25, 10)
+		list.scroll_speed = math.min(list.scroll_speed + 1.25, 100)
 		list.scroll_time = time
 		if list.horizontal then
 			list.scroll_pos.x = list.scroll_pos.x + ((scroll_up and 1 or -1) * list.scroll_speed)
@@ -292,7 +291,6 @@ end
 
 --- A dynamic list where the nodes are reused to present a large list of items
 function M.dynamic(list_id, stencil_id, item_id, data, action_id, action, config, fn, refresh_fn)
-
 	local list = get_instance(list_id, stencil_id, refresh_fn, dynamic_lists)
 	list.dynamic = true
 	list.horizontal = config and config.horizontal
@@ -365,7 +363,7 @@ function M.dynamic(list_id, stencil_id, item_id, data, action_id, action, config
 		list.selected_item = nil
 		-- fewer items in the list than visible
 		-- assign indices and disable list items
-		if #data < #list.items then
+		if true or #data < #list.items then
 			for i=1,#list.items do
 				local item = list.items[i]
 				item.index = i
