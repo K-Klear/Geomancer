@@ -1,0 +1,36 @@
+path_settings {
+  path: "**/assets/images/*.atlas"
+  profile: "Default"
+}
+path_settings {
+  path: "**/assets/images/UI/UI.atlas"
+  profile: "UI"
+}
+profiles {
+  name: "Default"
+  platforms {
+    os: OS_ID_GENERIC
+    formats {
+      format: TEXTURE_FORMAT_RGBA
+      compression_level: BEST
+      compression_type: COMPRESSION_TYPE_DEFAULT
+    }
+    mipmaps: true
+    max_texture_size: 0
+    premultiply_alpha: true
+  }
+}
+profiles {
+  name: "UI"
+  platforms {
+    os: OS_ID_GENERIC
+    formats {
+      format: TEXTURE_FORMAT_RGBA
+      compression_level: BEST
+      compression_type: COMPRESSION_TYPE_DEFAULT
+    }
+    mipmaps: false
+    max_texture_size: 0
+    premultiply_alpha: true
+  }
+}

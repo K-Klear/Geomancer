@@ -1,5 +1,6 @@
 local gooey = require "gooey.gooey"
 local dirtylarry = require "gooey-dirtylarry.dirtylarry"
+local UI = require("modules/ui")
 
 local string_start = "{\"NORMALSection\":[{\"name\":\"Empty\",\"distance\":\"-12\",\"properties\":[{\"startUnit\":\"-12\"}]}],\"Volume\":["
 local string_end = "],\"Decor\":[],\"DecorGroups\":[]}"
@@ -169,7 +170,8 @@ local function update_radio(radio)
 end
 
 function init(self)
-	msg.post(".", hash("acquire_input_focus"))
+	msg.post("#", hash("disable"))
+	--[[
 	gooey.checkbox("additive/box").set_checked(true)
 	gooey.checkbox("show_path/box").set_checked(true)
 	gooey.checkbox("image_group/box").set_checked(true)
@@ -184,6 +186,7 @@ function init(self)
 	gooey.input("processing_order/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(processing_order)
 	update_radio(gooey.radio("filter_white/button").set_selected(true))
 	update_radio(gooey.radio("filter_alpha/button").set_selected(false))
+	--]]
 	preview_node = gui.get_node("preview")
 	message_box = gui.get_node("message_box")
 	crop_stencil = gui.get_node("crop_stencil")
@@ -379,6 +382,28 @@ local function on_pressed(button)
 	if button.node_id == hash("load_images/bg") then
 		load_images()
 	elseif button.node_id == hash("create/bg") then
+		
+	elseif button.node_id == hash("left/bg") then
+		if current_preview > 1 then
+			current_preview = current_preview - 1
+			set_preview_image()
+		end
+	elseif button.node_id == hash("right/bg") then
+		if current_preview < #image_data then
+			current_preview = current_preview + 1
+			set_preview_image()
+		end
+	elseif text_field_button_data[button.node_id] then
+		local data = text_field_button_data[button.node_id]
+		local new_val = node_text_to_number(data.node_id) + data.change
+		update_input({node_id = hash(data.node_id), text = tostring(new_val)})
+	elseif button.node_id == hash("mode/bg") then
+
+	end
+end
+
+local function evaluate_button(button)
+	if button == "create" then
 		if #image_data < 1 then
 			gui.set_text(message_box, "No images loaded.")
 		elseif not (create_additive or create_subtractive) then
@@ -425,28 +450,31 @@ local function on_pressed(button)
 				io.close(f)
 			end
 		end
-	elseif button.node_id == hash("left/bg") then
-		if current_preview > 1 then
-			current_preview = current_preview - 1
-			set_preview_image()
-		end
-	elseif button.node_id == hash("right/bg") then
-		if current_preview < #image_data then
-			current_preview = current_preview + 1
-			set_preview_image()
-		end
-	elseif text_field_button_data[button.node_id] then
-		local data = text_field_button_data[button.node_id]
-		local new_val = node_text_to_number(data.node_id) + data.change
-		update_input({node_id = hash(data.node_id), text = tostring(new_val)})
-	elseif button.node_id == hash("mode/bg") then
+	elseif button == "load_images" then
+		load_images()
+	elseif button == "geo_main_menu" then
 		msg.post(".", hash("disable"))
-		msg.post("#material_changer", hash("enable"))
+		UI.unload_template()
+		msg.post("#splash", hash("mode_switched"))
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("mode_switched") then
+		local button_list = {"load_images", "create", "geo_main_menu"}
+		UI.load_template(button_list)
+		msg.post("#", hash("enable"))
+		UI.input_enabled = true
 	end
 end
 
 
 function on_input(self, action_id, action)
+	UI.on_input(self, action_id, action, evaluate_button)
+	
+	
+
+	--[[
 	dirtylarry.button("mode", action_id, action, on_pressed, update_button)
 	dirtylarry.button("load_images", action_id, action, on_pressed, update_button)
 	dirtylarry.button("create", action_id, action, on_pressed, update_button)
@@ -490,4 +518,6 @@ function on_input(self, action_id, action)
 			filter = 3
 		end)
 	end)
+	--]]
+	
 end

@@ -1,0 +1,741 @@
+local SET = require("modules/settings")
+local UI = require("modules/ui")
+local TEXT = require("modules/text")
+local SND = require("modules/sound")
+
+local nodes, hover
+
+local MENU_OPEN_TIME = 0.4
+local BUTTON_FLASH_TIME = 0.2
+local BUTTON_PRESS_TIME = 0.05
+local INPUT_ENABLED = true
+local EMPTY_VECTOR = vmath.vector3()
+
+local scanner_enabled, scan_in_progress, scan_initiated
+local scanner_text_timer
+local mouse_held
+
+local current_screenshot, screenshot_time = 1, 4
+local screenshot_timer
+local screenshot_button, screenshot_noise
+
+local PANEL = {main = {}, events = {}, people = {}, eula = {}, credits = {}, employ = {}, exit = {}, double_you = {}}--, login = {}}
+local current_dialogs = {}
+
+local button_settings = {
+	[hash("button")] = {
+		suffix = "/button_box",
+		base_anim = "button_black",
+		base_text_colour = vmath.vector4(1),
+		hover_text_colour = vmath.vector4(0, 0, 0, 1),
+		press_offset = vmath.vector3(0),
+		down = "button_black_down",
+		up = "button_black_up"
+	},
+	[hash("button_map")] = {
+		suffix = "/button_map",
+		base_anim = "mapa",
+		base_text_colour = vmath.vector4(0),
+		hover_colour = vmath.vector4(0.6, 1, 0.8, 1),
+		hover_text_colour = vmath.vector4(0),
+		press_offset = vmath.vector3(0),
+		down = "mapa",
+		up = "mapa"
+	},
+	[hash("button_white")] = {
+		suffix = "/button_white",
+		base_anim = "button_white",
+		base_text_colour = vmath.vector4(0, 0, 0, 1),
+		hover_anim = "button_white_hover",
+		hover_text_colour = vmath.vector4(0, 0, 0, 1),
+		press_offset = vmath.vector3(5, -5, 0),
+		down = "button_white_down",
+		up = "button_white_up"
+	},
+	[hash("button_black")] = {
+		suffix = "/button_black",
+		base_anim = "button_menu_base",
+		base_text_colour = vmath.vector4(1),
+		hover_anim = "button_menu_hover",
+		hover_text_colour = vmath.vector4(1),--0, 0, 0, 1),
+		press_offset = vmath.vector3(6, -6, 0),
+		down = "button_menu_down",
+		up = "button_menu_up"
+	},
+	[hash("button_screenshot")] = {
+		suffix = "/button_screenshot",
+		--base_anim = "mapa",
+		base_text_colour = vmath.vector4(0),
+		--hover_colour = vmath.vector4(0.6, 1, 0.8, 1),
+		hover_text_colour = vmath.vector4(0),
+		press_offset = vmath.vector3(0)
+	}
+}
+
+local function remove_hover()
+	if hover then
+		local button = UI.active[hover]
+		if button_settings[button.type].hover_anim then
+			if mouse_held then
+				gui.play_flipbook(button.node, button_settings[button.type].up, function()
+					gui.play_flipbook(button.node, button_settings[button.type].base_anim)
+				end)
+			else
+				gui.play_flipbook(button.node, button_settings[button.type].base_anim)
+			end
+			local text_node = gui.get_node(button.template.."/text")
+			gui.set_color(text_node, button_settings[button.type].base_text_colour)
+			gui.animate(text_node, "position", EMPTY_VECTOR, go.EASING_LINEAR, BUTTON_PRESS_TIME)
+		elseif button_settings[UI.active[hover].type].hover_colour then
+			gui.set_color(button.node, vmath.vector4(1))
+		end
+		hover = nil
+	end
+end
+
+local function open_dialog(dialog, transition, time, props)
+	if dialog == "main" then
+
+	else
+		SND.play("#open")
+	end
+	time = time or MENU_OPEN_TIME
+	local base = PANEL[dialog].base
+	gui.set_enabled(base, true)
+	remove_hover()
+	UI.unload_template()
+	table.insert(current_dialogs, dialog)
+	local function enable_panel()
+		UI.load_template(PANEL[dialog].BUTTON_LIST)
+		UI.load_template("sound")
+	end
+	if transition == hash("fade_in") then
+		gui.set_alpha(base, 0)
+		gui.animate(base, "color.w", 1, go.EASING_INSINE, time, 0, enable_panel)
+	elseif transition == hash("expand_from_button") then
+		gui.set_alpha(base, 0)
+		gui.animate(base, "color.w", 1, go.EASING_INSINE, time / 2)
+		local previous_position = gui.get_position(base)
+		gui.set_position(base, gui.get_position(props.button))
+		local size_btn = gui.get_size(props.button)
+		local size_base = gui.get_size(base)
+		local scale = vmath.vector3(size_btn.x / size_base.x, size_btn.y / size_base.y, 1)
+		gui.set_scale(base, scale)
+		gui.animate(base, "position", previous_position, go.EASING_INEXPO, time)
+		gui.animate(base, "scale", vmath.vector3(1), go.EASING_INEXPO, time, 0, enable_panel)
+
+		--gui.animate(base, "scale.x", 1, go.EASING_OUTSINE, time * 0.5)
+		--gui.animate(base, "scale.y", 1, go.EASING_OUTSINE, time * 0.75, time * 0.25, enable_panel)
+		--gui.animate(base, "position", previous_position, go.EASING_OUTSINE, time * 0.75, time * 0.25)
+	end
+end
+
+local function reactivate_dialog()
+	gui.set_enabled(PANEL[current_dialogs[#current_dialogs]].base, false)
+	table.remove(current_dialogs, #current_dialogs)
+	UI.load_template(PANEL[current_dialogs[#current_dialogs]].BUTTON_LIST)
+	UI.load_template("sound")
+end
+
+local function close_dialog(transition, time, props, next_dialog)
+	time = time or MENU_OPEN_TIME
+	next_dialog = next_dialog or function() end
+	dialog = current_dialogs[#current_dialogs]
+	local base = PANEL[dialog].base
+	remove_hover()
+	UI.unload_template()
+	local function disable_panel()
+		gui.set_enabled(base, false)
+		reactivate_dialog()
+		next_dialog()
+	end
+	SND.play("#close_dialog")
+	if transition == hash("contract") then
+		gui.animate(base, "color.w", 0, gui.EASING_OUTSINE, time / 2, time / 2)
+		gui.animate(base, "scale", 0, gui.EASING_OUTSINE, time, 0, disable_panel)
+	elseif transition == hash("contract_to_button") then
+		local previous_position = gui.get_position(base)
+		local size_btn = gui.get_size(props.button)
+		local size_base = gui.get_size(base)
+		local scale = vmath.vector3(size_btn.x / size_base.x, size_btn.y / size_base.y, 1)
+		gui.animate(base, "color.w", 0, gui.EASING_OUTSINE, time / 2, time / 2)
+		gui.animate(base, "scale", scale, gui.EASING_OUTEXPO, time)
+		gui.animate(base, "position", gui.get_position(props.button), gui.EASING_OUTEXPO, time, 0, function()
+			disable_panel()
+			gui.set_position(base, previous_position)
+			gui.set_scale(base, vmath.vector3(1))
+		end)
+	end
+end
+
+function init(self)
+	PANEL.main = {
+		base = gui.get_node("panel_main"),
+		btn_events = gui.get_node("events/button_white"),
+		btn_people = gui.get_node("people/button_white"),
+		btn_credits = gui.get_node("credits/button_white"),
+		btn_exit = gui.get_node("exit/button_white"),
+		btn_login = gui.get_node("login/button_white"),
+		btn_eula = gui.get_node("eula/button_white"),
+		btn_double_you = gui.get_node("double_you/button_white"),
+
+		BUTTON_LIST = {"events", "people", "credits", "exit", "eula", "login", "double_you"},
+		input_eval = PANEL.main.input_eval
+	}
+
+	PANEL.events = {
+		base = gui.get_node("dialog_events"),
+		text = gui.get_node("events_text"),
+
+		BUTTON_LIST = {"events_ok", "events_map"},
+		input_eval = PANEL.events.input_eval
+	}
+
+	PANEL.people = {
+		base = gui.get_node("dialog_people"),
+		name = gui.get_node("people_name"),
+		alias = gui.get_node("people_alias"),
+		text = gui.get_node("people_text"),
+		portrait = gui.get_node("people_portrait"),
+		portrait_2 = gui.get_node("people_portrait_2"),
+		portrait_noise = gui.get_node("people_portrait_noise"),
+		portrait_noise_2 = gui.get_node("people_portrait_noise_2"),
+
+		BUTTON_LIST = {"people_ok", "people_verkant", "people_arkadij", "people_holkogramy", "people_fhill", "people_agatha",
+		"people_jack", "people_claudia", "people_emmett", "people_zanziro", "people_zuzka", "eula"},
+		input_eval = PANEL.people.input_eval
+	}
+
+	PANEL.credits = {
+		base = gui.get_node("dialog_credits"),
+		title = gui.get_node("credits_title"),
+		text = gui.get_node("credits_text"),
+		btn_mode = gui.get_node("credits_cast/text"),
+
+		BUTTON_LIST = {"credits_ok", "eula", "credits_cast"},
+		input_eval = PANEL.credits.input_eval
+	}
+	
+	PANEL.exit = {
+		base = gui.get_node("dialog_exit"),
+
+		BUTTON_LIST = {"exit_ok", "exit_back", "eula"},
+		input_eval = PANEL.exit.input_eval
+	}
+
+	PANEL.employ = {
+		base = gui.get_node("dialog_employ"),
+		title = gui.get_node("employ_title"),
+
+		BUTTON_LIST = {"employ_ok"},
+		input_eval = PANEL.employ.input_eval
+	}
+
+	PANEL.eula = {
+		base = gui.get_node("dialog_eula"),
+
+		BUTTON_LIST = {"eula_accept_1", "eula_accept_2"},
+		input_eval = PANEL.eula.input_eval
+	}
+
+	PANEL.double_you = {
+		base = gui.get_node("dialog_double_you"),
+
+		BUTTON_LIST = {"double_you_back", "double_you_screenshot", "double_you_demo", "double_you_video", "eula"},
+		input_eval = PANEL.double_you.input_eval
+	}
+
+	screenshot_button = gui.get_node("double_you_screenshot/button_screenshot")
+	screenshot_noise = gui.get_node("screenshot_noise")
+	
+	nodes = {
+		logo = {
+			left = gui.get_node("logo_left"),
+			right = gui.get_node("logo_right"),
+			left_shadow = gui.get_node("logo_left_shadow"),
+			right_shadow = gui.get_node("logo_right_shadow"),
+			text = gui.get_node("logo_text"),
+			shadow = gui.get_node("logo_text_shadow"),
+		},
+		employ = {
+			dialog = gui.get_node("dialog_employ")
+		}
+	}
+
+	local ICON_ANIMATION_LENGTH = 4
+
+	local function get_map_icon_properties()
+		return gui.EASING_INOUTSINE, ICON_ANIMATION_LENGTH, 0, nil, gui.PLAYBACK_LOOP_PINGPONG
+	end
+
+	local function animate_map_icon(icon, shadow, scale_factor)
+		scale_factor = scale_factor or 1.25
+		icon, shadow = gui.get_node(icon), gui.get_node(shadow)
+		local base_scale = gui.get_scale(icon)
+		local new_scale = base_scale * scale_factor
+		local position_offset = 20 * (scale_factor - 1)
+		local shadow_fade = 0.4 - 0.8 * (scale_factor - 1)
+		local pos = gui.get_position(icon).y
+		gui.animate(icon, "position.y", pos + position_offset, get_map_icon_properties())
+		pos = gui.get_position(shadow).x
+		gui.animate(shadow, "position.x", pos + position_offset, get_map_icon_properties())
+		gui.animate(shadow, "color.w", shadow_fade, get_map_icon_properties())
+		gui.set_scale(icon, base_scale)
+		gui.set_scale(shadow, base_scale)
+		gui.animate(icon, "scale", new_scale, get_map_icon_properties())
+		gui.animate(shadow, "scale", new_scale, get_map_icon_properties())
+	end
+
+	animate_map_icon("map_logo", "map_logo_shadow")
+	animate_map_icon("map_metro", "map_metro_shadow", 1.10)
+	animate_map_icon("map_tram_1", "map_tram_1_shadow", 1.10)
+	animate_map_icon("map_tram_2", "map_tram_2_shadow", 1.10)
+	animate_map_icon("map_tram_3", "map_tram_3_shadow", 1.10)
+
+
+	
+	for key, val in pairs(PANEL) do
+		gui.set_enabled(val.base, false)
+	end
+	gui.set_enabled(nodes.employ.dialog, false)
+	gui.set_enabled(PANEL.people.portrait_2, false)
+	gui.animate(nodes.logo.left, "position", vmath.vector3(37, 1090, 0), go.EASING_OUTSINE, 1)
+	gui.animate(nodes.logo.right, "position", vmath.vector3(37, 1090, 0), go.EASING_OUTSINE, 1)
+	gui.animate(nodes.logo.left_shadow, "position", vmath.vector3(37 + 5, 1090 - 5, 0), go.EASING_OUTSINE, 1)
+	gui.animate(nodes.logo.right_shadow, "position", vmath.vector3(37 + 5, 1090 - 5, 0), go.EASING_OUTSINE, 1)
+	gui.animate(nodes.logo.left, "color", vmath.vector4(0, 0, 0, 1), go.EASING_INSINE, 1)
+	gui.animate(nodes.logo.right, "color", vmath.vector4(0, 0, 0, 1), go.EASING_INSINE, 1)
+	gui.animate(nodes.logo.left_shadow, "scale", vmath.vector3(1 / 16), go.EASING_OUTSINE, 1)
+	gui.animate(nodes.logo.right_shadow, "scale", vmath.vector3(1 / 16), go.EASING_OUTSINE, 1)
+	gui.animate(nodes.logo.left, "scale", vmath.vector3(1 / 16), go.EASING_OUTSINE, 1)
+	gui.animate(nodes.logo.right, "scale", vmath.vector3(1 / 16), go.EASING_OUTSINE, 1, 0, function()
+		SND.play("#open_app")
+		TEXT.write(nodes.logo.text, "   AkordCorp", 0.1)
+		TEXT.write(nodes.logo.shadow, "   AkordCorp", 0.1)
+		timer.delay(0.5, false, function()
+			open_dialog("main", hash("fade_in"), 1)
+		end)
+		msg.post(".", "acquire_input_focus")
+	end)
+end
+
+local person_text_timer, person_name_timer, person_alias_timer, person_noise_timer
+
+timer.cancel_better = function(handle)
+	if handle then
+		return timer.cancel(handle)
+	end
+end
+
+local PEOPLE_NOISE_TIME = 0.5
+local ALPHA = "color.w"
+
+local previous_portrait_2
+
+local function display_person(person, dialog_open)
+	person = person or "verkant"
+	local DATA = TEXT.people_data[person]
+	gui.cancel_animation(PANEL.people.portrait_noise, ALPHA)
+	gui.cancel_animation(PANEL.people.portrait_noise_2, ALPHA)
+
+	local hide_1, hide_2, fade_2, show_portrait_2
+	if dialog_open then
+		previous_portrait_2 = false
+	end
+	if dialog_open or person_noise_timer then
+		if person_noise_timer then
+			timer.cancel(person_noise_timer)
+			person_noise_timer = nil
+		end
+		hide_1 = true
+		if previous_portrait_2 then
+			if DATA.portrait_2 then
+				hide_2 = true
+			else
+				fade_2 = true
+			end
+		end
+	end
+	if previous_portrait_2 and not DATA.portrait_2 then
+		fade_2 = true
+	end
+
+	if not DATA.portrait_2 then
+		gui.set_alpha(PANEL.people.portrait_noise_2, 0)
+		if fade_2 then
+			--gui.set_enabled(PANEL.people.portrait_2, false)
+			gui.animate(PANEL.people.portrait_noise_2, ALPHA, 1, gui.EASING_LINEAR, PEOPLE_NOISE_TIME, 0, nil, gui.PLAYBACK_ONCE_PINGPONG)
+		else
+			gui.set_alpha(PANEL.people.portrait_noise_2, 0)
+			gui.set_enabled(PANEL.people.portrait_2, false)
+		end
+	else
+		if hide_2 then
+			gui.set_enabled(PANEL.people.portrait_2, true)
+			gui.set_alpha(PANEL.people.portrait_noise_2, 1)
+			gui.animate(PANEL.people.portrait_noise_2, ALPHA, 0, gui.EASING_LINEAR, PEOPLE_NOISE_TIME)
+			gui.play_flipbook(PANEL.people.portrait_2, DATA.portrait_2)
+		else
+			gui.set_alpha(PANEL.people.portrait_noise_2, 0)
+			gui.animate(PANEL.people.portrait_noise_2, ALPHA, 1, gui.EASING_LINEAR, PEOPLE_NOISE_TIME, 0, nil, gui.PLAYBACK_ONCE_PINGPONG)
+			show_portrait_2 = true
+		end
+	end
+
+	if hide_1 then
+		gui.set_alpha(PANEL.people.portrait_noise, 1)
+		gui.animate(PANEL.people.portrait_noise, ALPHA, 0, gui.EASING_LINEAR, PEOPLE_NOISE_TIME)
+		gui.play_flipbook(PANEL.people.portrait, DATA.portrait)
+		person_noise_timer = timer.delay(PEOPLE_NOISE_TIME / 2, false, function()
+			if show_portrait_2 then
+				gui.set_enabled(PANEL.people.portrait_2, true)
+				gui.play_flipbook(PANEL.people.portrait_2, DATA.portrait_2)
+			end
+			if fade_2 then
+				gui.set_enabled(PANEL.people.portrait_2, false)
+			end
+			person_noise_timer = nil
+		end)
+	else
+		gui.set_alpha(PANEL.people.portrait_noise, 0)
+		gui.animate(PANEL.people.portrait_noise, ALPHA, 1, gui.EASING_LINEAR, PEOPLE_NOISE_TIME, 0, nil, gui.PLAYBACK_ONCE_PINGPONG)
+		person_noise_timer = timer.delay(PEOPLE_NOISE_TIME / 2, false, function()
+			if show_portrait_2 then
+				gui.set_enabled(PANEL.people.portrait_2, true)
+				gui.play_flipbook(PANEL.people.portrait_2, DATA.portrait_2)
+			end
+			if fade_2 then
+				gui.set_enabled(PANEL.people.portrait_2, false)
+			end
+			gui.play_flipbook(PANEL.people.portrait, DATA.portrait)
+			person_noise_timer = nil
+		end)
+	end
+	local text = DATA.name.."\n\n"..DATA.actor.."\n\n"..DATA.text
+	timer.cancel_better(person_name_timer)
+	timer.cancel_better(person_alias_timer)
+	timer.cancel_better(person_text_timer)
+	previous_portrait_2 = DATA.portrait_2
+	person_name_timer = TEXT.write(PANEL.people.name, DATA.name, 0.2, true)
+	person_alias_timer = TEXT.write(PANEL.people.alias, DATA.actor, 0.1, true)
+	person_text_timer = TEXT.write(PANEL.people.text, DATA.text, 0.03, true)
+	--gui.set_text(PANEL.people.text, text)
+end
+
+local screenshot_time_change = 0.2
+
+local function change_screenshot()
+	if not screenshot_timer then return end
+	timer.cancel(screenshot_timer)
+	screenshot_timer = nil
+	current_screenshot = current_screenshot + 1
+	if current_screenshot > 6 then current_screenshot = 1 end
+	gui.animate(screenshot_noise, "color.w", 0.5, gui.EASING_OUTSINE, screenshot_time_change, 0, function()
+		gui.play_flipbook(screenshot_button, "screen_"..current_screenshot)
+		gui.animate(screenshot_noise, "color.w", 0, gui.EASING_INSINE, screenshot_time_change, 0, function()
+			screenshot_timer = timer.delay(screenshot_time, false, change_screenshot)
+		end)
+	end)
+end
+
+function PANEL.main.input_eval(button)
+	if button == "events" then
+		local text = "Po mnohaleté práci tisíců zaměstanců AkordCorpu po celém světě je naší ctí odhalit plod naší práce. "
+		text = text.."Vybraným hostům bude Projekt X představen na exkluzivní kyberprostorové prezentaci.\n\n"
+		text = text.."Nejste mezi nimi? Nevadí! Vše potřebné se můžete dozvědět i na zvláštní akci, která se bude konat"
+		text = text.." ve fyzickém prostoru, a to konkrétně v prostorech Přírodovědecké fakulty UK, posluchárna VG, Albertov 6, Praha 2\n\n"
+		text = text.."16. 6. 2023, začátek v 18:00."
+		gui.set_text(PANEL.events.text, text)
+		open_dialog("events", hash("expand_from_button"), nil, {button = PANEL.main.btn_events})
+	elseif button == "people" then
+		display_person("verkant", true)
+		open_dialog("people", hash("expand_from_button"), nil, {button = PANEL.main.btn_people})
+	elseif button == "double_you" then
+		current_screenshot = math.random(1, 6)
+		gui.cancel_animation(screenshot_noise, "color.w")
+		gui.set_alpha(screenshot_noise, 0)
+		gui.play_flipbook(screenshot_button, "screen_"..current_screenshot)
+		open_dialog("double_you", hash("expand_from_button"), nil, {button = PANEL.main.btn_double_you})
+		if screenshot_timer then
+			timer.cancel(screenshot_timer)
+		end
+		screenshot_timer = timer.delay(screenshot_time, false, change_screenshot)
+	elseif button == "credits" then
+		open_dialog("credits", hash("expand_from_button"), nil, {button = PANEL.main.btn_credits})
+	elseif button == "exit" then
+		open_dialog("exit", hash("expand_from_button"), nil, {button = PANEL.main.btn_exit})
+	elseif button == "login" then
+		if scanner_text_timer then
+			timer.cancel(scanner_text_timer)
+			scanner_text_timer = nil
+		end
+		if SET.is_desktop then
+			gui.set_text(PANEL.employ.title, "Nehýbejte se zatímco\nprobíhá sken sítnice")
+		else
+			gui.set_text(PANEL.employ.title, "Podržte palec\nuprostřed displeje")
+		end
+		open_dialog("employ", hash("expand_from_button"), nil, {button = PANEL.main.btn_login})
+		timer.delay(MENU_OPEN_TIME, false, function()
+			if SET.is_desktop then
+				msg.post("scanner#scanner", hash("get_ready"), {start = true})
+			else
+				msg.post("scanner#scanner", hash("get_ready"))
+				scanner_enabled = true
+			end
+		end)
+	elseif button == "eula" then
+		open_dialog("eula", hash("expand_from_button"), nil, {button = PANEL.main.btn_eula})
+	end
+end
+
+function PANEL.events.input_eval(button)
+	if button == "events_ok" then
+		close_dialog(hash("contract_to_button"), nil, {button = PANEL.main.btn_events})
+		--close_dialog(hash("contract"))
+	elseif button == "events_map" then
+		local web_url
+		if math.random() > 0.5 then
+			web_url = "https://www.google.com/maps/place/P%C5%99%C3%ADrodov%C4%9Bdeck%C3%A1+fakulta+UK/@50.0677658,14.4220166,17z/data=!4m5!3m4!1s0x470b948a8298e12d:0xc34671cecfa94ef1!8m2!3d50.0689086!4d14.4245388"
+		else
+			web_url = "https://mapy.cz/zakladni?x=14.4237025&y=50.0681681&z=18&q=albertov%206&source=addr&id=8940826&ds=1"
+		end
+		sys.open_url(web_url, {target = "_blank"})
+	--elseif button == "eula" then
+		--open_dialog("eula", hash("expand_from_button"), nil, {button = PANEL.main.btn_eula})
+	end
+end
+
+function PANEL.people.input_eval(button)
+	if button == "people_ok" then
+		close_dialog(hash("contract_to_button"), nil, {button = PANEL.main.btn_people})
+	elseif button == "people_verkant" then
+		display_person("verkant")
+	elseif button == "people_arkadij" then
+		display_person("arkadij")
+	elseif button == "people_holkogramy" then
+		display_person("holkogramy")
+	elseif button == "people_fhill" then
+		display_person("fhill")
+	elseif button == "people_agatha" then
+		display_person("agatha")
+	elseif button == "people_jack" then
+		display_person("jack")
+	elseif button == "people_claudia" then
+		display_person("claudia")
+	elseif button == "people_emmett" then
+		display_person("emmett")
+	elseif button == "people_zanziro" then
+		display_person("zanziro")
+	elseif button == "people_zuzka" then
+		display_person("zuzka")
+	elseif button == "eula" then
+		open_dialog("eula", hash("expand_from_button"), nil, {button = PANEL.main.btn_eula})
+	end
+end
+
+function PANEL.double_you.input_eval(button)
+	if button == "double_you_back" then
+		if screenshot_timer then
+			timer.cancel(screenshot_timer)
+			screenshot_timer = nil
+		end
+		close_dialog(hash("contract_to_button"), nil, {button = PANEL.main.btn_double_you})
+	elseif button == "double_you_screenshot" then
+		change_screenshot()
+	elseif button == "double_you_demo" then
+		sys.open_url("https://kklear.itch.io/double-you", {target = "_blank"})
+	elseif button == "double_you_video" then
+		sys.open_url("https://www.youtube.com/watch?v=djqTKE9Uvrk", {target = "_blank"})
+	elseif button == "eula" then
+		open_dialog("eula", hash("expand_from_button"), nil, {button = PANEL.main.btn_eula})
+	end
+end
+
+function PANEL.credits.input_eval(button)
+	if button == "credits_ok" then
+		close_dialog(hash("contract_to_button"), nil, {button = PANEL.main.btn_credits})
+	elseif button == "credits_cast" then
+		local next_dialog = function()
+			display_person(nil, true)
+			open_dialog("people", hash("expand_from_button"), nil, {button = PANEL.main.btn_people})
+		end
+		close_dialog(hash("contract_to_button"), nil, {button = PANEL.main.btn_credits}, next_dialog)
+	elseif button == "eula" then
+		open_dialog("eula", hash("expand_from_button"), nil, {button = PANEL.main.btn_eula})
+	end
+end
+
+function PANEL.exit.input_eval(button)
+	if button == "exit_ok" then
+		INPUT_ENABLED = false
+		PANEL.exit.input_eval = function() end
+		SND.play("#close_app")
+		timer.delay(2.3, false, function()
+			if SET.is_html5 then
+				local web_url = "http://www.hamba.cz/"
+				sys.open_url(web_url, {target = "_self"})
+			else
+				sys.exit(0)
+			end
+		end)
+	elseif button == "exit_back" then
+		close_dialog(hash("contract_to_button"), nil, {button = PANEL.main.btn_exit})
+	elseif button == "eula" then
+		open_dialog("eula", hash("expand_from_button"), nil, {button = PANEL.main.btn_eula})
+	end
+end
+
+function PANEL.employ.input_eval(button)
+	if button == "employ_ok" then
+		scan_initiated = false
+		scan_in_progress = false
+		scanner_enabled = false
+		msg.post("scanner#scanner", hash("hide"))
+		close_dialog(hash("contract_to_button"), nil, {button = PANEL.main.btn_login})
+	end
+end
+
+function PANEL.eula.input_eval(button)
+	close_dialog(hash("contract_to_button"), nil, {button = PANEL.main.btn_eula})
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("template_clicked") and INPUT_ENABLED then
+		local function start_eval()
+			INPUT_ENABLED = true
+			PANEL[current_dialogs[#current_dialogs]].input_eval(message.template)
+		end
+
+		local button_data = UI.active[message.button]
+		local type = button_data.type
+
+		if type == hash("button") then
+			start_eval()
+		elseif type == hash("button_sound") then
+			SET.sound_on = not SET.sound_on
+			if SET.sound_on then
+				sound.set_group_gain("master", 1)
+				gui.play_flipbook(button_data.node, "sound_on")
+			else
+				sound.set_group_gain("master", 0)
+				gui.play_flipbook(button_data.node, "sound_off")
+			end
+		else
+			if SET.is_desktop then
+				if button_settings[type].up then
+					gui.play_flipbook(button_data.node, button_settings[type].up)
+				end
+				local text_node = gui.get_node(button_data.template.."/text")
+				gui.animate(text_node, "position", EMPTY_VECTOR, go.EASING_LINEAR, BUTTON_PRESS_TIME)
+				--gui.set_position(text_node, EMPTY_VECTOR)
+				start_eval()
+			else
+				INPUT_ENABLED = false
+				local text_node = gui.get_node(message.template.."/text")
+				--gui.set_color(text_node, button_settings[type].hover_text_colour)
+				if button_settings[type].down then
+					gui.play_flipbook(button_data.node, button_settings[type].down)
+					timer.delay(BUTTON_PRESS_TIME, false, function()
+						gui.play_flipbook(button_data.node, button_settings[type].up, function()
+							gui.play_flipbook(button_data.node, button_settings[type].base_anim)
+						end)
+						gui.animate(text_node, "position", EMPTY_VECTOR, go.EASING_LINEAR, BUTTON_PRESS_TIME)
+					end)
+				end
+				local text_pos
+				if button_settings[type].press_offset then
+					gui.set_position(text_node, EMPTY_VECTOR)
+					gui.animate(text_node, "position", button_settings[type].press_offset, go.EASING_LINEAR, BUTTON_PRESS_TIME)
+				end
+				timer.delay(BUTTON_PRESS_TIME * 4, false, function()
+					start_eval()
+				end)
+			end
+			SND.play("#beep")
+		end
+	elseif message_id == hash("scan_completed") then
+		if scanner_text_timer then
+			timer.cancel(scanner_text_timer)
+			scanner_text_timer = nil
+		end
+		scanner_text_timer = TEXT.write(PANEL.employ.title, "Zpracovávám...", UI.SCAN_TIME / 30, true)
+		if not SET.is_desktop then
+			INPUT_ENABLED = false
+			scan_initiated = false
+			scan_in_progress = false
+			scanner_enabled = false
+		end
+	elseif message_id == hash("scan_evaluated") then
+		if not SET.is_desktop then
+			INPUT_ENABLED = true
+		end
+		if scanner_text_timer then
+			timer.cancel(scanner_text_timer)
+			scanner_text_timer = nil
+		end
+		gui.set_text(PANEL.employ.title, "NEZNÁMÝ UŽIVATEL!")
+	end
+end
+
+function on_input(self, action_id, action)
+	mouse_held = action.pressed or (mouse_held and not action.released)
+	if action_id == hash("touch") then
+		if (SET.is_desktop and action.released) or (not SET.is_desktop and action.pressed) then
+			for key, val in ipairs(UI.active) do
+				if gui.pick_node(val.node, action.x, action.y) then
+					msg.post("#", hash("template_clicked"), {template = val.template, button = key})
+					break
+				end
+			end
+		elseif SET.is_desktop and action.pressed then
+			for key, val in ipairs(UI.active) do
+				if gui.pick_node(val.node, action.x, action.y) and button_settings[val.type] then
+					if button_settings[val.type].down then
+						gui.play_flipbook(val.node, button_settings[val.type].down)
+					end
+					local text_node = gui.get_node(val.template.."/text")
+					gui.set_color(text_node, button_settings[val.type].base_text_colour)
+					if button_settings[val.type].press_offset then
+						gui.set_position(text_node, EMPTY_VECTOR)
+						gui.animate(text_node, "position", button_settings[val.type].press_offset, go.EASING_LINEAR, BUTTON_PRESS_TIME)
+					end
+					break
+				end
+			end
+		end
+	elseif not action_id and SET.is_desktop then
+		local new_hover
+		for key, val in ipairs(UI.active) do
+			if button_settings[val.type] then
+				local node = gui.get_node(val.template..button_settings[val.type].suffix)
+				if gui.pick_node(node, action.x, action.y) then
+					new_hover = key
+					break
+				end
+			end
+		end
+		if new_hover then
+			if not (hover == new_hover) then
+				SND.play("#hover")
+				remove_hover()
+				hover = new_hover
+				local hover_anim = button_settings[UI.active[hover].type].hover_anim
+				local hover_colour = button_settings[UI.active[hover].type].hover_colour
+				if hover_anim then
+					local text_node = gui.get_node(UI.active[hover].template.."/text")
+					gui.set_color(text_node, button_settings[UI.active[hover].type].hover_text_colour)
+					if mouse_held then
+						gui.play_flipbook(UI.active[hover].node, button_settings[UI.active[hover].type].down)
+						gui.animate(text_node, "position", button_settings[UI.active[hover].type].press_offset, go.EASING_LINEAR, BUTTON_PRESS_TIME)
+					else
+						gui.play_flipbook(UI.active[hover].node, hover_anim)
+					end
+				elseif hover_colour then
+					gui.set_color(UI.active[hover].node, hover_colour)
+				end
+			end
+		else
+			remove_hover()
+		end
+	end
+end

@@ -1,0 +1,41 @@
+local UI = require("modules/ui")
+
+local function setup_buttons()
+	UI.load_template({"splash_model", "splash_geo", "splash_exit"})
+end
+
+function init(self)
+	msg.post("@render:", hash("clear_color"), {color = vmath.vector4(1, 0.2, 0.8, 1) * 0.15})
+	msg.post(".", hash("acquire_input_focus"))
+	setup_buttons()
+end
+
+local function evaluate_button(button)
+	if button == "splash_exit" then
+		os.exit(1)
+	elseif button == "splash_geo" then
+		UI.input_enabled = false
+		UI.unload_template()
+		msg.post("#", hash("disable"))
+		msg.post("#geo_slices", hash("mode_switched"))
+	elseif button == "splash_model" then
+		UI.input_enabled = false
+		UI.unload_template()
+		msg.post("#", hash("disable"))
+		msg.post("#models", hash("mode_switched"))
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("mode_switched") then
+		local button_list = {"load_images", "create", "geo_main_menu"}
+		setup_buttons()
+		msg.post("#", hash("enable"))
+		UI.input_enabled = true
+	end
+end
+
+
+function on_input(self, action_id, action)
+	UI.on_input(self, action_id, action, evaluate_button)
+end

@@ -6,22 +6,24 @@ render = /render/default.renderc
 shared_state = 1
 
 [display]
-width = 1024
-height = 640
+width = 1280
+height = 840
 
 [android]
 input_method = HiddenInputField
 
 [project]
 title = Geomancer
-version = 0.30
+version = 0.31
 developer = Klear
 dependencies#0 = https://github.com/britzl/defold-png/archive/master.zip
 dependencies#1 = https://github.com/britzl/gooey-dirtylarry/archive/main.zip
+dependencies#2 = https://github.com/andsve/def-diags/archive/master.zip
 
 [graphics]
 default_texture_min_filter = nearest
 default_texture_mag_filter = nearest
+texture_profiles = /assets/gfx/UI.texture_profiles
 
 [input]
 game_binding = /game.input_bindingc
