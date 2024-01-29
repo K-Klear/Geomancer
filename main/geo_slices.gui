@@ -1,7 +1,7 @@
 script: "/main/geo_slices.gui_script"
 fonts {
-  name: "dirtylarry"
-  font: "/gooey-dirtylarry/fonts/dirtylarry.font"
+  name: "main_menu_button"
+  font: "/assets/fonts/final/main_menu_button.font"
 }
 textures {
   name: "atlas"
@@ -15,49 +15,8 @@ background_color {
 }
 nodes {
   position {
-    x: 819.0
-    y: 469.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 0.5
-    y: 0.5
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 200.0
-    y: 100.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  type: TYPE_TEMPLATE
-  id: "additive"
-  layer: ""
-  inherit_alpha: true
-  alpha: 1.0
-  template: "/gooey-dirtylarry/components/checkbox.gui"
-  template_node_child: false
-  custom_type: 0
-  enabled: true
-}
-nodes {
-  position {
-    x: 0.0
-    y: 0.0
+    x: 682.0
+    y: 478.0
     z: 0.0
     w: 1.0
   }
@@ -70,133 +29,6 @@ nodes {
   scale {
     x: 1.0
     y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 200.0
-    y: 100.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/checkbox_normal"
-  id: "additive/box"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "additive"
-  layer: "below"
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
-  }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
-  alpha: 1.0
-  template_node_child: true
-  size_mode: SIZE_MODE_AUTO
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
-}
-nodes {
-  position {
-    x: 50.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 200.0
-    y: 100.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  type: TYPE_TEXT
-  blend_mode: BLEND_MODE_ALPHA
-  text: "Additive"
-  font: "dirtylarry"
-  id: "additive/label"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_W
-  outline {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  shadow {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "additive"
-  layer: "text"
-  inherit_alpha: true
-  alpha: 1.0
-  outline_alpha: 1.0
-  shadow_alpha: 1.0
-  overridden_fields: 8
-  template_node_child: true
-  text_leading: 1.0
-  text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
-}
-nodes {
-  position {
-    x: 820.0
-    y: 420.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 0.5
-    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -217,10 +49,69 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/checkbox.gui"
+  template: "/templates/button_white_checkbox.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
+}
+nodes {
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 80.0
+    y: 70.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_BOX
+  blend_mode: BLEND_MODE_ALPHA
+  texture: "UI/button_white"
+  id: "subtractive/button_white"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  adjust_mode: ADJUST_MODE_FIT
+  parent: "subtractive"
+  layer: "below"
+  inherit_alpha: true
+  slice9 {
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
+  }
+  clipping_mode: CLIPPING_MODE_NONE
+  clipping_visible: true
+  clipping_inverted: false
+  alpha: 1.0
+  template_node_child: true
+  size_mode: SIZE_MODE_MANUAL
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
 }
 nodes {
   position {
@@ -242,40 +133,49 @@ nodes {
     w: 1.0
   }
   size {
-    x: 200.0
-    y: 100.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  type: TYPE_TEXT
+  blend_mode: BLEND_MODE_ALPHA
+  text: ""
+  font: "logo_welcome"
+  id: "subtractive/text"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  outline {
     x: 1.0
     y: 1.0
     z: 1.0
     w: 1.0
   }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/checkbox_normal"
-  id: "subtractive/box"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "subtractive"
-  layer: "below"
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
   }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
+  adjust_mode: ADJUST_MODE_FIT
+  line_break: true
+  parent: "subtractive/button_white"
+  layer: "text"
+  inherit_alpha: true
   alpha: 1.0
+  outline_alpha: 1.0
+  shadow_alpha: 1.0
+  overridden_fields: 8
   template_node_child: true
-  size_mode: SIZE_MODE_AUTO
+  text_leading: 1.0
+  text_tracking: 0.0
   custom_type: 0
   enabled: true
   visible: true
@@ -315,7 +215,7 @@ nodes {
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "Subtractive"
-  font: "dirtylarry"
+  font: "main_menu_button"
   id: "subtractive/label"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -334,7 +234,7 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
-  parent: "subtractive"
+  parent: "subtractive/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
@@ -351,8 +251,8 @@ nodes {
 }
 nodes {
   position {
-    x: 820.0
-    y: 371.0
+    x: 683.0
+    y: 426.0
     z: 0.0
     w: 1.0
   }
@@ -363,8 +263,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
-    y: 0.5
+    x: 1.0
+    y: 1.0
     z: 1.0
     w: 1.0
   }
@@ -385,10 +285,69 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/checkbox.gui"
+  template: "/templates/button_white_checkbox.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
+}
+nodes {
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 80.0
+    y: 70.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_BOX
+  blend_mode: BLEND_MODE_ALPHA
+  texture: "UI/button_white"
+  id: "invert/button_white"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  adjust_mode: ADJUST_MODE_FIT
+  parent: "invert"
+  layer: "below"
+  inherit_alpha: true
+  slice9 {
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
+  }
+  clipping_mode: CLIPPING_MODE_NONE
+  clipping_visible: true
+  clipping_inverted: false
+  alpha: 1.0
+  template_node_child: true
+  size_mode: SIZE_MODE_MANUAL
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
 }
 nodes {
   position {
@@ -410,40 +369,49 @@ nodes {
     w: 1.0
   }
   size {
-    x: 200.0
-    y: 100.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  type: TYPE_TEXT
+  blend_mode: BLEND_MODE_ALPHA
+  text: ""
+  font: "logo_welcome"
+  id: "invert/text"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  outline {
     x: 1.0
     y: 1.0
     z: 1.0
     w: 1.0
   }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/checkbox_normal"
-  id: "invert/box"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "invert"
-  layer: "below"
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
   }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
+  adjust_mode: ADJUST_MODE_FIT
+  line_break: true
+  parent: "invert/button_white"
+  layer: "text"
+  inherit_alpha: true
   alpha: 1.0
+  outline_alpha: 1.0
+  shadow_alpha: 1.0
+  overridden_fields: 8
   template_node_child: true
-  size_mode: SIZE_MODE_AUTO
+  text_leading: 1.0
+  text_tracking: 0.0
   custom_type: 0
   enabled: true
   visible: true
@@ -483,7 +451,7 @@ nodes {
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "Invert"
-  font: "dirtylarry"
+  font: "main_menu_button"
   id: "invert/label"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -502,7 +470,7 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
-  parent: "invert"
+  parent: "invert/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
@@ -519,8 +487,8 @@ nodes {
 }
 nodes {
   position {
-    x: 320.0
-    y: 253.0
+    x: 360.0
+    y: 330.0
     z: 0.0
     w: 1.0
   }
@@ -695,8 +663,8 @@ nodes {
 }
 nodes {
   position {
-    x: 321.5
-    y: 251.5
+    x: 361.0
+    y: 329.25
     z: 0.0
     w: 1.0
   }
@@ -753,8 +721,8 @@ nodes {
 }
 nodes {
   position {
-    x: 37.0
-    y: 153.0
+    x: 230.0
+    y: 40.0
     z: 0.0
     w: 1.0
   }
@@ -787,7 +755,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/button.gui"
+  template: "/templates/button_white_tiny.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -812,8 +780,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 60.0
-    y: 192.0
+    x: 80.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
@@ -825,8 +793,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/button_normal"
-  id: "left/bg"
+  texture: "UI/button_white"
+  id: "left/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -835,16 +803,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -872,22 +839,22 @@ nodes {
     w: 1.0
   }
   size {
-    x: 200.0
-    y: 100.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "<"
-  font: "dirtylarry"
-  id: "left/label"
+  font: "logo_welcome"
+  id: "left/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -904,8 +871,8 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "left/bg"
+  line_break: true
+  parent: "left/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
@@ -922,8 +889,8 @@ nodes {
 }
 nodes {
   position {
-    x: 602.0
-    y: 138.0
+    x: 478.0
+    y: 38.0
     z: 0.0
     w: 1.0
   }
@@ -956,7 +923,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/button.gui"
+  template: "/templates/button_white_tiny.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -981,8 +948,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 60.0
-    y: 192.0
+    x: 80.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
@@ -994,8 +961,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/button_normal"
-  id: "right/bg"
+  texture: "UI/button_white"
+  id: "right/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -1004,17 +971,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 1
-  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -1042,22 +1007,22 @@ nodes {
     w: 1.0
   }
   size {
-    x: 200.0
-    y: 100.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: ">"
-  font: "dirtylarry"
-  id: "right/label"
+  font: "logo_welcome"
+  id: "right/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -1074,14 +1039,13 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "right/bg"
+  line_break: true
+  parent: "right/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
@@ -1092,8 +1056,8 @@ nodes {
 }
 nodes {
   position {
-    x: 302.0
-    y: 23.0
+    x: 352.0
+    y: 39.0
     z: 0.0
     w: 1.0
   }
@@ -1117,14 +1081,14 @@ nodes {
   }
   color {
     x: 1.0
-    y: 0.0
-    z: 0.0
+    y: 1.0
+    z: 1.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: ""
-  font: "dirtylarry"
+  font: "main_menu_button"
   id: "preview_label"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -1158,8 +1122,8 @@ nodes {
 }
 nodes {
   position {
-    x: 717.0
-    y: 329.0
+    x: 936.0
+    y: 525.0
     z: 0.0
     w: 1.0
   }
@@ -1190,7 +1154,7 @@ nodes {
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: ""
-  font: "dirtylarry"
+  font: "main_menu_button"
   id: "message_box"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -1224,8 +1188,8 @@ nodes {
 }
 nodes {
   position {
-    x: 382.0
-    y: 582.0
+    x: 396.0
+    y: 800.0
     z: 0.0
     w: 1.0
   }
@@ -1257,7 +1221,7 @@ nodes {
   blend_mode: BLEND_MODE_ALPHA
   text: "Depth\n"
   "(z scale)"
-  font: "dirtylarry"
+  font: "main_menu_button"
   id: "label_depth"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -1291,8 +1255,8 @@ nodes {
 }
 nodes {
   position {
-    x: 363.0
-    y: 536.0
+    x: 377.0
+    y: 754.0
     z: 0.0
     w: 1.0
   }
@@ -1325,7 +1289,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/input.gui"
+  template: "/templates/text_field.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -1344,14 +1308,14 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
-    y: 0.5
+    x: 1.0
+    y: 1.0
     z: 1.0
     w: 1.0
   }
   size {
-    x: 80.0
-    y: 64.0
+    x: 60.0
+    y: 40.0
     z: 0.0
     w: 1.0
   }
@@ -1363,8 +1327,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/input"
-  id: "depth/bg"
+  texture: "UI/text_field_small"
+  id: "depth/box"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_W
@@ -1373,16 +1337,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 15.0
+    x: 10.0
+    y: 10.0
+    z: 10.0
+    w: 10.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 3
   overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
@@ -1393,7 +1356,7 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
+    x: 6.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -1411,21 +1374,21 @@ nodes {
     w: 1.0
   }
   size {
-    x: 64.0
-    y: 64.0
+    x: 200.0
+    y: 100.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "1"
-  font: "dirtylarry"
+  font: "main_menu_button_small"
   id: "depth/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -1444,13 +1407,12 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
-  parent: "depth/bg"
+  parent: "depth/box"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
@@ -1462,8 +1424,8 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
-    y: 0.0
+    x: 6.0
+    y: 732.0
     z: 0.0
     w: 1.0
   }
@@ -1476,65 +1438,6 @@ nodes {
   scale {
     x: 1.0
     y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 2.0
-    y: 40.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 0.5019608
-    y: 0.5019608
-    z: 0.5019608
-    w: 1.0
-  }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: ""
-  id: "depth/cursor"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "depth/bg"
-  layer: ""
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
-  }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
-  alpha: 1.0
-  template_node_child: true
-  size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
-}
-nodes {
-  position {
-    x: 32.0
-    y: 525.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 0.5
-    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -1552,12 +1455,14 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "Range"
-  font: "dirtylarry"
+  text: "Range:\n"
+  "X\n"
+  "Y"
+  font: "main_menu_button"
   id: "label_range"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
+  pivot: PIVOT_NW
   outline {
     x: 1.0
     y: 1.0
@@ -1587,8 +1492,8 @@ nodes {
 }
 nodes {
   position {
-    x: 100.0
-    y: 526.0
+    x: 101.0
+    y: 666.0
     z: 0.0
     w: 1.0
   }
@@ -1621,7 +1526,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/input.gui"
+  template: "/templates/text_field.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -1640,14 +1545,14 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
-    y: 0.5
+    x: 1.0
+    y: 1.0
     z: 1.0
     w: 1.0
   }
   size {
-    x: 80.0
-    y: 64.0
+    x: 60.0
+    y: 40.0
     z: 0.0
     w: 1.0
   }
@@ -1659,8 +1564,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/input"
-  id: "min_x/bg"
+  texture: "UI/text_field_small"
+  id: "min_x/box"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_W
@@ -1669,16 +1574,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 15.0
+    x: 10.0
+    y: 10.0
+    z: 10.0
+    w: 10.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 3
   overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
@@ -1689,7 +1593,7 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
+    x: 6.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -1707,21 +1611,21 @@ nodes {
     w: 1.0
   }
   size {
-    x: 64.0
-    y: 64.0
+    x: 200.0
+    y: 100.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "1"
-  font: "dirtylarry"
+  text: "-84"
+  font: "main_menu_button_small"
   id: "min_x/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -1740,13 +1644,12 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
-  parent: "min_x/bg"
+  parent: "min_x/box"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
@@ -1758,67 +1661,8 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 2.0
-    y: 40.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 0.5019608
-    y: 0.5019608
-    z: 0.5019608
-    w: 1.0
-  }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: ""
-  id: "min_x/cursor"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "min_x/bg"
-  layer: ""
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
-  }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
-  alpha: 1.0
-  template_node_child: true
-  size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
-}
-nodes {
-  position {
-    x: 208.0
-    y: 526.0
+    x: 281.0
+    y: 666.0
     z: 0.0
     w: 1.0
   }
@@ -1851,7 +1695,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/input.gui"
+  template: "/templates/text_field.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -1870,14 +1714,14 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
-    y: 0.5
+    x: 1.0
+    y: 1.0
     z: 1.0
     w: 1.0
   }
   size {
-    x: 80.0
-    y: 64.0
+    x: 60.0
+    y: 40.0
     z: 0.0
     w: 1.0
   }
@@ -1889,8 +1733,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/input"
-  id: "max_x/bg"
+  texture: "UI/text_field_small"
+  id: "max_x/box"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_W
@@ -1899,16 +1743,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 15.0
+    x: 10.0
+    y: 10.0
+    z: 10.0
+    w: 10.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 3
   overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
@@ -1919,7 +1762,7 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
+    x: 6.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -1937,21 +1780,21 @@ nodes {
     w: 1.0
   }
   size {
-    x: 64.0
-    y: 64.0
+    x: 200.0
+    y: 100.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "166"
-  font: "dirtylarry"
+  text: "82"
+  font: "main_menu_button_small"
   id: "max_x/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -1970,13 +1813,12 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
-  parent: "max_x/bg"
+  parent: "max_x/box"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
@@ -1988,67 +1830,8 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 2.0
-    y: 40.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 0.5019608
-    y: 0.5019608
-    z: 0.5019608
-    w: 1.0
-  }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: ""
-  id: "max_x/cursor"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "max_x/bg"
-  layer: ""
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
-  }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
-  alpha: 1.0
-  template_node_child: true
-  size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
-}
-nodes {
-  position {
-    x: 16.0
-    y: 445.0
+    x: 101.0
+    y: 619.0
     z: 0.0
     w: 1.0
   }
@@ -2081,7 +1864,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/input.gui"
+  template: "/templates/text_field.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -2100,14 +1883,14 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
-    y: 0.5
+    x: 1.0
+    y: 1.0
     z: 1.0
     w: 1.0
   }
   size {
-    x: 80.0
-    y: 64.0
+    x: 60.0
+    y: 40.0
     z: 0.0
     w: 1.0
   }
@@ -2119,8 +1902,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/input"
-  id: "min_y/bg"
+  texture: "UI/text_field_small"
+  id: "min_y/box"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_W
@@ -2129,16 +1912,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 15.0
+    x: 10.0
+    y: 10.0
+    z: 10.0
+    w: 10.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 3
   overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
@@ -2149,7 +1931,7 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
+    x: 6.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -2167,21 +1949,21 @@ nodes {
     w: 1.0
   }
   size {
-    x: 64.0
-    y: 64.0
+    x: 200.0
+    y: 100.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "1"
-  font: "dirtylarry"
+  text: "-80"
+  font: "main_menu_button_small"
   id: "min_y/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -2200,13 +1982,12 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
-  parent: "min_y/bg"
+  parent: "min_y/box"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
@@ -2218,67 +1999,8 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 2.0
-    y: 40.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 0.5019608
-    y: 0.5019608
-    z: 0.5019608
-    w: 1.0
-  }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: ""
-  id: "min_y/cursor"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "min_y/bg"
-  layer: ""
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
-  }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
-  alpha: 1.0
-  template_node_child: true
-  size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
-}
-nodes {
-  position {
-    x: 15.0
-    y: 337.0
+    x: 281.0
+    y: 623.0
     z: 0.0
     w: 1.0
   }
@@ -2311,7 +2033,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/input.gui"
+  template: "/templates/text_field.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -2330,14 +2052,14 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
-    y: 0.5
+    x: 1.0
+    y: 1.0
     z: 1.0
     w: 1.0
   }
   size {
-    x: 80.0
-    y: 64.0
+    x: 60.0
+    y: 40.0
     z: 0.0
     w: 1.0
   }
@@ -2349,8 +2071,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/input"
-  id: "max_y/bg"
+  texture: "UI/text_field_small"
+  id: "max_y/box"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_W
@@ -2359,16 +2081,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 15.0
+    x: 10.0
+    y: 10.0
+    z: 10.0
+    w: 10.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 3
   overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
@@ -2379,7 +2100,7 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
+    x: 6.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -2397,21 +2118,21 @@ nodes {
     w: 1.0
   }
   size {
-    x: 64.0
-    y: 64.0
+    x: 200.0
+    y: 100.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "166"
-  font: "dirtylarry"
+  text: "85"
+  font: "main_menu_button_small"
   id: "max_y/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -2430,13 +2151,12 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
-  parent: "max_y/bg"
+  parent: "max_y/box"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
@@ -2448,67 +2168,8 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 2.0
-    y: 40.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 0.5019608
-    y: 0.5019608
-    z: 0.5019608
-    w: 1.0
-  }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: ""
-  id: "max_y/cursor"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "max_y/bg"
-  layer: ""
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
-  }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
-  alpha: 1.0
-  template_node_child: true
-  size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
-}
-nodes {
-  position {
-    x: 533.0
-    y: 592.0
+    x: 583.0
+    y: 778.0
     z: 0.0
     w: 1.0
   }
@@ -2539,7 +2200,7 @@ nodes {
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "Processing order"
-  font: "dirtylarry"
+  font: "main_menu_button"
   id: "label_order"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -2573,8 +2234,178 @@ nodes {
 }
 nodes {
   position {
-    x: 497.0
-    y: 538.0
+    x: 522.0
+    y: 727.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_TEMPLATE
+  id: "processing_order"
+  layer: ""
+  inherit_alpha: true
+  alpha: 1.0
+  template: "/templates/text_field.gui"
+  template_node_child: false
+  custom_type: 0
+  enabled: true
+}
+nodes {
+  position {
+    x: 20.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 80.0
+    y: 40.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_BOX
+  blend_mode: BLEND_MODE_ALPHA
+  texture: "UI/text_field_small"
+  id: "processing_order/box"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_W
+  adjust_mode: ADJUST_MODE_FIT
+  parent: "processing_order"
+  layer: "below"
+  inherit_alpha: true
+  slice9 {
+    x: 10.0
+    y: 10.0
+    z: 10.0
+    w: 10.0
+  }
+  clipping_mode: CLIPPING_MODE_NONE
+  clipping_visible: true
+  clipping_inverted: false
+  alpha: 1.0
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+  size_mode: SIZE_MODE_MANUAL
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
+}
+nodes {
+  position {
+    x: 6.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  type: TYPE_TEXT
+  blend_mode: BLEND_MODE_ALPHA
+  text: "1500"
+  font: "main_menu_button_small"
+  id: "processing_order/text"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  adjust_mode: ADJUST_MODE_FIT
+  line_break: false
+  parent: "processing_order/box"
+  layer: "text"
+  inherit_alpha: true
+  alpha: 1.0
+  outline_alpha: 1.0
+  shadow_alpha: 1.0
+  overridden_fields: 8
+  template_node_child: true
+  text_leading: 1.0
+  text_tracking: 0.0
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
+}
+nodes {
+  position {
+    x: 71.0
+    y: 619.0
     z: 0.0
     w: 1.0
   }
@@ -2603,241 +2434,11 @@ nodes {
     w: 1.0
   }
   type: TYPE_TEMPLATE
-  id: "processing_order"
-  layer: ""
-  inherit_alpha: true
-  alpha: 1.0
-  template: "/gooey-dirtylarry/components/input.gui"
-  template_node_child: false
-  custom_type: 0
-  enabled: true
-}
-nodes {
-  position {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 120.0
-    y: 64.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/input"
-  id: "processing_order/bg"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_W
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "processing_order"
-  layer: "below"
-  inherit_alpha: true
-  slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 15.0
-  }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
-  alpha: 1.0
-  overridden_fields: 3
-  overridden_fields: 4
-  template_node_child: true
-  size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
-}
-nodes {
-  position {
-    x: 12.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 120.0
-    y: 100.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  type: TYPE_TEXT
-  blend_mode: BLEND_MODE_ALPHA
-  text: "1500"
-  font: "dirtylarry"
-  id: "processing_order/text"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_W
-  outline {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  shadow {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "processing_order/bg"
-  layer: "text"
-  inherit_alpha: true
-  alpha: 1.0
-  outline_alpha: 1.0
-  shadow_alpha: 1.0
-  overridden_fields: 4
-  overridden_fields: 8
-  template_node_child: true
-  text_leading: 1.0
-  text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
-}
-nodes {
-  position {
-    x: 12.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 2.0
-    y: 40.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 0.5019608
-    y: 0.5019608
-    z: 0.5019608
-    w: 1.0
-  }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: ""
-  id: "processing_order/cursor"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "processing_order/bg"
-  layer: ""
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
-  }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
-  alpha: 1.0
-  template_node_child: true
-  size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
-}
-nodes {
-  position {
-    x: 35.0
-    y: 483.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 200.0
-    y: 100.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  type: TYPE_TEMPLATE
   id: "min_y_down"
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/button.gui"
+  template: "/templates/button_white_tiny.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -2862,8 +2463,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 80.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
@@ -2875,8 +2476,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/button_normal"
-  id: "min_y_down/bg"
+  texture: "UI/button_white"
+  id: "min_y_down/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -2885,17 +2486,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 1
-  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -2923,22 +2522,22 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "<"
-  font: "dirtylarry"
-  id: "min_y_down/label"
+  font: "logo_welcome"
+  id: "min_y_down/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -2955,14 +2554,13 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "min_y_down/bg"
+  line_break: true
+  parent: "min_y_down/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
@@ -2974,8 +2572,8 @@ nodes {
 }
 nodes {
   position {
-    x: 82.0
-    y: 526.0
+    x: 74.0
+    y: 666.0
     z: 0.0
     w: 1.0
   }
@@ -2986,8 +2584,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 0.5
+    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -3008,7 +2606,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/button.gui"
+  template: "/templates/button_white_tiny.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -3033,8 +2631,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 80.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
@@ -3046,8 +2644,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/button_normal"
-  id: "min_x_down/bg"
+  texture: "UI/button_white"
+  id: "min_x_down/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -3056,17 +2654,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 1
-  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -3094,22 +2690,22 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "<"
-  font: "dirtylarry"
-  id: "min_x_down/label"
+  font: "logo_welcome"
+  id: "min_x_down/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -3126,14 +2722,13 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "min_x_down/bg"
+  line_break: true
+  parent: "min_x_down/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
@@ -3145,8 +2740,8 @@ nodes {
 }
 nodes {
   position {
-    x: 36.0
-    y: 410.0
+    x: 194.0
+    y: 622.0
     z: 0.0
     w: 1.0
   }
@@ -3157,8 +2752,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 0.5
+    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -3179,7 +2774,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/button.gui"
+  template: "/templates/button_white_tiny.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -3204,8 +2799,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 80.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
@@ -3217,8 +2812,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/button_normal"
-  id: "min_y_up/bg"
+  texture: "UI/button_white"
+  id: "min_y_up/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -3227,17 +2822,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 1
-  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -3265,22 +2858,22 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: ">"
-  font: "dirtylarry"
-  id: "min_y_up/label"
+  font: "logo_welcome"
+  id: "min_y_up/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -3297,15 +2890,13 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "min_y_up/bg"
+  line_break: true
+  parent: "min_y_up/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
-  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
@@ -3316,8 +2907,8 @@ nodes {
 }
 nodes {
   position {
-    x: 157.0
-    y: 526.0
+    x: 194.0
+    y: 666.0
     z: 0.0
     w: 1.0
   }
@@ -3328,8 +2919,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 0.5
+    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -3350,7 +2941,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/button.gui"
+  template: "/templates/button_white_tiny.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -3375,8 +2966,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 80.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
@@ -3388,8 +2979,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/button_normal"
-  id: "min_x_up/bg"
+  texture: "UI/button_white"
+  id: "min_x_up/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -3398,17 +2989,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 1
-  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -3436,22 +3025,22 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: ">"
-  font: "dirtylarry"
-  id: "min_x_up/label"
+  font: "logo_welcome"
+  id: "min_x_up/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -3468,15 +3057,13 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "min_x_up/bg"
+  line_break: true
+  parent: "min_x_up/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
-  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
@@ -3487,8 +3074,8 @@ nodes {
 }
 nodes {
   position {
-    x: 36.0
-    y: 373.0
+    x: 247.0
+    y: 623.0
     z: 0.0
     w: 1.0
   }
@@ -3499,8 +3086,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 0.5
+    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -3521,7 +3108,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/button.gui"
+  template: "/templates/button_white_tiny.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -3546,8 +3133,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 80.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
@@ -3559,8 +3146,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/button_normal"
-  id: "max_y_down/bg"
+  texture: "UI/button_white"
+  id: "max_y_down/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -3569,17 +3156,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 1
-  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -3607,22 +3192,22 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "<"
-  font: "dirtylarry"
-  id: "max_y_down/label"
+  font: "logo_welcome"
+  id: "max_y_down/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -3639,14 +3224,13 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "max_y_down/bg"
+  line_break: true
+  parent: "max_y_down/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
@@ -3658,8 +3242,8 @@ nodes {
 }
 nodes {
   position {
-    x: 191.0
-    y: 526.0
+    x: 252.0
+    y: 666.0
     z: 0.0
     w: 1.0
   }
@@ -3670,8 +3254,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 0.5
+    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -3692,7 +3276,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/button.gui"
+  template: "/templates/button_white_tiny.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -3717,8 +3301,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 80.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
@@ -3730,8 +3314,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/button_normal"
-  id: "max_x_down/bg"
+  texture: "UI/button_white"
+  id: "max_x_down/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -3740,17 +3324,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 1
-  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -3778,22 +3360,22 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "<"
-  font: "dirtylarry"
-  id: "max_x_down/label"
+  font: "logo_welcome"
+  id: "max_x_down/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -3810,14 +3392,13 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "max_x_down/bg"
+  line_break: true
+  parent: "max_x_down/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
@@ -3829,8 +3410,8 @@ nodes {
 }
 nodes {
   position {
-    x: 36.0
-    y: 302.0
+    x: 384.0
+    y: 623.0
     z: 0.0
     w: 1.0
   }
@@ -3841,8 +3422,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 0.5
+    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -3863,7 +3444,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/button.gui"
+  template: "/templates/button_white_tiny.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -3888,8 +3469,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 80.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
@@ -3901,8 +3482,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/button_normal"
-  id: "max_y_up/bg"
+  texture: "UI/button_white"
+  id: "max_y_up/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -3911,17 +3492,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 1
-  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -3949,22 +3528,22 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: ">"
-  font: "dirtylarry"
-  id: "max_y_up/label"
+  font: "logo_welcome"
+  id: "max_y_up/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -3981,15 +3560,13 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "max_y_up/bg"
+  line_break: true
+  parent: "max_y_up/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
-  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
@@ -4000,8 +3577,8 @@ nodes {
 }
 nodes {
   position {
-    x: 266.0
-    y: 526.0
+    x: 383.0
+    y: 666.0
     z: 0.0
     w: 1.0
   }
@@ -4012,8 +3589,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 0.5
+    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -4034,7 +3611,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/button.gui"
+  template: "/templates/button_white_tiny.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -4059,8 +3636,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 80.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
@@ -4072,8 +3649,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/button_normal"
-  id: "max_x_up/bg"
+  texture: "UI/button_white"
+  id: "max_x_up/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -4082,17 +3659,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 1
-  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -4120,22 +3695,22 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: ">"
-  font: "dirtylarry"
-  id: "max_x_up/label"
+  font: "logo_welcome"
+  id: "max_x_up/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -4152,15 +3727,13 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "max_x_up/bg"
+  line_break: true
+  parent: "max_x_up/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
-  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
@@ -4171,8 +3744,8 @@ nodes {
 }
 nodes {
   position {
-    x: 346.0
-    y: 536.0
+    x: 355.0
+    y: 754.0
     z: 0.0
     w: 1.0
   }
@@ -4183,8 +3756,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 0.5
+    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -4205,7 +3778,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/button.gui"
+  template: "/templates/button_white_tiny.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -4230,8 +3803,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 80.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
@@ -4243,8 +3816,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/button_normal"
-  id: "depth_down/bg"
+  texture: "UI/button_white"
+  id: "depth_down/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -4253,17 +3826,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 1
-  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -4291,22 +3862,22 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "<"
-  font: "dirtylarry"
-  id: "depth_down/label"
+  font: "logo_welcome"
+  id: "depth_down/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -4323,14 +3894,13 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "depth_down/bg"
+  line_break: true
+  parent: "depth_down/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
@@ -4342,8 +3912,8 @@ nodes {
 }
 nodes {
   position {
-    x: 421.0
-    y: 536.0
+    x: 462.0
+    y: 754.0
     z: 0.0
     w: 1.0
   }
@@ -4354,8 +3924,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 0.5
+    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -4376,7 +3946,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/button.gui"
+  template: "/templates/button_white_tiny.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -4401,8 +3971,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 80.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
@@ -4414,8 +3984,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/button_normal"
-  id: "depth_up/bg"
+  texture: "UI/button_white"
+  id: "depth_up/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -4424,17 +3994,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 1
-  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -4462,22 +4030,22 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: ">"
-  font: "dirtylarry"
-  id: "depth_up/label"
+  font: "logo_welcome"
+  id: "depth_up/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -4494,15 +4062,13 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "depth_up/bg"
+  line_break: true
+  parent: "depth_up/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
-  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
@@ -4513,8 +4079,8 @@ nodes {
 }
 nodes {
   position {
-    x: 205.0
-    y: 612.0
+    x: 203.0
+    y: 810.0
     z: 0.0
     w: 1.0
   }
@@ -4547,7 +4113,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/input.gui"
+  template: "/templates/text_field.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -4566,14 +4132,14 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
-    y: 0.5
+    x: 1.0
+    y: 1.0
     z: 1.0
     w: 1.0
   }
   size {
-    x: 80.0
-    y: 64.0
+    x: 60.0
+    y: 40.0
     z: 0.0
     w: 1.0
   }
@@ -4585,8 +4151,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/input"
-  id: "offset_x/bg"
+  texture: "UI/text_field_small"
+  id: "offset_x/box"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_W
@@ -4595,16 +4161,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 15.0
+    x: 10.0
+    y: 10.0
+    z: 10.0
+    w: 10.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 3
   overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
@@ -4615,7 +4180,7 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
+    x: 6.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -4633,21 +4198,21 @@ nodes {
     w: 1.0
   }
   size {
-    x: 64.0
-    y: 64.0
+    x: 200.0
+    y: 100.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "1"
-  font: "dirtylarry"
+  text: "0"
+  font: "main_menu_button_small"
   id: "offset_x/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -4666,13 +4231,12 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
-  parent: "offset_x/bg"
+  parent: "offset_x/box"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
@@ -4684,8 +4248,8 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
-    y: 0.0
+    x: 180.0
+    y: 810.0
     z: 0.0
     w: 1.0
   }
@@ -4696,67 +4260,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 2.0
-    y: 40.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 0.5019608
-    y: 0.5019608
-    z: 0.5019608
-    w: 1.0
-  }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: ""
-  id: "offset_x/cursor"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "offset_x/bg"
-  layer: ""
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
-  }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
-  alpha: 1.0
-  template_node_child: true
-  size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
-}
-nodes {
-  position {
-    x: 187.0
-    y: 612.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 1.0
-    y: 1.0
+    x: 0.5
+    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -4777,7 +4282,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/button.gui"
+  template: "/templates/button_white_tiny.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -4802,8 +4307,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 80.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
@@ -4815,8 +4320,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/button_normal"
-  id: "offset_x_down/bg"
+  texture: "UI/button_white"
+  id: "offset_x_down/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -4825,17 +4330,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 1
-  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -4863,22 +4366,22 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "<"
-  font: "dirtylarry"
-  id: "offset_x_down/label"
+  font: "logo_welcome"
+  id: "offset_x_down/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -4895,14 +4398,13 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "offset_x_down/bg"
+  line_break: true
+  parent: "offset_x_down/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
@@ -4914,8 +4416,8 @@ nodes {
 }
 nodes {
   position {
-    x: 262.0
-    y: 612.0
+    x: 286.0
+    y: 810.0
     z: 0.0
     w: 1.0
   }
@@ -4926,8 +4428,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 0.5
+    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -4948,7 +4450,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/button.gui"
+  template: "/templates/button_white_tiny.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -4973,8 +4475,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 80.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
@@ -4986,8 +4488,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/button_normal"
-  id: "offset_x_up/bg"
+  texture: "UI/button_white"
+  id: "offset_x_up/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -4996,17 +4498,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 1
-  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -5034,22 +4534,22 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: ">"
-  font: "dirtylarry"
-  id: "offset_x_up/label"
+  font: "logo_welcome"
+  id: "offset_x_up/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -5066,15 +4566,13 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "offset_x_up/bg"
+  line_break: true
+  parent: "offset_x_up/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
-  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
@@ -5085,8 +4583,8 @@ nodes {
 }
 nodes {
   position {
-    x: 206.0
-    y: 573.0
+    x: 203.0
+    y: 771.0
     z: 0.0
     w: 1.0
   }
@@ -5119,7 +4617,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/input.gui"
+  template: "/templates/text_field.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -5138,14 +4636,14 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
-    y: 0.5
+    x: 1.0
+    y: 1.0
     z: 1.0
     w: 1.0
   }
   size {
-    x: 80.0
-    y: 64.0
+    x: 60.0
+    y: 40.0
     z: 0.0
     w: 1.0
   }
@@ -5157,8 +4655,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/input"
-  id: "offset_y/bg"
+  texture: "UI/text_field_small"
+  id: "offset_y/box"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_W
@@ -5167,16 +4665,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 15.0
+    x: 10.0
+    y: 10.0
+    z: 10.0
+    w: 10.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 3
   overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
@@ -5187,7 +4684,7 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
+    x: 6.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -5205,21 +4702,21 @@ nodes {
     w: 1.0
   }
   size {
-    x: 64.0
-    y: 64.0
+    x: 200.0
+    y: 100.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "1"
-  font: "dirtylarry"
+  text: "0"
+  font: "main_menu_button_small"
   id: "offset_y/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -5238,13 +4735,12 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
-  parent: "offset_y/bg"
+  parent: "offset_y/box"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
@@ -5256,8 +4752,8 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
-    y: 0.0
+    x: 181.0
+    y: 771.0
     z: 0.0
     w: 1.0
   }
@@ -5268,67 +4764,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 2.0
-    y: 40.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 0.5019608
-    y: 0.5019608
-    z: 0.5019608
-    w: 1.0
-  }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: ""
-  id: "offset_y/cursor"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "offset_y/bg"
-  layer: ""
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
-  }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
-  alpha: 1.0
-  template_node_child: true
-  size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
-}
-nodes {
-  position {
-    x: 188.0
-    y: 573.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 1.0
-    y: 1.0
+    x: 0.5
+    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -5349,7 +4786,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/button.gui"
+  template: "/templates/button_white_tiny.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -5374,8 +4811,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 80.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
@@ -5387,8 +4824,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/button_normal"
-  id: "offset_y_down/bg"
+  texture: "UI/button_white"
+  id: "offset_y_down/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -5397,17 +4834,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 1
-  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -5435,22 +4870,22 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "<"
-  font: "dirtylarry"
-  id: "offset_y_down/label"
+  font: "logo_welcome"
+  id: "offset_y_down/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -5467,14 +4902,13 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "offset_y_down/bg"
+  line_break: true
+  parent: "offset_y_down/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
@@ -5486,8 +4920,8 @@ nodes {
 }
 nodes {
   position {
-    x: 263.0
-    y: 573.0
+    x: 285.0
+    y: 771.0
     z: 0.0
     w: 1.0
   }
@@ -5498,8 +4932,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 0.5
+    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -5520,7 +4954,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/button.gui"
+  template: "/templates/button_white_tiny.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -5545,8 +4979,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 80.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
@@ -5558,8 +4992,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/button_normal"
-  id: "offset_y_up/bg"
+  texture: "UI/button_white"
+  id: "offset_y_up/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -5568,17 +5002,15 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 1
-  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -5606,22 +5038,22 @@ nodes {
     w: 1.0
   }
   size {
-    x: 32.0
-    y: 32.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: ">"
-  font: "dirtylarry"
-  id: "offset_y_up/label"
+  font: "logo_welcome"
+  id: "offset_y_up/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -5638,15 +5070,13 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "offset_y_up/bg"
+  line_break: true
+  parent: "offset_y_up/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
-  overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
@@ -5657,8 +5087,8 @@ nodes {
 }
 nodes {
   position {
-    x: 158.0
-    y: 592.0
+    x: 121.0
+    y: 787.0
     z: 0.0
     w: 1.0
   }
@@ -5690,7 +5120,7 @@ nodes {
   blend_mode: BLEND_MODE_ALPHA
   text: "Offset X\n"
   "Y"
-  font: "dirtylarry"
+  font: "main_menu_button"
   id: "label_offset"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -5724,8 +5154,8 @@ nodes {
 }
 nodes {
   position {
-    x: 593.0
-    y: 278.0
+    x: 691.0
+    y: 190.0
     z: 0.0
     w: 1.0
   }
@@ -5736,8 +5166,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
-    y: 0.5
+    x: 1.0
+    y: 1.0
     z: 1.0
     w: 1.0
   }
@@ -5758,10 +5188,69 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/checkbox.gui"
+  template: "/templates/button_white_checkbox.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
+}
+nodes {
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 80.0
+    y: 70.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_BOX
+  blend_mode: BLEND_MODE_ALPHA
+  texture: "UI/button_white"
+  id: "show_path/button_white"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  adjust_mode: ADJUST_MODE_FIT
+  parent: "show_path"
+  layer: "below"
+  inherit_alpha: true
+  slice9 {
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
+  }
+  clipping_mode: CLIPPING_MODE_NONE
+  clipping_visible: true
+  clipping_inverted: false
+  alpha: 1.0
+  template_node_child: true
+  size_mode: SIZE_MODE_MANUAL
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
 }
 nodes {
   position {
@@ -5783,40 +5272,48 @@ nodes {
     w: 1.0
   }
   size {
-    x: 200.0
-    y: 100.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  type: TYPE_TEXT
+  blend_mode: BLEND_MODE_ALPHA
+  text: "X"
+  font: "logo_welcome"
+  id: "show_path/text"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  outline {
     x: 1.0
     y: 1.0
     z: 1.0
     w: 1.0
   }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/checkbox_normal"
-  id: "show_path/box"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "show_path"
-  layer: "below"
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
   }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
+  adjust_mode: ADJUST_MODE_FIT
+  line_break: true
+  parent: "show_path/button_white"
+  layer: "text"
+  inherit_alpha: true
   alpha: 1.0
+  outline_alpha: 1.0
+  shadow_alpha: 1.0
   template_node_child: true
-  size_mode: SIZE_MODE_AUTO
+  text_leading: 1.0
+  text_tracking: 0.0
   custom_type: 0
   enabled: true
   visible: true
@@ -5856,7 +5353,7 @@ nodes {
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "Show path"
-  font: "dirtylarry"
+  font: "main_menu_button"
   id: "show_path/label"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -5875,7 +5372,7 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
-  parent: "show_path"
+  parent: "show_path/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
@@ -5892,8 +5389,8 @@ nodes {
 }
 nodes {
   position {
-    x: 598.0
-    y: 406.0
+    x: 687.0
+    y: 341.0
     z: 0.0
     w: 1.0
   }
@@ -5904,8 +5401,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
-    y: 0.5
+    x: 1.0
+    y: 1.0
     z: 1.0
     w: 1.0
   }
@@ -5926,10 +5423,69 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/radio.gui"
+  template: "/templates/button_white_checkbox.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
+}
+nodes {
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 80.0
+    y: 70.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_BOX
+  blend_mode: BLEND_MODE_ALPHA
+  texture: "UI/button_white"
+  id: "filter_white/button_white"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  adjust_mode: ADJUST_MODE_FIT
+  parent: "filter_white"
+  layer: "below"
+  inherit_alpha: true
+  slice9 {
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
+  }
+  clipping_mode: CLIPPING_MODE_NONE
+  clipping_visible: true
+  clipping_inverted: false
+  alpha: 1.0
+  template_node_child: true
+  size_mode: SIZE_MODE_MANUAL
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
 }
 nodes {
   position {
@@ -5951,40 +5507,48 @@ nodes {
     w: 1.0
   }
   size {
-    x: 200.0
-    y: 100.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  type: TYPE_TEXT
+  blend_mode: BLEND_MODE_ALPHA
+  text: "X"
+  font: "logo_welcome"
+  id: "filter_white/text"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  outline {
     x: 1.0
     y: 1.0
     z: 1.0
     w: 1.0
   }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/radio_normal"
-  id: "filter_white/button"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "filter_white"
-  layer: "below"
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
   }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
+  adjust_mode: ADJUST_MODE_FIT
+  line_break: true
+  parent: "filter_white/button_white"
+  layer: "text"
+  inherit_alpha: true
   alpha: 1.0
+  outline_alpha: 1.0
+  shadow_alpha: 1.0
   template_node_child: true
-  size_mode: SIZE_MODE_AUTO
+  text_leading: 1.0
+  text_tracking: 0.0
   custom_type: 0
   enabled: true
   visible: true
@@ -5992,7 +5556,7 @@ nodes {
 }
 nodes {
   position {
-    x: 60.0
+    x: 50.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -6023,8 +5587,8 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "white"
-  font: "dirtylarry"
+  text: "White"
+  font: "main_menu_button"
   id: "filter_white/label"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -6043,7 +5607,7 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
-  parent: "filter_white"
+  parent: "filter_white/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
@@ -6060,8 +5624,8 @@ nodes {
 }
 nodes {
   position {
-    x: 598.0
-    y: 365.0
+    x: 687.0
+    y: 300.0
     z: 0.0
     w: 1.0
   }
@@ -6072,8 +5636,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
-    y: 0.5
+    x: 1.0
+    y: 1.0
     z: 1.0
     w: 1.0
   }
@@ -6094,10 +5658,69 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/radio.gui"
+  template: "/templates/button_white_checkbox.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
+}
+nodes {
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 80.0
+    y: 70.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_BOX
+  blend_mode: BLEND_MODE_ALPHA
+  texture: "UI/button_white"
+  id: "filter_alpha/button_white"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  adjust_mode: ADJUST_MODE_FIT
+  parent: "filter_alpha"
+  layer: "below"
+  inherit_alpha: true
+  slice9 {
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
+  }
+  clipping_mode: CLIPPING_MODE_NONE
+  clipping_visible: true
+  clipping_inverted: false
+  alpha: 1.0
+  template_node_child: true
+  size_mode: SIZE_MODE_MANUAL
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
 }
 nodes {
   position {
@@ -6119,40 +5742,49 @@ nodes {
     w: 1.0
   }
   size {
-    x: 200.0
-    y: 100.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  type: TYPE_TEXT
+  blend_mode: BLEND_MODE_ALPHA
+  text: ""
+  font: "logo_welcome"
+  id: "filter_alpha/text"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  outline {
     x: 1.0
     y: 1.0
     z: 1.0
     w: 1.0
   }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/radio_normal"
-  id: "filter_alpha/button"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "filter_alpha"
-  layer: "below"
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
   }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
+  adjust_mode: ADJUST_MODE_FIT
+  line_break: true
+  parent: "filter_alpha/button_white"
+  layer: "text"
+  inherit_alpha: true
   alpha: 1.0
+  outline_alpha: 1.0
+  shadow_alpha: 1.0
+  overridden_fields: 8
   template_node_child: true
-  size_mode: SIZE_MODE_AUTO
+  text_leading: 1.0
+  text_tracking: 0.0
   custom_type: 0
   enabled: true
   visible: true
@@ -6160,7 +5792,7 @@ nodes {
 }
 nodes {
   position {
-    x: 60.0
+    x: 50.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -6191,8 +5823,8 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "alpha"
-  font: "dirtylarry"
+  text: "Alpha"
+  font: "main_menu_button"
   id: "filter_alpha/label"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -6211,7 +5843,7 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
-  parent: "filter_alpha"
+  parent: "filter_alpha/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
@@ -6228,8 +5860,8 @@ nodes {
 }
 nodes {
   position {
-    x: 666.0
-    y: 592.0
+    x: 897.0
+    y: 662.0
     z: 0.0
     w: 1.0
   }
@@ -6260,7 +5892,7 @@ nodes {
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "Starting group index"
-  font: "dirtylarry"
+  font: "main_menu_button"
   id: "label_index"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -6294,8 +5926,8 @@ nodes {
 }
 nodes {
   position {
-    x: 630.0
-    y: 538.0
+    x: 838.0
+    y: 611.0
     z: 0.0
     w: 1.0
   }
@@ -6306,8 +5938,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
-    y: 0.5
+    x: 1.0
+    y: 1.0
     z: 1.0
     w: 1.0
   }
@@ -6328,14 +5960,14 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/input.gui"
+  template: "/templates/text_field.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
 }
 nodes {
   position {
-    x: 0.0
+    x: 27.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -6353,8 +5985,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 120.0
-    y: 64.0
+    x: 60.0
+    y: 40.0
     z: 0.0
     w: 1.0
   }
@@ -6366,8 +5998,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/input"
-  id: "group_index/bg"
+  texture: "UI/text_field_small"
+  id: "group_index/box"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_W
@@ -6376,16 +6008,16 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 15.0
+    x: 10.0
+    y: 10.0
+    z: 10.0
+    w: 10.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 3
+  overridden_fields: 1
   overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
@@ -6396,7 +6028,7 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
+    x: 6.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -6414,21 +6046,21 @@ nodes {
     w: 1.0
   }
   size {
-    x: 120.0
+    x: 200.0
     y: 100.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "1"
-  font: "dirtylarry"
+  font: "main_menu_button_small"
   id: "group_index/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -6447,13 +6079,12 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
-  parent: "group_index/bg"
+  parent: "group_index/box"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
   outline_alpha: 1.0
   shadow_alpha: 1.0
-  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
   text_leading: 1.0
@@ -6465,8 +6096,8 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
-    y: 0.0
+    x: 680.0
+    y: 615.0
     z: 0.0
     w: 1.0
   }
@@ -6479,65 +6110,6 @@ nodes {
   scale {
     x: 1.0
     y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 2.0
-    y: 40.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 0.5019608
-    y: 0.5019608
-    z: 0.5019608
-    w: 1.0
-  }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: ""
-  id: "group_index/cursor"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "group_index/bg"
-  layer: ""
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
-  }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
-  alpha: 1.0
-  template_node_child: true
-  size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
-}
-nodes {
-  position {
-    x: 600.0
-    y: 480.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 0.5
-    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -6558,10 +6130,69 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/checkbox.gui"
+  template: "/templates/button_white_checkbox.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
+}
+nodes {
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 80.0
+    y: 70.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_BOX
+  blend_mode: BLEND_MODE_ALPHA
+  texture: "UI/button_white"
+  id: "image_group/button_white"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  adjust_mode: ADJUST_MODE_FIT
+  parent: "image_group"
+  layer: "below"
+  inherit_alpha: true
+  slice9 {
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
+  }
+  clipping_mode: CLIPPING_MODE_NONE
+  clipping_visible: true
+  clipping_inverted: false
+  alpha: 1.0
+  template_node_child: true
+  size_mode: SIZE_MODE_MANUAL
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
 }
 nodes {
   position {
@@ -6583,40 +6214,48 @@ nodes {
     w: 1.0
   }
   size {
-    x: 200.0
-    y: 100.0
+    x: 160.0
+    y: 70.0
     z: 0.0
     w: 1.0
   }
   color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  type: TYPE_TEXT
+  blend_mode: BLEND_MODE_ALPHA
+  text: "X"
+  font: "logo_welcome"
+  id: "image_group/text"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  outline {
     x: 1.0
     y: 1.0
     z: 1.0
     w: 1.0
   }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/checkbox_normal"
-  id: "image_group/box"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "image_group"
-  layer: "below"
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
   }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
+  adjust_mode: ADJUST_MODE_FIT
+  line_break: true
+  parent: "image_group/button_white"
+  layer: "text"
+  inherit_alpha: true
   alpha: 1.0
+  outline_alpha: 1.0
+  shadow_alpha: 1.0
   template_node_child: true
-  size_mode: SIZE_MODE_AUTO
+  text_leading: 1.0
+  text_tracking: 0.0
   custom_type: 0
   enabled: true
   visible: true
@@ -6656,7 +6295,7 @@ nodes {
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "Each image is a separate group"
-  font: "dirtylarry"
+  font: "main_menu_button"
   id: "image_group/label"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -6675,7 +6314,7 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: true
-  parent: "image_group"
+  parent: "image_group/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
@@ -6694,7 +6333,7 @@ nodes {
 }
 nodes {
   position {
-    x: 908.0
+    x: 1160.0
     y: 59.0
     z: 0.0
     w: 1.0
@@ -6862,7 +6501,7 @@ nodes {
 }
 nodes {
   position {
-    x: 908.0
+    x: 1160.0
     y: 162.0
     z: 0.0
     w: 1.0
@@ -7030,8 +6669,8 @@ nodes {
 }
 nodes {
   position {
-    x: 908.0
-    y: 568.0
+    x: 1180.0
+    y: 787.0
     z: 0.0
     w: 1.0
   }
@@ -7188,6 +6827,241 @@ nodes {
   outline_alpha: 1.0
   shadow_alpha: 1.0
   overridden_fields: 8
+  template_node_child: true
+  text_leading: 1.0
+  text_tracking: 0.0
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
+}
+nodes {
+  position {
+    x: 682.0
+    y: 528.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_TEMPLATE
+  id: "additive"
+  layer: ""
+  inherit_alpha: true
+  alpha: 1.0
+  template: "/templates/button_white_checkbox.gui"
+  template_node_child: false
+  custom_type: 0
+  enabled: true
+}
+nodes {
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 80.0
+    y: 70.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_BOX
+  blend_mode: BLEND_MODE_ALPHA
+  texture: "UI/button_white"
+  id: "additive/button_white"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  adjust_mode: ADJUST_MODE_FIT
+  parent: "additive"
+  layer: "below"
+  inherit_alpha: true
+  slice9 {
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
+  }
+  clipping_mode: CLIPPING_MODE_NONE
+  clipping_visible: true
+  clipping_inverted: false
+  alpha: 1.0
+  template_node_child: true
+  size_mode: SIZE_MODE_MANUAL
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
+}
+nodes {
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 160.0
+    y: 70.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  type: TYPE_TEXT
+  blend_mode: BLEND_MODE_ALPHA
+  text: "X"
+  font: "logo_welcome"
+  id: "additive/text"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  adjust_mode: ADJUST_MODE_FIT
+  line_break: true
+  parent: "additive/button_white"
+  layer: "text"
+  inherit_alpha: true
+  alpha: 1.0
+  outline_alpha: 1.0
+  shadow_alpha: 1.0
+  overridden_fields: 8
+  template_node_child: true
+  text_leading: 1.0
+  text_tracking: 0.0
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
+}
+nodes {
+  position {
+    x: 50.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_TEXT
+  blend_mode: BLEND_MODE_ALPHA
+  text: "Additive"
+  font: "main_menu_button"
+  id: "additive/label"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  adjust_mode: ADJUST_MODE_FIT
+  line_break: false
+  parent: "additive/button_white"
+  layer: "text"
+  inherit_alpha: true
+  alpha: 1.0
+  outline_alpha: 1.0
+  shadow_alpha: 1.0
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0

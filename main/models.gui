@@ -1,9 +1,5 @@
 script: "/main/models.gui_script"
 fonts {
-  name: "dirtylarry"
-  font: "/gooey-dirtylarry/fonts/dirtylarry.font"
-}
-fonts {
   name: "main_menu_button"
   font: "/assets/fonts/final/main_menu_button.font"
 }
@@ -2219,8 +2215,8 @@ nodes {
 }
 nodes {
   position {
-    x: 843.0
-    y: 229.0
+    x: 805.0
+    y: 171.0
     z: 0.0
     w: 1.0
   }
@@ -2253,7 +2249,7 @@ nodes {
   layer: ""
   inherit_alpha: true
   alpha: 1.0
-  template: "/gooey-dirtylarry/components/input.gui"
+  template: "/templates/text_field.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -2278,8 +2274,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 400.0
-    y: 64.0
+    x: 468.0
+    y: 40.0
     z: 0.0
     w: 1.0
   }
@@ -2291,8 +2287,8 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "dirtylarry/input"
-  id: "custom_mat/bg"
+  texture: "UI/text_field_small"
+  id: "custom_mat/box"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_W
@@ -2301,15 +2297,16 @@ nodes {
   layer: "below"
   inherit_alpha: true
   slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 15.0
+    x: 10.0
+    y: 10.0
+    z: 10.0
+    w: 10.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -2319,7 +2316,7 @@ nodes {
 }
 nodes {
   position {
-    x: 12.0
+    x: 6.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -2331,27 +2328,27 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
-    y: 0.5
+    x: 0.7
+    y: 0.7
     z: 1.0
     w: 1.0
   }
   size {
-    x: 740.0
+    x: 650.0
     y: 100.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 0.0
+    y: 0.0
+    z: 0.0
     w: 1.0
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: ""
-  font: "dirtylarry"
+  text: "(DoNotEdit)LiveMat_"
+  font: "main_menu_button_small"
   id: "custom_mat/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -2370,7 +2367,7 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
-  parent: "custom_mat/bg"
+  parent: "custom_mat/box"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
@@ -2382,65 +2379,6 @@ nodes {
   template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
-}
-nodes {
-  position {
-    x: 12.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 2.0
-    y: 40.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 0.5019608
-    y: 0.5019608
-    z: 0.5019608
-    w: 1.0
-  }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: ""
-  id: "custom_mat/cursor"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "custom_mat/bg"
-  layer: ""
-  inherit_alpha: true
-  slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
-  }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
-  alpha: 1.0
-  template_node_child: true
-  size_mode: SIZE_MODE_MANUAL
   custom_type: 0
   enabled: true
   visible: true

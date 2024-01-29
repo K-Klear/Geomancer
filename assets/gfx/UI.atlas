@@ -18,6 +18,10 @@ images {
   image: "/assets/gfx/panel_green.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
+images {
+  image: "/assets/gfx/text_field_small.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
 animations {
   id: "button_white_down"
   images {

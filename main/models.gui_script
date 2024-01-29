@@ -1,6 +1,3 @@
-local gooey = require "gooey.gooey"
-local dirtylarry = require "gooey-dirtylarry.dirtylarry"
-
 local UI = require("modules/ui")
 
 local model_list = {}
@@ -70,7 +67,6 @@ function init(self)
 	button_highlight = gui.get_node("button_highlight")
 	model_highlight = gui.get_node("model_highlight")
 	part_highlight = gui.get_node("part_highlight")
-	gooey.input("custom_mat/text", gui.KEYBOARD_TYPE_DEFAULT).set_text("(DoNotEdit)LiveMat_")
 	for i = 1, 10 do
 		gui.set_enabled(gui.get_node("model_list_"..tonumber(i).."/button_white"), false)
 		gui.set_enabled(gui.get_node("part_list_"..tonumber(i).."/button_white"), false)
@@ -137,7 +133,7 @@ local function highlight_part()
 			gui.set_position(button_highlight, highlight_position[current_material])
 		else
 			gui.set_position(button_highlight, highlight_position.custom)
-			gooey.input("custom_mat/text", gui.KEYBOARD_TYPE_DEFAULT).set_text(current_material)
+			gui.set_text(gui.get_node("custom_mat/text"), current_material)
 		end
 	else
 		gui.set_enabled(button_highlight, false)
@@ -326,26 +322,35 @@ local function export_models(path)
 	local create_dynamic_props
 
 	for key, val in ipairs(model_list) do
+		local model_name = "\""..val.name.."\""
 		if val.dynamic then
 			create_dynamic_props = true
 			local found
 			local search_index = 1
+			local first = true
 			repeat
-				found = string.find(string_static_props, val.name, search_index)
+				found = string.find(string_static_props, model_name, search_index)
 				if found then
+					if not first then
+						string_static_props = string_static_props..","
+						first = nil
+					end
 					local closing_bracket = string.find(string_static_props, "}", found)
-					table.insert(dynamic_props_list, string.sub(string_static_props, found - 9, closing_bracket))
-					string_static_props = string.sub(string_static_props, 1, found - 2)..string.sub(string_static_props, closing_bracket + 1) -- figure something out to avoid missing or double commas
-					search_index = found - 2
+					table.insert(dynamic_props_list, string.sub(string_static_props, found - 8, closing_bracket))
+					string_static_props = string.sub(string_static_props, 1, found - 9)..string.sub(string_static_props, closing_bracket + 2)
+					search_index = found - 8
 				end
 			until not found
-			
+			if string.sub(string_static_props, -2) == ",," then
+				string_static_props = string.sub(string_static_props, 1, -3).."],"
+			end
 		end
 		for k, v in ipairs(table_culling_ranges) do
 			for _k, _v in ipairs(v.members) do
-				if _v.name == val.name then
+				if _v.name == val.name and val.dynamic then
+					create_dynamic_props = true
 					dynamic_ranges_list[v.range] = dynamic_ranges_list[v.range] or {}
-					table.insert(dynamic_ranges_list[v.range], val.name)
+					table.insert(dynamic_ranges_list[v.range], model_name)
 				end
 			end
 		end
@@ -357,7 +362,8 @@ local function export_models(path)
 		end
 	end
 
-	local final_string = string_colours..string_static_props..string_culling_ranges -- problem: need to remove dynamic props from the culling_ranges thing first
+	local dynamic_ranges = "\"dynamicCullingRanges\":["
+
 	if create_dynamic_props then
 		for key, val in ipairs(dynamic_props_list) do
 			dynamic_props = dynamic_props..val
@@ -369,18 +375,24 @@ local function export_models(path)
 		for key, val in pairs(dynamic_ranges_list) do
 			table.insert(dynamic_ranges_array, {range = key, names = val})
 		end
-		table.sort(dynamic_ranges_array, function(a, b) return a.range < b.range end)
-		local dynamic_ranges = "\"dynamicCullingRanges\":["
-
+		local function find_range_start(range)
+			return tonumber(string.sub(range, 1, string.find(range, ",") - 1))
+		end
+		table.sort(dynamic_ranges_array, function(a, b) return find_range_start(a.range) < find_range_start(b.range) end)
+		local final_range_done = false
 		for key, val in ipairs(dynamic_ranges_array) do
-			dynamic_props = dynamic_props.."{\"range\":\""..val.range.."\",\"members\":["
+			dynamic_ranges = dynamic_ranges.."{\"range\":\""..val.range.."\",\"members\":["
 			local range_index = string.find(string_culling_ranges, val.range)
 			for k, v in ipairs(val.names) do
 				local prop_index = string.find(string_culling_ranges, v, range_index)
 				local closing_bracket = string.find(string_culling_ranges, "}", prop_index)
-				dynamic_props = dynamic_props..string.sub(string_culling_ranges, prop_index - 9, closing_bracket)
+				dynamic_ranges = dynamic_ranges..string.sub(string_culling_ranges, prop_index - 8, closing_bracket)
 				if k == #val.names then
-					dynamic_props = dynamic_props.."]},"
+					if key == #dynamic_ranges_array then
+						dynamic_ranges = dynamic_ranges.."]}"
+					else
+						dynamic_ranges = dynamic_ranges.."]},"
+					end
 					local member_count
 					for _, rt in ipairs(table_culling_ranges) do
 						if val.range == rt.range then
@@ -389,26 +401,46 @@ local function export_models(path)
 						end
 					end
 					if #val.names == member_count then
-						-- delete the whole range
+						if string.sub(string_culling_ranges, closing_bracket + 3, closing_bracket + 3) == "," then
+							string_culling_ranges = string.sub(string_culling_ranges, 1, range_index - 11)..string.sub(string_culling_ranges, closing_bracket + 4)
+						else
+							string_culling_ranges = string.sub(string_culling_ranges, 1, range_index - 11)..string.sub(string_culling_ranges, closing_bracket + 3)
+							final_range_done = true
+						end
 					else
-						-- delete not the whole range
+						if string.sub(string_culling_ranges, closing_bracket + 3, closing_bracket + 3) == "," then
+							string_culling_ranges = string.sub(string_culling_ranges, 1, prop_index - 9)..string.sub(string_culling_ranges, closing_bracket + 3)
+						else
+							string_culling_ranges = string.sub(string_culling_ranges, 1, prop_index - 9)..string.sub(string_culling_ranges, closing_bracket + 2)
+							--final_range_done = true
+						end
 					end
 				else
-					dynamic_props = dynamic_props..","
-					string_culling_ranges = string.sub(string_culling_ranges, 1, prop_index - 10)..string.sub(string_culling_ranges, closing_bracket + 2)
+					dynamic_ranges = dynamic_ranges..","
+					if string.sub(string_culling_ranges, closing_bracket + 1, closing_bracket + 1) == "," then
+						string_culling_ranges = string.sub(string_culling_ranges, 1, prop_index - 9)..string.sub(string_culling_ranges, closing_bracket + 2)
+					else
+						string_culling_ranges = string.sub(string_culling_ranges, 1, prop_index - 9)..string.sub(string_culling_ranges, closing_bracket + 1)
+					end
 				end
-
-				table.insert(dynamic_props_list, string.sub(string_static_props, found - 9, closing_bracket))
-				string_static_props = string.sub(string_static_props, 1, found - 2)..string.sub(string_static_props, closing_bracket + 1) -- figure something out to avoid missing or double commas
-				search_index = found - 2
-
+			end
+			local double_comma = string.find(string_culling_ranges, ",,")
+			if double_comma then
+				string_culling_ranges = string.sub(string_culling_ranges, 1, double_comma - 1).."]}"..string.sub(string_culling_ranges, double_comma + 1)
 			end
 		end
-			-- zatim konec
-		
-		
+		if final_range_done then
+			string_culling_ranges = string.sub(string_culling_ranges, 1, -4).."],"
+		end
+		if #string_culling_ranges < 25 then
+			string_culling_ranges = "\"staticCullingRanges\":[],"
+		end
+	end
+	local final_string = string_colours..string_static_props..string_culling_ranges
+	if create_dynamic_props then
 		final_string = final_string..dynamic_props.."],"..dynamic_ranges.."],"
 	end
+	
 	final_string = final_string..string_dictionary
 
 	local file_exists = sys.exists(path..filename)
@@ -422,63 +454,14 @@ local function export_models(path)
 	io.close(f)
 end
 
-local function on_pressed(button)
-	if button.node_id == hash("mode/bg") then
-		msg.post("#", hash("disable"))
-		msg.post("#gui", hash("enable"))
-	elseif button.node_id == hash("load_models/bg") then
-
-	elseif button.node_id == hash("sort/bg") then
-
-	elseif materials[button.node_id] and selected_part_index then
-		gui.set_visible(button_highlight, true)
-		local model_tab = model_list[selected_model_index]
-		local str_start = find_substring(model_tab.string, "(DoNotEdit)", selected_part_index) - 2
-		local str_end = str_start + #current_material + 1
-		current_material = materials[button.node_id]
-		model_tab.parts[selected_part_index] = current_material
-		model_tab.string = string.sub(model_tab.string, 1, str_start)..current_material..string.sub(model_tab.string, str_end)
-		gui.set_position(button_highlight, highlight_position[current_material])
-	elseif button.node_id == hash("custom/bg") then
-		gui.set_visible(button_highlight, true)
-		local model_tab = model_list[selected_model_index]
-		local str_start = find_substring(model_tab.string, "(DoNotEdit)", selected_part_index) - 2
-		local str_end = str_start + #current_material + 1
-		current_material = custom_material
-		model_tab.parts[selected_part_index] = current_material
-		model_tab.string = string.sub(model_tab.string, 1, str_start)..current_material..string.sub(model_tab.string, str_end)
-		gui.set_position(button_highlight, highlight_position.custom)
-	elseif button.node_id == hash("export/bg") then
-
-	end
-end
-
 local function update_input(input)
 	if input.node_id == hash("custom_mat/text") then
 		custom_material = input.text
 	end
 end
 
-local function refresh_input(input, config, node_id)
-	local cursor = gui.get_node(node_id .. "/cursor")
-	if input.selected then
-		gui.set_enabled(cursor, true)
-		gui.set_position(cursor, vmath.vector3(14 + input.total_width, 0, 0))
-		gui.cancel_animation(cursor, gui.PROP_COLOR)
-		gui.set_color(cursor, vmath.vector4(1))
-		gui.animate(cursor, gui.PROP_COLOR, vmath.vector4(1,1,1,0), gui.EASING_INSINE, 0.8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
-	else
-		gui.set_enabled(cursor, false)
-		gui.cancel_animation(cursor, gui.PROP_COLOR)
-	end
-end
-local function dirtylarry_input(node_id, keyboard_type, action_id, action, config)
-	return gooey.input(node_id .. "/text", keyboard_type, action_id, action, config, function(input)
-		refresh_input(input, config, node_id)
-		if input.deselected_now then
-			update_input(input)
-		end
-	end)
+local function evaluate_input(field, text)
+	custom_material = text
 end
 
 local function evaluate_button(button)
@@ -569,12 +552,12 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("mode_switched") then
 		local button_list = {"models_main_menu", "load_models", "sort", "export"}
 		UI.load_template(button_list)
+		UI.load_text_field("custom_mat", 46)
 		msg.post("#", hash("enable"))
 		UI.input_enabled = true
 	end
 end
 
 function on_input(self, action_id, action)
-	UI.on_input(self, action_id, action, evaluate_button)
-	dirtylarry_input("custom_mat", gui.KEYBOARD_TYPE_DEFAULT, action_id, action, {}, update_input)
+	UI.on_input(self, action_id, action, evaluate_button, evaluate_input)
 end
