@@ -163,18 +163,6 @@ function init(self)
 	path_centre = gui.get_position(gui.get_node("player_path"))
 end
 
-local function update_button(button)
-	if button.pressed_now then
-		gui.play_flipbook(button.node, hash("button_pressed"))
-	elseif button.released_now then
-		gui.play_flipbook(button.node, hash("button_normal"))
-	elseif not button.pressed and button.over_now then
-		gui.play_flipbook(button.node, hash("button_over"))
-	elseif not button.pressed and button.out_now then
-		gui.play_flipbook(button.node, hash("button_normal"))
-	end
-end
-
 local function set_stencil_size()
 	local w = (max_x - min_x + 1) * 3
 	local h = (max_y - min_y + 1) * 3

@@ -1,7 +1,7 @@
 local UI = require("modules/ui")
 
 local function setup_buttons()
-	UI.load_template({"splash_model", "splash_geo", "splash_exit"})
+	UI.load_template({"splash_model", "splash_geo", "splash_exit", "splash_level"})
 end
 
 function init(self)
@@ -23,6 +23,11 @@ local function evaluate_button(button)
 		UI.unload_template()
 		msg.post("#", hash("disable"))
 		msg.post("#models", hash("mode_switched"))
+	elseif button == "splash_level" then
+		UI.input_enabled = false
+		UI.unload_template()
+		msg.post("#", hash("disable"))
+		msg.post("#level_info", hash("mode_switched"))
 	end
 end
 

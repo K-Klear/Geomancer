@@ -1,20 +1,10 @@
 # Geomancer
 
-This is tool for generating volumes for use in the Pistol Mix editor from .png images. Currently it can create vertical slices of geo out of volumes, with more functions coming in later versions.
+This is tool for generating volumes for use in the Pistol Mix editor from .png images and it can also do certain edits to other map files. More functions are coming in later versions.
 
 ---
 
 ## How to use
-
-### Model editor
-
-Load a pw_art file using the bottom right button and you'll see a list of models present in it. Click a model to see its sections and buttons letting you change their materials to a few pre-defined values or a custom one (see this guide for more working choices: https://mod.io/g/pistol-whip/r/advanced-color-hack-guide).
-
-You can sort the models alphabetically (this change will be preserved if you export it and load in Pistol Mix) and you can use the unmarked buttons next to the model list to set specific models as dynamic. Do note that this will render the resulting file impossible to open in both Pistol Mix and Geomancer, but the models will have working animations in Pistol Whip, if applicable.
-
-Note that the Export option will offer you the same folder from which you loaded the pw_art file by default, though it will check if there's a file with the same name present and append "_modified" to the extension in order to not overwrite it. Bugs can happen, so always keep the unmodified file around.
-
----
 
 ### Geo slices
 
@@ -33,6 +23,22 @@ When you're ready, press the Create volumes button.  This will generate (or over
 do_not_ship.pw_meta is a hopefully fully functional file which you can just copy into any map's zip and it will have the newly generated volumes. This will also erase any existing information about world sections, pre-existing volumes, decor groups and maybe more, so you probably don't want to use this outside of a brand new map.
 
 Once you have the generated data in a Pistol Whip map, load it in Pistol Mix and if it opens, the new volumes should be present. Generate geo and hopefully it will end up looking like the base images.
+
+---
+
+### Model editor
+
+Load a pw_art file using the bottom right button and you'll see a list of models present in it. Click a model to see its sections and buttons letting you change their materials to a few pre-defined values or a custom one (see this guide for more working choices: https://mod.io/g/pistol-whip/r/advanced-color-hack-guide).
+
+You can sort the models alphabetically (this change will be preserved if you export it and load in Pistol Mix) and you can use the unmarked buttons next to the model list to set specific models as dynamic. Do note that this will render the resulting file impossible to open in both Pistol Mix and Geomancer, but the models will have working animations in Pistol Whip, if applicable.
+
+Note that the Export option will offer you the same folder from which you loaded the pw_art file by default, though it will check if there's a file with the same name present and append "_modified" to the extension in order to preserve the original file, unless the "Overwrite" checkbox is checked. Bugs can happen, so always keep the unmodified file around.
+
+---
+
+### Level data editor
+
+Load a level.pw file. This lets you set any enemy, obstacle and materials sets, switch the map to stationary and set preview time.
 
 ---
 
