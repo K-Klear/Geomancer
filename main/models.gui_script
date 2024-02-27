@@ -1,4 +1,4 @@
-local UI = require("modules/ui")
+local UI = require "modules.ui"
 
 local model_list = {}
 local part_names = {[false] = {}}
@@ -17,7 +17,7 @@ local string_dictionary
 local model_strings = {}
 local custom_material = "(DoNotEdit)LiveMat_"
 
-local filename
+local filename, overwrite
 
 local button_highlight, part_highligh, model_highlight
 local model_page = 0
@@ -218,6 +218,30 @@ local function populate_part_list()
 	highlight_part()
 end
 
+local function unload_models()
+	model_list = {}
+	part_names = {[false] = {}}
+	selected_model = false
+	selected_model_index = nil
+	selected_part_index = nil
+	current_material = nil
+	model_names = {}
+	string_colours = nil
+	string_static_props = nil
+	string_culling_ranges = nil
+	table_culling_ranges = nil
+	string_dictionary = nil
+	model_strings = {}
+	custom_material = "(DoNotEdit)LiveMat_"
+	filename = nil
+	model_page = 0
+	model_page_max = 0
+	part_page = 0
+	part_page_max = 0
+	populate_model_list()
+	populate_part_list()
+end
+
 local function load_models(path)
 	local function find_section(tab, model_index)
 		if type(tab) == "table" then
@@ -296,6 +320,7 @@ local function load_models(path)
 		end
 		string_dictionary = string.sub(string_props_dictionary, 1, key_indices[1] - 1)
 		model_list[#key_indices].string = string.sub(string_props_dictionary, key_indices[#key_indices], -3)
+		io.close(f)
 	end
 end
 
@@ -445,13 +470,14 @@ local function export_models(path)
 
 	local file_exists = sys.exists(path..filename)
 	local f
-	if file_exists then
+	if file_exists and not overwrite then
 		f = io.output(path..filename.."_modified")
 	else
 		f = io.output(path..filename)
 	end
 	io.write(final_string.."]}")
 	io.close(f)
+	unload_models()
 end
 
 local function update_input(input)
@@ -466,6 +492,7 @@ end
 
 local function evaluate_button(button)
 	if button == "models_main_menu" then
+		unload_models()
 		msg.post(".", hash("disable"))
 		UI.unload_template()
 		msg.post("#splash", hash("mode_switched"))
@@ -478,7 +505,7 @@ local function evaluate_button(button)
 		end
 	elseif button == "sort" then
 		sort_models()
-	elseif button == "export" then
+	elseif button == "export" and filename then
 		local num, path = diags.open_folder()
 		if path then
 			export_models(path)
@@ -519,6 +546,13 @@ local function evaluate_button(button)
 		model_tab.parts[selected_part_index] = current_material
 		model_tab.string = string.sub(model_tab.string, 1, str_start)..current_material..string.sub(model_tab.string, str_end)
 		highlight_part()
+	elseif button == "overwrite_models" then
+		overwrite = not overwrite
+		if overwrite then
+			gui.set_text(gui.get_node("overwrite_models/text"), "X")
+		else
+			gui.set_text(gui.get_node("overwrite_models/text"), "")
+		end
 	else
 		for i = 1, 10 do
 			if button == "model_list_"..i then
@@ -550,7 +584,7 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("mode_switched") then
-		local button_list = {"models_main_menu", "load_models", "sort", "export"}
+		local button_list = {"models_main_menu", "load_models", "sort", "export", "overwrite_models"}
 		UI.load_template(button_list)
 		UI.load_text_field("custom_mat", 46)
 		msg.post("#", hash("enable"))

@@ -50,7 +50,7 @@ local function remove_hover()
 			gui.play_flipbook(button.node, "button_white")
 		end
 		local text_node = gui.get_node(button.template.."/text")
-		gui.set_color(text_node, vmath.vector4(0, 0, 0, 1))
+		--gui.set_color(text_node, vmath.vector4(0, 0, 0, 1))
 		gui.animate(text_node, "position", UI.EMPTY_VECTOR, go.EASING_LINEAR, UI.BUTTON_PRESS_TIME)
 		hover = nil
 	end
@@ -71,16 +71,20 @@ function UI.unload_template(template)
 					elseif hover == key then
 						remove_hover()
 					end
+					gui.play_flipbook(val.node, "button_white")
+					local text_node = gui.get_node(val.template.."/text")
+					gui.set_position(text_node, UI.EMPTY_VECTOR)
 					table.remove(UI.active, key)
-					--gui.play_flipbook(node, "button_white")
-					--local text_node = gui.get_node(template.."/text")
-					--gui.set_color(text_node, vmath.vector4(0, 0, 0, 1))
-					--gui.set_position(text_node, UI.EMPTY_VECTOR)
 					return
 				end
 			end
 		end
 	else
+		for key, val in ipairs(UI.active) do
+			gui.play_flipbook(val.node, "button_white")
+			local text_node = gui.get_node(val.template.."/text")
+			gui.set_position(text_node, UI.EMPTY_VECTOR)
+		end
 		UI.active = {}
 		UI.text_fields = {}
 		hover = nil
@@ -186,7 +190,7 @@ function UI.on_input(self, action_id, action, button_fn, text_field_fn)
 				if gui.pick_node(val.node, action.x, action.y) then
 					gui.play_flipbook(val.node, "button_white_down")
 					local text_node = gui.get_node(val.template.."/text")
-					gui.set_color(text_node, vmath.vector4(0, 0, 0, 1))
+					--gui.set_color(text_node, vmath.vector4(0, 0, 0, 1))
 					gui.set_position(text_node, UI.EMPTY_VECTOR)
 					gui.animate(text_node, "position", vmath.vector3(5, -5, 0), go.EASING_LINEAR, UI.BUTTON_PRESS_TIME)
 					break
@@ -216,7 +220,7 @@ function UI.on_input(self, action_id, action, button_fn, text_field_fn)
 				hover = new_hover
 				local hover_anim = "button_white_hover"
 				local text_node = gui.get_node(UI.active[hover].template.."/text")
-				gui.set_color(text_node, vmath.vector4(0, 0, 0, 1))
+				--gui.set_color(text_node, vmath.vector4(0, 0, 0, 1))
 				if mouse_held then
 					gui.play_flipbook(UI.active[hover].node, "button_white_down")
 					gui.animate(text_node, "position", vmath.vector3(5, -5, 0), go.EASING_LINEAR, UI.BUTTON_PRESS_TIME)

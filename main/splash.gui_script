@@ -1,7 +1,8 @@
-local UI = require("modules/ui")
+local UI = require "modules.ui"
+local MEM = require "modules.memory"
 
 local function setup_buttons()
-	UI.load_template({"splash_model", "splash_geo", "splash_exit"})
+	UI.load_template({"splash_model", "splash_geo", "splash_exit", "splash_level", "splash_load_dir", "splash_load_file"})
 end
 
 function init(self)
@@ -23,6 +24,25 @@ local function evaluate_button(button)
 		UI.unload_template()
 		msg.post("#", hash("disable"))
 		msg.post("#models", hash("mode_switched"))
+	elseif button == "splash_level" then
+		UI.input_enabled = false
+		UI.unload_template()
+		msg.post("#", hash("disable"))
+		msg.post("#level_info", hash("mode_switched"))
+	elseif button == "splash_load_file" then
+		local num, path = diags.open("pw_meta,pw,pw_beat,pw_event,pw_geo,pw_art,pw_seq")
+		if path then
+			MEM.load_file(path)
+		end
+	elseif button == "splash_load_dir" then
+		local num, path = diags.open_folder()
+		if path then
+			for filename in lfs.dir(path) do
+				if not (filename == "." or filename == "..") then
+					MEM.load_file(path.."/"..filename)
+				end
+			end
+		end
 	end
 end
 

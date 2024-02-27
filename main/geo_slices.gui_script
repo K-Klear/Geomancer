@@ -1,4 +1,4 @@
-local UI = require("modules/ui")
+local UI = require "modules.ui"
 
 local string_start = "{\"NORMALSection\":[{\"name\":\"Empty\",\"distance\":\"-12\",\"properties\":[{\"startUnit\":\"-12\"}]}],\"Volume\":["
 local string_end = "],\"Decor\":[],\"DecorGroups\":[]}"
@@ -161,18 +161,6 @@ function init(self)
 	crop_stencil = gui.get_node("crop_stencil")
 	range_box = gui.get_node("range_box")
 	path_centre = gui.get_position(gui.get_node("player_path"))
-end
-
-local function update_button(button)
-	if button.pressed_now then
-		gui.play_flipbook(button.node, hash("button_pressed"))
-	elseif button.released_now then
-		gui.play_flipbook(button.node, hash("button_normal"))
-	elseif not button.pressed and button.over_now then
-		gui.play_flipbook(button.node, hash("button_over"))
-	elseif not button.pressed and button.out_now then
-		gui.play_flipbook(button.node, hash("button_normal"))
-	end
 end
 
 local function set_stencil_size()
