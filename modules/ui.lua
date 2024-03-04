@@ -12,6 +12,36 @@ UI.EMPTY_VECTOR = vmath.vector3()
 
 UI.input_enabled = true
 
+local current_tab = "tab_file"
+
+UI.tab = {
+	tab_file = {state = "active", buttons = {"exit", "load_dir", "load_file", "load_zip", "unload_all", "export_all"}},
+	tab_level = {state = false, buttons = {"btn_enemies", "btn_obstacles", "btn_materials", "btn_movement"}, fields = {{template = "preview_time", char_limit = 3}}},
+	tab_event = {state = false, buttons = {"sample_48000", "sample_44100", "btn_time_units", "nobeat_add", "event_add", "tempo_add"}, fields = {{template = "sample_rate_field", char_limit = 5}}},
+	tab_beat = {state = false},
+	tab_meta = {state = false},
+
+	tab_geo = {state = false},
+	tab_sequence = {state = false},
+	tab_art = {state = false}
+}
+
+local state_gfx = {
+	active = "tab_active",
+	[true] = "tab_normal",
+	[false] = "tab_disabled"
+}
+
+function UI.update_tabs()
+	for key, val in pairs(UI.tab) do
+		if key == current_tab then
+			val.state = "active"
+		else
+			gui.play_flipbook(gui.get_node(key), state_gfx[val.state])
+		end
+	end
+end
+
 local mouse_held, hover
 
 function UI.load_template(template)
@@ -91,6 +121,26 @@ function UI.unload_template(template)
 	end
 end
 
+function UI.switch_tab(tab)
+	UI.tab[current_tab].state = true
+	gui.play_flipbook(gui.get_node(current_tab), state_gfx[true])
+	gui.set_enabled(UI.tab[current_tab].panel_node, false)
+	if UI.switch_cleanup then
+		UI.switch_cleanup()
+	end
+	UI.switch_cleanup = nil
+	current_tab = tab
+	UI.tab[current_tab].state = "active"
+	gui.play_flipbook(gui.get_node(current_tab), state_gfx.active)
+	gui.set_enabled(UI.tab[current_tab].panel_node, true)
+	UI.unload_template()
+	UI.load_template(UI.tab[current_tab].buttons)
+	if UI.tab[current_tab].fields then
+		for key, val in ipairs(UI.tab[current_tab].fields) do
+			UI.load_text_field(val.template, val.char_limit)
+		end
+	end
+end
 
 
 

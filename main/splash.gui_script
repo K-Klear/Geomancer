@@ -1,60 +1,229 @@
 local UI = require "modules.ui"
 local MEM = require "modules.memory"
+local LVL = require "modules.level_info"
+local EVENT = require "modules.event"
 
-local function setup_buttons()
-	UI.load_template({"splash_model", "splash_geo", "splash_exit", "splash_level", "splash_load_dir", "splash_load_file"})
+local status_text = {"Welcome to Geomancer!", "", "Start by loading a map file, folder or separate files."}
+local status_text_node, status_background, status_font
+
+local function update_status(text, clear)
+	if clear then
+		status_text = {text}
+	elseif text then
+		table.insert(status_text, text)
+	end
+	local str = ""
+	local line_breaks = 0
+	local width = gui.get_size(status_background).x
+	for key, val in ipairs(status_text) do
+		local metrics = resource.get_text_metrics(status_font, val)
+		line_breaks = line_breaks + math.floor(metrics.width / width)
+		str = str..val.."\n"
+	end
+	gui.set_text(status_text_node, str)
+	metrics = resource.get_text_metrics(status_font, str)
+	gui.set_size(status_background, vmath.vector3(width, metrics.height + (line_breaks * 14), 1))
 end
 
 function init(self)
 	msg.post("@render:", hash("clear_color"), {color = vmath.vector4(1, 0.2, 0.8, 1) * 0.15})
 	msg.post(".", hash("acquire_input_focus"))
-	setup_buttons()
+	gui.set_enabled(gui.get_node("panel_file"), true)
+	status_background = gui.get_node("status_background")
+	status_text_node = gui.get_node("status_text")
+	status_font = gui.get_font_resource(gui.get_font(status_text_node)) 
+	UI.tab.tab_file.panel_node = gui.get_node("panel_file")
+	UI.tab.tab_level.panel_node = gui.get_node("panel_level")
+	UI.tab.tab_meta.panel_node = gui.get_node("panel_meta")
+	UI.tab.tab_beat.panel_node = gui.get_node("panel_beat")
+	UI.tab.tab_event.panel_node = gui.get_node("panel_event")
+	UI.tab.tab_geo.panel_node = gui.get_node("panel_geo")
+	UI.tab.tab_sequence.panel_node = gui.get_node("panel_sequence")
+	UI.tab.tab_art.panel_node = gui.get_node("panel_art")
+	UI.load_template(UI.tab.tab_file.buttons)
+	LVL.setup()
+	gui.set_enabled(UI.tab.tab_file.panel_node, true)
+	gui.set_enabled(UI.tab.tab_level.panel_node, false)
+	gui.set_enabled(UI.tab.tab_event.panel_node, false)
+	gui.set_enabled(UI.tab.tab_art.panel_node, false)
+	gui.set_enabled(UI.tab.tab_geo.panel_node, false)
+	gui.set_enabled(UI.tab.tab_meta.panel_node, false)
+	gui.set_enabled(UI.tab.tab_sequence.panel_node, false)
+	gui.set_enabled(UI.tab.tab_beat.panel_node, false)
+	update_status()
 end
 
-local function evaluate_button(button)
-	if button == "splash_exit" then
-		os.exit(1)
-	elseif button == "splash_geo" then
-		UI.input_enabled = false
-		UI.unload_template()
-		msg.post("#", hash("disable"))
-		msg.post("#geo_slices", hash("mode_switched"))
-	elseif button == "splash_model" then
-		UI.input_enabled = false
-		UI.unload_template()
-		msg.post("#", hash("disable"))
-		msg.post("#models", hash("mode_switched"))
-	elseif button == "splash_level" then
-		UI.input_enabled = false
-		UI.unload_template()
-		msg.post("#", hash("disable"))
-		msg.post("#level_info", hash("mode_switched"))
-	elseif button == "splash_load_file" then
-		local num, path = diags.open("pw_meta,pw,pw_beat,pw_event,pw_geo,pw_art,pw_seq")
-		if path then
-			MEM.load_file(path)
-		end
-	elseif button == "splash_load_dir" then
-		local num, path = diags.open_folder()
-		if path then
-			for filename in lfs.dir(path) do
-				if not (filename == "." or filename == "..") then
-					MEM.load_file(path.."/"..filename)
-				end
-			end
-		end
+local function update_panel(extension)
+	if extension == "pw" then
+		LVL.update_labels()
+	elseif extension == "pw_event" then
+		EVENT.update_labels()
 	end
 end
 
-function on_message(self, message_id, message, sender)
-	if message_id == hash("mode_switched") then
-		local button_list = {"load_images", "create", "geo_main_menu"}
-		setup_buttons()
-		msg.post("#", hash("enable"))
-		UI.input_enabled = true
+local function evaluate_button(button)
+	if UI.tab.tab_level.state == "active" then
+		LVL.evaluate_button(button)
+		return
+	elseif UI.tab.tab_event.state == "active" then
+		EVENT.evaluate_button(button)
+		return
+	end
+	if button == "exit" then
+		os.exit(1)
+	elseif button == "load_file" then
+		local num, path = diags.open("pw_meta,pw,pw_beat,pw_event,pw_geo,pw_art,pw_seq")
+		if path then
+			local htap = string.reverse(path)
+			local filename = string.reverse(string.sub(htap, 1, string.find(htap, "\\") - 1))
+			local extension = string.find(htap, "%.")
+			extension = string.reverse(string.sub(htap, 1, extension - 1))
+			update_status("Loading "..filename, true)
+			timer.delay(0.01, false, function()
+				local panel = MEM.load_file(path, filename, extension)
+				if panel then
+					update_status("File loaded successfully")
+					UI.update_tabs()
+					update_panel(panel)
+				else
+					update_status("File not loaded")
+				end
+			end)
+		end
+	elseif button == "load_zip" then
+		local num, path = diags.open("zip")
+		if path then
+			local f = io.open(path, "rb")
+			if f then
+				update_status("Loading files from "..path, true)
+				local zip_data = f:read("*a")
+				local archive = zip.open(zip_data)
+				local file_index = zip.get_number_of_entries(archive) - 1
+				local skip_count, extracted_count = 0, 0
+				local ext_list = {pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = true}
+				local function extract_next()
+					local file = zip.extract_by_index(archive, file_index)
+					local extension = string.find(file.name, "%.")
+					if extension then
+						extension = string.sub(file.name, extension + 1)
+						if ext_list[extension] then
+							ext_list[extension] = false
+							update_status(file.name)
+							extracted_count = extracted_count + 1
+							update_panel(MEM.load_file(nil, file.name, extension, file.content))
+						else
+							skip_count = skip_count + 1
+						end
+					end
+					file_index = file_index - 1
+					if file_index < 0 then
+						zip.close(archive)
+						update_status("Extracted "..extracted_count.." files, "..skip_count.." skipped.")
+						if MEM.level_data.scene_name then
+							update_status("Loaded scene: "..MEM.level_data.scene_name)
+						else
+							update_status("Unknown scene name")
+						end
+						UI.update_tabs()
+					else
+						timer.delay(0.01, false, extract_next)
+					end
+				end
+				if file_index > -1 then
+					timer.delay(0.01, false, extract_next)
+				else
+					update_status("Archive is empty.")
+				end
+			end
+		end
+	elseif button == "load_dir" then
+		local num, path = diags.open_folder()
+		if path then
+			update_status("Loading files from "..path, true)
+			local files_to_load = {}
+			local skip_count = 0
+			local ext_list = {pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = true}
+			for filename in lfs.dir(path) do
+				if not (filename == "." or filename == "..") then
+					local extension = string.find(filename, "%.")
+					if extension then
+						extension = string.sub(filename, extension + 1)
+						if ext_list[extension] then
+							table.insert(files_to_load, {path = path.."/"..filename, filename = filename, extension = extension})
+							ext_list[extension] = false
+						else
+							skip_count = skip_count + 1
+						end
+					end
+				end
+			end
+			if #files_to_load > 0 then
+				local function load_next_file()
+					local _file = table.remove(files_to_load)
+					local panel = MEM.load_file(_file.path, _file.filename, _file.extension)
+					if panel then
+						update_status(_file.filename)
+						UI.update_tabs()
+						update_panel(panel)
+					else
+						update_status("Error loading ".._file.filename)
+					end
+					if #files_to_load > 0 then
+						timer.delay(0.01, false, load_next_file)
+					else
+						if MEM.level_data.scene_name then
+							update_status("Done. Loaded scene: "..MEM.level_data.scene_name)
+						else
+							update_status("Done. Unknown scene name")
+						end
+					end
+				end
+				update_status("Loading "..#files_to_load.." files, "..skip_count.." skipped.")
+				timer.delay(0.01, false, load_next_file)
+			else
+				update_status("No valid files found.")
+			end
+		end
+	elseif button == "unload_all" then
+		for key, val in pairs(UI.tab) do
+			val.state = false
+		end
+		UI.tab.tab_file.state = true
+		MEM.level_data = {}
+		MEM.meta_data = {}
+		MEM.beat_data = {}
+		MEM.event_data = {}
+		MEM.geo_data = {}
+		MEM.sequence_data = {}
+		MEM.art_data = {}
+		update_status("All data unloaded.", true)
+		UI.update_tabs()
+	end
+end
+
+local function evaluate_input(field, text)
+	if UI.tab.tab_level.state == "active" then
+		LVL.evaluate_input(field, text)
+	elseif UI.tab.tab_event.state == "active" then
+		EVENT.evaluate_input(field, text)
 	end
 end
 
 function on_input(self, action_id, action)
 	UI.on_input(self, action_id, action, evaluate_button, evaluate_input)
+	if action.pressed then
+		for key, val in pairs(UI.tab) do
+			if val.state == true and gui.pick_node(gui.get_node(key), action.x, action.y) then
+				UI.switch_tab(key)
+				if MEM.level_data.scene_name then
+					update_status("Loaded scene: "..MEM.level_data.scene_name, true)
+				else
+					update_status("Unknown scene name", true)
+				end
+				if key == "tab_event" then
+					EVENT.update_labels()
+				end
+			end
+		end
+	end
 end
