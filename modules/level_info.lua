@@ -98,7 +98,6 @@ function LVL.evaluate_button(button)
 		gui.set_enabled(gui.get_node("enemy_box"), false)
 		MEM.level_data.enemy_set = button
 		gui.set_text(gui.get_node("btn_enemies/text"), enemy_set_names[MEM.level_data.enemy_set])
-		UI.tabs_active = true
 		UI.switch_cleanup = nil
 	elseif button == "btn_obstacles" then
 		gui.set_enabled(gui.get_node("obstacle_box"), true)

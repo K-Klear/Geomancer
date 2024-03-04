@@ -96,10 +96,12 @@ function UI.unload_template(template)
 		else
 			for key, val in ipairs(UI.active) do
 				if val.template == template then
-					if hover > key then
-						hover = hover - 1
-					elseif hover == key then
-						remove_hover()
+					if hover then
+						if hover > key then
+							hover = hover - 1
+						elseif hover == key then
+							remove_hover()
+						end
 					end
 					gui.play_flipbook(val.node, "button_white")
 					local text_node = gui.get_node(val.template.."/text")

@@ -25,6 +25,7 @@ dependencies#3 = https://github.com/Car3man/extension-zip/archive/refs/tags/1.0.
 default_texture_min_filter = nearest
 default_texture_mag_filter = nearest
 texture_profiles = /assets/gfx/UI.texture_profiles
+max_characters = 16384
 
 [input]
 game_binding = /game.input_bindingc

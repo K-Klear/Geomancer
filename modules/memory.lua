@@ -34,12 +34,14 @@ function load.pw(data)
 	MEM.level_data.song_length = tonumber(tab.songLength)
 	MEM.level_data.scene_name = tab.sceneDisplayName
 	UI.tab.tab_level.state = true
+	return true
 end
 
 function load.pw_meta(data)
 	MEM.meta_data.string = data
 	--MEM.meta_data.table = json.decode(MEM.meta_data.string)
 	UI.tab.tab_meta.state = true
+	return true
 end
 
 function load.pw_beat(data, filename)
@@ -50,6 +52,7 @@ function load.pw_beat(data, filename)
 	--	print("that file is fucked yo")
 	--end
 	UI.tab.tab_beat.state = true
+	return true
 end
 
 function load.pw_event(data, filename)
@@ -60,36 +63,44 @@ function load.pw_event(data, filename)
 	--	print("fucked again")
 	--end
 	UI.tab.tab_event.state = true
+	return true
 end
 
 function load.pw_geo(data, filename)
 	MEM.geo_data.string = data
 	MEM.geo_data.filename = filename
 	UI.tab.tab_geo.state = true
+	return true
 end
 
 function load.pw_seq(data, filename)
 	MEM.sequence_data.string = data
 	MEM.sequence_data.filename = filename
 	UI.tab.tab_sequence.state = true
+	return true
 end
 
 function load.pw_art(data, filename)
 	MEM.art_data.string = data
+	if string.find(data, "\"dynamicProps\"") or string.find(data, "\"dynamicCullingRanges\"") then
+		return
+	end
 	MEM.art_data.table = json.decode(MEM.art_data.string)
 	MEM.art_data.filename = filename
 	--if MEM.art_data.table.dynamicProps or MEM.art_data.table.dynamicCullingRanges then
 	--	print("so totally fucked")
 	--end
 	UI.tab.tab_art.state = true
+	return true
 end
 
 function MEM.load_file(path, filename, extension, data)
 	if extension and load[extension] then
 		data = data or read_file(path)
 		if data then
-			load[extension](data, filename)
-			return extension
+			if load[extension](data, filename) then
+				return extension
+			end
 		end
 	end
 end
