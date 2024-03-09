@@ -12,6 +12,46 @@ UI.EMPTY_VECTOR = vmath.vector3()
 
 UI.input_enabled = true
 
+local current_tab = "tab_file"
+
+UI.tab = {
+	tab_file = {state = "active", buttons = {"exit", "load_dir", "load_file", "load_zip", "unload_all", "export_all"}},
+	tab_level = {state = false, buttons = {"btn_enemies", "btn_obstacles", "btn_materials", "btn_movement"}, fields = {{template = "preview_time", char_limit = 3}}},
+	tab_event = {state = false, buttons = {"sample_48000", "sample_44100", "btn_time_units", "nobeat_add", "event_add", "tempo_add"}, fields = {{template = "sample_rate_field", char_limit = 5}}},
+	tab_geo = {state = false, buttons = {"geo_collision", "geo_visual"}},
+	tab_beat = {state = false, buttons = {}},
+	tab_meta = {state = false, buttons = {
+		"load_images", "create", "subtractive", "additive", "invert", "left", "right", "min_y_down", "max_y_down",
+		"min_y_up", "max_y_up", "min_x_down", "min_x_up", "max_x_up", "max_x_down", "depth_down", "depth_up",
+		"show_path", "filter_white", "filter_alpha", "image_group"
+	}, fields = {
+		{template = "depth", char_limit = 3},
+		{template = "min_x", char_limit = 3},
+		{template = "max_x", char_limit = 3},
+		{template = "min_y", char_limit = 3},
+		{template = "max_y", char_limit = 3},
+		{template = "processing_order", char_limit = 4},
+	}},
+	tab_sequence = {state = false, buttons = {}},
+	tab_art = {state = false, buttons = {"sort"}}
+}
+
+local state_gfx = {
+	active = "tab_active",
+	[true] = "tab_normal",
+	[false] = "tab_disabled"
+}
+
+function UI.update_tabs()
+	for key, val in pairs(UI.tab) do
+		if key == current_tab then
+			val.state = "active"
+		else
+			gui.play_flipbook(gui.get_node(key), state_gfx[val.state])
+		end
+	end
+end
+
 local mouse_held, hover
 
 function UI.load_template(template)
@@ -66,10 +106,12 @@ function UI.unload_template(template)
 		else
 			for key, val in ipairs(UI.active) do
 				if val.template == template then
-					if hover > key then
-						hover = hover - 1
-					elseif hover == key then
-						remove_hover()
+					if hover then
+						if hover > key then
+							hover = hover - 1
+						elseif hover == key then
+							remove_hover()
+						end
 					end
 					gui.play_flipbook(val.node, "button_white")
 					local text_node = gui.get_node(val.template.."/text")
@@ -91,6 +133,26 @@ function UI.unload_template(template)
 	end
 end
 
+function UI.switch_tab(tab)
+	UI.tab[current_tab].state = true
+	gui.play_flipbook(gui.get_node(current_tab), state_gfx[true])
+	gui.set_enabled(UI.tab[current_tab].panel_node, false)
+	if UI.switch_cleanup then
+		UI.switch_cleanup()
+	end
+	UI.switch_cleanup = nil
+	current_tab = tab
+	UI.tab[current_tab].state = "active"
+	gui.play_flipbook(gui.get_node(current_tab), state_gfx.active)
+	gui.set_enabled(UI.tab[current_tab].panel_node, true)
+	UI.unload_template()
+	UI.load_template(UI.tab[current_tab].buttons)
+	if UI.tab[current_tab].fields then
+		for key, val in ipairs(UI.tab[current_tab].fields) do
+			UI.load_text_field(val.template, val.char_limit)
+		end
+	end
+end
 
 
 
