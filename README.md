@@ -1,50 +1,54 @@
 # Geomancer
 
-This is tool for generating volumes for use in the Pistol Mix editor from .png images and it can also do certain edits to other map files. More functions are coming in later versions.
+This is tool originally made for generating volumes for use in the Pistol Mix editor from .png images, but the focus has shifted to make other changes to the map files easier. More functions are coming in later versions.
 
 ---
 
 ## How to use
 
-### Geo slices
+There are various tabs representing the data found in the map zip. They will become available as you import relevant files. Note that the Sequences tab never becomes active as I'm not currently aware of any useful edits to this file, but I put it there in case of future developments.
 
-Place one or more .png images into the "input" folder. They need to be exactly 167 x 166. Black and white works best. Each pixel represents the smallest geo unit available in Pistol Mix. The images need to be named according to the Z level where you want the volumes to appear. The tool currently looks for images named from -16 to 3600. Any other files will be ignored. The tool comes with a few test images, so take a look at those if you're not sure how to format yours.
+### Import / Export
 
-Click the "Load images" button to get started. A preview will show, with a pink/green graphic representing the small walkway and no-geo corridor around the player. You can adjust range of how much of the image is generated as volumes, offset the results. You can also adjust the Z scale of the generated volumes (Depth) and the processing order. By default (1500) they will block the player's path if they cross it, so keep that in mind.
+Import a Pistol Mix zip file, a directory containing extracted files or specific files one-by-one. After making changes in other tabs, you can export them from here. Geomancer will create a new folder and place the modified files there. You have to add them to a map file manually afterwards.
+
+### Level info
+
+This lets you set any enemy, obstacle and materials sets, switch the map to stationary and set preview time. It icludes choices not available in the official editor.
+
+### Events, BPM
+
+Add or modify no-beat sections, event triggers and tempo sections. Note that one tempo section will always be present, representing the BPM set in Pistol Mix. Values outside of the range of the map can break BPM. Geomancer will try to limit values to song length if level.pw is loaded.
+
+### Models
+
+Set models to any of the known working materials, sort them and set them to dynamic if needed. Note that the file will refuse to load if previously modified to include dynamic objects. This will be fixed in a later release.
+
+### Enemies
+
+This tab lets you change all instances of an enemy type to a different one. For example, if you want to have Fyling Skulls in your level, use an enemy type that is not present in the level otherwise (say, Mounted Enemy) and then replace them all from here. If your map has all enemy types, you'll have to do the replacement manually.
+
+### Geo / collisions
+
+This lets you replace either the visual or collision data of geo in your map for that from a different map. Useful for invisible walls.
+
+### Volumes
+
+Currently the only function is to create geo "slices" from PNG files. Create one or more png files with dimensions exactly 167 x 166, name each with a number representing the Z position you want the geo slice to appear and place them in a folder. From there you can import them using the Load images button.
+
+A preview will show, with a pink/green graphic representing the small walkway and no-geo corridor around the player. You can adjust range of how much of the image is generated as volumes. You can also adjust the Z scale of the generated volumes (Depth) and the processing order. By default (1500) they will block the player's path if they cross it, so keep that in mind.
 
 The radio buttons "white" and "alpha" can be used to switch between brightness and alpha values in the image detemining whether a pixel is geo or empty, though the alpha setting is currently not shown on the image preview. Also note that the "white" mode currently only reads the r value of the pixel, so colour pictures can have messy results.
 
 In the top right corner you can choose to generate additive, subtractive or both types of volumes or invert the picture.
 
-When you're ready, press the Create volumes button.  This will generate (or overwrite) two files in the "output" folder:
-
-- volume_data.txt contains the new volumes only. You can manually insert them into an existing map. Note that each volume has a groupIndex value which is used by PM to group them together. Geomancer will group the volumes created from each image together starting from 1 and incrementing by one. The map will refuse to load if the indices don't start from 1 and have any gaps in them, so keep that in mind. You may need to adjust these if you're merging this data into a map already containing other volumes.
-
-do_not_ship.pw_meta is a hopefully fully functional file which you can just copy into any map's zip and it will have the newly generated volumes. This will also erase any existing information about world sections, pre-existing volumes, decor groups and maybe more, so you probably don't want to use this outside of a brand new map.
-
-Once you have the generated data in a Pistol Whip map, load it in Pistol Mix and if it opens, the new volumes should be present. Generate geo and hopefully it will end up looking like the base images.
-
----
-
-### Model editor
-
-Load a pw_art file using the bottom right button and you'll see a list of models present in it. Click a model to see its sections and buttons letting you change their materials to a few pre-defined values or a custom one (see this guide for more working choices: https://mod.io/g/pistol-whip/r/advanced-color-hack-guide).
-
-You can sort the models alphabetically (this change will be preserved if you export it and load in Pistol Mix) and you can use the unmarked buttons next to the model list to set specific models as dynamic. Do note that this will render the resulting file impossible to open in both Pistol Mix and Geomancer, but the models will have working animations in Pistol Whip, if applicable.
-
-Note that the Export option will offer you the same folder from which you loaded the pw_art file by default, though it will check if there's a file with the same name present and append "_modified" to the extension in order to preserve the original file, unless the "Overwrite" checkbox is checked. Bugs can happen, so always keep the unmodified file around.
-
----
-
-### Level data editor
-
-Load a level.pw file. This lets you set any enemy, obstacle and materials sets, switch the map to stationary and set preview time.
+When you're ready, press the Create volumes button. This will generate the volume data, but you still need to export it in the Import/export tab. The volumes will be added to the loaded do_not_ship.pw_meta file and exported as such. You will need to open the map in Pistol Mix and generate geo for this to have any effect. Note that many of the other changes possible in geomacer (notably setting models as dynamic, messing around with tempo sections or adding extra enemy types) can render the map impossible to open, so you'll want to generate this volume data separately in case you want to do other changes.
 
 ---
 
 This tool is provided as is. Use at your own risk, though there isn't any, really. If you need help, shoot me a message and I might help you out, but keep in mind the tool is still very early in development, so issues are expected.
 
-Made with Defold, using extensions by Björn Ritzl and Sven Andersson.
+Made with Defold, using extensions by Björn Ritzl, Sven Andersson and Sergey Lerg. 
 
 ---
 
