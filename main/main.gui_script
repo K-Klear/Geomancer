@@ -91,19 +91,32 @@ local function evaluate_button(button)
 					S.update("Loading files from "..path, true)
 					local zip_data = f:read("*a")
 					local archive = zip.open(zip_data)
+					if not archive then
+						S.update("Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually.")
+						return
+					end
 					local file_index = zip.get_number_of_entries(archive) - 1
 					local skip_count, extracted_count = 0, 0
 					local ext_list = {pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = true}
 					local function extract_next()
-						local file = zip.extract_by_index(archive, file_index)
+						local err, file = pcall(zip.extract_by_index, archive, file_index)
+						if not err then
+							S.update("Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually.")
+							return
+						end
 						local extension = string.find(file.name, "%.")
 						if extension then
 							extension = string.sub(file.name, extension + 1)
 							if ext_list[extension] then
-								ext_list[extension] = false
-								S.update(file.name)
-								extracted_count = extracted_count + 1
-								update_panel(MEM.load_file(nil, file.name, extension, file.content))
+								local panel = MEM.load_file(nil, file.name, extension, file.content) 
+								if panel then
+									ext_list[extension] = false
+									S.update(file.name)
+									extracted_count = extracted_count + 1
+									update_panel(panel)
+								else
+									skip_count = skip_count + 1
+								end
 							else
 								skip_count = skip_count + 1
 							end

@@ -10,8 +10,9 @@ MEM.event_data = {}
 MEM.geo_data = {}
 MEM.sequence_data = {}
 MEM.art_data = {}
-
 MEM.sample_rate = 48000
+
+local current_version = 0.4
 
 local load = {}
 
@@ -26,6 +27,25 @@ local function sanitise_json(str)
 	return str
 end
 
+local function check_version(str, filename)
+	local pos = string.find(str, "\"version\":")
+	if not pos then
+		S.update("Unknown format of "..filename..".")
+		return
+	else
+		local ver = string.sub(str, pos + 11, pos + 13)
+		if tonumber(ver) < current_version then
+			S.update("Version of "..filename.." is lower than "..current_version..". Resave it with the current Pistol Mix version.")
+			return
+		elseif tonumber(ver) > current_version then
+			S.update("Version of "..filename.." is higher than "..current_version..". This may cause unknown issues. Be careful.")
+			return true
+		else
+			return true
+		end
+	end
+end
+
 local function read_file(path)
 	local f = io.open(path, "rb")
 	if f then
@@ -36,6 +56,9 @@ local function read_file(path)
 end
 
 function load.pw(data)
+	if not check_version(data, "level.pw") then
+		return
+	end
 	data = sanitise_json(data)
 	MEM.level_data.string = data
 	local tab = json.decode(MEM.level_data.string)
@@ -56,6 +79,11 @@ function load.pw_meta(data)
 	MEM.meta_data.string = data
 	
 	local s_index = string.find(MEM.meta_data.string, "\"Volume\":[", 1, true)
+	if not s_index then
+		S.update("Error loading volume information. Try resaving the file with the current version of Pistol Mix.")
+		MEM.meta_data = {}
+		return false
+	end
 	local e_index = string.find(MEM.meta_data.string, "]", s_index + 8, true)
 	local _ = string.sub(MEM.meta_data.string, s_index + 9, e_index)
 	MEM.meta_data.volume_table = json.decode(string.sub(MEM.meta_data.string, s_index + 9, e_index))
@@ -75,6 +103,9 @@ function load.pw_meta(data)
 end
 
 function load.pw_beat(data, filename)
+	if not check_version(data, filename) then
+		return
+	end
 	MEM.beat_data.string = data
 	MEM.beat_data.filename = filename
 	MEM.beat_data.enemy_types = {}
@@ -93,6 +124,9 @@ function load.pw_beat(data, filename)
 end
 
 function load.pw_event(data, filename)
+	if not check_version(data, filename) then
+		return
+	end
 	data = sanitise_json(data)
 	MEM.event_data.string = data
 	MEM.event_data.filename = filename
@@ -105,6 +139,9 @@ function load.pw_event(data, filename)
 end
 
 function load.pw_geo(data, filename)
+	if not check_version(data, filename) then
+		return
+	end
 	local chunk = string.find(data, "chunkData")
 	local slices = string.find(data, "chunkSlices")
 	MEM.geo_data.start = string.sub(data, 1, chunk - 2)
@@ -123,9 +160,13 @@ function load.pw_seq(data, filename)
 end
 
 function load.pw_art(data, filename)
+	if not check_version(data, filename) then
+		return
+	end
 	data = sanitise_json(data)
 	MEM.art_data.string = data
 	if string.find(data, "\"dynamicProps\"") or string.find(data, "\"dynamicCullingRanges\"") then
+		S.update(filename.." contains dynamic models. Skipping.")
 		return
 	end
 	local model_table = json.decode(MEM.art_data.string)
