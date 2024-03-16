@@ -92,6 +92,10 @@ function BEAT.evaluate_button(button)
 end
 
 function BEAT.export(path)
+	--local err, msg = pcall(json.decode, MEM.beat_data.string)
+	--if not err then
+	--	S.update("Beat data might be corrupted. Use with caution.")
+	--end
 	local f = io.output(path)
 	io.write(MEM.beat_data.string)
 	io.close(f)

@@ -1,6 +1,7 @@
 local ART = {}
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
+local S = require "modules.status"
 
 local material_highlight, part_highlight, model_highlight
 local material_highlight_base, part_highlight_base, model_highlight_base
@@ -262,11 +263,14 @@ function ART.evaluate_button(button)
 					highlight_part()
 					return
 				elseif button == "dynamic_"..i then
-					if MEM.art_data.model_list[i + (10 * model_page)].dynamic then
+					local model_name = MEM.art_data.model_list[i + (10 * model_page)].name
+					if MEM.art_data.dynamic_models[model_name] then
 						MEM.art_data.model_list[i + (10 * model_page)].dynamic = false
+						MEM.art_data.dynamic_models[model_name] = nil
 						gui.set_text(gui.get_node("dynamic_"..i.."/text"), "")
 					else
 						MEM.art_data.model_list[i + (10 * model_page)].dynamic = true
+						MEM.art_data.dynamic_models[model_name] = true
 						gui.set_text(gui.get_node("dynamic_"..i.."/text"), "X")
 					end
 					return
@@ -307,141 +311,160 @@ function ART.update_model_list()
 end
 
 function ART.export(path)
-	local dynamic_props_list = {}
-	local dynamic_ranges_list = {}
-
-	local dynamic_props = "\"dynamicProps\":["
-	local create_dynamic_props
-
-	local string_static_props = MEM.art_data.string_static_props
-	local string_dictionary = MEM.art_data.string_dictionary
-	local string_culling_ranges = MEM.art_data.string_culling_ranges
-
-	for key, val in ipairs(MEM.art_data.model_list) do
-		local model_name = "\""..val.name.."\""
-		if val.dynamic then
-			create_dynamic_props = true
-			local found
-			local search_index = 1
-			local first = true
-			repeat
-				found = string.find(string_static_props, model_name, search_index)
-				if found then
-					if not first then
-						string_static_props = string_static_props..","
-						first = nil
-					end
-					local closing_bracket = string.find(string_static_props, "}", found)
-					table.insert(dynamic_props_list, string.sub(string_static_props, found - 8, closing_bracket))
-					string_static_props = string.sub(string_static_props, 1, found - 9)..string.sub(string_static_props, closing_bracket + 2)
-					search_index = found - 8
-				end
-			until not found
-			if string.sub(string_static_props, -2) == ",," then
-				string_static_props = string.sub(string_static_props, 1, -3).."],"
-			end
-		end
-		for k, v in ipairs(MEM.art_data.table_culling_ranges) do
-			for _k, _v in ipairs(v.members) do
-				if _v.name == val.name and val.dynamic then
-					create_dynamic_props = true
-					dynamic_ranges_list[v.range] = dynamic_ranges_list[v.range] or {}
-					table.insert(dynamic_ranges_list[v.range], model_name)
-				end
-			end
-		end
-
-		if key < #MEM.art_data.model_list then
-			string_dictionary = string_dictionary..val.string..","
-		else
-			string_dictionary = string_dictionary..val.string
+	local static_ranges_changed, dynamic_ranges_changed
+	local existing_ranges, existing_dynamic_ranges = {}, {}
+	for key, val in ipairs(MEM.art_data.table_culling_ranges) do
+		existing_ranges[val.range] = val
+	end
+	for key, val in ipairs(MEM.art_data.table_dynamic_culling_ranges) do
+		existing_dynamic_ranges[val.range] = val
+	end
+	local tab_iter = MEM.art_data.table_static_props
+	for i = #tab_iter, 1, -1 do
+		if MEM.art_data.dynamic_models[tab_iter[i].name] then
+			local r = table.remove(tab_iter, i)
+			table.insert(MEM.art_data.table_dynamic_props, r)
 		end
 	end
-
-	local dynamic_ranges = "\"dynamicCullingRanges\":["
-
-	if create_dynamic_props then
-		for key, val in ipairs(dynamic_props_list) do
-			dynamic_props = dynamic_props..val
-			if key < #dynamic_props_list then
-				dynamic_props = dynamic_props..","
-			end
+	tab_iter = MEM.art_data.table_dynamic_props
+	for i = #tab_iter, 1, -1 do
+		if not MEM.art_data.dynamic_models[tab_iter[i].name] then
+			local r = table.remove(tab_iter, i)
+			table.insert(MEM.art_data.table_static_props, r)
 		end
-		local dynamic_ranges_array = {}
-		for key, val in pairs(dynamic_ranges_list) do
-			table.insert(dynamic_ranges_array, {range = key, names = val})
-		end
-		local function find_range_start(range)
-			return tonumber(string.sub(range, 1, string.find(range, ",") - 1))
-		end
-		table.sort(dynamic_ranges_array, function(a, b) return find_range_start(a.range) < find_range_start(b.range) end)
-		local final_range_done = false
-		for key, val in ipairs(dynamic_ranges_array) do
-			dynamic_ranges = dynamic_ranges.."{\"range\":\""..val.range.."\",\"members\":["
-			local range_index = string.find(string_culling_ranges, val.range)
-			for k, v in ipairs(val.names) do
-				local prop_index = string.find(string_culling_ranges, v, range_index)
-				local closing_bracket = string.find(string_culling_ranges, "}", prop_index)
-				dynamic_ranges = dynamic_ranges..string.sub(string_culling_ranges, prop_index - 8, closing_bracket)
-				if k == #val.names then
-					if key == #dynamic_ranges_array then
-						dynamic_ranges = dynamic_ranges.."]}"
-					else
-						dynamic_ranges = dynamic_ranges.."]},"
-					end
-					local member_count
-					for _, rt in ipairs(MEM.art_data.table_culling_ranges) do
-						if val.range == rt.range then
-							member_count = #rt.members
-							break
-						end
-					end
-					if #val.names == member_count then
-						if string.sub(string_culling_ranges, closing_bracket + 3, closing_bracket + 3) == "," then
-							string_culling_ranges = string.sub(string_culling_ranges, 1, range_index - 11)..string.sub(string_culling_ranges, closing_bracket + 4)
-						else
-							string_culling_ranges = string.sub(string_culling_ranges, 1, range_index - 11)..string.sub(string_culling_ranges, closing_bracket + 3)
-							final_range_done = true
-						end
-					else
-						if string.sub(string_culling_ranges, closing_bracket + 3, closing_bracket + 3) == "," then
-							string_culling_ranges = string.sub(string_culling_ranges, 1, prop_index - 9)..string.sub(string_culling_ranges, closing_bracket + 3)
-						else
-							string_culling_ranges = string.sub(string_culling_ranges, 1, prop_index - 9)..string.sub(string_culling_ranges, closing_bracket + 2)
-							--final_range_done = true
-						end
-					end
+	end
+	tab_iter = MEM.art_data.table_culling_ranges
+	local range
+	for i = #tab_iter, 1, -1 do
+		range = tab_iter[i].range
+		local member_count = #tab_iter[i].members
+		for j = #tab_iter[i].members, 1, -1 do
+			if MEM.art_data.dynamic_models[tab_iter[i].members[j].name] then
+				local r = table.remove(tab_iter[i].members, j)
+				if existing_dynamic_ranges[range] then
+					table.insert(existing_dynamic_ranges[range], r)
 				else
-					dynamic_ranges = dynamic_ranges..","
-					if string.sub(string_culling_ranges, closing_bracket + 1, closing_bracket + 1) == "," then
-						string_culling_ranges = string.sub(string_culling_ranges, 1, prop_index - 9)..string.sub(string_culling_ranges, closing_bracket + 2)
-					else
-						string_culling_ranges = string.sub(string_culling_ranges, 1, prop_index - 9)..string.sub(string_culling_ranges, closing_bracket + 1)
-					end
+					MEM.art_data.table_dynamic_culling_ranges[#MEM.art_data.table_dynamic_culling_ranges + 1] = {range = range, members = {r}}
+					existing_dynamic_ranges[range] = MEM.art_data.table_dynamic_culling_ranges[#MEM.art_data.table_dynamic_culling_ranges]
+					dynamic_ranges_changed = true
 				end
-			end
-			local double_comma = string.find(string_culling_ranges, ",,")
-			if double_comma then
-				string_culling_ranges = string.sub(string_culling_ranges, 1, double_comma - 1).."]}"..string.sub(string_culling_ranges, double_comma + 1)
+				member_count = member_count - 1
 			end
 		end
-		if final_range_done then
-			string_culling_ranges = string.sub(string_culling_ranges, 1, -4).."],"
-		end
-		if #string_culling_ranges < 25 then
-			string_culling_ranges = "\"staticCullingRanges\":[],"
+		if member_count < 1 then
+			table.remove(tab_iter, i)
 		end
 	end
-	local final_string = MEM.art_data.string_colours..string_static_props..string_culling_ranges
-	if create_dynamic_props then
-		final_string = final_string..dynamic_props.."],"..dynamic_ranges.."],"
+	tab_iter = MEM.art_data.table_dynamic_culling_ranges
+	local range
+	for i = #tab_iter, 1, -1 do
+		range = tab_iter[i].range
+		local member_count = #tab_iter[i].members
+		for j = #tab_iter[i].members, 1, -1 do
+			if not MEM.art_data.dynamic_models[tab_iter[i].members[j].name] then
+				local r = table.remove(tab_iter[i].members, j)
+				if existing_ranges[range] then
+					table.insert(existing_ranges[range], r)
+				else
+					MEM.art_data.table_culling_ranges[#MEM.art_data.table_culling_ranges + 1] = {range = range, members = {r}}
+					existing_ranges[range] = MEM.art_data.table_culling_ranges[#MEM.art_data.table_culling_ranges]
+					static_ranges_changed = true
+				end
+				member_count = member_count - 1
+			end
+		end
+		if member_count < 1 then
+			table.remove(tab_iter, i)
+		end
 	end
 
-	final_string = final_string..string_dictionary.."]}"
+	local function range_to_number(range_str)
+		local comma = string.find(range_str, ",")
+		local first = tonumber(string.sub(range_str, 1, comma - 1))
+		local second = tonumber(string.sub(range_str, comma +1))
+		return first + (second * 0.001)
+	end
+
+	if static_ranges_changed then
+		table.sort(MEM.art_data.table_culling_ranges, function(a, b) return range_to_number(a.range) < range_to_number(b.range) end)
+	end
+	if dynamic_ranges_changed then
+		table.sort(MEM.art_data.table_dynamic_culling_ranges, function(a, b) return range_to_number(a.range) < range_to_number(b.range) end)
+	end
+	
+
+	local final_string = MEM.art_data.string_colours.."\"staticProps\":["
+	local str = ""
+	for key, val in ipairs(MEM.art_data.table_static_props) do
+		str = str.."{\"name\":\""..val.name.."\",\"point\":\""..val.point.."\",\"scale\":\""..val.scale.."\"}"
+		if not (key == #MEM.art_data.table_static_props) then
+			str = str..","
+		end
+	end
+	final_string = final_string..str.."],\"staticCullingRanges\":["
+	str = ""
+	for key, val in ipairs(MEM.art_data.table_culling_ranges) do
+		str = str.."{\"range\":\""..val.range.."\",\"members\":["
+		for k, v in ipairs(val.members) do
+			str = str.."{\"name\":\""..v.name.."\",\"point\":\""..v.point.."\",\"scale\":\""..v.scale.."\"}"
+			if not (k == #val.members) then
+				str = str..","
+			else
+				str = str.."]}"
+			end
+		end
+		if not (key == #MEM.art_data.table_culling_ranges) then
+			str = str..","
+		end
+	end
+	final_string = final_string..str.."],"
+
+	if next(MEM.art_data.dynamic_models) then
+		str = "\"dynamicProps\":["
+		for key, val in ipairs(MEM.art_data.table_dynamic_props) do
+			str = str.."{\"name\":\""..val.name.."\",\"point\":\""..val.point.."\",\"scale\":\""..val.scale.."\"}"
+			if not (key == #MEM.art_data.table_dynamic_props) then
+				str = str..","
+			end
+		end
+		final_string = final_string..str.."],\"dynamicCullingRanges\":["
+		str = ""
+		for key, val in ipairs(MEM.art_data.table_dynamic_culling_ranges) do
+			str = str.."{\"range\":\""..val.range.."\",\"members\":["
+			for k, v in ipairs(val.members) do
+				str = str.."{\"name\":\""..v.name.."\",\"point\":\""..v.point.."\",\"scale\":\""..v.scale.."\"}"
+				if not (k == #val.members) then
+					str = str..","
+				else
+					str = str.."]}"
+				end
+			end
+			if not (key == #MEM.art_data.table_dynamic_culling_ranges) then
+				str = str..","
+			end
+		end
+		final_string = final_string..str.."],"
+	end
+	
+	str = ""
+	for key, val in ipairs(MEM.art_data.model_list) do
+		if key < #MEM.art_data.model_list then
+			str = str..val.string..","
+		else
+			str = str..val.string
+		end
+	end
+
+	final_string = final_string..MEM.art_data.string_dictionary..str.."]}"
+	local err, msg = pcall(json.decode, final_string)
+	if not err then
+		S.update("Model data might be corrupted. Use with caution.")
+	end
 
 	local f = io.output(path)
 	io.write(final_string)
 	io.close(f)
 end
+
 
 return ART

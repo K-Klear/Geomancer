@@ -1,6 +1,7 @@
 local LVL = {}
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
+local S = require "modules.status"
 
 local enemy_set_names = {}
 enemy_set_names.Normal = "Henchmen"
@@ -152,6 +153,10 @@ function LVL.export(path)
 	replace_string("\"enemySet\"", MEM.level_data.enemy_set)
 	replace_string("\"moveMode\"", MEM.level_data.move_mode)
 
+	local err, msg = pcall(json.decode, final_string)
+	if not err then
+		S.update("Level data might be corrupted. Use with caution.")
+	end
 	local f = io.output(path)
 	io.write(final_string)
 	io.close(f)

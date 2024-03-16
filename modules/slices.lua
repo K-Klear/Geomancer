@@ -297,17 +297,28 @@ end
 
 function G_S.export(path)
 	local output_string = ""
-	if #MEM.meta_data.volume_table > 0 then
-		output_string = ","
-	end
-	for key, val in ipairs(G_S.volumes) do
-		output_string = output_string..val
-		if key < #G_S.volumes then
-			output_string = output_string..","
+	if #G_S.volumes < 1 then
+		output_string = MEM.meta_data.string_start..MEM.meta_data.string_end
+	else
+		if #MEM.meta_data.volume_table > 0 then
+			output_string = ","
 		end
+		for key, val in ipairs(G_S.volumes) do
+			output_string = output_string..val
+			if key < #G_S.volumes then
+				output_string = output_string..","
+			end
+		end
+		output_string = MEM.meta_data.string_start..output_string..MEM.meta_data.string_end
 	end
+
+	--local err, msg = pcall(json.decode, output_string)
+	--if not err then
+	--	S.update("Volume data might be corrupted. Use with caution.")
+	--end
+	
 	local f = io.output(path)
-	io.write(MEM.meta_data.string_start..output_string..MEM.meta_data.string_end)
+	io.write(output_string)
 	io.close(f)
 	--f = io.output("output/volume_data.txt")
 	--io.write(output_string)

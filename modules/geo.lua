@@ -53,8 +53,13 @@ function GEO.evaluate_button(button)
 end
 
 function GEO.export(path)
+	local final_string = MEM.geo_data.start..MEM.geo_data.chunk..MEM.geo_data.slices
+	local err, msg = pcall(json.decode, final_string)
+	if not err then
+		S.update("Geo data might be corrupted. Use with caution.")
+	end
 	local f = io.output(path)
-	io.write(MEM.geo_data.start..MEM.geo_data.chunk..MEM.geo_data.slices)
+	io.write(final_string)
 	io.close(f)
 end
 

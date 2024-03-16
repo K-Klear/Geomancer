@@ -1214,7 +1214,7 @@ nodes {
   template_node_child: false
   size_mode: SIZE_MODE_AUTO
   custom_type: 0
-  enabled: false
+  enabled: true
   visible: true
   material: ""
 }
@@ -1288,7 +1288,7 @@ nodes {
 nodes {
   position {
     x: 640.0
-    y: 180.0
+    y: 100.0
     z: 0.0
     w: 1.0
   }
@@ -1456,7 +1456,7 @@ nodes {
 }
 nodes {
   position {
-    x: 440.0
+    x: 400.0
     y: 550.0
     z: 0.0
     w: 1.0
@@ -1625,7 +1625,7 @@ nodes {
 }
 nodes {
   position {
-    x: 440.0
+    x: 400.0
     y: 310.0
     z: 0.0
     w: 1.0
@@ -1794,8 +1794,8 @@ nodes {
 }
 nodes {
   position {
-    x: 840.0
-    y: 500.0
+    x: 880.0
+    y: 310.0
     z: 0.0
     w: 1.0
   }
@@ -1963,8 +1963,8 @@ nodes {
 }
 nodes {
   position {
-    x: 840.0
-    y: 380.0
+    x: 880.0
+    y: 550.0
     z: 0.0
     w: 1.0
   }
@@ -2132,7 +2132,7 @@ nodes {
 }
 nodes {
   position {
-    x: 440.0
+    x: 400.0
     y: 430.0
     z: 0.0
     w: 1.0

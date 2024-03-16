@@ -205,7 +205,7 @@ local function evaluate_button(button)
 			S.update("All data unloaded.", true)
 			UI.update_tabs()
 		elseif (button == "export_all") then
-			if UI.tab.tab_level.state or UI.tab.tab_event.state or UI.tab.tab_geo.state or UI.tab.tab_beat.state or UI.tab.tab_meta.state then
+			if UI.tab.tab_level.state or UI.tab.tab_event.state or UI.tab.tab_geo.state or UI.tab.tab_beat.state or UI.tab.tab_meta.state or UI.tab.tab_art.state then
 				local num, path = diags.open_folder()
 				if path then
 					local filenames = {}
@@ -218,7 +218,7 @@ local function evaluate_button(button)
 					end
 					local function get_art_name(s)
 						if s then
-							local shared = string.find(MEM.art_data.filename, "_SharedArt")
+							local shared = string.find(MEM.art_data.filename, "_SharedArt") or -7 -- In case _SharedArt not found in filename just remove the extension
 							return string.sub(MEM.art_data.filename, 1, shared - 1)
 						end
 					end
@@ -270,9 +270,13 @@ local function evaluate_button(button)
 					end
 					if MEM.meta_data.string then
 						G_S.export(path.."/do_not_ship.pw_meta")
-						S.update("Volumes exported. NOTE: this does nothing until you open the map in Pistol Mix and generate geo.")
+						if #G_S.volumes > 0 then
+							S.update("Volumes exported. NOTE: this does nothing until you open the map in Pistol Mix and generate geo.")
+						else
+							S.update("do_not_ship.pw_meta exported.")
+						end
 					end
-					S.update("Export finished")
+					S.update("Files exported to "..path)
 				end
 			else
 				S.update("Nothing to export", true)

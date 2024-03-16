@@ -165,10 +165,6 @@ function load.pw_art(data, filename)
 	end
 	data = sanitise_json(data)
 	MEM.art_data.string = data
-	if string.find(data, "\"dynamicProps\"") or string.find(data, "\"dynamicCullingRanges\"") then
-		S.update(filename.." contains dynamic models. Skipping.")
-		return
-	end
 	local model_table = json.decode(MEM.art_data.string)
 
 	local function find_section(tab, model_index, name)
@@ -186,7 +182,21 @@ function load.pw_art(data, filename)
 			end
 		end
 	end
+	MEM.art_data.table_static_props = model_table.staticProps
+	MEM.art_data.table_dynamic_props = model_table.dynamicProps or {}
 	MEM.art_data.table_culling_ranges = model_table.staticCullingRanges
+	MEM.art_data.table_dynamic_culling_ranges = model_table.dynamicCullingRanges or {}
+
+	MEM.art_data.dynamic_models = {}
+	for key, val in ipairs(MEM.art_data.table_dynamic_props) do
+		MEM.art_data.dynamic_models[val.name] = true
+	end
+	for key, val in ipairs(MEM.art_data.table_dynamic_culling_ranges) do
+		for k, v in ipairs(val.members) do
+			MEM.art_data.dynamic_models[v.name] = true
+		end
+	end
+	
 	MEM.art_data.model_list = {}
 	MEM.art_data.model_names = {}
 	MEM.art_data.part_names = {[false] = {}}
@@ -194,7 +204,7 @@ function load.pw_art(data, filename)
 	for k, v in ipairs(model_table.propsDictionary) do
 		if k > 1 and v.key then
 			table.insert(MEM.art_data.model_names, v.key)
-			table.insert(MEM.art_data.model_list, {name = v.key, parts = {}, dynamic = false})
+			table.insert(MEM.art_data.model_list, {name = v.key, parts = {}, dynamic = MEM.art_data.dynamic_models[v.key]})
 			MEM.art_data.part_names[v.key] = {}
 			find_section(v, #MEM.art_data.model_list, v.key)
 		end

@@ -1,6 +1,7 @@
 local EVENT = {}
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
+local S = require "modules.status"
 
 local use_samples = true
 local nobeat_page, event_page, tempo_page = 0, 0, 0
@@ -184,6 +185,10 @@ function EVENT.export(path)
 		end
 	end
 	local final_string = nobeat_str..signal_str..tempo_str.."]}"
+	local err, msg = pcall(json.decode, final_string)
+	if not err then
+		S.update("Event data might be corrupted. Use with caution.")
+	end
 	local f = io.output(path)
 	io.write(final_string)
 	io.close(f)

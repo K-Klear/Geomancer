@@ -1,13 +1,15 @@
-Bugs:
-
-- Rightmost column sometimes generates wrong
-- Images don't reload correctly
-
 To do:
 
-- Preview now optionally shows which pixels will turn into what type of geo according to current settings
+Bugs:
+
+- Fixed a bug where only exporting art file didn't work
+- Fixed a bug where exporting pw_meta without generating new volumes added a comma to the file
+- Fixed an error when exporting and art file without "_SharedArt" in its name.
 
 Done:
 
-- Option to set starting group index
-- Option for all generated slices to be grouped together
+- Placed Export and Unload buttons further apart
+- Stopped showing warning about volumes if no volumes generated
+- Rewrote model exporter - it can now open art files with dynamic models
+- Confirm directory path after export
+- Added a check if exported data is valid JSON. Disabled for beat and meta data, since those files usually have some extra commas
