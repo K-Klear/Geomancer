@@ -15,7 +15,7 @@ UI.input_enabled = true
 local current_tab = "tab_file"
 
 UI.tab = {
-	tab_file = {state = "active", buttons = {"exit", "load_dir", "load_file", "load_zip", "unload_all", "export_all"}},
+	tab_file = {state = "active", buttons = {"exit", "load_dir", "load_file", "load_zip", "unload_all", "export_all", "export_overwrite"}},
 	tab_level = {state = false, buttons = {"btn_enemies", "btn_obstacles", "btn_materials", "btn_movement"}, fields = {{template = "preview_time", char_limit = 3}}},
 	tab_event = {state = false, buttons = {"sample_48000", "sample_44100", "btn_time_units", "nobeat_add", "event_add", "tempo_add"}, fields = {{template = "sample_rate_field", char_limit = 5}}},
 	tab_geo = {state = false, buttons = {"geo_collision", "geo_visual"}},

@@ -19,7 +19,7 @@ local load = {}
 local function sanitise_json(str)
 	local json_error
 	repeat
-		json_error = string.find(str, "},]")
+		json_error = string.find(str, "},]") or string.find(str, "],}")
 		if json_error then
 			str = string.sub(str, 1, json_error)..string.sub(str, json_error + 2)
 		end
@@ -106,6 +106,20 @@ function load.pw_beat(data, filename)
 	if not check_version(data, filename) then
 		return
 	end
+	data = sanitise_json(data)
+	local tab = json.decode(data)
+	MEM.beat_data.obstacle_list = {}
+	for key, val in ipairs(tab.beatData) do
+		if not (val.obstacles == {}) then
+			for k, v in ipairs(val.obstacles) do
+				table.insert(MEM.beat_data.obstacle_list, {time = val.time, placement = v.placement, type = v.type, beat_data_key = key, obstacles_key = k})
+			end
+		end
+	end
+
+	MEM.beat_data.changed_obstacles = {}
+
+	MEM.beat_data.table = tab.beatData
 	MEM.beat_data.string = data
 	MEM.beat_data.filename = filename
 	MEM.beat_data.enemy_types = {}

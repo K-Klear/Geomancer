@@ -9,6 +9,7 @@ local nobeat_page_max, event_page_max, tempo_page_max = 0, 0, 0
 local nobeat_track_index, event_track_index
 
 local edit_index, edit_box, edit_start, edit_end, edit_signal, edit_spb, edit_measure
+local previous_signal
 
 local function samples_to_seconds(samples)
 	if use_samples then
@@ -218,7 +219,7 @@ function EVENT.evaluate_input(field, text)
 			end
 		end
 		edit_start = value or edit_start
-		if edit_end < edit_start then
+		if edit_end and (edit_end < edit_start) then
 			edit_end = edit_start
 		end
 		update_edit_box[edit_box]()
@@ -306,7 +307,7 @@ local function open_edit_box_event()
 		edit_signal = MEM.event_data.table.eventsData[event_track_index].events[edit_index].payload
 	else
 		edit_start, edit_end = 0, 0
-		edit_signal = ""
+		edit_signal = previous_signal or ""
 		edit_index = #MEM.event_data.table.eventsData[event_track_index].events + 1
 	end
 	edit_box = "event"
@@ -416,6 +417,7 @@ function EVENT.evaluate_button(button)
 			local t = {startSample = edit_start, endSample = edit_end, payload = edit_signal}
 			MEM.event_data.table.eventsData[event_track_index].events[edit_index] = t
 			table.sort(MEM.event_data.table.eventsData[event_track_index].events, sort_f)
+			previous_signal = edit_signal
 			close_edit_box()
 			UI.switch_tab("tab_event")
 			EVENT.update_labels()

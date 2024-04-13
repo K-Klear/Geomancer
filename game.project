@@ -14,7 +14,7 @@ input_method = HiddenInputField
 
 [project]
 title = Geomancer
-version = 0.42
+version = 0.43
 developer = Klear
 dependencies#0 = https://github.com/britzl/defold-png/archive/master.zip
 dependencies#1 = https://github.com/andsve/def-diags/archive/master.zip
@@ -31,4 +31,7 @@ max_characters = 16384
 game_binding = /game.input_bindingc
 repeat_delay = 0.75
 repeat_interval = 0.1
+
+[windows]
+app_icon = /geomancer.ico
 

@@ -1,15 +1,17 @@
 To do:
 
+- Meta data purge
+- Fix buttons firing when mouse is held, moved away and then returned to the button
+- Check for illegal enemy types
+
 Bugs:
 
-- Fixed a bug where only exporting art file didn't work
-- Fixed a bug where exporting pw_meta without generating new volumes added a comma to the file
-- Fixed an error when exporting and art file without "_SharedArt" in its name.
+- Crash when editing start sample of a tempo section
+- Corrected obstacle set name "EarthCracker"
 
 Done:
 
-- Placed Export and Unload buttons further apart
-- Stopped showing warning about volumes if no volumes generated
-- Rewrote model exporter - it can now open art files with dynamic models
-- Confirm directory path after export
-- Added a check if exported data is valid JSON. Disabled for beat and meta data, since those files usually have some extra commas
+- Version shown on export screen
+- Obstacle editor
+- Make event payload default to last used string
+- Option to export and overwrite
