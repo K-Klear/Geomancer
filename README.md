@@ -2,8 +2,6 @@
 
 This is tool originally made for generating volumes for use in the Pistol Mix editor from .png images, but the focus has shifted to make other changes to the map files easier. More functions are coming in later versions.
 
----
-
 Detailed usage guide can be found here: https://mod.io/g/pistol-whip/r/geomancer
 
 ---
