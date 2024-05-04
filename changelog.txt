@@ -3,15 +3,46 @@ To do:
 - Meta data purge
 - Fix buttons firing when mouse is held, moved away and then returned to the button
 - Check for illegal enemy types
+- Allow BPM entry in BPM rather than samples per beat
+- Find a way to detect sample rate though obstacle, enemy and possibly colour data
+- Unload pictures button for geo slices
+- Partial export
+- Link the model spreadsheet from somewhere, maybe
+- Model replacer
+- "Smart" model dynamizer
+- Option to find and optionally fix Pistol Mix incompatibilities in a map
 
 Bugs:
 
-- Crash when editing start sample of a tempo section
-- Corrected obstacle set name "EarthCracker"
+- Volumes generate wrong on the edge of the pictures
+- Geomancer gets rekt by whitespace =/
 
 Done:
 
-- Version shown on export screen
-- Obstacle editor
-- Make event payload default to last used string
-- Option to export and overwrite
+New:
+
+- Tweening editor
+- Import model properties (materials, dynamic state, tweens) from a different file
+- A check whether the files contain valid json is now performed with every import and export, displaying the location of the error if found and aboring import or issuing a warning when exporting.
+- Link to the colour guide on mod.io in model editor
+- Links to the material and obstacle guide in level data editor
+
+Fixes:
+
+- Removed duplicated "geoSimple" material
+- Added Defold logo to the landing page
+- pw_art files without static prop lists now load properly. The (empty) lists are created on export.
+- Page and item selections are now deleted when unloading files
+- Clicking selected model again no longer resets the part list.
+
+Bugs:
+
+- Fixed a bug where only one prop within a culling range would have its dynamic status changed, the rest being deleted.
+- Errors when importing should no longer leave any partial data loaded
+- Fixed a crash when importing a file in human-readable format
+- Event values in seconds now update if sample rate changed using the text field
+- Fixed a crash when loading a file with fewer model pages than the page of the currently selected model
+
+
+
+

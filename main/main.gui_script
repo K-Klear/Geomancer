@@ -127,6 +127,22 @@ local function export_all(overwrite)
 	end
 end
 
+local function check_for_reset()
+	local reset_list = {
+		art_reloaded = ART.reset(),
+		event_reloaded = EVENT.reset(),
+		beat_reloaded = BEAT.reset(),
+		slices_reloaded = G_S.reset()
+	}
+	for key, val in pairs(reset_list) do
+		if MEM[key] then
+			MEM[key] = nil
+			val()
+		end
+	end
+end
+
+
 local function evaluate_button(button)
 	if UI.tab.tab_level.state == "active" then
 		LVL.evaluate_button(button)
@@ -162,6 +178,7 @@ local function evaluate_button(button)
 						S.update("File loaded successfully")
 						UI.update_tabs()
 						update_panel(panel)
+						check_for_reset()
 					else
 						S.update("File not loaded")
 					end
@@ -224,6 +241,7 @@ local function evaluate_button(button)
 					else
 						S.update("Archive is empty.")
 					end
+					check_for_reset()
 				end
 			end
 		elseif button == "load_dir" then
@@ -270,6 +288,7 @@ local function evaluate_button(button)
 					end
 					S.update("Loading "..#files_to_load.." files, "..skip_count.." skipped.")
 					timer.delay(0.01, false, load_next_file)
+					check_for_reset()
 				else
 					S.update("No valid files found.")
 				end
@@ -286,6 +305,12 @@ local function evaluate_button(button)
 			MEM.geo_data = {}
 			MEM.sequence_data = {}
 			MEM.art_data = {}
+
+			EVENT.reset()
+			ART.reset()
+			BEAT.reset()
+			G_S.reset()
+			
 			S.update("All data unloaded.", true)
 			UI.update_tabs()
 		elseif button == "export_all" then
@@ -303,6 +328,8 @@ local function evaluate_input(field, text)
 		EVENT.evaluate_input(field, text)
 	elseif UI.tab.tab_meta.state == "active" then
 		G_S.evaluate_input(field, text)
+	elseif UI.tab.tab_art.state == "active" then
+		ART.evaluate_input(field, text)
 	end
 end
 

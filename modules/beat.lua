@@ -2,6 +2,7 @@ local BEAT = {}
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
 local S = require "modules.status"
+local G = require "modules.global"
 
 local enemy_to_change
 
@@ -9,6 +10,12 @@ local obstacle_page, obstacle_page_max = 0
 local obstacle_count = 0
 local selected_obstacle_index = 1
 local OBSTACLE_LIST_SIZE = 25
+
+function BEAT.reset()
+	obstacle_page, obstacle_page_max = 0, 0
+	obstacle_count = 0
+	selected_obstacle_index = 1
+end
 
 MEM.beat_data.changed_obstacles = {}
 
@@ -234,11 +241,6 @@ function BEAT.evaluate_button(button)
 end
 
 function BEAT.export(path)
-	--local err, msg = pcall(json.decode, MEM.beat_data.string)
-	--if not err then
-	--	S.update("Beat data might be corrupted. Use with caution.")
-	--end
-
 	for beat_data_key, val in pairs(MEM.beat_data.changed_obstacles) do
 		local t = MEM.beat_data.table[beat_data_key].time
 		local find_time = string.find(MEM.beat_data.string, "\"time\":\""..t)
@@ -246,6 +248,10 @@ function BEAT.export(path)
 		local obstacles_end = string.find(MEM.beat_data.string, "]", obstacles_start, true) + 1
 		local js = json.encode(MEM.beat_data.table[beat_data_key].obstacles)
 		MEM.beat_data.string = string.sub(MEM.beat_data.string, 1, obstacles_start)..js..string.sub(MEM.beat_data.string, obstacles_end)
+	end
+
+	if not G.safe_decode(MEM.beat_data.string, "Output beat data file") then
+		S.update("Beat data might be corrupted. Use with caution.")
 	end
 
 	local f = io.output(path)

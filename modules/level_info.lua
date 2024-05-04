@@ -2,6 +2,7 @@ local LVL = {}
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
 local S = require "modules.status"
+local G = require "modules.global"
 
 local enemy_set_names = {}
 enemy_set_names.Normal = "Henchmen"
@@ -106,6 +107,7 @@ function LVL.evaluate_button(button)
 		for key in pairs(obstacle_list) do
 			UI.load_template(key)
 		end
+		UI.load_template("obstacle_guide")
 		UI.switch_cleanup = close_dialogs
 	elseif obstacle_list[button] then
 		UI.unload_template()
@@ -120,6 +122,7 @@ function LVL.evaluate_button(button)
 		for key in pairs(material_list) do
 			UI.load_template(key)
 		end
+		UI.load_template("material_guide")
 		UI.switch_cleanup = close_dialogs
 	elseif material_list[button] then
 		UI.unload_template()
@@ -135,6 +138,10 @@ function LVL.evaluate_button(button)
 			MEM.level_data.move_mode = "Moving"
 		end
 		gui.set_text(gui.get_node("btn_movement/text"), MEM.level_data.move_mode)
+	elseif button == "obstacle_guide" then
+		sys.open_url("https://mod.io/g/pistol-whip/r/materials-and-obstacles")
+	elseif button == "material_guide" then
+		sys.open_url("https://mod.io/g/pistol-whip/r/materials-and-obstacles")
 	end
 end
 
@@ -153,10 +160,10 @@ function LVL.export(path)
 	replace_string("\"enemySet\"", MEM.level_data.enemy_set)
 	replace_string("\"moveMode\"", MEM.level_data.move_mode)
 
-	local err, msg = pcall(json.decode, final_string)
-	if not err then
+	if not G.safe_decode(final_string, "level.pw") then
 		S.update("Level data might be corrupted. Use with caution.")
 	end
+
 	local f = io.output(path)
 	io.write(final_string)
 	io.close(f)

@@ -2,6 +2,7 @@ local G_S = {}
 
 local MEM = require "modules.memory"
 local S = require "modules.status"
+local G = require "modules.global"
 
 G_S.volumes = {}
 local image_data = {}
@@ -17,6 +18,13 @@ local z_depth = 1
 local processing_order = "1500"
 local MIN_X, MAX_X, MIN_Y, MAX_Y = -84, 82, -80, 85
 local min_x, max_x, min_y, max_y = MIN_X, MAX_X, MIN_Y, MAX_Y
+
+
+function G_S.reset()
+	G_S.volumes = {}
+	image_data = {}
+	current_preview = 1
+end
 
 local vol_1 = "{\"type\":\""
 local vol_1b= "\",\"offset\":\"("
@@ -312,10 +320,9 @@ function G_S.export(path)
 		output_string = MEM.meta_data.string_start..output_string..MEM.meta_data.string_end
 	end
 
-	--local err, msg = pcall(json.decode, output_string)
-	--if not err then
-	--	S.update("Volume data might be corrupted. Use with caution.")
-	--end
+	if not G.safe_decode(output_string, "do_not_ship.pw_meta") then
+		S.update("Meta data might be corrupted. Use with caution.")
+	end
 	
 	local f = io.output(path)
 	io.write(output_string)

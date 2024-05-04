@@ -33,7 +33,7 @@ UI.tab = {
 		{template = "processing_order", char_limit = 4},
 	}},
 	tab_sequence = {state = false, buttons = {}},
-	tab_art = {state = false, buttons = {"sort"}}
+	tab_art = {state = false, buttons = {"sort", "import_model_data", "colour_guide", "auto_dynamic"}}
 }
 
 local state_gfx = {

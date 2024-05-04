@@ -34,6 +34,10 @@ images {
   image: "/assets/gfx/tab_disabled.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
+images {
+  image: "/assets/gfx/made_with_defold.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
 animations {
   id: "button_white_down"
   images {

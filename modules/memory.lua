@@ -1,5 +1,6 @@
 local UI = require "modules.ui"
 local S = require "modules.status"
+local G = require "modules.global"
 
 local MEM = {}
 
@@ -16,28 +17,20 @@ local current_version = 0.4
 
 local load = {}
 
-local function sanitise_json(str)
-	local json_error
-	repeat
-		json_error = string.find(str, "},]") or string.find(str, "],}")
-		if json_error then
-			str = string.sub(str, 1, json_error)..string.sub(str, json_error + 2)
-		end
-	until not json_error
-	return str
-end
-
 local function check_version(str, filename)
 	local pos = string.find(str, "\"version\":")
 	if not pos then
 		S.update("Unknown format of "..filename..".")
 		return
 	else
-		local ver = string.sub(str, pos + 11, pos + 13)
-		if tonumber(ver) < current_version then
+		local ver = tonumber(string.sub(str, pos + 11, pos + 13))
+		if not ver then
+			S.update("Error reading version information of "..filename..". File not loaded.")
+			return
+		elseif ver < current_version then
 			S.update("Version of "..filename.." is lower than "..current_version..". Resave it with the current Pistol Mix version.")
 			return
-		elseif tonumber(ver) > current_version then
+		elseif ver > current_version then
 			S.update("Version of "..filename.." is higher than "..current_version..". This may cause unknown issues. Be careful.")
 			return true
 		else
@@ -56,12 +49,9 @@ local function read_file(path)
 end
 
 function load.pw(data)
-	if not check_version(data, "level.pw") then
-		return
-	end
-	data = sanitise_json(data)
-	MEM.level_data.string = data
-	local tab = json.decode(MEM.level_data.string)
+	local tab, data = G.safe_decode(data, "level.pw")
+	if not (tab and check_version(data, "level.pw")) then return end
+	MEM.level_data.string = G.sanitise_json(data)
 	MEM.level_data.enemy_set = tab.enemySet
 	MEM.level_data.obstacle_set = tab.obstacleSet
 	MEM.level_data.material_set = tab.materialPropertiesSet
@@ -75,7 +65,8 @@ function load.pw(data)
 end
 
 function load.pw_meta(data)
-	data = sanitise_json(data)
+	local tab, data = G.safe_decode(data, "do_not_ship.pw_meta")
+	if not tab then return end
 	MEM.meta_data.string = data
 	
 	local s_index = string.find(MEM.meta_data.string, "\"Volume\":[", 1, true)
@@ -86,7 +77,9 @@ function load.pw_meta(data)
 	end
 	local e_index = string.find(MEM.meta_data.string, "]", s_index + 8, true)
 	local _ = string.sub(MEM.meta_data.string, s_index + 9, e_index)
-	MEM.meta_data.volume_table = json.decode(string.sub(MEM.meta_data.string, s_index + 9, e_index))
+	tab = G.safe_decode(string.sub(MEM.meta_data.string, s_index + 9, e_index), "do_not_ship.pw_meta")
+	if not tab then return end
+	MEM.meta_data.volume_table = tab
 	if #MEM.meta_data.volume_table < 1 then
 		MEM.meta_data.free_group_index = 1
 	elseif not MEM.meta_data.volume_table[#MEM.meta_data.volume_table].groupIndex then
@@ -99,15 +92,13 @@ function load.pw_meta(data)
 	MEM.meta_data.string_start = string.sub(MEM.meta_data.string, 1, e_index - 1)
 	MEM.meta_data.string_end = string.sub(MEM.meta_data.string, e_index)
 	UI.tab.tab_meta.state = true
+	MEM.slices_reloaded = true
 	return true
 end
 
 function load.pw_beat(data, filename)
-	if not check_version(data, filename) then
-		return
-	end
-	data = sanitise_json(data)
-	local tab = json.decode(data)
+	local tab, data = G.safe_decode(data, filename)
+	if not (tab and check_version(data, filename)) then return end
 	MEM.beat_data.obstacle_list = {}
 	for key, val in ipairs(tab.beatData) do
 		if not (val.obstacles == {}) then
@@ -134,30 +125,32 @@ function load.pw_beat(data, filename)
 	MEM.beat_data.enemy_types.trap = not not string.find(data, "Trap Enemy")
 	
 	UI.tab.tab_beat.state = true
+	MEM.beat_reloaded = true
 	return true
 end
 
 function load.pw_event(data, filename)
-	if not check_version(data, filename) then
-		return
-	end
-	data = sanitise_json(data)
+	local tab, data = G.safe_decode(data, filename)
+	if not (tab and check_version(data, filename)) then	return end
+	MEM.event_data.table = tab
 	MEM.event_data.string = data
 	MEM.event_data.filename = filename
-	MEM.event_data.table = json.decode(MEM.event_data.string)
-	--if not (#MEM.event_data.table.tempoSections == 1) then
-	--	print("fucked again")
-	--end
 	UI.tab.tab_event.state = true
+	MEM.event_reloaded = true
 	return true
 end
 
 function load.pw_geo(data, filename)
+	data = G.sanitise_json(data)
 	if not check_version(data, filename) then
 		return
 	end
 	local chunk = string.find(data, "chunkData")
 	local slices = string.find(data, "chunkSlices")
+	if not (chunk and slices) then
+		S.update("Error loading geo data")
+		return
+	end
 	MEM.geo_data.start = string.sub(data, 1, chunk - 2)
 	MEM.geo_data.chunk = string.sub(data, chunk - 1, slices - 2)
 	MEM.geo_data.slices = string.sub(data, slices - 1)
@@ -173,13 +166,49 @@ function load.pw_seq(data, filename)
 	--return true
 end
 
-function load.pw_art(data, filename)
-	if not check_version(data, filename) then
+function MEM.parse_tween(script)
+	local action = {}
+	local str_start, str_end, x, y, z
+	action.type = string.sub(script, 1, 1)
+	if action.type == "W" then
+		str_end = string.find(script, ";")
+		action.time = string.sub(script, 2, str_end - 1)
+		return action, str_end + 1
+	elseif action.type == "T" or action.type == "R" or action.type == "S" then
+		str_start = string.find(script, ";")
+		action.part = string.sub(script, 2, str_start - 1)
+		str_end = string.find(script, ",", str_start + 1)
+		x = string.sub(script, str_start + 1, str_end - 1)
+		str_start = str_end
+		str_end = string.find(script, ",", str_start + 1)
+		y = string.sub(script, str_start + 1, str_end - 1)
+		str_start = str_end
+		str_end = string.find(script, ";", str_start + 1)
+		z = string.sub(script, str_start + 1, str_end - 1)
+		str_start = str_end
+		action.start_state = {x = x, y = y, z = z}
+		str_end = string.find(script, ",", str_start + 1)
+		x = string.sub(script, str_start + 1, str_end - 1)
+		str_start = str_end
+		str_end = string.find(script, ",", str_start + 1)
+		y = string.sub(script, str_start + 1, str_end - 1)
+		str_start = str_end
+		str_end = string.find(script, ";", str_start + 1)
+		z = string.sub(script, str_start + 1, str_end - 1)
+		str_start = str_end
+		action.end_state = {x = x, y = y, z = z}
+		str_end = string.find(script, ";", str_start + 1)
+		action.time = string.sub(script, str_start + 1, str_end - 1)
+		return action, str_end + 1
+	else
 		return
 	end
-	data = sanitise_json(data)
+end
+
+function load.pw_art(data, filename)
+	local model_table, data = G.safe_decode(data, filename)
+	if not (model_table and check_version(data, filename)) then return end
 	MEM.art_data.string = data
-	local model_table = json.decode(MEM.art_data.string)
 
 	local function find_section(tab, model_index, name)
 		if type(tab) == "table" then
@@ -196,9 +225,9 @@ function load.pw_art(data, filename)
 			end
 		end
 	end
-	MEM.art_data.table_static_props = model_table.staticProps
+	MEM.art_data.table_static_props = model_table.staticProps or {}
 	MEM.art_data.table_dynamic_props = model_table.dynamicProps or {}
-	MEM.art_data.table_culling_ranges = model_table.staticCullingRanges
+	MEM.art_data.table_culling_ranges = model_table.staticCullingRanges or {}
 	MEM.art_data.table_dynamic_culling_ranges = model_table.dynamicCullingRanges or {}
 
 	MEM.art_data.dynamic_models = {}
@@ -217,17 +246,87 @@ function load.pw_art(data, filename)
 	local current_name = ""
 	for k, v in ipairs(model_table.propsDictionary) do
 		if k > 1 and v.key then
+			local tween
+			if #v.object.components > 1 then
+				tween = {}
+				local tween_working, tween_script = true
+				for key, val in ipairs(v.object.components) do
+					if val.type == "LevelEventReceiver" then
+						tween.signal = val.EventId
+					elseif val.type == "ScriptedTween" then
+						tween.script = {}
+
+						local script_str = val.Script
+						local safety = #script_str / 3
+						repeat
+							local str_end
+							tween_working, tween_script, str_end = pcall(MEM.parse_tween, script_str)
+							script_str = string.sub(script_str, str_end)
+							safety = safety - 1
+							if safety < 0 or (not tween_working) then
+								tween_working = false
+								S.update("Malformed tween script in model "..v.key..". Skipping.")
+								tween = {}
+								break
+							else
+								table.insert(tween.script, tween_script)
+							end
+						until #script_str < 1
+						if not tween_working then
+							break
+						end
+					end
+				end
+				if tween.script and #tween.script > 0 then
+					MEM.art_data.dynamic_models[v.key] = true
+				else
+					tween = nil
+				end
+			end
 			table.insert(MEM.art_data.model_names, v.key)
-			table.insert(MEM.art_data.model_list, {name = v.key, parts = {}, dynamic = MEM.art_data.dynamic_models[v.key]})
+			table.insert(MEM.art_data.model_list, {name = v.key, parts = {}, dynamic = MEM.art_data.dynamic_models[v.key], tween = tween})
 			MEM.art_data.part_names[v.key] = {}
 			find_section(v, #MEM.art_data.model_list, v.key)
+			if tween then
+				local all_parts_found = true
+				for tween_key, tween_val in ipairs(tween.script) do
+					if tween_val.part then
+						local part_found = false
+						for key, val in ipairs(MEM.art_data.model_list[#MEM.art_data.model_list].parts) do
+							if MEM.art_data.part_names[v.key][key] == tween_val.part then
+								tween_val.part = key
+								part_found = true
+							end
+						end
+						if not part_found then
+							all_parts_found = false
+							tween_val.part = 1
+						end
+					end
+				end
+				if not all_parts_found then
+					S.update("Tween of model "..v.key.." refers to a wrong part. Defaulting to the first one.")
+				end
+			end
 		end
 	end
 
 	local staticProps_start = string.find(MEM.art_data.string, "staticProps")
 	local ranges_start = string.find(MEM.art_data.string, "staticCullingRanges")
-	local dictionary_start = string.find(MEM.art_data.string, "propsDictionary")
+	local colours_end = string.find(MEM.art_data.string, "]") + 1
+	
+	if not staticProps_start then
+		MEM.art_data.string = string.sub(MEM.art_data.string, 1, colours_end).."\"staticProps\":[],"..string.sub(MEM.art_data.string, colours_end + 1)
+		staticProps_start = colours_end + 2
+	end
+	if not ranges_start then
+		local static_end = string.find(MEM.art_data.string, "]", colours_end)
+		MEM.art_data.string = string.sub(MEM.art_data.string, 1, static_end).."\"staticCullingRanges\":[],"..string.sub(MEM.art_data.string, static_end + 1)
+		ranges_start = static_end + 2
+	end
 
+	local dictionary_start = string.find(MEM.art_data.string, "propsDictionary")
+		
 	MEM.art_data.string_colours = string.sub(MEM.art_data.string, 1, staticProps_start - 2)
 	MEM.art_data.string_static_props = string.sub(MEM.art_data.string, staticProps_start - 1, ranges_start - 2)
 	MEM.art_data.string_culling_ranges = string.sub(MEM.art_data.string, ranges_start - 1, dictionary_start - 2)
@@ -257,6 +356,7 @@ function load.pw_art(data, filename)
 	end
 	UI.tab.tab_art.state = true
 	MEM.art_data.filename = filename
+	MEM.art_reloaded = true
 	return true
 end
 

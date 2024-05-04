@@ -2,6 +2,7 @@ local EVENT = {}
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
 local S = require "modules.status"
+local G = require "modules.global"
 
 local use_samples = true
 local nobeat_page, event_page, tempo_page = 0, 0, 0
@@ -10,6 +11,13 @@ local nobeat_track_index, event_track_index
 
 local edit_index, edit_box, edit_start, edit_end, edit_signal, edit_spb, edit_measure
 local previous_signal
+
+function EVENT.reset()
+	nobeat_page, event_page, tempo_page = 0, 0, 0
+	nobeat_page_max, event_page_max, tempo_page_max = 0, 0, 0
+	nobeat_track_index, event_track_index = nil
+	edit_index, edit_box, edit_start, edit_end, edit_signal, edit_spb, edit_measure = nil
+end
 
 local function samples_to_seconds(samples)
 	if use_samples then
@@ -186,8 +194,7 @@ function EVENT.export(path)
 		end
 	end
 	local final_string = nobeat_str..signal_str..tempo_str.."]}"
-	local err, msg = pcall(json.decode, final_string)
-	if not err then
+	if not G.safe_decode(final_string, "Output pw_event file") then
 		S.update("Event data might be corrupted. Use with caution.")
 	end
 	local f = io.output(path)
@@ -207,6 +214,7 @@ function EVENT.evaluate_input(field, text)
 			MEM.sample_rate = value
 		end
 		gui.set_text(text_node, MEM.sample_rate)
+		EVENT.update_labels()
 	elseif field == "edit_box_start" then
 		if value then
 			if value < 0 then

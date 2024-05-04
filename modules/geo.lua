@@ -1,6 +1,7 @@
 local GEO = {}
 local MEM = require "modules.memory"
 local S = require "modules.status"
+local G = require "modules.global"
 
 local function load_geo_data()
 	local geo_data
@@ -54,8 +55,7 @@ end
 
 function GEO.export(path)
 	local final_string = MEM.geo_data.start..MEM.geo_data.chunk..MEM.geo_data.slices
-	local err, msg = pcall(json.decode, final_string)
-	if not err then
+	if not G.safe_decode(final_string, "Output pw_geo file") then
 		S.update("Geo data might be corrupted. Use with caution.")
 	end
 	local f = io.output(path)
