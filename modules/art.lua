@@ -870,7 +870,7 @@ function ART.evaluate_button(button)
 end
 
 function ART.update_model_list()
-	model_page = 0
+	--model_page = 0
 	model_page_max = math.floor((#MEM.art_data.model_list - 1) / 10)
 
 	populate_model_list()
@@ -1034,15 +1034,28 @@ function ART.export(path)
 	
 	str = ""
 	for key, val in ipairs(MEM.art_data.model_list) do
-		local cursor_end
-		local cursor_start = string.find(val.string, "\"components\"") + 15
-		local cursor_start = string.find(val.string, "}", cursor_start) + 1
-		if string.sub(val.string, cursor_start, cursor_start) == "," then
-			cursor_end = string.find(val.string,"ScriptedTweenTrigger", cursor_start) + 22
-			val.string = string.sub(val.string, 1, cursor_start - 1)..get_tween_string(val.tween, val.name)..string.sub(val.string, cursor_end)
-		else
-			val.string = string.sub(val.string, 1, cursor_start - 1)..get_tween_string(val.tween, val.name)..string.sub(val.string, cursor_start)
+		local cursor_start = string.find(val.string, "\"components\"") + 14
+		local cursor_end = string.find(val.string, "]", cursor_start) - 1
+
+
+		local component_string = string.sub(val.string, cursor_start, cursor_end)
+		local component_string_length = #component_string
+
+		local script_pos = string.find(component_string, "{\"type\":\"ScriptedTween\"")
+		if script_pos then
+			local script_end = string.find(component_string, "}", script_pos)
+			component_string = string.sub(component_string, 1, script_pos - 1)..string.sub(component_string, script_end + 1)
 		end
+		local trigger_pos = string.find(component_string, "{\"type\":\"LevelEventReceiver\"")
+		if trigger_pos then
+			local trigger_end = string.find(component_string, "}", trigger_pos)
+			component_string = string.sub(component_string, 1, trigger_pos - 1)..string.sub(component_string, trigger_end + 1)
+		end
+		
+		component_string = G.sanitise_json(component_string..get_tween_string(val.tween, val.name))
+
+		val.string = string.sub(val.string, 1, cursor_start - 1)..component_string..string.sub(val.string, cursor_end + 1)
+		
 		if key < #MEM.art_data.model_list then
 			str = str..val.string..","
 		else

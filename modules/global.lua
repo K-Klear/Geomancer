@@ -4,7 +4,7 @@ local S = require "modules.status"
 function G.sanitise_json(str)
 	local json_error
 	repeat
-		json_error = string.find(str, "},]") or string.find(str, "],}") or string.find(str, "\",}")
+		json_error = string.find(str, "},]") or string.find(str, "],}") or string.find(str, "\",}") or string.find(str, ",,")
 		if json_error then
 			str = string.sub(str, 1, json_error)..string.sub(str, json_error + 2)
 		end

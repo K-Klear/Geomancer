@@ -11,7 +11,8 @@ To do:
 - Model replacer
 - "Smart" model dynamizer
 - Option to find and optionally fix Pistol Mix incompatibilities in a map
-- A settings file to allow configuration of various defaults
+- A settings file to allow configuration of default behaviours
+- The json sanitiser is dumb. Make it less dumb
 
 Bugs:
 
@@ -20,16 +21,15 @@ Bugs:
 
 Done:
 
-New:
-
-- Added copy/pasting
+Features:
+- Switching tabs no longer resets the current model page
 
 Fixes:
-
+- Importing from a directory no longer considers skipping the sequence file as an error
+- The folder created by exports is now called [mapname]_geomanced, because why not.
 
 Bugs:
-
-- Fixed a crash when importing a tween with a missing trailing semicolon.
+- Fixed a crash when exporting a map containing PF_Mausoleum_Medium01 (and possibly some other stock props)
 
 
 

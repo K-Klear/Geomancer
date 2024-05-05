@@ -78,7 +78,7 @@ local function export_all(overwrite)
 				end
 			end
 			if not overwrite then
-				path = path.."/"..common_filename.."_geomancer"
+				path = path.."/"..common_filename.."_geomanced"
 				if not lfs.mkdir(path) then
 					local index = 0
 					repeat
@@ -252,7 +252,7 @@ local function evaluate_button(button)
 				S.update("Loading files from "..path, true)
 				local files_to_load = {}
 				local skip_count = 0
-				local ext_list = {pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = true}
+				local ext_list = {pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = false}
 				for filename in lfs.dir(path) do
 					if not (filename == "." or filename == "..") then
 						local extension = string.find(filename, "%.")
