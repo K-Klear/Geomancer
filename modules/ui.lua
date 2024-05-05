@@ -170,10 +170,10 @@ local function text_field_done(text_field_fn)
 end
 
 local text_field_cursor
-local function reset_cursor_timer()
+local function reset_cursor_timer(hide_cursor)
 	if cursor_timer then
 		timer.cancel(cursor_timer)
-		cursor_visible = false
+		cursor_visible = hide_cursor
 		text_field_cursor()
 	end
 end
@@ -192,6 +192,12 @@ local function text_field_input(action_id, action)
 		end
 		text_field_text = text_field_text..action.text
 		gui.set_text(field_data.text, text_field_text)
+		reset_cursor_timer()
+	elseif action_id == hash("paste") then
+		local field_data = UI.text_fields[active_text_field]
+		local pasted_text = string.sub(clipboard.paste(), 1, field_data.char_limit)
+		text_field_text = pasted_text
+		gui.set_text(field_data.text, pasted_text)
 		reset_cursor_timer()
 	end
 end
@@ -230,6 +236,11 @@ function UI.on_input(self, action_id, action, button_fn, text_field_fn)
 	if active_text_field then
 		if action_id == hash("touch") or action_id == hash("enter") then
 			text_field_done(text_field_fn)
+		elseif action_id == hash("copy") then
+			reset_cursor_timer(true)
+			clipboard.copy(gui.get_text(UI.text_fields[active_text_field].text))
+		elseif action_id == hash("paste") then
+			text_field_input(hash("paste"))
 		else
 			text_field_input(action_id, action)
 		end

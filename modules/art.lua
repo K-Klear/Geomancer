@@ -550,7 +550,6 @@ local function import_model_data()
 							repeat
 								local str_end
 								tween_working, tween_script, str_end = pcall(MEM.parse_tween, script_str)
-								script_str = string.sub(script_str, str_end)
 								safety = safety - 1
 								if safety < 0 or (not tween_working) then
 									tween_working = false
@@ -558,6 +557,7 @@ local function import_model_data()
 									tween = {}
 									break
 								else
+									script_str = string.sub(script_str, str_end)
 									table.insert(tween.script, tween_script)
 								end
 							until #script_str < 1

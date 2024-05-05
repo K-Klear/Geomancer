@@ -8,6 +8,8 @@ local BEAT = require "modules.beat"
 local S = require "modules.status"
 local G_S = require "modules.slices"
 
+local r_ctr_held, l_ctr_held
+
 function init(self)
 	msg.post("@render:", hash("clear_color"), {color = vmath.vector4(1, 0.2, 0.8, 1) * 0.15})
 	msg.post(".", hash("acquire_input_focus"))
@@ -334,6 +336,25 @@ local function evaluate_input(field, text)
 end
 
 function on_input(self, action_id, action)
+	if action_id == hash("lctrl") then
+		l_ctr_held = not action.released
+		return
+	elseif action_id == hash("rctrl") then
+		r_ctr_held = not action.released
+		return
+	elseif action_id == hash("v") then
+		if action.pressed and (r_ctr_held or l_ctr_held) then
+			action_id = hash("paste")
+		else
+			return
+		end
+	elseif action_id == hash("c") then
+		if action.pressed and (r_ctr_held or l_ctr_held)  then
+			action_id = hash("copy")
+		else
+			return
+		end
+	end
 	UI.on_input(self, action_id, action, evaluate_button, evaluate_input)
 	if action.pressed then
 		for key, val in pairs(UI.tab) do

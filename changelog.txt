@@ -11,6 +11,7 @@ To do:
 - Model replacer
 - "Smart" model dynamizer
 - Option to find and optionally fix Pistol Mix incompatibilities in a map
+- A settings file to allow configuration of various defaults
 
 Bugs:
 
@@ -21,28 +22,14 @@ Done:
 
 New:
 
-- Tweening editor
-- Import model properties (materials, dynamic state, tweens) from a different file
-- A check whether the files contain valid json is now performed with every import and export, displaying the location of the error if found and aboring import or issuing a warning when exporting.
-- Link to the colour guide on mod.io in model editor
-- Links to the material and obstacle guide in level data editor
+- Added copy/pasting
 
 Fixes:
 
-- Removed duplicated "geoSimple" material
-- Added Defold logo to the landing page
-- pw_art files without static prop lists now load properly. The (empty) lists are created on export.
-- Page and item selections are now deleted when unloading files
-- Clicking selected model again no longer resets the part list.
 
 Bugs:
 
-- Fixed a bug where only one prop within a culling range would have its dynamic status changed, the rest being deleted.
-- Errors when importing should no longer leave any partial data loaded
-- Fixed a crash when importing a file in human-readable format
-- Event values in seconds now update if sample rate changed using the text field
-- Fixed a crash when loading a file with fewer model pages than the page of the currently selected model
-
+- Fixed a crash when importing a tween with a missing trailing semicolon.
 
 
 

@@ -10,6 +10,22 @@ key_trigger {
   input: KEY_KP_ENTER
   action: "enter"
 }
+key_trigger {
+  input: KEY_LCTRL
+  action: "lctrl"
+}
+key_trigger {
+  input: KEY_RCTRL
+  action: "rctrl"
+}
+key_trigger {
+  input: KEY_C
+  action: "c"
+}
+key_trigger {
+  input: KEY_V
+  action: "v"
+}
 mouse_trigger {
   input: MOUSE_BUTTON_1
   action: "touch"
