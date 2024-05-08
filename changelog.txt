@@ -17,7 +17,6 @@ Bugs:
 
 - Volumes generate wrong on the edge of the pictures
 - Geomancer gets rekt by whitespace =/
-- Error when exporting a map with no models
 
 Done:
 
@@ -30,6 +29,6 @@ Fixes:
 - Misaligned part highlight in the second column
 
 Bugs:
-
+- Fixed an error when exporting a map with no model data
 
 

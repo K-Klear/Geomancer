@@ -1285,11 +1285,11 @@ function ART.export(path)
 		if key < #MEM.art_data.model_list then
 			str = str..val.string..","
 		else
-			str = str..val.string
+			str = str..val.string.."]"
 		end
 	end
 
-	final_string = final_string..MEM.art_data.string_dictionary..str.."]}"
+	final_string = final_string..MEM.art_data.string_dictionary..str.."}"
 
 	if not G.safe_decode(final_string, "Output pw_art file") then
 		S.update("Model data might be corrupted. Use with caution.")
