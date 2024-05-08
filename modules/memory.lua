@@ -13,31 +13,7 @@ MEM.sequence_data = {}
 MEM.art_data = {}
 MEM.sample_rate = 48000
 
-local current_version = 0.4
-
 local load = {}
-
-local function check_version(str, filename)
-	local pos = string.find(str, "\"version\":")
-	if not pos then
-		S.update("Unknown format of "..filename..".")
-		return
-	else
-		local ver = tonumber(string.sub(str, pos + 11, pos + 13))
-		if not ver then
-			S.update("Error reading version information of "..filename..". File not loaded.")
-			return
-		elseif ver < current_version then
-			S.update("Version of "..filename.." is lower than "..current_version..". Resave it with the current Pistol Mix version.")
-			return
-		elseif ver > current_version then
-			S.update("Version of "..filename.." is higher than "..current_version..". This may cause unknown issues. Be careful.")
-			return true
-		else
-			return true
-		end
-	end
-end
 
 local function read_file(path)
 	local f = io.open(path, "rb")
@@ -50,7 +26,7 @@ end
 
 function load.pw(data)
 	local tab, data = G.safe_decode(data, "level.pw")
-	if not (tab and check_version(data, "level.pw")) then return end
+	if not (tab and G.check_version(data, "level.pw")) then return end
 	MEM.level_data.string = G.sanitise_json(data)
 	MEM.level_data.enemy_set = tab.enemySet
 	MEM.level_data.obstacle_set = tab.obstacleSet
@@ -98,7 +74,7 @@ end
 
 function load.pw_beat(data, filename)
 	local tab, data = G.safe_decode(data, filename)
-	if not (tab and check_version(data, filename)) then return end
+	if not (tab and G.check_version(data, filename)) then return end
 	MEM.beat_data.obstacle_list = {}
 	for key, val in ipairs(tab.beatData) do
 		if not (val.obstacles == {}) then
@@ -131,7 +107,7 @@ end
 
 function load.pw_event(data, filename)
 	local tab, data = G.safe_decode(data, filename)
-	if not (tab and check_version(data, filename)) then	return end
+	if not (tab and G.check_version(data, filename)) then	return end
 	MEM.event_data.table = tab
 	MEM.event_data.string = data
 	MEM.event_data.filename = filename
@@ -142,7 +118,7 @@ end
 
 function load.pw_geo(data, filename)
 	data = G.sanitise_json(data)
-	if not check_version(data, filename) then
+	if not G.check_version(data, filename) then
 		return
 	end
 	local chunk = string.find(data, "chunkData")
@@ -205,10 +181,8 @@ function MEM.parse_tween(script)
 	end
 end
 
-function load.pw_art(data, filename)
-	local model_table, data = G.safe_decode(data, filename)
-	if not (model_table and check_version(data, filename)) then return end
-
+function MEM.load_props_dictionary(model_table, ignored_models)
+	ignored_models = ignored_models or {}
 	local function find_section(tab, model_index, name)
 		if type(tab) == "table" then
 			current_name = tab.name or current_name
@@ -224,27 +198,10 @@ function load.pw_art(data, filename)
 			end
 		end
 	end
-	MEM.art_data.table_static_props = model_table.staticProps or {}
-	MEM.art_data.table_dynamic_props = model_table.dynamicProps or {}
-	MEM.art_data.table_culling_ranges = model_table.staticCullingRanges or {}
-	MEM.art_data.table_dynamic_culling_ranges = model_table.dynamicCullingRanges or {}
-
-	MEM.art_data.dynamic_models = {}
-	for key, val in ipairs(MEM.art_data.table_dynamic_props) do
-		MEM.art_data.dynamic_models[val.name] = true
-	end
-	for key, val in ipairs(MEM.art_data.table_dynamic_culling_ranges) do
-		for k, v in ipairs(val.members) do
-			MEM.art_data.dynamic_models[v.name] = true
-		end
-	end
 	
-	MEM.art_data.model_list = {}
-	MEM.art_data.model_names = {}
-	MEM.art_data.part_names = {[false] = {}}
 	local current_name = ""
-	for k, v in ipairs(model_table.propsDictionary) do
-		if k > 1 and v.key then
+	for k, v in ipairs(model_table) do
+		if k > 1 and v.key and not (ignored_models[v.key]) then
 			local tween
 			if #v.object.components > 1 then
 				tween = {}
@@ -254,7 +211,6 @@ function load.pw_art(data, filename)
 						tween.signal = val.EventId
 					elseif val.type == "ScriptedTween" then
 						tween.script = {}
-
 						local script_str = val.Script
 						local safety = #script_str / 3
 						repeat
@@ -309,29 +265,38 @@ function load.pw_art(data, filename)
 			end
 		end
 	end
+end
 
-	--local staticProps_start = string.find(MEM.art_data.string, "staticProps")
-	--local ranges_start = string.find(MEM.art_data.string, "staticCullingRanges")
-	local colours_end = string.find(data, "]") + 1
+function load.pw_art(data, filename)
+	local model_table, data = G.safe_decode(data, filename)
+	if not (model_table and G.check_version(data, filename)) then return end
+
+	MEM.art_data.table_static_props = model_table.staticProps or {}
+	MEM.art_data.table_dynamic_props = model_table.dynamicProps or {}
+	MEM.art_data.table_culling_ranges = model_table.staticCullingRanges or {}
+	MEM.art_data.table_dynamic_culling_ranges = model_table.dynamicCullingRanges or {}
+
+	MEM.art_data.dynamic_models = {}
+	for key, val in ipairs(MEM.art_data.table_dynamic_props) do
+		MEM.art_data.dynamic_models[val.name] = true
+	end
+	for key, val in ipairs(MEM.art_data.table_dynamic_culling_ranges) do
+		for k, v in ipairs(val.members) do
+			MEM.art_data.dynamic_models[v.name] = true
+		end
+	end
 	
-	--if not staticProps_start then
-	--	MEM.art_data.string = string.sub(MEM.art_data.string, 1, colours_end).."\"staticProps\":[],"..string.sub(MEM.art_data.string, colours_end + 1)
-	--	staticProps_start = colours_end + 2
-	--end
-	--if not ranges_start then
-	--	local static_end = string.find(MEM.art_data.string, "]", colours_end)
-	--	MEM.art_data.string = string.sub(MEM.art_data.string, 1, static_end).."\"staticCullingRanges\":[],"..string.sub(MEM.art_data.string, static_end + 1)
-	--	ranges_start = static_end + 2
-	--end
+	MEM.art_data.model_list = {}
+	MEM.art_data.model_names = {}
+	MEM.art_data.part_names = {[false] = {}}
 
+	MEM.load_props_dictionary(model_table.propsDictionary)
+
+	local colours_end = string.find(data, "]") + 1
 	local dictionary_start = string.find(data, "propsDictionary")
 		
 	MEM.art_data.string_colours = string.sub(data, 1, colours_end)
-	--MEM.art_data.string_static_props = string.sub(MEM.art_data.string, staticProps_start - 1, ranges_start - 2)
-	--MEM.art_data.string_culling_ranges = string.sub(MEM.art_data.string, ranges_start - 1, dictionary_start - 2)
 	local string_props_dictionary = string.sub(data, dictionary_start - 1)
-
-	--string_beginning = string.sub(MEM.art_data.string, 1, dictionary_start + 1016)
 
 	local start_index = 1018
 	local search_string = "{\"key"

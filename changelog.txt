@@ -21,14 +21,12 @@ Bugs:
 Done:
 
 Features:
-- Model replacer
-- Model rename
+
 
 Fixes:
-- Minor optimisation in art import code
-- Misaligned part highlight in the second column
+
 
 Bugs:
-- Fixed an error when exporting a map with no model data
+
 
 

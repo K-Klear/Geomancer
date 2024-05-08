@@ -439,6 +439,69 @@ local function open_tween_box()
 	UI.switch_cleanup = close_tween_box
 end
 
+local function import_models()
+	local model_data
+	local num, path = diags.open("zip,pw_art")
+	if path then
+		local f = io.open(path, "rb")
+		if f then
+			if string.sub(path, -3) == "zip" then
+				local zip_data = f:read("*a")
+				local archive = zip.open(zip_data)
+				local file_index = zip.get_number_of_entries(archive) - 1
+				for i = 0, file_index do
+					local file = zip.extract_by_index(archive, i)
+					if string.sub(file.name, -6) == "pw_art" then
+						model_data = file.content
+						break
+					end
+				end
+			else
+				model_data = f:read("*a")
+			end
+		end
+		io.close(f)
+	end
+	if model_data then
+		local model_count = 0
+		local data
+		model_data, data = G.safe_decode(model_data, "Selected pw_art file")
+		if not (model_data and G.check_version(data, "Selected pw_art file")) then return end
+		local ignore_list = {}
+		for key, val in ipairs(MEM.art_data.model_list) do
+			ignore_list[val.name] = true
+		end
+		local existing_model_count = #MEM.art_data.model_list
+		MEM.load_props_dictionary(model_data.propsDictionary, ignore_list)
+		
+		local dictionary_start = string.find(data, "propsDictionary")
+		local string_props_dictionary = string.sub(data, dictionary_start - 1)
+		local start_index = 1018
+		local search_string = "{\"key"
+		local key_indices = {}
+		repeat
+			local next_key_index = string.find(string_props_dictionary, search_string, start_index)
+			if next_key_index then
+				if not ignore_list[model_data.propsDictionary[#key_indices + 2].key] then
+					table.insert(key_indices, next_key_index)
+					model_count = model_count + 1
+				end
+				start_index = next_key_index + 5
+			end
+		until not next_key_index
+		for i = 1, #key_indices - 1 do
+			MEM.art_data.model_list[existing_model_count + i].string = string.sub(string_props_dictionary, key_indices[i], key_indices[i + 1] - 2)
+		end
+		if #key_indices > 0 then
+			MEM.art_data.model_list[existing_model_count + #key_indices].string = string.sub(string_props_dictionary, key_indices[#key_indices], -3)
+		end
+		if existing_model_count < 1 and model_count > 0 then
+			MEM.art_data.string_dictionary = string.sub(MEM.art_data.string_dictionary, 1, -2)..","
+		end
+		return model_count
+	end
+end
+
 local function import_model_data()
 	local model_data
 	local num, path = diags.open("zip,pw_art")
@@ -463,8 +526,9 @@ local function import_model_data()
 		io.close(f)
 	end
 	if model_data then
-		model_data = G.safe_decode(model_data, "Selected pw_art file")
-		if not model_data then return end
+		local data
+		model_data, data = G.safe_decode(model_data, "Selected pw_art file")
+		if not (model_data and G.check_version(data, filename)) then return end
 		local model_list = {}
 		for key, val in ipairs(MEM.art_data.model_list) do
 			model_list[val.name] = key
@@ -910,6 +974,17 @@ function ART.evaluate_button(button)
 		local model_count = import_model_data()
 		if model_count then
 			S.update("Updated properties of "..model_count.." models.")
+		else
+			S.update("Error loading model data.", false)
+		end
+	elseif button == "import_models" then
+		if selection_mode then
+			close_replace_box()
+		end
+		local model_count = import_models()
+		if model_count then
+			S.update("Imported "..model_count.." models.")
+			ART.update_model_list()
 		else
 			S.update("Error loading model data.", false)
 		end
