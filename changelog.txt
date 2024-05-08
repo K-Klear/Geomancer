@@ -8,7 +8,6 @@ To do:
 - Unload pictures button for geo slices
 - Partial export
 - Link the model spreadsheet from somewhere, maybe
-- Model replacer
 - "Smart" model dynamizer
 - Option to find and optionally fix Pistol Mix incompatibilities in a map
 - A settings file to allow configuration of default behaviours
@@ -18,18 +17,19 @@ Bugs:
 
 - Volumes generate wrong on the edge of the pictures
 - Geomancer gets rekt by whitespace =/
+- Error when exporting a map with no models
 
 Done:
 
 Features:
-- Switching tabs no longer resets the current model page
+- Model replacer
+- Model rename
 
 Fixes:
-- Importing from a directory no longer considers skipping the sequence file as an error
-- The folder created by exports is now called [mapname]_geomanced, because why not.
+- Minor optimisation in art import code
+- Misaligned part highlight in the second column
 
 Bugs:
-- Fixed a crash when exporting a map containing PF_Mausoleum_Medium01 (and possibly some other stock props)
 
 
 

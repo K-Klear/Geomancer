@@ -208,7 +208,6 @@ end
 function load.pw_art(data, filename)
 	local model_table, data = G.safe_decode(data, filename)
 	if not (model_table and check_version(data, filename)) then return end
-	MEM.art_data.string = data
 
 	local function find_section(tab, model_index, name)
 		if type(tab) == "table" then
@@ -311,26 +310,26 @@ function load.pw_art(data, filename)
 		end
 	end
 
-	local staticProps_start = string.find(MEM.art_data.string, "staticProps")
-	local ranges_start = string.find(MEM.art_data.string, "staticCullingRanges")
-	local colours_end = string.find(MEM.art_data.string, "]") + 1
+	--local staticProps_start = string.find(MEM.art_data.string, "staticProps")
+	--local ranges_start = string.find(MEM.art_data.string, "staticCullingRanges")
+	local colours_end = string.find(data, "]") + 1
 	
-	if not staticProps_start then
-		MEM.art_data.string = string.sub(MEM.art_data.string, 1, colours_end).."\"staticProps\":[],"..string.sub(MEM.art_data.string, colours_end + 1)
-		staticProps_start = colours_end + 2
-	end
-	if not ranges_start then
-		local static_end = string.find(MEM.art_data.string, "]", colours_end)
-		MEM.art_data.string = string.sub(MEM.art_data.string, 1, static_end).."\"staticCullingRanges\":[],"..string.sub(MEM.art_data.string, static_end + 1)
-		ranges_start = static_end + 2
-	end
+	--if not staticProps_start then
+	--	MEM.art_data.string = string.sub(MEM.art_data.string, 1, colours_end).."\"staticProps\":[],"..string.sub(MEM.art_data.string, colours_end + 1)
+	--	staticProps_start = colours_end + 2
+	--end
+	--if not ranges_start then
+	--	local static_end = string.find(MEM.art_data.string, "]", colours_end)
+	--	MEM.art_data.string = string.sub(MEM.art_data.string, 1, static_end).."\"staticCullingRanges\":[],"..string.sub(MEM.art_data.string, static_end + 1)
+	--	ranges_start = static_end + 2
+	--end
 
-	local dictionary_start = string.find(MEM.art_data.string, "propsDictionary")
+	local dictionary_start = string.find(data, "propsDictionary")
 		
-	MEM.art_data.string_colours = string.sub(MEM.art_data.string, 1, staticProps_start - 2)
-	MEM.art_data.string_static_props = string.sub(MEM.art_data.string, staticProps_start - 1, ranges_start - 2)
-	MEM.art_data.string_culling_ranges = string.sub(MEM.art_data.string, ranges_start - 1, dictionary_start - 2)
-	local string_props_dictionary = string.sub(MEM.art_data.string, dictionary_start - 1)
+	MEM.art_data.string_colours = string.sub(data, 1, colours_end)
+	--MEM.art_data.string_static_props = string.sub(MEM.art_data.string, staticProps_start - 1, ranges_start - 2)
+	--MEM.art_data.string_culling_ranges = string.sub(MEM.art_data.string, ranges_start - 1, dictionary_start - 2)
+	local string_props_dictionary = string.sub(data, dictionary_start - 1)
 
 	--string_beginning = string.sub(MEM.art_data.string, 1, dictionary_start + 1016)
 

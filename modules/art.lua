@@ -11,6 +11,12 @@ local model_page_max, part_page_max = 0, 0
 local tween_page, tween_page_max = 0, 0
 local selected_model_index, selected_part_index, current_material
 local selected_model = false
+
+local replace_model_index
+local replace_model = false
+
+local selection_mode
+
 local current_tween_action
 
 --local TWEEN_NEW_BASE_Y = 220
@@ -163,7 +169,7 @@ local function highlight_part()
 		end
 		local pos = vmath.vector3(material_highlight_base)
 		if material_index > 15 then
-			pos.x = pos.x + 230
+			pos.x = pos.x + 221
 			pos.y = pos.y - (40 * (material_index - 16))
 		else
 			pos.y = pos.y - (40 * (material_index - 1))
@@ -253,6 +259,9 @@ local function populate_part_list()
 end
 
 local function sort_models()
+	if selection_mode then
+		close_replace_box()
+	end
 	table.sort(MEM.art_data.model_names, function(a, b) return string.lower(a) < string.lower(b) end)
 	table.sort(MEM.art_data.model_list, function(a, b) return string.lower(a.name) < string.lower(b.name) end)
 	if selected_model then
@@ -301,7 +310,7 @@ local function close_tween_box()
 	end
 	gui.set_enabled(gui.get_node("tween_box"), false)
 	UI.unload_template()
-	UI.load_template({"sort", "import_model_data", "colour_guide", "auto_dynamic"})
+	UI.load_template(UI.tab.tab_art.buttons)
 	populate_model_list()
 	populate_part_list()
 	tween_page, tween_page_max = 0, 0
@@ -610,7 +619,9 @@ local function import_model_data()
 end
 
 local function select_model(i)
-	selected_model_index = i + (10 * model_page)
+	if i then
+		selected_model_index = i + (10 * model_page)
+	end
 	if not (selected_model == MEM.art_data.model_list[selected_model_index].name) then
 		selected_model = MEM.art_data.model_list[selected_model_index].name
 		part_page = 0
@@ -625,6 +636,8 @@ function ART.evaluate_input(field, text)
 	if field == "tween_signal" then
 		MEM.art_data.model_list[selected_model_index].tween.signal = text
 		gui.set_text(text_node, text)
+	elseif field == "rename_name" then
+		
 	else
 		local value = tonumber(text)
 		local tween_script = MEM.art_data.model_list[selected_model_index].tween.script
@@ -698,10 +711,202 @@ local function get_part_for_tween()
 	return 1
 end
 
+local function close_rename_box()
+	gui.set_enabled(gui.get_node("rename_box"), false)
+	UI.unload_template()
+	UI.load_template(UI.tab.tab_art.buttons)
+	populate_model_list()
+	populate_part_list()
+	UI.switch_cleanup = nil
+end
+
+local function rename_model(new_name)
+	local model_string = MEM.art_data.model_list[selected_model_index].string
+	local object = string.find(model_string, "\"object\":")
+	if object then
+		local name_length = #selected_model
+		model_string = string.sub(model_string, 1, 8)..new_name..string.sub(model_string, 9 + name_length, 28 + name_length)..new_name..string.sub(model_string, 2 * name_length + 29)
+	else
+		S.update("Problem when renaming model. Aborted.")
+	end
+	MEM.art_data.model_list[selected_model_index].name = new_name
+	for key, val in ipairs(MEM.art_data.table_static_props) do
+		if val.name == selected_model then
+			val.name = new_name
+		end
+	end
+	for key, val in ipairs(MEM.art_data.table_dynamic_props) do
+		if val.name == selected_model then
+			val.name = new_name
+		end
+	end
+	for key, val in ipairs(MEM.art_data.table_culling_ranges) do
+		for k, v in ipairs(val.members) do
+			if v.name == selected_model then
+				v.name = new_name
+			end
+		end
+	end
+	for key, val in ipairs(MEM.art_data.table_dynamic_culling_ranges) do
+		for k, v in ipairs(val.members) do
+			if v.name == selected_model then
+				v.name = new_name
+			end
+		end
+	end
+	MEM.art_data.part_names[new_name] = MEM.art_data.part_names[selected_model]
+	MEM.art_data.part_names[selected_model] = nil
+	if MEM.art_data.dynamic_models[selected_model] then
+		MEM.art_data.dynamic_models[selected_model] = nil
+		MEM.art_data.dynamic_models[new_name] = true
+	end
+	selected_model = new_name
+end
+
+local function model_replace()
+	for key, val in ipairs(MEM.art_data.model_list[replace_model_index].parts) do
+		if MEM.art_data.model_list[selected_model_index].parts[key] then
+			MEM.art_data.model_list[replace_model_index].parts[key] = MEM.art_data.model_list[selected_model_index].parts[key]
+		else
+			break
+		end
+	end
+	MEM.art_data.model_list[replace_model_index].dynamic = MEM.art_data.model_list[selected_model_index].dynamic
+	if MEM.art_data.model_list[selected_model_index].tween then
+		local new_model_part_count = #MEM.art_data.model_list[replace_model_index].parts
+		for key, val in ipairs(MEM.art_data.model_list[selected_model_index].tween.script) do
+			if val.part > new_model_part_count then
+				val.part = 1
+			end
+		end
+	end
+	MEM.art_data.model_list[replace_model_index].tween = MEM.art_data.model_list[selected_model_index].tween
+	MEM.art_data.model_list[selected_model_index] = MEM.art_data.model_list[replace_model_index]
+	MEM.art_data.model_list[selected_model_index].name = selected_model
+	MEM.art_data.model_list[selected_model_index].string = string.gsub(MEM.art_data.model_list[selected_model_index].string, replace_model, selected_model, 2)
+	for key, val in ipairs(MEM.art_data.table_static_props) do
+		if val.name == replace_model then
+			val.name = selected_model
+		end
+	end
+	for key, val in ipairs(MEM.art_data.table_dynamic_props) do
+		if val.name == replace_model then
+			val.name = selected_model
+		end
+	end
+	for key, val in ipairs(MEM.art_data.table_culling_ranges) do
+		for k, v in ipairs(val.members) do
+			if v.name == replace_model then
+				v.name = selected_model
+			end
+		end
+	end
+	for key, val in ipairs(MEM.art_data.table_dynamic_culling_ranges) do
+		for k, v in ipairs(val.members) do
+			if v.name == replace_model then
+				v.name = selected_model
+			end
+		end
+	end
+	MEM.art_data.part_names[replace_model] = nil
+	MEM.art_data.dynamic_models[replace_model] = nil
+	S.update("All instances of "..selected_model.." have been replaced by "..replace_model.." keeping the original model name and properties.", true)
+	table.remove(MEM.art_data.model_list, replace_model_index)
+	for key, val in ipairs(MEM.art_data.model_list) do
+		if val.name == selected_model then
+			selected_model_index = key
+			break
+		end
+	end
+	select_model()
+end
+
+local function close_replace_box(keep_replace_model)
+	UI.switch_cleanup = nil
+	selection_mode = nil
+	if not keep_replace_model then
+		replace_model, replace_model_index = nil
+	end
+	gui.set_enabled(gui.get_node("replace_box"), false)
+	UI.unload_template()
+	UI.load_template(UI.tab.tab_art.buttons)
+	populate_model_list()
+	populate_part_list()
+end
+
+local function open_replace_box()
+	gui.set_enabled(gui.get_node("replace_box"), true)
+	selection_mode = nil
+	UI.switch_cleanup = close_replace_box
+	UI.unload_template()
+	UI.load_template({"replace_confirm", "replace_cancel", "replace_model_new", "replace_model_old"})
+	gui.set_text(gui.get_node("replace_model_old/text"), selected_model)
+	gui.set_text(gui.get_node("replace_model_new/text"), replace_model)
+end
+
 function ART.evaluate_button(button)
 	if button == "sort" then
 		sort_models()
+	elseif button == "button_replace" then
+		if not selected_model then
+			S.update("Select a model first", true)
+		else
+			if not replace_model then
+				selection_mode = hash("replace")
+				UI.switch_cleanup = function() selection_mode, replace_model, replace_model_index = nil end
+				S.update("Select model with to replace "..selected_model)
+			else
+				open_replace_box()
+			end
+		end
+	elseif button == "replace_confirm" then
+		model_replace()
+		close_replace_box()
+	elseif button == "replace_cancel" then
+		close_replace_box()
+	elseif button == "replace_model_new" then
+		close_replace_box()
+		selection_mode = hash("replace")
+		S.update("Select model with to replace "..selected_model)
+	elseif button == "replace_model_old" then
+		close_replace_box(true)
+		selection_mode = hash("replace_old")
+		S.update("Select model to be replaced by "..replace_model)
+	elseif button == "button_rename" then
+		if not selected_model then
+			S.update("Select a model first", true)
+		else
+			gui.set_enabled(gui.get_node("rename_box"), true)
+			UI.unload_template()
+			UI.load_template({"rename_confirm", "rename_cancel"})
+			UI.load_text_field("rename_name", 31)
+			gui.set_text(gui.get_node("rename_name/text"), selected_model)
+			if UI.switch_cleanup then UI.switch_cleanup() end
+			UI.switch_cleanup = close_rename_box
+		end
+	elseif button == "rename_cancel" then
+		close_rename_box()
+	elseif button == "rename_confirm" then
+		local new_name = gui.get_text(gui.get_node("rename_name/text"))
+		if new_name == selected_model then
+			S.update("Enter a different name first.", true)
+		elseif new_name == "" then
+			S.update("Are you *trying* to brick your map?", true)
+		else
+			for key, val in ipairs(MEM.art_data.model_list) do
+				if val.name == new_name then
+					S.update("Model with that name already exists.", true)
+					return
+				end
+			end
+			rename_model(new_name)
+			S.update("Changed model name to "..new_name)
+			close_rename_box()
+		end
 	elseif button == "import_model_data" then
+		if selection_mode then
+			close_replace_box()
+		end
 		local model_count = import_model_data()
 		if model_count then
 			S.update("Updated properties of "..model_count.." models.")
@@ -805,8 +1010,26 @@ function ART.evaluate_button(button)
 		for i = 1, 32 do
 			if i < 11 then
 				if button == "model_list_"..i then
-					select_model(i)
-					return
+					if not selection_mode then
+						select_model(i)
+						return
+					elseif selection_mode == hash("replace") then
+						replace_model_index = i + (10 * model_page)
+						if selected_model == MEM.art_data.model_list[replace_model_index].name then
+							S.update("Choose a different model", true)
+							replace_model_index = nil
+						else
+							replace_model = MEM.art_data.model_list[replace_model_index].name
+							open_replace_box()
+						end
+					else
+						select_model(i)
+						if i + (10 * model_page) == replace_model_index then
+							S.update("Choose a different model", true)
+						else
+							open_replace_box()
+						end
+					end
 				elseif button == "part_list_"..i then
 					selected_part_index = i + (10 * part_page)
 					current_material = MEM.art_data.model_list[selected_model_index].parts[selected_part_index]
@@ -862,6 +1085,9 @@ function ART.evaluate_button(button)
 				model_tab.string = string.sub(model_tab.string, 1, str_start)..current_material..string.sub(model_tab.string, str_end)
 				highlight_part()
 			elseif button == "tween_"..i then
+				if selection_mode then
+					close_replace_box()
+				end
 				select_model(i)
 				open_tween_box()
 			end

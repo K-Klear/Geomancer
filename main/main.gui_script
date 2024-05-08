@@ -102,7 +102,7 @@ local function export_all(overwrite)
 				EVENT.export(path.."/"..common_filename..".pw_event")
 				S.update("Events exported")
 			end
-			if MEM.art_data.string then
+			if MEM.art_data.table_static_props then
 				ART.export(path.."/"..common_filename.."_SharedArt.pw_art")
 				S.update("Model data exported")
 			end
