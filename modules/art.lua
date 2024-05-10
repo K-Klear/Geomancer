@@ -789,11 +789,12 @@ local function rename_model(new_name)
 	local object = string.find(model_string, "\"object\":")
 	if object then
 		local name_length = #selected_model
-		model_string = string.sub(model_string, 1, 8)..new_name..string.sub(model_string, 9 + name_length, 28 + name_length)..new_name..string.sub(model_string, 2 * name_length + 29)
+		MEM.art_data.model_list[selected_model_index].string = string.sub(model_string, 1, 8)..new_name..string.sub(model_string, 9 + name_length, 28 + name_length)..new_name..string.sub(model_string, 2 * name_length + 29)
 	else
 		S.update("Problem when renaming model. Aborted.")
 	end
 	MEM.art_data.model_list[selected_model_index].name = new_name
+	pprint(MEM.art_data.model_list[selected_model_index])
 	for key, val in ipairs(MEM.art_data.table_static_props) do
 		if val.name == selected_model then
 			val.name = new_name
