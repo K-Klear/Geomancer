@@ -25,7 +25,8 @@ local function read_file(path)
 end
 
 function load.pw(data)
-	local tab, data = G.safe_decode(data, "level.pw")
+	local tab
+	tab, data = G.safe_decode(data, "level.pw")
 	if not (tab and G.check_version(data, "level.pw")) then return end
 	MEM.level_data.string = G.sanitise_json(data)
 	MEM.level_data.enemy_set = tab.enemySet
@@ -41,7 +42,8 @@ function load.pw(data)
 end
 
 function load.pw_meta(data)
-	local tab, data = G.safe_decode(data, "do_not_ship.pw_meta")
+	local tab
+	tab, data = G.safe_decode(data, "do_not_ship.pw_meta")
 	if not tab then return end
 	MEM.meta_data.string = data
 	
@@ -73,7 +75,8 @@ function load.pw_meta(data)
 end
 
 function load.pw_beat(data, filename)
-	local tab, data = G.safe_decode(data, filename)
+	local tab
+	tab, data = G.safe_decode(data, filename)
 	if not (tab and G.check_version(data, filename)) then return end
 	MEM.beat_data.obstacle_list = {}
 	for key, val in ipairs(tab.beatData) do
@@ -106,7 +109,8 @@ function load.pw_beat(data, filename)
 end
 
 function load.pw_event(data, filename)
-	local tab, data = G.safe_decode(data, filename)
+	local tab
+	tab, data = G.safe_decode(data, filename)
 	if not (tab and G.check_version(data, filename)) then	return end
 	MEM.event_data.table = tab
 	MEM.event_data.string = data
@@ -140,6 +144,25 @@ function load.pw_seq(data, filename)
 	--MEM.sequence_data.filename = filename
 	--UI.tab.tab_sequence.state = true
 	--return true
+end
+
+function MEM.get_root_transform(model_tab)
+	if type(model_tab) == "string" then
+		model_tab = G.safe_decode(model_tab, "tween information")
+	end
+	local found_name
+	for key, val in ipairs(model_tab.object.children) do
+		if #val.components > 2 then
+			return false
+		elseif #val.children > 0 then
+			if not found_name then
+				found_name = val.name
+			else
+				return false
+			end
+		end
+	end
+	return found_name
 end
 
 function MEM.parse_tween(script)
@@ -243,6 +266,7 @@ function MEM.load_props_dictionary(model_table, ignored_models)
 			MEM.art_data.part_names[v.key] = {}
 			find_section(v, #MEM.art_data.model_list, v.key)
 			if tween then
+				local tween_root = MEM.get_root_transform(v)
 				local all_parts_found = true
 				for tween_key, tween_val in ipairs(tween.script) do
 					if tween_val.part then
@@ -251,16 +275,21 @@ function MEM.load_props_dictionary(model_table, ignored_models)
 							if MEM.art_data.part_names[v.key][key] == tween_val.part then
 								tween_val.part = key
 								part_found = true
+								break
+							elseif tween_root == tween_val.part then
+								tween_val.part = 0
+								part_found = true
+								break
 							end
 						end
 						if not part_found then
 							all_parts_found = false
-							tween_val.part = 1
+							tween_val.part = 0
 						end
 					end
 				end
 				if not all_parts_found then
-					S.update("Tween of model "..v.key.." refers to a wrong part. Defaulting to the first one.")
+					S.update("Tween of model "..v.key.." refers to a wrong part. Defaulting to tweening the whole model.")
 				end
 			end
 		end

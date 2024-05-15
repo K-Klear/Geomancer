@@ -21,12 +21,13 @@ Bugs:
 Done:
 
 Features:
-
+- Tweens move the whole prop by default now.
+- If a model doesn't have a root transform, it is created on export as needed.
+- Smarter default values for new tween actions or when changing types
 
 Fixes:
 
 
 Bugs:
-
-
+- Fixed bug when skipping existing models while importing them from another map
 

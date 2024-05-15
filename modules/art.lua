@@ -24,7 +24,7 @@ local current_tween_action
 function ART.reset()
 	model_page, part_page = 0, 0
 	model_page_max, part_page_max = 0, 0
-	selected_model_index, selected_part_index, current_material = nil
+	selected_model_index, selected_part_index, current_material = nil, nil, nil
 	selected_model = false
 	gui.set_enabled(material_highlight, false)
 	gui.set_enabled(model_highlight, false)
@@ -395,7 +395,7 @@ local function populate_tween_list(tween_script)
 					gui.set_enabled(gui.get_node("tween_speed_"..i.."/box"), false)
 				end
 				gui.set_enabled(gui.get_node("tween_part_"..i.."/button_white"), true)
-				local part_name = MEM.art_data.part_names[selected_model][tween_script[tween_index].part]
+				local part_name = MEM.art_data.part_names[selected_model][tween_script[tween_index].part] or "[whole prop]"
 				gui.set_text(gui.get_node("tween_part_"..i.."/text"), part_name)
 				UI.load_template("tween_part_"..i)
 			end
@@ -430,8 +430,8 @@ local function open_tween_box()
 	tween_page_max = math.floor((#model_tab.tween.script - 1) / 10)
 	tween_page = math.min(tween_page, tween_page_max)
 	populate_tween_list(model_tab.tween.script)
-	
-	UI.load_template("tween_box_close")
+
+	UI.load_template({"tween_box_close", "tween_box_copy"})
 	gui.set_text(gui.get_node("lbl_tween_model"), "Model: "..model_tab.name)
 	UI.load_text_field("tween_signal", 14)
 	gui.set_enabled(gui.get_node("tween_box"), true)
@@ -647,6 +647,7 @@ local function import_model_data()
 				end
 				local model_table = MEM.art_data.model_list[model_list[v.key]]
 				if tween then
+					local tween_root = MEM.get_root_transform(MEM.art_data.model_list[model_list[v.key]].string)
 					local tween_replaced = not not model_table.tween
 					model_table.tween = tween
 					local all_parts_found = true
@@ -657,16 +658,21 @@ local function import_model_data()
 								if MEM.art_data.part_names[v.key][key] == tween_val.part then
 									tween_val.part = key
 									part_found = true
+									break
+								elseif tween_root == tween_val.part then
+									tween_val.part = 0
+									part_found = true
+									break
 								end
 							end
 							if not part_found then
 								all_parts_found = false
-								tween_val.part = 1
+								tween_val.part = 0
 							end
 						end
 					end
 					if not all_parts_found then
-						S.update("Tween of model "..v.key.." refers to a wrong part. Defaulting to the first one.")
+						S.update("Tween of model "..v.key.." refers to a wrong part. Defaulting to tweening the whole model.")
 					end
 					if tween_replaced then
 						S.update("Model "..v.key.." had its existing tween replaced.")
@@ -766,14 +772,6 @@ function ART.evaluate_input(field, text)
 	end
 end
 
-local function get_part_for_tween()
-	for i = #MEM.art_data.model_list[selected_model_index].tween.script, 1, -1 do
-		if MEM.art_data.model_list[selected_model_index].tween.script[i].part then
-			return MEM.art_data.model_list[selected_model_index].tween.script[i].part
-		end
-	end
-	return 1
-end
 
 local function close_rename_box()
 	gui.set_enabled(gui.get_node("rename_box"), false)
@@ -794,7 +792,6 @@ local function rename_model(new_name)
 		S.update("Problem when renaming model. Aborted.")
 	end
 	MEM.art_data.model_list[selected_model_index].name = new_name
-	pprint(MEM.art_data.model_list[selected_model_index])
 	for key, val in ipairs(MEM.art_data.table_static_props) do
 		if val.name == selected_model then
 			val.name = new_name
@@ -841,7 +838,7 @@ local function model_replace()
 		local new_model_part_count = #MEM.art_data.model_list[replace_model_index].parts
 		for key, val in ipairs(MEM.art_data.model_list[selected_model_index].tween.script) do
 			if val.part > new_model_part_count then
-				val.part = 1
+				val.part = 0
 			end
 		end
 	end
@@ -907,6 +904,82 @@ local function open_replace_box()
 	UI.load_template({"replace_confirm", "replace_cancel", "replace_model_new", "replace_model_old"})
 	gui.set_text(gui.get_node("replace_model_old/text"), selected_model)
 	gui.set_text(gui.get_node("replace_model_new/text"), replace_model)
+end
+
+local function copy_tween(source_index, target_index)
+	local source_tween = MEM.art_data.model_list[source_index].tween
+	local target_tween = {signal = source_tween.signal, script = {}}
+	for key, val in ipairs(source_tween.script) do
+		local start_state, end_state
+		if val.start_state then
+			start_state = {x = val.start_state.x, y = val.start_state.y, z = val.start_state.z}
+			end_state = {x = val.end_state.x, y = val.end_state.y, z = val.end_state.z}
+		end
+		local source_name = MEM.art_data.model_list[source_index].name
+		local part
+		if MEM.art_data.part_names[selected_model][val.part] and MEM.art_data.part_names[selected_model][val.part] == MEM.art_data.part_names[source_name][val.part] then
+			part = val.part
+		else
+			part = 0
+		end
+		target_tween.script[key] = {type = val.type, part = part, time = val.time, start_state = start_state, end_state = end_state}
+	end
+	MEM.art_data.model_list[target_index].tween = target_tween
+	MEM.art_data.model_list[target_index].dynamic = true
+	populate_model_list()
+	populate_part_list()
+	open_tween_box()
+	S.update("Tween copied", true)
+end
+
+local function get_tween_defaults(action_type)
+	local script_tab = MEM.art_data.model_list[selected_model_index].tween.script
+	local action_to_copy
+	local new_action_tab = {}
+	local index_start = #script_tab
+	if current_tween_action then
+		index_start = current_tween_action - 1
+	end
+	for action_index = index_start, 1, -1 do
+		if action_type then
+			if script_tab[action_index].type == action_type then
+				action_to_copy = action_index
+				break
+			end
+		elseif (script_tab[action_index].type == "T") or (script_tab[action_index].type == "S") or (script_tab[action_index].type == "R") then
+			action_type = script_tab[action_index].type
+			action_to_copy = action_index
+			break
+		end
+	end
+	action_type = action_type or "T"
+	if action_to_copy then
+		local action_to_copy_tab = MEM.art_data.model_list[selected_model_index].tween.script[action_to_copy]
+		new_action_tab.part = action_to_copy_tab.part
+		new_action_tab.time = action_to_copy_tab.time
+		new_action_tab.type = action_type
+		if action_type == "T" then
+			new_action_tab.start_state = {x = action_to_copy_tab.start_state.x, y = action_to_copy_tab.start_state.y, z = action_to_copy_tab.start_state.z}
+			new_action_tab.end_state = {x = action_to_copy_tab.end_state.x, y = action_to_copy_tab.end_state.y, z = action_to_copy_tab.end_state.z}
+		elseif action_type == "R" then
+			new_action_tab.start_state = {x = action_to_copy_tab.end_state.x, y = action_to_copy_tab.end_state.y, z = action_to_copy_tab.end_state.z}
+			new_action_tab.end_state = {
+				x = action_to_copy_tab.end_state.x + (action_to_copy_tab.end_state.x - action_to_copy_tab.start_state.x),
+				y = action_to_copy_tab.end_state.y + (action_to_copy_tab.end_state.y - action_to_copy_tab.start_state.y),
+				z = action_to_copy_tab.end_state.z + (action_to_copy_tab.end_state.z - action_to_copy_tab.start_state.z),
+			}
+		elseif action_type == "S" then
+			new_action_tab.start_state = {x = action_to_copy_tab.end_state.x, y = action_to_copy_tab.end_state.y, z = action_to_copy_tab.end_state.z}
+			new_action_tab.end_state = {x = action_to_copy_tab.start_state.x, y = action_to_copy_tab.start_state.y, z = action_to_copy_tab.start_state.z}
+		end
+	else
+		if action_type == "T" or action_type == "R" then
+			new_action_tab = {part = 0, type = action_type, start_state = {x = 0, y = 0, z = 0}, end_state = {x = 0, y = 0, z = 0}, time = 1}
+		elseif action_type == "S" then
+			new_action_tab = {part = 0, type = action_type, start_state = {x = 1, y = 1, z = 1}, end_state = {x = 1, y = 1, z = 1}, time = 1}
+		end
+	end
+	return new_action_tab
 end
 
 function ART.evaluate_button(button)
@@ -1023,46 +1096,31 @@ function ART.evaluate_button(button)
 		sys.open_url("https://mod.io/g/pistol-whip/r/advanced-color-hack-guide")
 	elseif button == "tween_box_close" then
 		close_tween_box()
+	elseif button == "tween_box_copy" then
+		local tween_found = false
+		for key, val in ipairs(MEM.art_data.model_list) do
+			if val.tween and not (key == selected_model_index) then
+				tween_found = true
+				break
+			end
+		end
+		if not tween_found then
+			S.update("No other tweens to copy", true)
+		else
+			close_tween_box()
+			selection_mode = hash("copy_tween")
+			S.update("Select a model with a tween to copy it", true)
+		end
 	elseif button == "action_move" then
-		local tween_action = MEM.art_data.model_list[selected_model_index].tween.script[current_tween_action]
-		tween_action.type = "T"
-		if not tween_action.start_state then
-			tween_action.start_state = {x = 0, y = 0, z = 0}
-		end
-		if not tween_action.end_state then
-			tween_action.end_state = {x = tween_action.start_state.x, y = tween_action.start_state.y, z = tween_action.start_state.z}
-		end
-		if not tween_action.part then
-			tween_action.part = get_part_for_tween()
-		end
+		MEM.art_data.model_list[selected_model_index].tween.script[current_tween_action] = get_tween_defaults("T")
 		close_action_type_box()
 		open_tween_box()
 	elseif button == "action_rotate" then
-		local tween_action = MEM.art_data.model_list[selected_model_index].tween.script[current_tween_action]
-		tween_action.type = "R"
-		if not tween_action.start_state then
-			tween_action.start_state = {x = 0, y = 0, z = 0}
-		end
-		if not tween_action.end_state then
-			tween_action.end_state = {x = tween_action.start_state.x, y = tween_action.start_state.y, z = tween_action.start_state.z}
-		end
-		if not tween_action.part then
-			tween_action.part = get_part_for_tween()
-		end
+		MEM.art_data.model_list[selected_model_index].tween.script[current_tween_action] = get_tween_defaults("R")
 		close_action_type_box()
 		open_tween_box()
 	elseif button == "action_scale" then
-		local tween_action = MEM.art_data.model_list[selected_model_index].tween.script[current_tween_action]
-		tween_action.type = "S"
-		if not tween_action.start_state then
-			tween_action.start_state = {x = 1, y = 1, z = 1}
-		end
-		if not tween_action.end_state then
-			tween_action.end_state = {x = tween_action.start_state.x, y = tween_action.start_state.y, z = tween_action.start_state.z}
-		end
-		if not tween_action.part then
-			tween_action.part = get_part_for_tween()
-		end
+		MEM.art_data.model_list[selected_model_index].tween.script[current_tween_action] = get_tween_defaults("S")
 		close_action_type_box()
 		open_tween_box()
 	elseif button == "action_wait" then
@@ -1078,7 +1136,7 @@ function ART.evaluate_button(button)
 		close_action_type_box()
 		open_tween_box()
 	elseif button == "tween_new" then
-		local tab = {type = "T", start_state = {x = 0, y = 0, z = 0}, end_state = {x = 0, y = 0, z = 0}, time = 1, part = get_part_for_tween()}
+		local tab = get_tween_defaults()
 		table.insert(MEM.art_data.model_list[selected_model_index].tween.script, tab)
 		tween_page = tween_page + 1
 		open_tween_box()
@@ -1097,6 +1155,16 @@ function ART.evaluate_button(button)
 						else
 							replace_model = MEM.art_data.model_list[replace_model_index].name
 							open_replace_box()
+						end
+					elseif selection_mode == hash("copy_tween") then
+						local copy_model_index = i + (10 * model_page)
+						if selected_model == MEM.art_data.model_list[copy_model_index].name then
+							S.update("Choose a different model", true)
+						elseif not MEM.art_data.model_list[copy_model_index].tween then
+							S.update("Select a model with a tween", true)
+						else
+							selection_mode = nil
+							copy_tween(copy_model_index, selected_model_index)
 						end
 					else
 						select_model(i)
@@ -1133,9 +1201,9 @@ function ART.evaluate_button(button)
 					local tween_script = MEM.art_data.model_list[selected_model_index].tween.script[i + (10 * tween_page)]
 					tween_script.part = tween_script.part + 1
 					if tween_script.part > #MEM.art_data.part_names[selected_model] then
-						tween_script.part = 1
+						tween_script.part = 0
 					end
-					local part_name = MEM.art_data.part_names[selected_model][tween_script.part]
+					local part_name = MEM.art_data.part_names[selected_model][tween_script.part] or "[whole prop]"
 					gui.set_text(gui.get_node("tween_part_"..i.."/text"), part_name)
 				end
 			end
@@ -1333,7 +1401,7 @@ function ART.export(path)
 			return str.."\"},{\"type\":\"LevelEventReceiver\",\"EventId\":\""..tween_data.signal.."\",\"ActionType\":\"ScriptedTweenTrigger\"}"
 		end
 	end
-	
+
 	str = ""
 	for key, val in ipairs(MEM.art_data.model_list) do
 		local cursor_start = string.find(val.string, "\"components\"") + 14
@@ -1341,7 +1409,6 @@ function ART.export(path)
 
 
 		local component_string = string.sub(val.string, cursor_start, cursor_end)
-		local component_string_length = #component_string
 
 		local script_pos = string.find(component_string, "{\"type\":\"ScriptedTween\"")
 		if script_pos then
@@ -1353,16 +1420,31 @@ function ART.export(path)
 			local trigger_end = string.find(component_string, "}", trigger_pos)
 			component_string = string.sub(component_string, 1, trigger_pos - 1)..string.sub(component_string, trigger_end + 1)
 		end
-		
+
+		if val.tween then
+			for k, v in ipairs(val.tween.script) do
+				if v.part == 0 then
+					local root = MEM.get_root_transform(val.string)
+					MEM.art_data.part_names[val.name][0] = root or "Mesh"
+					if not root then
+						local children_end = string.find(val.string, "\"children\":") + 12
+						local mesh_string = "\"name\":\"Mesh\",\"components\":[{\"type\":\"Transform\",\"values\":\"0,0,0,0,0,0,1,1,1,1\"}],\"children\":[{"
+						val.string = string.sub(val.string, 1, children_end)..mesh_string..string.sub(val.string, children_end + 1, -2).."]}}"
+					end
+				end
+			end
+		end
+
 		component_string = G.sanitise_json(component_string..get_tween_string(val.tween, val.name))
 
 		val.string = string.sub(val.string, 1, cursor_start - 1)..component_string..string.sub(val.string, cursor_end + 1)
-		
+
 		if key < #MEM.art_data.model_list then
 			str = str..val.string..","
 		else
 			str = str..val.string.."]"
 		end
+
 	end
 
 	final_string = final_string..MEM.art_data.string_dictionary..str.."}"
