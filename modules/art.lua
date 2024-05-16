@@ -296,7 +296,7 @@ end
 
 local function open_action_type_box()
 	UI.unload_template()
-	UI.load_template({"action_move", "action_scale", "action_rotate", "action_wait", "action_delete"})
+	UI.load_template({"action_move", "action_scale", "action_rotate", "action_wait", "action_repeat", "action_delete"})
 	gui.set_enabled(gui.get_node("action_type_box"), true)
 end
 
@@ -338,7 +338,7 @@ local function calculate_tween_time(tween_script, speed)
 end
 
 local function populate_tween_list(tween_script)
-	local action_types = {R = "Rotate", T = "Move", S = "Scale", W = "Wait"}
+	local action_types = {R = "Rotate", T = "Move", S = "Scale", W = "Wait", X = "Repeat"}
 	for i = 1, 10 do
 		local tween_index = i + (10 * tween_page)
 		if tween_script[tween_index] then
@@ -431,7 +431,7 @@ local function open_tween_box()
 	tween_page = math.min(tween_page, tween_page_max)
 	populate_tween_list(model_tab.tween.script)
 
-	UI.load_template({"tween_box_close", "tween_box_copy"})
+	UI.load_template({"tween_box_close", "tween_box_copy", "tween_box_delete"})
 	gui.set_text(gui.get_node("lbl_tween_model"), "Model: "..model_tab.name)
 	UI.load_text_field("tween_signal", 14)
 	gui.set_enabled(gui.get_node("tween_box"), true)
@@ -1111,6 +1111,9 @@ function ART.evaluate_button(button)
 			selection_mode = hash("copy_tween")
 			S.update("Select a model with a tween to copy it", true)
 		end
+	elseif button == "tween_box_delete" then
+		MEM.art_data.model_list[selected_model_index].tween.script = {}
+		open_tween_box()
 	elseif button == "action_move" then
 		MEM.art_data.model_list[selected_model_index].tween.script[current_tween_action] = get_tween_defaults("T")
 		close_action_type_box()
@@ -1131,6 +1134,15 @@ function ART.evaluate_button(button)
 		tween_action.part = nil
 		close_action_type_box()
 		open_tween_box()
+	elseif button == "action_repeat" then
+		local tween_action = MEM.art_data.model_list[selected_model_index].tween.script[current_tween_action]
+		tween_action.type = "X"
+		tween_action.start_state = nil
+		tween_action.end_state = nil
+		tween_action.part = nil
+		close_action_type_box()
+		open_tween_box()
+		
 	elseif button == "action_delete" then
 		table.remove(MEM.art_data.model_list[selected_model_index].tween.script, current_tween_action)
 		close_action_type_box()

@@ -307,5 +307,62 @@ function UI.on_input(self, action_id, action, button_fn, text_field_fn)
 	end
 end
 
+function UI.create_button(item)
+	if not UI.button_list[item] and item > 0 and item < UI.item_count + 1 then
+		local new = gui.clone_tree(UI.button)
+		gui.set_position(new[UI.button_id], gui.get_position(new[UI.button_id]) - vmath.vector3(0, item * UI.item_size_y, 0))
+		gui.set_text(new[UI.text_id], UI.buttons.test.values[item])
+		gui.set_enabled(new[UI.button_id], true)
+		UI.button_list[item] = new
+	end
+end
+
+function UI.delete_button(item)
+	if UI.button_list[item] then
+		for key, val in pairs(UI.button_list[item]) do
+			gui.delete_node(val)
+			UI.button_list[item] = nil
+		end
+	end
+end
+
+function UI.create_list(stencil_node, buttons)
+	local item_size_x, item_size_y
+	local list_size_y = gui.get_size(stencil_node).y
+	local button, text_id
+	local root_node = gui.new_box_node(vmath.vector3(0, 0, 0), vmath.vector3(1, 1, 1))
+	gui.set_parent(root_node, stencil_node)
+	gui.set_visible(root_node, false)
+	for key, val in pairs(buttons) do
+		gui.set_parent(val.button, root_node)
+		local size = gui.get_size(val.button)
+		item_size_x, item_size_y = size.x, size.y
+		gui.set_position(val.button, vmath.vector3(size.x * 0.5, 0, 0))
+		button = val.button
+		text_id = gui.get_id(val.text)
+	end
+	gui.set_size(stencil_node, vmath.vector3(item_size_x, list_size_y, 0))
+	gui.set(root_node, "position.y", item_size_y * 0.5)
+	local item_max = math.ceil(list_size_y / item_size_y)
+	local item_count = 236
+	local button_id = gui.get_id(button)
+	UI.button_list = {}
+	UI.item_count = 236
+	UI.item_max = item_max
+	UI.button = button
+	UI.button_id = button_id
+	UI.text_id = text_id
+	UI.buttons = buttons
+	UI.item_size_y = item_size_y
+	for item = 1, item_max do
+		UI.create_button(item)
+	end
+	UI.min_target = item_size_y * -0.5
+	UI.max_target = (item_count - item_max + 1) * item_size_y + item_size_y * .5
+	gui.set_enabled(button, false)
+	UI.list = root_node
+	UI.root_node = root_node
+	UI.scroll_target = gui.get(root_node, "position.y")
+end
 
 return UI

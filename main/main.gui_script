@@ -36,6 +36,15 @@ function init(self)
 	gui.set_enabled(UI.tab.tab_sequence.panel_node, false)
 	gui.set_enabled(UI.tab.tab_beat.panel_node, false)
 	S.update()
+
+	local test_list_items = {}
+	for i = 1, 550 do
+		table.insert(test_list_items, "Test item "..i)
+	end
+	local test_list_tab = {
+		test = {button = gui.get_node("test/button_white"), text = gui.get_node("test/text"), values = test_list_items}
+	}
+	UI.create_list(gui.get_node("test_list"), test_list_tab)
 end
 
 local function update_panel(extension)
@@ -335,7 +344,60 @@ local function evaluate_input(field, text)
 	end
 end
 
+function update(self, dt)
+	if UI.scrolling then
+		local root_height = gui.get(UI.root_node, "position.y")
+		if UI.scroll_target > root_height then
+			local item_needed = math.floor((root_height - 25 + (UI.item_max + 1) * UI.item_size_y) / 50)
+			UI.create_button(item_needed)
+			local to_delete = math.floor((root_height - 25) / 50)
+			UI.delete_button(to_delete)
+		else
+			local to_delete = math.ceil((root_height - 25 + (UI.item_max + 1) * UI.item_size_y) / 50)
+			local item_needed = math.ceil((root_height - 25) / 50)
+			UI.create_button(item_needed)
+			UI.delete_button(to_delete)
+		end
+	end
+end
+
+local function end_scrolling()
+	UI.scrolling = false
+	local min, max = 999, -999
+	for key, val in pairs(UI.button_list) do
+		if key > max then
+			max = key
+		end
+		if key < min then
+			min = key
+		end
+	end
+end
+
+local scroll_speed = 100
+
 function on_input(self, action_id, action)
+	if gui.pick_node(gui.get_node("test_list"), action.x, action.y) then
+		if action_id == hash("scroll_up") then
+			if action.value > 0 then
+				UI.scroll_target = math.min(UI.scroll_target + scroll_speed, UI.max_target)
+				gui.animate(UI.list, "position.y", UI.scroll_target, gui.EASING_LINEAR, 0.5)
+				UI.scrolling = true
+			else
+				UI.scroll_target = math.min(UI.scroll_target - scroll_speed/2, UI.max_target)
+				gui.animate(UI.list, "position.y", UI.scroll_target, gui.EASING_OUTSINE, 0.5, 0, end_scrolling)
+			end
+		elseif action_id == hash("scroll_down") then
+			if action.value > 0 then
+				UI.scroll_target = math.max(UI.scroll_target - scroll_speed, UI.min_target)
+				gui.animate(UI.list, "position.y", UI.scroll_target, gui.EASING_LINEAR, 0.5)
+				UI.scrolling = true
+			else
+				UI.scroll_target = math.max(UI.scroll_target + scroll_speed/2, UI.min_target)
+				gui.animate(UI.list, "position.y", UI.scroll_target, gui.EASING_OUTSINE, 0.5, 0, end_scrolling)
+			end
+		end
+	end
 	if action_id == hash("lctrl") then
 		l_ctr_held = not action.released
 		return
