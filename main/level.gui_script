@@ -1,0 +1,158 @@
+local MEM = require "modules.memory"
+local UI = require "modules.ui"
+
+local enemy_set_names = {}
+enemy_set_names.Normal = "Henchmen"
+enemy_set_names.Robots = "Robots"
+enemy_set_names.Outlaws = "Bandits"
+enemy_set_names.Targets = "Targets"
+enemy_set_names.Majesty = "Knights"
+enemy_set_names.Skeletons = "Skeletons"
+
+local obstacle_list = {}
+obstacle_list.obsNormal = "Normal"
+obstacle_list.Pipes = "Pipes"
+obstacle_list.Rocks = "Rocks"
+obstacle_list.Colony = "Colony"
+obstacle_list.Tower = "Tower"
+obstacle_list.Crates = "Crates"
+obstacle_list.Train = "Train"
+obstacle_list.EarthCracker = "EarthCracker"
+obstacle_list.ShredPipes = "ShredPipes"
+obstacle_list.Vaporwave = "Vaporwave"
+obstacle_list.Castle = "Castle"
+obstacle_list.Spooky = "Spooky"
+obstacle_list.AirDrop = "AirDrop"
+
+local material_list = {}
+material_list.default = "Default"
+material_list.heartbreaker = "Heartbreaker"
+material_list.alien_planet = "Alien Planet"
+material_list.arbiter = "Arbiter"
+material_list.robot_facilities = "2089 - Robot Facilities"
+material_list.strange_creatures = "2089 - Strange Creatures"
+material_list.cave = "AP2 Cave"
+material_list.desert = "AP2 Desert"
+material_list.western = "Western Town"
+material_list.oldwest_train = "OldWest Train"
+material_list.castle_mat = "Castle"
+material_list.shred = "ShredFactory"
+material_list.halloween = "HalloweenParty"
+material_list.art_deco = "ArtDeco"
+material_list.my_mind = "MyMind"
+
+local function load_default_buttons()
+	UI.unload_template("tab_level")
+	UI.load_template({"btn_enemies", "btn_obstacles", "btn_materials", "btn_movement"}, "tab_level")
+	local validation = {
+		integer = true,
+		min = function() return 0 end,
+		max = function() return math.floor(MEM.level_data.song_length) or 1/0 end,
+		default = function() return MEM.level_data.preview_time end
+	}
+	UI.load_text_field("preview_time", 3, "tab_level", validation)
+end
+
+function init(self)
+	load_default_buttons()
+	msg.post("#", hash("disable"))
+	for key, val in pairs(obstacle_list) do
+		gui.set_text(gui.get_node(key.."/text"), val)
+	end
+	for key, val in pairs(material_list) do
+		gui.set_text(gui.get_node(key.."/text"), val)
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		gui.set_enabled(gui.get_node("enemy_box"), false)
+		gui.set_enabled(gui.get_node("obstacle_box"), false)
+		gui.set_enabled(gui.get_node("material_box"), false)
+		load_default_buttons()
+		msg.post("#", hash("release_input_focus"))
+	elseif message_id == hash("show") then
+		msg.post("#", hash("enable"))
+		msg.post("#", hash("acquire_input_focus"))
+	elseif message_id == hash("update_labels") then
+		gui.set_text(gui.get_node("btn_enemies/text"), enemy_set_names[MEM.level_data.enemy_set])
+		gui.set_text(gui.get_node("btn_obstacles/text"), MEM.level_data.obstacle_set)
+		gui.set_text(gui.get_node("btn_materials/text"), MEM.level_data.material_set)
+		gui.set_text(gui.get_node("btn_movement/text"), MEM.level_data.move_mode)
+		gui.set_text(gui.get_node("preview_time/text"), MEM.level_data.preview_time)
+	end
+end
+
+local function evaluate_button(button)
+	if button == "btn_enemies" then
+		UI.unload_template("tab_level")
+		gui.set_enabled(gui.get_node("enemy_box"), true)
+		for key in pairs(enemy_set_names) do
+			UI.load_template(key, "tab_level")
+		end
+		UI.load_template("btn_enemies_close", "tab_level")
+	elseif enemy_set_names[button] then
+		load_default_buttons()
+		gui.set_enabled(gui.get_node("enemy_box"), false)
+		MEM.level_data.enemy_set = button
+		gui.set_text(gui.get_node("btn_enemies/text"), enemy_set_names[MEM.level_data.enemy_set])
+	elseif button == "btn_enemies_close" then
+		load_default_buttons()
+		gui.set_enabled(gui.get_node("enemy_box"), false)
+	elseif button == "btn_obstacles" then
+		UI.unload_template("tab_level")
+		gui.set_enabled(gui.get_node("obstacle_box"), true)
+		for key in pairs(obstacle_list) do
+			UI.load_template(key, "tab_level")
+		end
+		UI.load_template("obstacle_guide", "tab_level")
+		UI.load_template("btn_obstacles_close", "tab_level")
+	elseif obstacle_list[button] then
+		load_default_buttons()
+		gui.set_enabled(gui.get_node("obstacle_box"), false)
+		MEM.level_data.obstacle_set = obstacle_list[button]
+		gui.set_text(gui.get_node("btn_obstacles/text"), MEM.level_data.obstacle_set)
+	elseif button == "btn_obstacles_close" then
+		load_default_buttons()
+		gui.set_enabled(gui.get_node("obstacle_box"), false)
+	elseif button == "btn_materials" then
+		UI.unload_template("tab_level")
+		gui.set_enabled(gui.get_node("material_box"), true)
+		for key in pairs(material_list) do
+			UI.load_template(key, "tab_level")
+		end
+		UI.load_template("material_guide", "tab_level")
+		UI.load_template("btn_materials_close", "tab_level")
+	elseif material_list[button] then
+		load_default_buttons()
+		gui.set_enabled(gui.get_node("material_box"), false)
+		MEM.level_data.material_set = material_list[button]
+		gui.set_text(gui.get_node("btn_materials/text"), MEM.level_data.material_set)
+	elseif button == "btn_materials_close" then
+		load_default_buttons()
+		gui.set_enabled(gui.get_node("material_box"), false)
+	elseif button == "btn_movement" then
+		if MEM.level_data.move_mode == "Moving" then
+			MEM.level_data.move_mode = "Stationary"
+		else
+			MEM.level_data.move_mode = "Moving"
+		end
+		gui.set_text(gui.get_node("btn_movement/text"), MEM.level_data.move_mode)
+	elseif button == "obstacle_guide" then
+		sys.open_url("https://mod.io/g/pistol-whip/r/materials-and-obstacles")
+	elseif button == "material_guide" then
+		sys.open_url("https://mod.io/g/pistol-whip/r/materials-and-obstacles")
+	end
+end
+
+local function evaluate_input(field, text)
+	if field == "preview_time" then
+		MEM.level_data.preview_time = text
+		gui.set_text(gui.get_node("preview_time/text"), MEM.level_data.preview_time)
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input("tab_level", action_id, action, evaluate_button, evaluate_input)
+end

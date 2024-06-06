@@ -2,6 +2,7 @@ local SET = require "modules.settings"
 
 local proxy_is_loaded, settings_are_loaded
 
+<<<<<<< HEAD
 local default_settings_text = {
 	"When editing, keep the format [variable_name][=][value][;]. Anything beyond this is ignored when loading configuration.",
 	"If there are any missing variables or the values cannot be read/are in the wrong format, Geomancer will add new entries for them with default values on launch.",
@@ -45,6 +46,8 @@ local settings_to_load = {
 }
 
 
+=======
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 local function start()
 	if settings_are_loaded and proxy_is_loaded then
 		msg.post("#main", "enable")
@@ -54,6 +57,7 @@ end
 
 function init(self)
 	msg.post("#main", hash("async_load"))
+<<<<<<< HEAD
 
 	for key, val in pairs(settings_to_load) do
 		for k, v in ipairs(default_settings_text) do
@@ -84,6 +88,28 @@ function init(self)
 				return false
 			end
 		end
+=======
+	if not sys.exists("geomancer.cfg") then
+		SET.cfg_created = true
+	else
+		local settings_to_load = {
+			sample_rate = "integer",
+			background_colour = "colour",
+			colour_highlight_material = "colour",
+			colour_highlight_dynamic = "colour",
+			colour_highlight_tween = "colour",
+			colour_model_import_selection = "colour",
+			colour_model_replace = "colour",
+			restrict_rotations_to_360 = "boolean",
+			tween_action_type_dialog = "boolean",
+			tween_part_dialog = "boolean",
+			troll = "boolean"
+		}
+		local parse = {}
+		function parse.number(str) return tonumber(str) end
+		function parse.integer(str) return math.floor(tonumber(str)) end
+		function parse.boolean(str) return str == "true" end
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 		function parse.colour(str)
 			local comma_1 = string.find(str, ",")
 			local comma_2 = string.find(str, ",", comma_1 + 1)
@@ -102,7 +128,11 @@ function init(self)
 					local setting_name = string.sub(line, 1, equals - 1)
 					local str = string.sub(line, equals + 1, semicolon - 1)
 					if settings_to_load[setting_name] then
+<<<<<<< HEAD
 						local works, value = pcall(parse[settings_to_load[setting_name].type], str)
+=======
+						local works, value = pcall(parse[settings_to_load[setting_name]], str)
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 						if works then
 							loaded_settings[setting_name] = value
 						end
@@ -110,6 +140,7 @@ function init(self)
 				end
 			end
 		end
+<<<<<<< HEAD
 		local f = io.open("geomancer.cfg", "a")
 		for key in pairs(settings_to_load) do
 			if loaded_settings[key] == nil then
@@ -123,6 +154,20 @@ function init(self)
 	end
 	settings_are_loaded = true
 	start()
+=======
+		for key in pairs(settings_to_load) do
+			if loaded_settings[key] == nil then
+				print(key, "not loaded")
+			else
+				print(key, "loaded as", loaded_settings[key])
+				--SET[key] = loaded_settings[key]
+			end
+		end
+		
+		settings_are_loaded = true
+		start()
+	end
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 end
 
 function on_message(self, message_id, message, sender)
@@ -130,4 +175,8 @@ function on_message(self, message_id, message, sender)
 		proxy_is_loaded = true
 		start()
 	end
+<<<<<<< HEAD
 end
+=======
+end
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb

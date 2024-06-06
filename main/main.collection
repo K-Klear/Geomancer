@@ -3,12 +3,19 @@ scale_along_z: 0
 embedded_instances {
   id: "event"
   children: "dialog_event"
+<<<<<<< HEAD
   children: "multiple"
+=======
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
   children: "nobeat"
   children: "tempo"
   data: "components {\n"
   "  id: \"tab_event\"\n"
+<<<<<<< HEAD
   "  component: \"/main/main_tabs/events.gui\"\n"
+=======
+  "  component: \"/main/events.gui\"\n"
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -45,7 +52,11 @@ embedded_instances {
   id: "file"
   data: "components {\n"
   "  id: \"tab_file\"\n"
+<<<<<<< HEAD
   "  component: \"/main/main_tabs/file.gui\"\n"
+=======
+  "  component: \"/main/file.gui\"\n"
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -117,12 +128,18 @@ embedded_instances {
 }
 embedded_instances {
   id: "level"
+<<<<<<< HEAD
   children: "enemy"
   children: "material"
   children: "obstacles"
   data: "components {\n"
   "  id: \"tab_level\"\n"
   "  component: \"/main/main_tabs/level.gui\"\n"
+=======
+  data: "components {\n"
+  "  id: \"tab_level\"\n"
+  "  component: \"/main/level.gui\"\n"
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -159,7 +176,11 @@ embedded_instances {
   id: "nobeat"
   data: "components {\n"
   "  id: \"dialog_nobeat\"\n"
+<<<<<<< HEAD
   "  component: \"/main/dialogs/event/dialog_nobeat.gui\"\n"
+=======
+  "  component: \"/main/dialogs/dialog_nobeat.gui\"\n"
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -196,7 +217,11 @@ embedded_instances {
   id: "dialog_event"
   data: "components {\n"
   "  id: \"dialog_event\"\n"
+<<<<<<< HEAD
   "  component: \"/main/dialogs/event/dialog_event.gui\"\n"
+=======
+  "  component: \"/main/dialogs/dialog_event.gui\"\n"
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -233,7 +258,11 @@ embedded_instances {
   id: "tempo"
   data: "components {\n"
   "  id: \"dialog_tempo\"\n"
+<<<<<<< HEAD
   "  component: \"/main/dialogs/event/dialog_tempo.gui\"\n"
+=======
+  "  component: \"/main/dialogs/dialog_tempo.gui\"\n"
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -274,7 +303,11 @@ embedded_instances {
   children: "tween"
   data: "components {\n"
   "  id: \"tab_art\"\n"
+<<<<<<< HEAD
   "  component: \"/main/main_tabs/art.gui\"\n"
+=======
+  "  component: \"/main/art.gui\"\n"
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -311,7 +344,11 @@ embedded_instances {
   id: "import"
   data: "components {\n"
   "  id: \"dialog_import_models\"\n"
+<<<<<<< HEAD
   "  component: \"/main/dialogs/art/dialog_import_models.gui\"\n"
+=======
+  "  component: \"/main/dialogs/dialog_import_models.gui\"\n"
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -348,7 +385,11 @@ embedded_instances {
   id: "replace"
   data: "components {\n"
   "  id: \"dialog_replace_model\"\n"
+<<<<<<< HEAD
   "  component: \"/main/dialogs/art/dialog_replace_model.gui\"\n"
+=======
+  "  component: \"/main/dialogs/dialog_replace_model.gui\"\n"
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -385,7 +426,11 @@ embedded_instances {
   id: "rename"
   data: "components {\n"
   "  id: \"dialog_rename_model\"\n"
+<<<<<<< HEAD
   "  component: \"/main/dialogs/art/dialog_rename_model.gui\"\n"
+=======
+  "  component: \"/main/dialogs/dialog_rename_model.gui\"\n"
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -425,7 +470,11 @@ embedded_instances {
   children: "tween_part"
   data: "components {\n"
   "  id: \"dialog_tween\"\n"
+<<<<<<< HEAD
   "  component: \"/main/dialogs/art/tween/dialog_tween.gui\"\n"
+=======
+  "  component: \"/main/dialogs/dialog_tween.gui\"\n"
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -462,7 +511,11 @@ embedded_instances {
   id: "tween_action"
   data: "components {\n"
   "  id: \"dialog_tween_action\"\n"
+<<<<<<< HEAD
   "  component: \"/main/dialogs/art/tween/dialog_tween_action.gui\"\n"
+=======
+  "  component: \"/main/dialogs/dialog_tween_action.gui\"\n"
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -499,7 +552,11 @@ embedded_instances {
   id: "tween_copy"
   data: "components {\n"
   "  id: \"dialog_tween_copy\"\n"
+<<<<<<< HEAD
   "  component: \"/main/dialogs/art/tween/dialog_tween_copy.gui\"\n"
+=======
+  "  component: \"/main/dialogs/dialog_tween_copy.gui\"\n"
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -536,6 +593,7 @@ embedded_instances {
   id: "tween_part"
   data: "components {\n"
   "  id: \"dialog_tween_part\"\n"
+<<<<<<< HEAD
   "  component: \"/main/dialogs/art/tween/dialog_tween_part.gui\"\n"
   "  position {\n"
   "    x: 0.0\n"
@@ -834,6 +892,9 @@ embedded_instances {
   data: "components {\n"
   "  id: \"tab_meta\"\n"
   "  component: \"/main/main_tabs/slices.gui\"\n"
+=======
+  "  component: \"/main/dialogs/dialog_tween_part.gui\"\n"
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"

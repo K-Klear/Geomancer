@@ -1,0 +1,596 @@
+local UI = require "modules.ui"
+local MEM = require "modules.memory"
+local G = require "modules.global"
+
+function init(self)
+	gui.set_text(gui.get_node("version_label"), "Version "..sys.get_config("project.version"))
+	UI.load_template({"exit", "load_dir", "load_file", "load_zip", "unload_all", "export_all", "export_overwrite"}, "tab_file")
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+	elseif message_id == hash("show") then
+		msg.post("#", hash("enable"))
+		msg.post("#", hash("acquire_input_focus"))
+	end
+end
+
+local function update_panel(extension)
+	if extension == "pw" then
+		msg.post("/level#tab_level", hash("update_labels"))
+	elseif extension == "pw_event" then
+		msg.post("/event#tab_event", hash("update"))
+	end
+end
+
+local function check_for_reset()
+	if MEM.event_reloaded then
+		msg.post("/event#tab_event", hash("reset"))
+		MEM.event_reloaded = nil
+	end
+	if MEM.art_reloaded then
+		msg.post("/art#tab_art", hash("reset"))
+		MEM.art_reloaded = nil
+	end
+	if MEM.beat_reloaded then
+		--msg.post("/beat#tab_beat", hash("reset"))
+		MEM.beat_reloaded = nil
+	end
+	if MEM.slices_reloaded then
+		--msg.post("/meta#tab_meta", hash("reset"))
+		MEM.slices_reloaded = nil
+	end
+end
+
+local function export_level(path)
+	local full_string = MEM.level_data.string
+	local _, start_index = string.find(full_string, "\"previewTime\"")
+	local end_index = string.find(full_string, ",", start_index + 1)
+	local final_string = string.sub(full_string, 1, start_index + 1)..tostring(MEM.level_data.preview_time)..string.sub(full_string, end_index)
+	local function replace_string(pattern, new_value)
+		_, start_index = string.find(final_string, pattern)
+		end_index = string.find(final_string, ",", start_index + 2)
+		final_string = string.sub(final_string, 1, start_index + 2)..new_value..string.sub(final_string, end_index - 1)
+	end
+	replace_string("\"obstacleSet\"", MEM.level_data.obstacle_set)
+	replace_string("\"materialPropertiesSet\"", MEM.level_data.material_set)
+	replace_string("\"enemySet\"", MEM.level_data.enemy_set)
+	replace_string("\"moveMode\"", MEM.level_data.move_mode)
+
+	if not G.safe_decode(final_string, "level.pw") then
+		msg.post("/navbar#navbar", hash("update_status"), {text = "Level data might be corrupted. Use with caution."})
+	end
+
+	local f = io.output(path)
+	io.write(final_string)
+	io.close(f)
+end
+
+local function export_event(path)
+	local nobeat_str = "{\"version\":\"0.4\",\"eventsData\":[{\"track\":\"NoBeat\",\"events\":["
+	local nobeat_tab = MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events
+	for key, val in ipairs(nobeat_tab) do
+		nobeat_str = nobeat_str.."{\"startSample\":\""..val.startSample.."\",\"endSample\":\""..val.endSample.."\",\"payload\":\"\"}"
+		if not (key == #nobeat_tab) then
+			nobeat_str = nobeat_str..","
+		end
+	end
+	local signal_str = "]},{\"track\":\"Event\",\"events\":["
+	local signal_tab = MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events
+	for key, val in ipairs(signal_tab) do
+		if not val.endSample then
+			val.endSample = val.startSample
+		end
+		signal_str = signal_str.."{\"startSample\":\""..val.startSample.."\",\"endSample\":\""..val.endSample.."\",\"payload\":\""..val.payload.."\"}"
+		if not (key == #signal_tab) then
+			signal_str = signal_str..","
+		end
+	end
+	local tempo_str = "]},{\"track\":\"GameplayProp\",\"events\":[]}],\"tempoSections\":["
+	local tempo_tab = MEM.event_data.table.tempoSections
+	for key, val in ipairs(tempo_tab) do
+		tempo_str = tempo_str.."{\"startSample\":"..val.startSample..",\"samplesPerBeat\":"..val.samplesPerBeat..",\"beatsPerMeasure\":"..val.beatsPerMeasure.."}"
+		if not (key == #tempo_tab) then
+			tempo_str = tempo_str..","
+		end
+	end
+	local final_string = nobeat_str..signal_str..tempo_str.."]}"
+	if not G.safe_decode(final_string, "Output pw_event file") then
+		msg.post("/navbar#navbar", hash("update_status"), {text = "Event data might be corrupted. Use with caution."})
+	end
+	local f = io.output(path)
+	io.write(final_string)
+	io.close(f)
+end
+
+local function export_art(path)
+	local static_ranges_changed, dynamic_ranges_changed
+	local existing_ranges, existing_dynamic_ranges = {}, {}
+	for key, val in ipairs(MEM.art_data.table_culling_ranges) do
+		existing_ranges[val.range] = val
+	end
+	for key, val in ipairs(MEM.art_data.table_dynamic_culling_ranges) do
+		existing_dynamic_ranges[val.range] = val
+	end
+	local tab_iter = MEM.art_data.table_static_props
+	for i = #tab_iter, 1, -1 do
+		if MEM.art_data.dynamic_models[tab_iter[i].name] then
+			local r = table.remove(tab_iter, i)
+			table.insert(MEM.art_data.table_dynamic_props, r)
+		end
+	end
+	tab_iter = MEM.art_data.table_dynamic_props
+	for i = #tab_iter, 1, -1 do
+		if not MEM.art_data.dynamic_models[tab_iter[i].name] then
+			local r = table.remove(tab_iter, i)
+			table.insert(MEM.art_data.table_static_props, r)
+		end
+	end
+	tab_iter = MEM.art_data.table_culling_ranges
+	local range
+	local test = false
+	for i = #tab_iter, 1, -1 do
+		range = tab_iter[i].range
+		test = (range == "24,25")
+		local member_count = #tab_iter[i].members
+		for j = #tab_iter[i].members, 1, -1 do
+			if MEM.art_data.dynamic_models[tab_iter[i].members[j].name] then
+				local r = table.remove(tab_iter[i].members, j)
+				if existing_dynamic_ranges[range] then
+					table.insert(existing_dynamic_ranges[range].members, r)
+				else
+					MEM.art_data.table_dynamic_culling_ranges[#MEM.art_data.table_dynamic_culling_ranges + 1] = {range = range, members = {r}}
+					existing_dynamic_ranges[range] = MEM.art_data.table_dynamic_culling_ranges[#MEM.art_data.table_dynamic_culling_ranges]
+					dynamic_ranges_changed = true
+				end
+				member_count = member_count - 1
+			end
+		end
+		if member_count < 1 then
+			table.remove(tab_iter, i)
+		end
+	end
+	tab_iter = MEM.art_data.table_dynamic_culling_ranges
+	local range
+	for i = #tab_iter, 1, -1 do
+		range = tab_iter[i].range
+		local member_count = #tab_iter[i].members
+		for j = #tab_iter[i].members, 1, -1 do
+			if not MEM.art_data.dynamic_models[tab_iter[i].members[j].name] then
+				local r = table.remove(tab_iter[i].members, j)
+				if existing_ranges[range] then
+					table.insert(existing_ranges[range].members, r)
+				else
+					MEM.art_data.table_culling_ranges[#MEM.art_data.table_culling_ranges + 1] = {range = range, members = {r}}
+					existing_ranges[range] = MEM.art_data.table_culling_ranges[#MEM.art_data.table_culling_ranges]
+					static_ranges_changed = true
+				end
+				member_count = member_count - 1
+			end
+		end
+		if member_count < 1 then
+			table.remove(tab_iter, i)
+		end
+	end
+
+	local function range_to_number(range_str)
+		local comma = string.find(range_str, ",")
+		local first = tonumber(string.sub(range_str, 1, comma - 1))
+		local second = tonumber(string.sub(range_str, comma +1))
+		return first + (second * 0.001)
+	end
+
+	if static_ranges_changed then
+		table.sort(MEM.art_data.table_culling_ranges, function(a, b) return range_to_number(a.range) < range_to_number(b.range) end)
+	end
+	if dynamic_ranges_changed then
+		table.sort(MEM.art_data.table_dynamic_culling_ranges, function(a, b) return range_to_number(a.range) < range_to_number(b.range) end)
+	end
+
+	local final_string = MEM.art_data.string_colours.."\"staticProps\":["
+	local str = ""
+	for key, val in ipairs(MEM.art_data.table_static_props) do
+		str = str.."{\"name\":\""..val.name.."\",\"point\":\""..val.point.."\",\"scale\":\""..val.scale.."\"}"
+		if not (key == #MEM.art_data.table_static_props) then
+			str = str..","
+		end
+	end
+	final_string = final_string..str.."],\"staticCullingRanges\":["
+	str = ""
+	for key, val in ipairs(MEM.art_data.table_culling_ranges) do
+		str = str.."{\"range\":\""..val.range.."\",\"members\":["
+		for k, v in ipairs(val.members) do
+			str = str.."{\"name\":\""..v.name.."\",\"point\":\""..v.point.."\",\"scale\":\""..v.scale.."\"}"
+			if not (k == #val.members) then
+				str = str..","
+			else
+				str = str.."]}"
+			end
+		end
+		if not (key == #MEM.art_data.table_culling_ranges) then
+			str = str..","
+		end
+	end
+	final_string = final_string..str.."],"
+
+	if next(MEM.art_data.dynamic_models) then
+		str = "\"dynamicProps\":["
+		for key, val in ipairs(MEM.art_data.table_dynamic_props) do
+			str = str.."{\"name\":\""..val.name.."\",\"point\":\""..val.point.."\",\"scale\":\""..val.scale.."\"}"
+			if not (key == #MEM.art_data.table_dynamic_props) then
+				str = str..","
+			end
+		end
+		final_string = final_string..str.."],\"dynamicCullingRanges\":["
+		str = ""
+		for key, val in ipairs(MEM.art_data.table_dynamic_culling_ranges) do
+			str = str.."{\"range\":\""..val.range.."\",\"members\":["
+			for k, v in ipairs(val.members) do
+				str = str.."{\"name\":\""..v.name.."\",\"point\":\""..v.point.."\",\"scale\":\""..v.scale.."\"}"
+				if not (k == #val.members) then
+					str = str..","
+				else
+					str = str.."]}"
+				end
+			end
+			if not (key == #MEM.art_data.table_dynamic_culling_ranges) then
+				str = str..","
+			end
+		end
+		final_string = final_string..str.."],"
+	end
+	local function get_tween_string(tween_data, model_name)
+		if not tween_data then
+			return ""
+		else
+			local str = ",{\"type\":\"ScriptedTween\",\"Script\":\""
+			
+			local deletion_count = 0
+			for key = #tween_data.script, 1, -1 do
+				local val = tween_data.script[key]
+				local ignore_repeat = false
+				if val.type == "X" then
+					local number_of_repetitions = val.number_of_repetitions
+					local actions_to_repeat = val.actions_to_repeat
+					table.remove(tween_data.script, key)
+					for action_index = key - val.actions_to_repeat, key - 1 do
+						if action_index < 1 or tween_data.script[action_index].type == "X" then
+							deletion_count = deletion_count + 1
+							ignore_repeat = true
+							break
+						end
+					end
+					if not ignore_repeat then
+						for i = 1, number_of_repetitions do
+							for action_index = key - 1, key - actions_to_repeat, -1 do
+								local tab = tween_data.script[action_index]
+								local new_tab = {type = tab.type, part = tab.part, time = tab.time}
+								if tab.start_state then
+									new_tab.start_state = {x = tab.start_state.x, y = tab.start_state.y, z = tab.start_state.z}
+								end
+								if tab.end_state then
+									new_tab.end_state = {x = tab.end_state.x, y = tab.end_state.y, z = tab.end_state.z}
+								end
+								table.insert(tween_data.script, key, new_tab)
+							end
+						end
+					end
+				end
+			end
+
+			if deletion_count == 1 then
+				msg.post("/navbar#navbar", hash("update_status"), {text = "An invalid repeat action has been removed from tween of "..model_name})
+			elseif deletion_count > 1 then
+				msg.post("/navbar#navbar", hash("update_status"), {text = deletion_count.." invalid repeat actions have been removed from tween of "..model_name})
+			end
+
+
+			for key, val in ipairs(tween_data.script) do
+				str = str..val.type
+				if val.type == "W" then
+					str = str..val.time..";"
+				else
+					str = str..MEM.art_data.part_names[model_name][val.part]..";"..val.start_state.x..","..val.start_state.y..","
+					str = str..val.start_state.z..";"..val.end_state.x..","..val.end_state.y..","..val.end_state.z..";"..val.time..";"
+				end
+			end
+			return str.."\"},{\"type\":\"LevelEventReceiver\",\"EventId\":\""..tween_data.signal.."\",\"ActionType\":\"ScriptedTweenTrigger\"}"
+		end
+	end
+	str = ""
+	for key, val in ipairs(MEM.art_data.model_list) do
+		local cursor_start = string.find(val.string, "\"components\"") + 14
+		local cursor_end = string.find(val.string, "]", cursor_start) - 1
+		local component_string = string.sub(val.string, cursor_start, cursor_end)
+		local script_pos = string.find(component_string, "{\"type\":\"ScriptedTween\"")
+		if script_pos then
+			local script_end = string.find(component_string, "}", script_pos)
+			component_string = string.sub(component_string, 1, script_pos - 1)..string.sub(component_string, script_end + 1)
+		end
+		local trigger_pos = string.find(component_string, "{\"type\":\"LevelEventReceiver\"")
+		if trigger_pos then
+			local trigger_end = string.find(component_string, "}", trigger_pos)
+			component_string = string.sub(component_string, 1, trigger_pos - 1)..string.sub(component_string, trigger_end + 1)
+		end
+		if val.tween then
+			for k, v in ipairs(val.tween.script) do
+				if v.part == 0 then
+					local root = MEM.get_root_transform(val.string)
+					MEM.art_data.part_names[val.name][0] = root or "Mesh"
+					if not root then
+						local children_end = string.find(val.string, "\"children\":") + 12
+						local mesh_string = "\"name\":\"Mesh\",\"components\":[{\"type\":\"Transform\",\"values\":\"0,0,0,0,0,0,1,1,1,1\"}],\"children\":[{"
+						val.string = string.sub(val.string, 1, children_end)..mesh_string..string.sub(val.string, children_end + 1, -2).."]}}"
+					end
+				end
+			end
+		end
+		component_string = G.sanitise_json(component_string..get_tween_string(val.tween, val.name))
+		val.string = string.sub(val.string, 1, cursor_start - 1)..component_string..string.sub(val.string, cursor_end + 1)
+		if key < #MEM.art_data.model_list then
+			str = str..val.string..","
+		else
+			str = str..val.string.."]"
+		end
+	end
+	final_string = final_string..MEM.art_data.string_dictionary..str.."}"
+	if not G.safe_decode(final_string, "Output pw_art file") then
+		msg.post("/navbar#navbar", hash("update_status"), {text = "Model data might be corrupted. Use with caution."})
+	end
+	local f = io.output(path)
+	io.write(final_string)
+	io.close(f)
+end
+
+local function export_all(overwrite)
+	if UI.tab.tab_level.state or UI.tab.tab_event.state or UI.tab.tab_geo.state or UI.tab.tab_beat.state or UI.tab.tab_meta.state or UI.tab.tab_art.state then
+		local num, path = diags.open_folder()
+		if path then
+			local filenames = {}
+			local common_filename = "map"
+			local function get_name(s)
+				if s then
+					local ext = string.find(s, "%.")
+					return string.sub(s, 1, ext - 1)
+				end
+			end
+			local function get_art_name(s)
+				if s then
+					local shared = string.find(MEM.art_data.filename, "_SharedArt") or -7 -- In case _SharedArt not found in filename just remove the extension
+					return string.sub(MEM.art_data.filename, 1, shared - 1)
+				end
+			end
+			filenames.beat = get_name(MEM.beat_data.filename)
+			filenames.event = get_name(MEM.event_data.filename)
+			filenames.geo = get_name(MEM.geo_data.filename)
+			filenames.art = get_art_name(MEM.art_data.filename)
+			if next(filenames) then
+				common_filename = filenames[next(filenames)]
+				for key, val in pairs(filenames) do
+					if not (val == common_filename) then
+						common_filename = get_art_name(MEM.level_data.art_file) or filenames.art or filenames.event or filenames.beat or filenames.geo
+						break
+					end
+				end
+			end
+			if not overwrite then
+				path = path.."/"..common_filename.."_geomanced"
+				if not lfs.mkdir(path) then
+					local index = 0
+					repeat
+						index = index + 1
+						if index > 1000 then
+							msg.post("/navbar#navbar", hash("update_status"), {text = "Cannot create folder. Export aborted"})
+							return
+						end
+					until lfs.mkdir(path.."("..index..")")
+					path = path.."("..index..")"
+				end
+				msg.post("/navbar#navbar", hash("update_status"), {text = "Exporting files to "..path, clear = true})
+			else
+				msg.post("/navbar#navbar", hash("update_status"), {text = "Exporting files to "..path.."\nEXISTING FILES ARE BEING OVERWRITTEN", clear = true})
+			end
+			if MEM.level_data.string then
+				export_level(path.."/level.pw")
+				msg.post("/navbar#navbar", hash("update_status"), {text = "Level settings exported"})
+			end
+			if MEM.event_data.string then
+				export_event(path.."/"..common_filename..".pw_event")
+				msg.post("/navbar#navbar", hash("update_status"), {text = "Events exported"})
+			end
+			if MEM.art_data.table_static_props then
+				export_art(path.."/"..common_filename.."_SharedArt.pw_art")
+				msg.post("/navbar#navbar", hash("update_status"), {text = "Model data exported"})
+			end
+			if MEM.beat_data.string then
+				--BEAT.export(path.."/"..common_filename..".pw_beat")
+				msg.post("/navbar#navbar", hash("update_status"), {text = "Enemies exported"})
+			end
+			if MEM.geo_data.start then
+				--GEO.export(path.."/"..common_filename..".pw_geo")
+				msg.post("/navbar#navbar", hash("update_status"), {text = "Geo exported"})
+			end
+			if MEM.meta_data.string then
+				--G_S.export(path.."/do_not_ship.pw_meta")
+				--if #G_S.volumes > 0 then
+				--	msg.post("/navbar#navbar", hash("update_status"), {text = "Volumes exported. NOTE: this does nothing until you open the map in Pistol Mix and generate geo."})
+				--else
+				--	msg.post("/navbar#navbar", hash("update_status"), {text = "do_not_ship.pw_meta exported."})
+				--end
+			end
+			msg.post("/navbar#navbar", hash("update_status"), {text = "Files exported to "..path})
+		end
+	else
+		msg.post("/navbar#navbar", hash("update_status"), {text = "Nothing to export", clear = true})
+	end
+end
+
+local function evaluate_button(button)
+	if button == "exit" then
+		os.exit(1)
+	elseif button == "load_file" then
+		local num, path = diags.open("pw_meta,pw,pw_beat,pw_event,pw_geo,pw_art,pw_seq")
+		if path then
+			local htap = string.reverse(path)
+			local filename = string.reverse(string.sub(htap, 1, string.find(htap, "\\") - 1))
+			local extension = string.find(htap, "%.")
+			extension = string.reverse(string.sub(htap, 1, extension - 1))
+			msg.post("/navbar#navbar", hash("update_status"), {text = "Loading "..filename, clear = true})
+			timer.delay(0.02, false, function()
+				local panel = MEM.load_file(path, filename, extension)
+				if panel then
+					msg.post("/navbar#navbar", hash("update_status"), {text = "File loaded successfully"})
+					msg.post("/navbar#navbar", hash("update_tabs"))
+					check_for_reset()
+					update_panel(panel)
+				else
+					msg.post("/navbar#navbar", hash("update_status"), {text = "File not loaded"})
+				end
+			end)
+		end
+	elseif button == "load_zip" then
+		local num, path = diags.open("zip")
+		if path then
+			local f = io.open(path, "rb")
+			if f then
+				msg.post("/navbar#navbar", hash("update_status"), {text = "Loading files from "..path, clear = true})
+				local zip_data = f:read("*a")
+				local archive = zip.open(zip_data)
+				if not archive then
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually."})
+					return
+				end
+				local file_index = zip.get_number_of_entries(archive) - 1
+				local skip_count, extracted_count = 0, 0
+				local ext_list = {pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = true}
+				local function extract_next()
+					local err, file = pcall(zip.extract_by_index, archive, file_index)
+					if not err then
+						msg.post("/navbar#navbar", hash("update_status"), {text = "Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually."})
+						return
+					end
+					local extension = string.find(file.name, "%.")
+					if extension then
+						extension = string.sub(file.name, extension + 1)
+						if ext_list[extension] then
+							local panel = MEM.load_file(nil, file.name, extension, file.content) 
+							if panel then
+								ext_list[extension] = false
+								msg.post("/navbar#navbar", hash("update_status"), {text = file.name})
+								extracted_count = extracted_count + 1
+								update_panel(panel)
+							else
+								skip_count = skip_count + 1
+							end
+						else
+							skip_count = skip_count + 1
+						end
+					end
+					file_index = file_index - 1
+					if file_index < 0 then
+						zip.close(archive)
+						msg.post("/navbar#navbar", hash("update_status"), {text = "Extracted "..extracted_count.." files, "..skip_count.." skipped."})
+						if MEM.level_data.scene_name then
+							msg.post("/navbar#navbar", hash("update_status"), {text = "Loaded scene: "..MEM.level_data.scene_name})
+							if MEM.level_data.my_map then
+								msg.post("/navbar#navbar", hash("update_status"), {text = "Hey, that's one of mine! Hope you like it"})
+							end
+						else
+							msg.post("/navbar#navbar", hash("update_status"), {text = "Unknown scene name"})
+						end
+						msg.post("/navbar#navbar", hash("update_tabs"))
+					else
+						timer.delay(0.01, false, extract_next)
+					end
+				end
+				if file_index > -1 then
+					timer.delay(0.01, false, extract_next)
+				else
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Archive is empty."})
+				end
+				check_for_reset()
+			end
+		end
+	elseif button == "load_dir" then
+		local num, path = diags.open_folder()
+		if path then
+			msg.post("/navbar#navbar", hash("update_status"), {text = "Loading files from "..path, clear = true})
+			local files_to_load = {}
+			local skip_count = 0
+			local ext_list = {pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = false}
+			for filename in lfs.dir(path) do
+				if not (filename == "." or filename == "..") then
+					local extension = string.find(filename, "%.")
+					if extension then
+						extension = string.sub(filename, extension + 1)
+						if ext_list[extension] then
+							table.insert(files_to_load, {path = path.."/"..filename, filename = filename, extension = extension})
+							ext_list[extension] = false
+						else
+							skip_count = skip_count + 1
+						end
+					end
+				end
+			end
+			if #files_to_load > 0 then
+				local function load_next_file()
+					local _file = table.remove(files_to_load)
+					local panel = MEM.load_file(_file.path, _file.filename, _file.extension)
+					if panel then
+						msg.post("/navbar#navbar", hash("update_status"), {text = _file.filename})
+						msg.post("/navbar#navbar", hash("update_tabs"))
+						update_panel(panel)
+					else
+						msg.post("/navbar#navbar", hash("update_status"), {text = "Error loading ".._file.filename})
+					end
+					if #files_to_load > 0 then
+						timer.delay(0.01, false, load_next_file)
+					else
+						if MEM.level_data.scene_name then
+							msg.post("/navbar#navbar", hash("update_status"), {text = "Done. Loaded scene: "..MEM.level_data.scene_name})
+							if MEM.level_data.my_map then
+								msg.post("/navbar#navbar", hash("update_status"), {text = "Hey, that's one of mine! Hope you like it"})
+							end
+						else
+							msg.post("/navbar#navbar", hash("update_status"), {text = "Done. Unknown scene name"})
+						end
+					end
+				end
+				msg.post("/navbar#navbar", hash("update_status"), {text = "Loading "..#files_to_load.." files, "..skip_count.." skipped."})
+				timer.delay(0.01, false, load_next_file)
+				check_for_reset()
+			else
+				msg.post("/navbar#navbar", hash("update_status"), {text = "No valid files found."})
+			end
+		end
+	elseif button == "unload_all" then
+		for key, val in pairs(UI.tab) do
+			if not (val.state == nil) then
+				val.state = false
+			end
+		end
+		UI.tab.tab_file.state = true
+		MEM.level_data = {}
+		MEM.meta_data = {}
+		MEM.beat_data = {}
+		MEM.event_data = {}
+		MEM.geo_data = {}
+		MEM.sequence_data = {}
+		MEM.art_data = {}
+
+		msg.post("/event#tab_event", hash("reset"))
+
+		msg.post("/navbar#navbar", hash("update_status"), {text = "All data unloaded.", clear = true})
+		msg.post("/navbar#navbar", hash("update_tabs"))
+	elseif button == "export_all" then
+		export_all(false)
+	elseif button == "export_overwrite" then
+		export_all(true)
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input("tab_file", action_id, action, evaluate_button)
+end

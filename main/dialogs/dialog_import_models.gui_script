@@ -1,0 +1,146 @@
+local MEM = require "modules.memory"
+local UI = require "modules.ui"
+local SET = require "modules.settings"
+
+local parent_tab
+local import_model_list, evaluate_button
+local import_list = {}
+local selection_list = {}
+local dialog_open = false
+
+function init(self)
+	msg.post("#", hash("disable"))
+	UI.load_template({"dialog_import_cancel", "dialog_import_accept", "dialog_import_none", "dialog_import_all"}, "dialog_import")
+	local model_list = {
+		{
+			type = hash("exclusive_button"),
+			node = gui.get_node("import_model_exclusive/button_white"),
+			text_node = gui.get_node("import_model_exclusive/text"),
+			value_fn = function(i) return import_list[i] end,
+			template = "import_model_exclusive;",
+			fn = evaluate_button,
+			tint = function(i)
+				if selection_list[import_list[i]] then
+					return SET.colour_model_import_selection
+				else
+					return vmath.vector4(1, 1, 1, 1)
+				end
+			end,
+		},
+		item_count = 0,
+		scroll_prefix = "import_model_"
+	}
+	import_model_list = UI.create_list("dialog_import", gui.get_node("import_model_list"), model_list)
+end
+
+local function update_label()
+	local selected_count = 0
+	for key, val in pairs(selection_list) do
+		selected_count = selected_count + 1
+	end
+	gui.set_text(gui.get_node("import_models_label"), selected_count.." models selected for import.\n\n"..#import_list.." total models available.")
+end
+
+function evaluate_button(button, item)
+	if button == "dialog_import_accept" then
+		if next(selection_list) then
+			for key, val in ipairs(import_list) do
+				if not selection_list[val] then
+					MEM.art_data.models_for_import_ignore[val] = true
+				end
+			end
+			msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("import"), import = true})
+			msg.post("#", hash("disable"))
+			msg.post("#", hash("release_input_focus"))
+			dialog_open = false
+			UI.update_list("dialog_import", import_model_list, 0)
+		else
+			msg.post("/navbar#navbar", hash("update_status"), {text = "No models selected.", clear = true})
+		end
+	elseif button == "dialog_import_cancel" then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		dialog_open = false
+		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("import")})
+		MEM.art_data.models_for_import = nil
+		MEM.art_data.models_for_import_ignore = nil
+		MEM.art_data.import_string = nil
+		UI.update_list("dialog_import", import_model_list, 0)
+	elseif button == "dialog_import_none" then
+		selection_list = {}
+		update_label()
+		UI.update_list("dialog_import", import_model_list)
+	elseif button == "dialog_import_all" then
+		for key, val in ipairs(import_list) do
+			selection_list[val] = true
+		end
+		update_label()
+		UI.update_list("dialog_import", import_model_list)
+	elseif button == import_model_list then
+		UI.select_exclusive_button("dialog_import", import_model_list, 0, true)
+		if selection_list[import_list[item]] then
+			selection_list[import_list[item]] = nil
+		else
+			selection_list[import_list[item]] = true
+		end
+		update_label()
+		UI.update_list("dialog_import", import_model_list)
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		parent_tab = sender
+		msg.post("#", hash("acquire_input_focus"))
+		msg.post("#", hash("enable"))
+		dialog_open = true
+		MEM.art_data.models_for_import_ignore = {}
+		for key, val in ipairs(MEM.art_data.model_list) do
+			MEM.art_data.models_for_import_ignore[val.name] = true
+		end
+		local ignore_count = 0
+		import_list = {}
+		selection_list = {}
+		for key, val in ipairs(MEM.art_data.models_for_import.propsDictionary) do
+			if key > 1 and val.key then
+				if MEM.art_data.models_for_import_ignore[val.key] then
+					ignore_count = ignore_count + 1
+				else
+					table.insert(import_list, val.key)
+				end
+			end
+		end
+		if #import_list == 0 then
+			msg.post("/navbar#navbar", hash("update_status"), {text = "No new models found. Import aborted."})
+			msg.post("#", hash("disable"))
+			msg.post("#", hash("release_input_focus"))
+			msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("import")})
+		else
+			if ignore_count > 0 then
+				msg.post("/navbar#navbar", hash("update_status"), {text = ignore_count.." models already present in the map have been skipped."})
+			end
+			UI.update_list("dialog_import", import_model_list, #import_list)
+			update_label()
+		end
+	elseif message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		dialog_open = false
+		MEM.art_data.models_for_import = nil
+		MEM.art_data.models_for_import_ignore = nil
+		MEM.art_data.import_string = nil
+		UI.update_list("dialog_import", import_model_list, 0)
+	end
+end
+
+function update()
+	if dialog_open then
+		for list_index in pairs(UI.tab.dialog_import.scrolling) do
+			UI.move_list_root("dialog_import", list_index, true)
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input("dialog_import", action_id, action, evaluate_button)
+end

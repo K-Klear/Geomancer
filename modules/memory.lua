@@ -128,6 +128,10 @@ function MEM.load_geo(data, filename)
 	local chunk = string.find(data, "chunkData")
 	local slices = string.find(data, "chunkSlices")
 	if not (chunk and slices) then
+<<<<<<< HEAD
+=======
+		msg.post("/navbar#navbar", hash("update_status"), {text = "Error loading geo data"})
+>>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 		return
 	end
 	local start = string.sub(data, 1, chunk - 2)
