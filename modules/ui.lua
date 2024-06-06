@@ -15,13 +15,10 @@ UI.input_enabled = true
 
 UI.current_tab = "tab_file"
 
-UI.current_tab = "tab_file"
-
 UI.tab = {
 	tab_file = {path = "/file#tab_file", state = "active", buttons = {}, fields = {}, scrolling_lists = {}},
 	tab_level = {path = "/level#tab_level", state = false, buttons = {}, fields = {}, scrolling_lists = {}},
 	tab_event = {path = "/event#tab_event", state = false, buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-<<<<<<< HEAD
 	tab_geo = {path = "/geo#tab_geo", state = false, buttons = {}, fields = {}},
 	tab_beat = {path = "/beat#tab_beat", state = false, buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
 	tab_meta = {path = "/meta#tab_meta", state = false, buttons = {}, fields = {}},
@@ -33,26 +30,6 @@ UI.tab = {
 	dialog_nobeat = {path = "/nobeat#dialog_nobeat", buttons = {}, fields = {}},
 	dialog_event = {path = "/dialog_event#dialog_event", buttons = {}, fields = {}},
 	dialog_event_multiple = {path = "/multiple#dialog_event_multiple", buttons = {}, fields = {}},
-=======
-	tab_geo = {path = "/geo#tab_geo", state = false, buttons = {"geo_collision", "geo_visual"}},
-	tab_beat = {path = "/beat#tab_beat", state = false, buttons = {}},
-	tab_meta = {path = "/meta#tab_meta", state = false, buttons = {
-		"load_images", "create", "subtractive", "additive", "invert", "left", "right", "min_y_down", "max_y_down",
-		"min_y_up", "max_y_up", "min_x_down", "min_x_up", "max_x_up", "max_x_down", "depth_down", "depth_up",
-		"show_path", "filter_white", "filter_alpha", "image_group"
-	}, fields = {
-		{template = "depth", char_limit = 3},
-		{template = "min_x", char_limit = 3},
-		{template = "max_x", char_limit = 3},
-		{template = "min_y", char_limit = 3},
-		{template = "max_y", char_limit = 3},
-		{template = "processing_order", char_limit = 4},
-	}},
-	tab_sequence = {path = "/sequence#tab_sequence", state = false, buttons = {}},
-	tab_art = {path = "/art#tab_art", state = false, buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-	dialog_nobeat = {path = "/nobeat#dialog_nobeat", buttons = {}, fields = {}},
-	dialog_event = {path = "/dialog_event#dialog_event", buttons = {}, fields = {}},
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 	dialog_tempo = {path = "/tempo#dialog_tempo", buttons = {}, fields = {}},
 	dialog_import = {path = "/import#dialog_import", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
 	dialog_replace = {path = "/replace#dialog_replace", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
@@ -61,10 +38,7 @@ UI.tab = {
 	dialog_tween_action = {path = "/tween_action#dialog_tween_action", buttons = {}, fields = {}},
 	dialog_tween_copy = {path = "/tween_copy#dialog_tween_copy", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
 	dialog_tween_part = {path = "/tween_part#dialog_tween_part", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-<<<<<<< HEAD
 	dialog_replace_enemy = {path = "/dialog#dialog_replace_enemy", buttons = {}, fields = {}}
-=======
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 }
 
 local mouse_held, r_ctr_held, l_ctr_held
@@ -145,8 +119,6 @@ function UI.unload_template(tab, template)
 		for key, val in ipairs(UI.tab[tab].buttons) do
 			gui.play_flipbook(val.node, "button_white")
 			gui.set_position(val.text, UI.EMPTY_VECTOR)
-<<<<<<< HEAD
-=======
 		end
 		UI.tab[tab].buttons = {}
 		UI.tab[tab].fields = {}
@@ -154,38 +126,7 @@ function UI.unload_template(tab, template)
 	end
 end
 
-function UI.switch_tab(tab)
-	print("THIS IS BROKEN")
-	if true then return end
-	--maybe not needed anymore
-	UI.tab[current_tab].state = true
-	gui.play_flipbook(gui.get_node(current_tab), state_gfx[true])
-	gui.set_enabled(UI.tab[current_tab].panel_node, false)
-	if UI.switch_cleanup then
-		UI.switch_cleanup()
-	end
-	UI.switch_cleanup = nil
-	current_tab = tab
-	UI.tab[current_tab].state = "active"
-	gui.play_flipbook(gui.get_node(current_tab), state_gfx.active)
-	gui.set_enabled(UI.tab[current_tab].panel_node, true)
-	UI.unload_template()
-	UI.load_template(UI.tab[current_tab].buttons)
-	if UI.tab[current_tab].fields then
-		for key, val in ipairs(UI.tab[current_tab].fields) do
-			UI.load_text_field(val.template, val.char_limit)
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
-		end
-		UI.tab[tab].buttons = {}
-		UI.tab[tab].fields = {}
-		hover[tab] = nil
-	end
-end
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 local function reset_cursor_timer(hide_cursor)
 	if cursor_timer then
 		timer.cancel(cursor_timer)
@@ -278,11 +219,7 @@ local function create_list_item(tab, list_index, item)
 		gui.set_enabled(new, true)
 		list_tab.background.list[item] = new
 		if list_tab.background.tint then
-<<<<<<< HEAD
 			gui.set_color(new, list_tab.background.tint(item))
-=======
-			gui.set_color(new, val.tint(item))
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 		end
 	end
 	for key, val in ipairs(list_tab.buttons) do
@@ -293,11 +230,7 @@ local function create_list_item(tab, list_index, item)
 			gui.set_text(new[val.text_id], val.value_fn(item))
 			gui.set_enabled(new[val.node_id], true)
 			val.list[item] = new
-<<<<<<< HEAD
 			table.insert(UI.tab[tab].buttons, {template = val.template..item, node = new[val.node_id], text = new[val.text_id], item = item, stencil = list_tab.stencil_node})
-=======
-			table.insert(UI.tab[tab].buttons, {template = val.template..item, node = new[val.node_id], text = new[val.text_id], item = item})
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 			if val.tint then
 				gui.set_color(new[val.node_id], val.tint(item))
 			end
@@ -389,7 +322,6 @@ local function set_grip_size(tab, list_index)
 	local height = list_tab.size_y - 64
 	local full_height = list_tab.item_height * list_tab.item_count - 64
 	local grip_size = (height / full_height) * height
-<<<<<<< HEAD
 	local grip_list = {"scroll_grip", "scroll_background", "scroll_up", "scroll_down"}
 	if not (list_tab.item_count > list_tab.max_item_count) or (grip_size > height) then
 		grip_size = height
@@ -407,9 +339,6 @@ local function set_grip_size(tab, list_index)
 			list_tab.scroll_bar_visible = true
 		end
 	end
-=======
-	if not (list_tab.item_count > list_tab.max_item_count) or (grip_size > height) then grip_size = height end
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 	if grip_size < 32 then grip_size = 32 end 
 	gui.set(list_tab.scroll_grip, "position.y", -32)
 	gui.set(list_tab.scroll_grip, "size.y", grip_size)
@@ -475,13 +404,9 @@ function UI.create_list(tab, stencil_node, item_features)
 		buttons = {},
 		fields = {},
 		scroll_target = 0,
-<<<<<<< HEAD
 		stencil_node = stencil_node,
 		horizontal = item_features.horizontal,
 		scroll_bar_visible = true
-=======
-		stencil_node = stencil_node
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 	}
 	gui.set_parent(list_tab.root_node, stencil_node)
 	gui.set_visible(list_tab.root_node, false)
@@ -567,14 +492,11 @@ function UI.create_list(tab, stencil_node, item_features)
 	list_tab.scroll_background = gui.get_node(item_features.scroll_prefix.."scroll_background")
 	list_tab.scroll_grip = gui.get_node(item_features.scroll_prefix.."scroll_grip")
 
-<<<<<<< HEAD
 	local grip_list = {"scroll_grip", "scroll_background", "scroll_up", "scroll_down"}
 	for key, val in ipairs(grip_list) do
 		gui.set(list_tab[val], "color.w", 0)
 	end
 
-=======
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 	local width = gui.get(list_tab.stencil_node, "size.x")
 	gui.set_position(list_tab.scroll_down, vmath.vector3(width - 16, -(list_tab.size_y - 16), 0))
 	gui.set_position(list_tab.scroll_up, vmath.vector3(width - 16, -16, 0))
@@ -686,11 +608,7 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
 				elseif valid.text then
 					if valid.not_empty then
 						if text_field_text == "" then
-<<<<<<< HEAD
 							text_field_text = valid.default()
-=======
-							text_field_text = valid.default(i)
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 						end
 					end
 					if valid.json_safe then
@@ -744,7 +662,6 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
 					if action_id == hash("touch") and not action.released then
 						UI.tab[tab].scrolling_grip_held = key
 					end
-<<<<<<< HEAD
 				elseif action.pressed and gui.pick_node(list_tab.scroll_background, action.x, action.y) then
 					local pos = gui.get_screen_position(list_tab.scroll_grip)
 					local page_height = (list_tab.max_item_count - 1) * list_tab.item_height
@@ -767,8 +684,6 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
 							UI.tab[tab].scrolling[key] = true
 						end
 					end
-=======
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 				elseif action_id == hash("touch") and (action.pressed or action.repeated) and not (UI.tab[tab].scrolling_grip_held) then
 					if gui.pick_node(list_tab.scroll_up, action.x, action.y) then
 						list_tab.scroll_target = math.max(list_tab.scroll_target - list_tab.item_height, 0)
@@ -804,15 +719,11 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
 			end
 			if UI.tab[tab].scrolling_grip_held == key and (not action_id) and not (list_tab.grip_pos_range == 0) then
 				gui.cancel_animation(list_tab.root_node, "position.y")
-<<<<<<< HEAD
 				if list_tab.horizontal then
 					list_tab.scroll_grip_position = list_tab.scroll_grip_position - action.dx
 				else
 					list_tab.scroll_grip_position = list_tab.scroll_grip_position + action.dy
 				end
-=======
-				list_tab.scroll_grip_position = list_tab.scroll_grip_position + action.dy
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 				local target_y = math.min(math.max(list_tab.grip_pos_max, list_tab.scroll_grip_position), list_tab.grip_pos_min)
 				gui.set(list_tab.scroll_grip, "position.y", target_y)
 				local target_ratio = 1 - ((list_tab.grip_pos_max - target_y) / list_tab.grip_pos_range)
@@ -832,15 +743,10 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
 			else
 				for key, val in ipairs(UI.tab[tab].buttons) do
 					if gui.pick_node(val.node, action.x, action.y) then
-<<<<<<< HEAD
 						if not val.stencil or gui.pick_node(val.stencil, action.x, action.y) then
 							template_clicked(tab, key, button_fn)
 							break
 						end
-=======
-						template_clicked(tab, key, button_fn)
-						break
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 					end
 				end
 				for key, val in ipairs(UI.tab[tab].fields) do

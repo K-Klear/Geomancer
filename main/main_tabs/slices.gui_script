@@ -314,14 +314,6 @@ local function evaluate_button(button)
 				msg.post("/navbar#navbar", hash("update_status"), {text = "No volumes created for whatever reason.", clear = true})
 			end
 		end
-<<<<<<< HEAD:main/main_tabs/slices.gui_script
-=======
-		output_string = MEM.meta_data.string_start..output_string..MEM.meta_data.string_end
-	end
-
-	if not G.safe_decode(output_string, "do_not_ship.pw_meta") then
-		msg.post("/navbar#navbar", hash("update_status"), {text = "Meta data might be corrupted. Use with caution."})
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb:modules/slices.lua
 	end
 end
 

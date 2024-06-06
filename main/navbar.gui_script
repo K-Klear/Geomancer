@@ -24,23 +24,12 @@ local function status_update(text, clear)
 	gui.set_size(status_background, vmath.vector3(width, metrics.height + (line_breaks * 14), 1))
 end
 
-<<<<<<< HEAD
 function init(self)
 	gui.set_render_order(0)
-=======
-local function load_config()
-	for line in io.lines("geomancer.cfg") do
-		print(line)
-	end
-end
-
-function init(self)
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 	if SET.debug then
 		profiler.enable_ui(true)
 		profiler.set_ui_view_mode(profiler.VIEW_MODE_MINIMIZED)
 	end
-<<<<<<< HEAD
 	status_background = gui.get_node("status_background")
 	status_text_node = gui.get_node("status_text")
 	status_font = gui.get_font_resource(gui.get_font(status_text_node))
@@ -54,14 +43,6 @@ function init(self)
 	msg.post("@render:", hash("clear_color"), {color = SET.background_colour})
 	msg.post(".", hash("acquire_input_focus"))
 	msg.post("/file#tab_file", hash("show"))
-=======
-	msg.post("@render:", hash("clear_color"), {color = SET.background_colour})
-	msg.post(".", hash("acquire_input_focus"))
-	msg.post("/file#tab_file", hash("show"))
-	status_background = gui.get_node("status_background")
-	status_text_node = gui.get_node("status_text")
-	status_font = gui.get_font_resource(gui.get_font(status_text_node))
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 	status_update()
 end
 
@@ -97,11 +78,7 @@ function on_input(self, action_id, action)
 				else
 					status_update("Unknown scene name", true)
 				end
-<<<<<<< HEAD
 				if key == "tab_event" and not SET.autodetect_sample_rate then
-=======
-				if key == "tab_event" then
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 					status_update("Be sure to set the correct sample rate first, otherwise BPM and values in seconds will be inaccurate.")
 				end
 				--[[

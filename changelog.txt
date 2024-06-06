@@ -3,10 +3,6 @@ To do:
 - Fix buttons firing when mouse is held, moved away and then returned to the button
 - Meta data purge button
 - Check for illegal enemy types
-<<<<<<< HEAD
-=======
-- Find a way to detect sample rate though obstacle, enemy and possibly colour data
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 - Unload pictures button for geo slices
 - Partial export
 - Link the model spreadsheet from somewhere, maybe
@@ -15,7 +11,6 @@ To do:
 - The json sanitiser is dumb. Make it less dumb
 - Reset buttons when a panel loses focus
 - rps field for tween rotations
-<<<<<<< HEAD
 - animations for moving/adding tween actions to make it more clear what's happening.
 - Universal confirmation dialog, maybe?
 - tabbing between text fields
@@ -24,63 +19,19 @@ To do:
 - Unify atlases
 - Custom dialog transparency?
 - Help button!
-=======
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 
 Bugs:
 
 - Volumes generate wrong on the edge of the pictures
 - Geomancer gets rekt by whitespace =/
 - The colour guide button acts weird, probably because it's parented to the list background.
-<<<<<<< HEAD
 - Dialogs sometimes show under UI in bundled version
-=======
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 
 Done:
 
 Features:
 
-- Better input data validation for text fields
-- Text fields accepting numbers now also accept math expressions (5+3 will result in 8), including the lua math library (try writing pi, for example).
-- Laying groundwork for user customisation
-
-- Level info editor:
-	- Added close buttons to enemy, obstacle and material dialogs in the level info editor
-
-- Event editor:
-	- Values are shown in both seconds and samples by default and can be input as either when editing.
-	- Nobeat sections additionally have a "duration" field.
-	- Removed the ability to set the ending sample value for event triggers. It will be set to the same number as the start sample.
-	- Removed the sample/second switch button as it is no longer needed
-	- Due to the reworked UI it is no longer possible to change sample rate when an edit box is open
-
-<<<<<<< HEAD
-Bugs:
-=======
-- Model editor:
-	- Smaller UI elments to fit more models and their parts on screen at once
-	- Materials divided into similar groups based on Dual_ity's guide
-	- Dynamic models and models with tweens are highighted in the list
-	- Model importer now lets you pick any number of models from the selected file.
-	- Model replacer has its own dialog
-
--Tween editor:
-	- Tweens move the whole prop by default now.
-	- If a model doesn't have a root transform, it is created on export as needed.
-	- Smarter default values for new tween actions or when changing types
-	- Rotation values are restricted to 0-360 by default. 540 becomes 180, -25 becomes 335.
-	- Added a delete tween button
-	- Added an extra action "Repeat". This will copy a number of preceding actions a number of times on export.
-		- Note that after loading the map next time, this action will not be recognised and the tween editor will intead show all the copied actions.
-		- Repeat actions trying to apply to another repeat action or with not enough actions before them will be REMOVED on export with a warning
-
 Fixes:
-- Text fields will no longer accept infinity as a value
 
 Bugs:
-- Fixed a bug when skipping existing models during import
-- Fixed a bug causing model replacer to keep the original model's part names
-- Fixed an export bug caused by importing an event file
->>>>>>> 74cacd0c955b57b0bc6e1a41c52ef82e057f07eb
 
