@@ -1,0 +1,79 @@
+local SET = require "modules.settings"
+
+local proxy_is_loaded, settings_are_loaded
+
+local function start()
+	if settings_are_loaded and proxy_is_loaded then
+		msg.post("#main", "enable")
+		msg.post("#main", "acquire_input_focus")
+	end
+end
+
+function init(self)
+	msg.post("#main", hash("async_load"))
+	if not sys.exists("geomancer.cfg") then
+		SET.cfg_created = true
+	else
+		local settings_to_load = {
+			sample_rate = "integer",
+			background_colour = "colour",
+			colour_highlight_material = "colour",
+			colour_highlight_dynamic = "colour",
+			colour_highlight_tween = "colour",
+			colour_model_import_selection = "colour",
+			colour_model_replace = "colour",
+			restrict_rotations_to_360 = "boolean",
+			tween_action_type_dialog = "boolean",
+			tween_part_dialog = "boolean",
+			troll = "boolean"
+		}
+		local parse = {}
+		function parse.number(str) return tonumber(str) end
+		function parse.integer(str) return math.floor(tonumber(str)) end
+		function parse.boolean(str) return str == "true" end
+		function parse.colour(str)
+			local comma_1 = string.find(str, ",")
+			local comma_2 = string.find(str, ",", comma_1 + 1)
+			local x = string.sub(str, 1, comma_1 - 1)
+			local y = string.sub(str, comma_1 + 1, comma_2 - 1)
+			local z = string.sub(str, comma_2 + 1)
+			return vmath.vector4(tonumber(x), tonumber(y), tonumber(z), 1)
+		end
+
+		local loaded_settings = {}
+		for line in io.lines("geomancer.cfg") do
+			local equals = string.find(line, "=")
+			if equals then
+				local semicolon = string.find(line, ";")
+				if semicolon then
+					local setting_name = string.sub(line, 1, equals - 1)
+					local str = string.sub(line, equals + 1, semicolon - 1)
+					if settings_to_load[setting_name] then
+						local works, value = pcall(parse[settings_to_load[setting_name]], str)
+						if works then
+							loaded_settings[setting_name] = value
+						end
+					end
+				end
+			end
+		end
+		for key in pairs(settings_to_load) do
+			if loaded_settings[key] == nil then
+				print(key, "not loaded")
+			else
+				print(key, "loaded as", loaded_settings[key])
+				--SET[key] = loaded_settings[key]
+			end
+		end
+		
+		settings_are_loaded = true
+		start()
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("proxy_loaded") then
+		proxy_is_loaded = true
+		start()
+	end
+end

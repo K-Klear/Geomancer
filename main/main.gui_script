@@ -1,20 +1,11 @@
 local UI = require "modules.ui"
 local MEM = require "modules.memory"
-local LVL = require "modules.level_info"
-local EVENT = require "modules.event"
-local GEO = require "modules.geo"
-local ART = require "modules.art"
-local BEAT = require "modules.beat"
 local S = require "modules.status"
-local G_S = require "modules.slices"
-
-local r_ctr_held, l_ctr_held
 
 function init(self)
-	msg.post("@render:", hash("clear_color"), {color = vmath.vector4(1, 0.2, 0.8, 1) * 0.15})
-	msg.post(".", hash("acquire_input_focus"))
 	gui.set_enabled(gui.get_node("panel_file"), true)
-	gui.set_text(gui.get_node("version_label"), "Version "..sys.get_config("project.version"))
+
+	--[[
 	UI.tab.tab_file.panel_node = gui.get_node("panel_file")
 	UI.tab.tab_level.panel_node = gui.get_node("panel_level")
 	UI.tab.tab_meta.panel_node = gui.get_node("panel_meta")
@@ -23,10 +14,9 @@ function init(self)
 	UI.tab.tab_geo.panel_node = gui.get_node("panel_geo")
 	UI.tab.tab_sequence.panel_node = gui.get_node("panel_sequence")
 	UI.tab.tab_art.panel_node = gui.get_node("panel_art")
-	UI.load_template(UI.tab.tab_file.buttons)
-	LVL.setup()
-	ART.setup()
-	S.setup()
+	--]]
+	--UI.load_template(UI.tab.tab_file.buttons)
+	--[[
 	gui.set_enabled(UI.tab.tab_file.panel_node, true)
 	gui.set_enabled(UI.tab.tab_level.panel_node, false)
 	gui.set_enabled(UI.tab.tab_event.panel_node, false)
@@ -35,124 +25,9 @@ function init(self)
 	gui.set_enabled(UI.tab.tab_meta.panel_node, false)
 	gui.set_enabled(UI.tab.tab_sequence.panel_node, false)
 	gui.set_enabled(UI.tab.tab_beat.panel_node, false)
-	S.update()
+	--]]
 
-	local test_list_items = {}
-	for i = 1, 550 do
-		table.insert(test_list_items, "Test item "..i)
-	end
-	local test_list_tab = {
-		test = {button = gui.get_node("test/button_white"), text = gui.get_node("test/text"), values = test_list_items}
-	}
-	UI.create_list(gui.get_node("test_list"), test_list_tab)
 end
-
-local function update_panel(extension)
-	if extension == "pw" then
-		LVL.update_labels()
-	elseif extension == "pw_event" then
-		EVENT.update_labels()
-	end
-end
-
-local function export_all(overwrite)
-	if UI.tab.tab_level.state or UI.tab.tab_event.state or UI.tab.tab_geo.state or UI.tab.tab_beat.state or UI.tab.tab_meta.state or UI.tab.tab_art.state then
-		local num, path = diags.open_folder()
-		if path then
-			local filenames = {}
-			local common_filename = "map"
-			local function get_name(s)
-				if s then
-					local ext = string.find(s, "%.")
-					return string.sub(s, 1, ext - 1)
-				end
-			end
-			local function get_art_name(s)
-				if s then
-					local shared = string.find(MEM.art_data.filename, "_SharedArt") or -7 -- In case _SharedArt not found in filename just remove the extension
-					return string.sub(MEM.art_data.filename, 1, shared - 1)
-				end
-			end
-			filenames.beat = get_name(MEM.beat_data.filename)
-			filenames.event = get_name(MEM.event_data.filename)
-			filenames.geo = get_name(MEM.geo_data.filename)
-			filenames.art = get_art_name(MEM.art_data.filename)
-			if next(filenames) then
-				common_filename = filenames[next(filenames)]
-				for key, val in pairs(filenames) do
-					if not (val == common_filename) then
-						common_filename = get_art_name(MEM.level_data.art_file) or filenames.art or filenames.event or filenames.beat or filenames.geo
-						break
-					end
-				end
-			end
-			if not overwrite then
-				path = path.."/"..common_filename.."_geomanced"
-				if not lfs.mkdir(path) then
-					local index = 0
-					repeat
-						index = index + 1
-						if index > 1000 then
-							S.update("Cannot create folder. Export aborted")
-							return
-						end
-					until lfs.mkdir(path.."("..index..")")
-					path = path.."("..index..")"
-				end
-				S.update("Exporting files to "..path, true)
-			else
-				S.update("Exporting files to "..path.."\nEXISTING FILES ARE BEING OVERWRITTEN", true)
-			end
-			if MEM.level_data.string then
-				LVL.export(path.."/level.pw")
-				S.update("Level settings exported")
-			end
-			if MEM.event_data.string then
-				EVENT.export(path.."/"..common_filename..".pw_event")
-				S.update("Events exported")
-			end
-			if MEM.art_data.table_static_props then
-				ART.export(path.."/"..common_filename.."_SharedArt.pw_art")
-				S.update("Model data exported")
-			end
-			if MEM.beat_data.string then
-				BEAT.export(path.."/"..common_filename..".pw_beat")
-				S.update("Enemies exported")
-			end
-			if MEM.geo_data.start then
-				GEO.export(path.."/"..common_filename..".pw_geo")
-				S.update("Geo exported")
-			end
-			if MEM.meta_data.string then
-				G_S.export(path.."/do_not_ship.pw_meta")
-				if #G_S.volumes > 0 then
-					S.update("Volumes exported. NOTE: this does nothing until you open the map in Pistol Mix and generate geo.")
-				else
-					S.update("do_not_ship.pw_meta exported.")
-				end
-			end
-			S.update("Files exported to "..path)
-		end
-	else
-		S.update("Nothing to export", true)
-	end
-end
-
-local function check_for_reset()
-	local reset_list = {
-		art_reloaded = ART.reset(),
-		event_reloaded = EVENT.reset(),
-		beat_reloaded = BEAT.reset(),
-		slices_reloaded = G_S.reset()
-	}
-	for key, val in pairs(reset_list) do
-		if MEM[key] then
-			MEM[key] = nil
-			val()
-		end
-	end
-end
-
 
 local function evaluate_button(button)
 	if UI.tab.tab_level.state == "active" then
@@ -173,162 +48,7 @@ local function evaluate_button(button)
 	elseif UI.tab.tab_meta.state == "active" then
 		G_S.evaluate_button(button)
 	elseif UI.tab.tab_file.state == "active" then
-		if button == "exit" then
-			os.exit(1)
-		elseif button == "load_file" then
-			local num, path = diags.open("pw_meta,pw,pw_beat,pw_event,pw_geo,pw_art,pw_seq")
-			if path then
-				local htap = string.reverse(path)
-				local filename = string.reverse(string.sub(htap, 1, string.find(htap, "\\") - 1))
-				local extension = string.find(htap, "%.")
-				extension = string.reverse(string.sub(htap, 1, extension - 1))
-				S.update("Loading "..filename, true)
-				timer.delay(0.02, false, function()
-					local panel = MEM.load_file(path, filename, extension)
-					if panel then
-						S.update("File loaded successfully")
-						UI.update_tabs()
-						update_panel(panel)
-						check_for_reset()
-					else
-						S.update("File not loaded")
-					end
-				end)
-			end
-		elseif button == "load_zip" then
-			local num, path = diags.open("zip")
-			if path then
-				local f = io.open(path, "rb")
-				if f then
-					S.update("Loading files from "..path, true)
-					local zip_data = f:read("*a")
-					local archive = zip.open(zip_data)
-					if not archive then
-						S.update("Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually.")
-						return
-					end
-					local file_index = zip.get_number_of_entries(archive) - 1
-					local skip_count, extracted_count = 0, 0
-					local ext_list = {pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = true}
-					local function extract_next()
-						local err, file = pcall(zip.extract_by_index, archive, file_index)
-						if not err then
-							S.update("Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually.")
-							return
-						end
-						local extension = string.find(file.name, "%.")
-						if extension then
-							extension = string.sub(file.name, extension + 1)
-							if ext_list[extension] then
-								local panel = MEM.load_file(nil, file.name, extension, file.content) 
-								if panel then
-									ext_list[extension] = false
-									S.update(file.name)
-									extracted_count = extracted_count + 1
-									update_panel(panel)
-								else
-									skip_count = skip_count + 1
-								end
-							else
-								skip_count = skip_count + 1
-							end
-						end
-						file_index = file_index - 1
-						if file_index < 0 then
-							zip.close(archive)
-							S.update("Extracted "..extracted_count.." files, "..skip_count.." skipped.")
-							if MEM.level_data.scene_name then
-								S.update("Loaded scene: "..MEM.level_data.scene_name)
-							else
-								S.update("Unknown scene name")
-							end
-							UI.update_tabs()
-						else
-							timer.delay(0.01, false, extract_next)
-						end
-					end
-					if file_index > -1 then
-						timer.delay(0.01, false, extract_next)
-					else
-						S.update("Archive is empty.")
-					end
-					check_for_reset()
-				end
-			end
-		elseif button == "load_dir" then
-			local num, path = diags.open_folder()
-			if path then
-				S.update("Loading files from "..path, true)
-				local files_to_load = {}
-				local skip_count = 0
-				local ext_list = {pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = false}
-				for filename in lfs.dir(path) do
-					if not (filename == "." or filename == "..") then
-						local extension = string.find(filename, "%.")
-						if extension then
-							extension = string.sub(filename, extension + 1)
-							if ext_list[extension] then
-								table.insert(files_to_load, {path = path.."/"..filename, filename = filename, extension = extension})
-								ext_list[extension] = false
-							else
-								skip_count = skip_count + 1
-							end
-						end
-					end
-				end
-				if #files_to_load > 0 then
-					local function load_next_file()
-						local _file = table.remove(files_to_load)
-						local panel = MEM.load_file(_file.path, _file.filename, _file.extension)
-						if panel then
-							S.update(_file.filename)
-							UI.update_tabs()
-							update_panel(panel)
-						else
-							S.update("Error loading ".._file.filename)
-						end
-						if #files_to_load > 0 then
-							timer.delay(0.01, false, load_next_file)
-						else
-							if MEM.level_data.scene_name then
-								S.update("Done. Loaded scene: "..MEM.level_data.scene_name)
-							else
-								S.update("Done. Unknown scene name")
-							end
-						end
-					end
-					S.update("Loading "..#files_to_load.." files, "..skip_count.." skipped.")
-					timer.delay(0.01, false, load_next_file)
-					check_for_reset()
-				else
-					S.update("No valid files found.")
-				end
-			end
-		elseif button == "unload_all" then
-			for key, val in pairs(UI.tab) do
-				val.state = false
-			end
-			UI.tab.tab_file.state = true
-			MEM.level_data = {}
-			MEM.meta_data = {}
-			MEM.beat_data = {}
-			MEM.event_data = {}
-			MEM.geo_data = {}
-			MEM.sequence_data = {}
-			MEM.art_data = {}
 
-			EVENT.reset()
-			ART.reset()
-			BEAT.reset()
-			G_S.reset()
-			
-			S.update("All data unloaded.", true)
-			UI.update_tabs()
-		elseif button == "export_all" then
-			export_all(false)
-		elseif button == "export_overwrite" then
-			export_all(true)
-		end
 	end
 end
 
@@ -344,101 +64,7 @@ local function evaluate_input(field, text)
 	end
 end
 
-function update(self, dt)
-	if UI.scrolling then
-		local root_height = gui.get(UI.root_node, "position.y")
-		if UI.scroll_target > root_height then
-			local item_needed = math.floor((root_height - 25 + (UI.item_max + 1) * UI.item_size_y) / 50)
-			UI.create_button(item_needed)
-			local to_delete = math.floor((root_height - 25) / 50)
-			UI.delete_button(to_delete)
-		else
-			local to_delete = math.ceil((root_height - 25 + (UI.item_max + 1) * UI.item_size_y) / 50)
-			local item_needed = math.ceil((root_height - 25) / 50)
-			UI.create_button(item_needed)
-			UI.delete_button(to_delete)
-		end
-	end
-end
-
-local function end_scrolling()
-	UI.scrolling = false
-	local min, max = 999, -999
-	for key, val in pairs(UI.button_list) do
-		if key > max then
-			max = key
-		end
-		if key < min then
-			min = key
-		end
-	end
-end
-
-local scroll_speed = 100
 
 function on_input(self, action_id, action)
-	if gui.pick_node(gui.get_node("test_list"), action.x, action.y) then
-		if action_id == hash("scroll_up") then
-			if action.value > 0 then
-				UI.scroll_target = math.min(UI.scroll_target + scroll_speed, UI.max_target)
-				gui.animate(UI.list, "position.y", UI.scroll_target, gui.EASING_LINEAR, 0.5)
-				UI.scrolling = true
-			else
-				UI.scroll_target = math.min(UI.scroll_target - scroll_speed/2, UI.max_target)
-				gui.animate(UI.list, "position.y", UI.scroll_target, gui.EASING_OUTSINE, 0.5, 0, end_scrolling)
-			end
-		elseif action_id == hash("scroll_down") then
-			if action.value > 0 then
-				UI.scroll_target = math.max(UI.scroll_target - scroll_speed, UI.min_target)
-				gui.animate(UI.list, "position.y", UI.scroll_target, gui.EASING_LINEAR, 0.5)
-				UI.scrolling = true
-			else
-				UI.scroll_target = math.max(UI.scroll_target + scroll_speed/2, UI.min_target)
-				gui.animate(UI.list, "position.y", UI.scroll_target, gui.EASING_OUTSINE, 0.5, 0, end_scrolling)
-			end
-		end
-	end
-	if action_id == hash("lctrl") then
-		l_ctr_held = not action.released
-		return
-	elseif action_id == hash("rctrl") then
-		r_ctr_held = not action.released
-		return
-	elseif action_id == hash("v") then
-		if action.pressed and (r_ctr_held or l_ctr_held) then
-			action_id = hash("paste")
-		else
-			return
-		end
-	elseif action_id == hash("c") then
-		if action.pressed and (r_ctr_held or l_ctr_held)  then
-			action_id = hash("copy")
-		else
-			return
-		end
-	end
 	UI.on_input(self, action_id, action, evaluate_button, evaluate_input)
-	if action.pressed then
-		for key, val in pairs(UI.tab) do
-			if val.state == true and gui.pick_node(gui.get_node(key), action.x, action.y) then
-				UI.switch_tab(key)
-				if MEM.level_data.scene_name then
-					S.update("Loaded scene: "..MEM.level_data.scene_name, true)
-				else
-					S.update("Unknown scene name", true)
-				end
-				if key == "tab_event" then
-					EVENT.update_labels()
-					S.update("Be sure to set the correct sample rate before making changes here.")
-				elseif key == "tab_art" then
-					ART.update_model_list()
-				elseif key == "tab_beat" then
-					BEAT.update_obstacles()
-					BEAT.update_buttons()
-				elseif key == "tab_meta" then
-					S.update("Start by loading one or more png files with the size of 167 x 166. Their names have to be a number representing the Z position of the resulting geo slice.", false)
-				end
-			end
-		end
-	end
 end

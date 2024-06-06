@@ -251,7 +251,7 @@ function BEAT.export(path)
 	end
 
 	if not G.safe_decode(MEM.beat_data.string, "Output beat data file") then
-		S.update("Beat data might be corrupted. Use with caution.")
+		msg.post("/navbar#navbar", hash("update_status"), {text = "Beat data might be corrupted. Use with caution."})
 	end
 
 	local f = io.output(path)

@@ -1,5 +1,4 @@
 local UI = require "modules.ui"
-local S = require "modules.status"
 local G = require "modules.global"
 
 local MEM = {}
@@ -11,7 +10,6 @@ MEM.event_data = {}
 MEM.geo_data = {}
 MEM.sequence_data = {}
 MEM.art_data = {}
-MEM.sample_rate = 48000
 
 local load = {}
 
@@ -37,6 +35,8 @@ function load.pw(data)
 	MEM.level_data.song_length = tonumber(tab.songLength)
 	MEM.level_data.scene_name = tab.sceneDisplayName
 	MEM.level_data.art_file = tab.sharedLevelArt
+	local my_name = {Klear = true, Klear_ = true, kingklear = true}
+	MEM.level_data.my_map = my_name[tab.mapper]
 	UI.tab.tab_level.state = true
 	return true
 end
@@ -49,7 +49,7 @@ function load.pw_meta(data)
 	
 	local s_index = string.find(MEM.meta_data.string, "\"Volume\":[", 1, true)
 	if not s_index then
-		S.update("Error loading volume information. Try resaving the file with the current version of Pistol Mix.")
+		msg.post("/navbar#navbar", hash("update_status"), {text = "Error loading volume information. Try resaving the file with the current version of Pistol Mix."})
 		MEM.meta_data = {}
 		return false
 	end
@@ -61,7 +61,7 @@ function load.pw_meta(data)
 	if #MEM.meta_data.volume_table < 1 then
 		MEM.meta_data.free_group_index = 1
 	elseif not MEM.meta_data.volume_table[#MEM.meta_data.volume_table].groupIndex then
-		S.update("Error loading volume information. Try resaving the file with the current version of Pistol Mix.")
+		msg.post("/navbar#navbar", hash("update_status"), {text = "Error loading volume information. Try resaving the file with the current version of Pistol Mix."})
 		MEM.meta_data = {}
 		return false
 	else
@@ -102,7 +102,7 @@ function load.pw_beat(data, filename)
 	MEM.beat_data.enemy_types.minigun = not not string.find(data, "Minigun Turret")
 	MEM.beat_data.enemy_types.skull = not not string.find(data, "FlyingBomb")
 	MEM.beat_data.enemy_types.trap = not not string.find(data, "Trap Enemy")
-	
+
 	UI.tab.tab_beat.state = true
 	MEM.beat_reloaded = true
 	return true
@@ -128,7 +128,7 @@ function load.pw_geo(data, filename)
 	local chunk = string.find(data, "chunkData")
 	local slices = string.find(data, "chunkSlices")
 	if not (chunk and slices) then
-		S.update("Error loading geo data")
+		msg.post("/navbar#navbar", hash("update_status"), {text = "Error loading geo data"})
 		return
 	end
 	MEM.geo_data.start = string.sub(data, 1, chunk - 2)
@@ -242,7 +242,7 @@ function MEM.load_props_dictionary(model_table, ignored_models)
 							safety = safety - 1
 							if safety < 0 or (not tween_working) then
 								tween_working = false
-								S.update("Malformed tween script in model "..v.key..". Skipping.")
+								msg.post("/navbar#navbar", hash("update_status"), {text = "Malformed tween script in model "..v.key..". Skipping."})
 								tween = {}
 								break
 							else
@@ -289,7 +289,7 @@ function MEM.load_props_dictionary(model_table, ignored_models)
 					end
 				end
 				if not all_parts_found then
-					S.update("Tween of model "..v.key.." refers to a wrong part. Defaulting to tweening the whole model.")
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Tween of model "..v.key.." refers to a wrong part. Defaulting to tweening the whole model."})
 				end
 			end
 		end

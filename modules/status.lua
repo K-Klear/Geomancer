@@ -18,14 +18,12 @@ function S.update(text, clear)
 		str = str..val.."\n"
 	end
 	gui.set_text(status_text_node, str)
-	metrics = resource.get_text_metrics(status_font, str)
+	local metrics = resource.get_text_metrics(status_font, str)
 	gui.set_size(status_background, vmath.vector3(width, metrics.height + (line_breaks * 14), 1))
 end
 
 function S.setup()
-	status_background = gui.get_node("status_background")
-	status_text_node = gui.get_node("status_text")
-	status_font = gui.get_font_resource(gui.get_font(status_text_node)) 
+
 end
 
 

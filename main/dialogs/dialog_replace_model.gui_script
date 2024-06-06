@@ -1,0 +1,87 @@
+local MEM = require "modules.memory"
+local UI = require "modules.ui"
+local SET = require "modules.settings"
+
+local parent_tab
+local replace_model_list, model_to_replace, selected_model, evaluate_button
+local dialog_open = false
+
+function init(self)
+	msg.post("#", hash("disable"))
+	UI.load_template({"dialog_replace_cancel", "dialog_replace_accept"}, "dialog_replace")
+	local model_list = {
+		{
+			type = hash("exclusive_button"),
+			node = gui.get_node("replace_model_exclusive/button_white"),
+			text_node = gui.get_node("replace_model_exclusive/text"),
+			value_fn = function(i) return MEM.art_data.model_list[i].name end,
+			template = "replace_model_exclusive;",
+			fn = evaluate_button,
+			tint = function(i)
+				if i == model_to_replace then
+					return SET.colour_model_replace
+				else
+					return vmath.vector4(1, 1, 1, 1)
+				end
+			end,
+		},
+		item_count = 0,
+		scroll_prefix = "replace_model_"
+	}
+	replace_model_list = UI.create_list("dialog_replace", gui.get_node("replace_model_list"), model_list)
+end
+
+function evaluate_button(button, item)
+	if button == "dialog_replace_accept" then
+		if not selected_model then
+			msg.post("/navbar#navbar", hash("update_status"), {text = "You must select a model first", clear = true})
+		elseif selected_model == model_to_replace then
+			msg.post("/navbar#navbar", hash("update_status"), {text = "Cannot replace a model with itself", clear = true})
+		else
+			msg.post("#", hash("disable"))
+			msg.post("#", hash("release_input_focus"))
+			dialog_open = false
+			msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("replace"), selected_model = selected_model, model_to_replace = model_to_replace})
+		end
+	elseif button == "dialog_replace_cancel" then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		dialog_open = false
+		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("replace")})
+	elseif button == replace_model_list then
+		if selected_model == model_to_replace then
+			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a different model", clear = true})
+		end
+		selected_model = item
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		parent_tab = sender
+		msg.post("#", hash("acquire_input_focus"))
+		msg.post("#", hash("enable"))
+		model_to_replace = message.model_to_replace
+		gui.set_text(gui.get_node("title_replace_model"), "Choose a model to replace\n"..MEM.art_data.model_list[model_to_replace].name)
+		dialog_open = true
+		selected_model = nil
+		UI.update_list("dialog_replace", replace_model_list, #MEM.art_data.model_list)
+	elseif message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		dialog_open = false
+		UI.update_list("dialog_replace", replace_model_list, 0)
+	end
+end
+
+function update()
+	if dialog_open then
+		for list_index in pairs(UI.tab.dialog_replace.scrolling) do
+			UI.move_list_root("dialog_replace", list_index, true)
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input("dialog_replace", action_id, action, evaluate_button)
+end

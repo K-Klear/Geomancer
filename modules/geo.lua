@@ -56,7 +56,7 @@ end
 function GEO.export(path)
 	local final_string = MEM.geo_data.start..MEM.geo_data.chunk..MEM.geo_data.slices
 	if not G.safe_decode(final_string, "Output pw_geo file") then
-		S.update("Geo data might be corrupted. Use with caution.")
+		msg.post("/navbar#navbar", hash("update_status"), {text = "Geo data might be corrupted. Use with caution."})
 	end
 	local f = io.output(path)
 	io.write(final_string)
