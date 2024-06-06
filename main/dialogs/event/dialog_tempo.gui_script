@@ -1,0 +1,100 @@
+local MEM = require "modules.memory"
+local UI = require "modules.ui"
+local SET = require "modules.settings"
+
+local parent_tab
+local start_sample, max_sample, BPM, spb, signature, item_index
+
+local function spb_to_BPM(_spb)
+	return math.floor(((SET.sample_rate * 60) / _spb) * 1000) * 0.001
+end
+
+local function BPM_to_spb(_BPM)
+	return (60 / _BPM) * SET.sample_rate
+end
+
+function init(self)
+	gui.set_render_order(2)
+	msg.post("#", hash("disable"))
+	UI.load_template({"dialog_tempo_cancel", "dialog_tempo_accept"}, "dialog_tempo")
+	local validation = {
+		integer = true,
+		min = function() return 0 end,
+		max = function() return max_sample end,
+		default = function() return 0 end
+	}
+	UI.load_text_field("tempo_start", 10, "dialog_tempo", validation)
+	validation = {
+		number = true,
+		min = function() return 1 end,
+		default = function() return 120 end
+	}
+	UI.load_text_field("tempo_BPM", 9, "dialog_tempo", validation)
+	validation = {
+		integer = true,
+		min = function() return 1 end,
+		default = function() return 4 end
+	}
+	UI.load_text_field("tempo_signature", 2, "dialog_tempo", validation)
+end
+
+local function evaluate_button(button)
+	if button == "dialog_tempo_accept" then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		msg.post(parent_tab, hash("dialog_closed"), {
+			dialog = hash("tempo"), start_sample = start_sample, spb = spb, signature = signature, item = item_index
+		})
+	elseif button == "dialog_tempo_cancel" then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("tempo")})
+	end
+end
+
+local function recalculate_values()
+	if start_sample > max_sample then
+		start_sample = max_sample
+	end
+	gui.set_text(gui.get_node("tempo_start/text"), start_sample)
+	gui.set_text(gui.get_node("tempo_BPM/text"), BPM)
+	gui.set_text(gui.get_node("tempo_signature/text"), signature)
+end
+
+local function evaluate_input(field, text)
+	if field == "tempo_start" then
+		start_sample = text
+	elseif field == "tempo_BPM" then
+		BPM = text
+		spb = BPM_to_spb(BPM)
+	elseif field == "tempo_signature" then
+		signature = text
+	end
+	recalculate_values()
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		parent_tab = sender
+		msg.post("#", hash("acquire_input_focus"))
+		msg.post("#", hash("enable"))
+		start_sample = tonumber(message.data.startSample)
+		spb = tonumber(message.data.samplesPerBeat)
+		BPM = spb_to_BPM(spb)
+		signature = tonumber(message.data.beatsPerMeasure)
+		item_index = message.item
+		if MEM.level_data.song_length then
+			max_sample = MEM.level_data.song_length * SET.sample_rate
+		else
+			max_sample = 1/0
+		end
+		recalculate_values()
+	elseif message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input("dialog_tempo", action_id, action, evaluate_button, evaluate_input)
+end

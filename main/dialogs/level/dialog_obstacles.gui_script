@@ -1,0 +1,76 @@
+local MEM = require "modules.memory"
+local UI = require "modules.ui"
+local SET = require "modules.settings"
+
+local parent_tab
+local obstacle_list, evaluate_button
+local dialog_open = false
+
+local obstacle_names = {
+	"Normal", "Pipes", "Rocks", "Colony", "Tower", "Crates", "Train", "EarthCracker", "ShredPipes", "Vaporwave",
+	"Castle", "Spooky", "AirDrop"}
+
+function init(self)
+	gui.set_render_order(2)
+	msg.post("#", hash("disable"))
+	UI.load_template({"obstacle_guide", "dialog_obstacles_cancel"}, "dialog_obstacles")
+	local obstacle_list_tab = {
+		{
+			type = hash("exclusive_button"),
+			node = gui.get_node("obstacle_exclusive/button_white"),
+			text_node = gui.get_node("obstacle_exclusive/text"),
+			value_fn = function(i) return obstacle_names[i] end,
+			template = "obstacle_exclusive;",
+			fn = evaluate_button
+		},
+		item_count = #obstacle_names,
+		scroll_prefix = "obstacles_"
+	}
+	obstacle_list = UI.create_list("dialog_obstacles", gui.get_node("obstacles_list"), obstacle_list_tab)
+end
+
+function evaluate_button(button, item)
+	if button == "dialog_obstacles_cancel" then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		dialog_open = false
+		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("obstacles")})
+	elseif button == "obstacle_guide" then
+		sys.open_url("https://mod.io/g/pistol-whip/r/materials-and-obstacles")
+	elseif button == obstacle_list then
+		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("obstacles"), obstacle = obstacle_names[item]})
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		local obstacle_index = 0
+		for key, val in ipairs(obstacle_names) do
+			if message.current_set == val then
+				obstacle_index = key
+				break
+			end
+		end
+		UI.select_exclusive_button("dialog_obstacles", obstacle_list, obstacle_index, true)
+		parent_tab = sender
+		msg.post("#", hash("acquire_input_focus"))
+		msg.post("#", hash("enable"))
+		dialog_open = true
+	elseif message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		dialog_open = false
+	end
+end
+
+function update()
+	if dialog_open then
+		for list_index in pairs(UI.tab.dialog_obstacles.scrolling) do
+			UI.move_list_root("dialog_obstacles", list_index, true)
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input("dialog_obstacles", action_id, action, evaluate_button)
+end

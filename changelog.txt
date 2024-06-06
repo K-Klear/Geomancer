@@ -1,34 +1,37 @@
 To do:
 
-- Meta data purge
 - Fix buttons firing when mouse is held, moved away and then returned to the button
+- Meta data purge button
 - Check for illegal enemy types
-- Allow BPM entry in BPM rather than samples per beat
-- Find a way to detect sample rate though obstacle, enemy and possibly colour data
 - Unload pictures button for geo slices
 - Partial export
 - Link the model spreadsheet from somewhere, maybe
 - "Smart" model dynamizer
 - Option to find and optionally fix Pistol Mix incompatibilities in a map
-- A settings file to allow configuration of default behaviours
 - The json sanitiser is dumb. Make it less dumb
+- Reset buttons when a panel loses focus
+- rps field for tween rotations
+- animations for moving/adding tween actions to make it more clear what's happening.
+- Universal confirmation dialog, maybe?
+- tabbing between text fields
+- Automatically resize text for text fields (and maybe buttons)
+- Maybe "delete all" buttons for the event tab
+- Unify atlases
+- Custom dialog transparency?
+- Help button!
 
 Bugs:
 
 - Volumes generate wrong on the edge of the pictures
 - Geomancer gets rekt by whitespace =/
+- The colour guide button acts weird, probably because it's parented to the list background.
+- Dialogs sometimes show under UI in bundled version
 
 Done:
 
 Features:
-- Tweens move the whole prop by default now.
-- If a model doesn't have a root transform, it is created on export as needed.
-- Smarter default values for new tween actions or when changing types
-- Added a delete tween button
 
 Fixes:
 
-
 Bugs:
-- Fixed bug when skipping existing models while importing them from another map
 

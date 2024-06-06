@@ -1,0 +1,133 @@
+local SET = require "modules.settings"
+
+local proxy_is_loaded, settings_are_loaded
+
+local default_settings_text = {
+	"When editing, keep the format [variable_name][=][value][;]. Anything beyond this is ignored when loading configuration.",
+	"If there are any missing variables or the values cannot be read/are in the wrong format, Geomancer will add new entries for them with default values on launch.",
+	"",
+	"autodetect_sample_rate=true;",
+	"default_sample_rate=48000;		-- this value is used if autodetect is turned off or sample rate cannot be determined",
+	"new_event_sample_offset=0;",
+	"",
+	"background_colour=0.15,0.03,0.12;	-- All colours are r,g,b going from 0 to 1",
+	"colour_highlight_material=0.8,0.8,0.35;",
+	"colour_highlight_dynamic=0.6,0.75,1;",
+	"colour_highlight_tween=0.3,0.55,1;",
+	"colour_model_import_selection=0.5,0.5,0.7;",
+	"colour_model_replace=1,0.7,0.7;",
+	"colour_unsupported_obstacle=0.8,0.2,0.2;",
+	"colour_current_enemy_set=0.2,0.4,0.8;",
+	"",
+	"restrict_rotations_to_360=true; -- If true rotation values outside the 0-360 are recalculated to fall within that range.",
+	"tween_action_type_dialog=true; 	-- If false cycle through tween types instead of opening a dialog",
+	"tween_part_dialog=true; 		-- If false cycle through tween parts instead of opening a dialog",
+	"tween_extra_add_buttons=false; 	-- If true adds \"Add action\" button between tween actions"
+}
+
+
+local settings_to_load = {
+	autodetect_sample_rate = {type = "boolean"},
+	default_sample_rate = {type = "integer"},
+	new_event_sample_offset = {type = "integer"},
+	background_colour = {type = "colour"},
+	colour_highlight_material = {type = "colour"},
+	colour_highlight_dynamic = {type = "colour"},
+	colour_highlight_tween = {type = "colour"},
+	colour_model_import_selection = {type = "colour"},
+	colour_model_replace = {type = "colour"},
+	colour_unsupported_obstacle = {type = "colour"},
+	colour_current_enemy_set = {type = "colour"},
+	restrict_rotations_to_360 = {type = "boolean"},
+	tween_action_type_dialog = {type = "boolean"},
+	tween_part_dialog = {type = "boolean"},
+	tween_extra_add_buttons = {type = "boolean"}
+}
+
+
+local function start()
+	if settings_are_loaded and proxy_is_loaded then
+		msg.post("#main", "enable")
+		msg.post("#main", "acquire_input_focus")
+	end
+end
+
+function init(self)
+	msg.post("#main", hash("async_load"))
+
+	for key, val in pairs(settings_to_load) do
+		for k, v in ipairs(default_settings_text) do
+			if string.find(v, key) then
+				settings_to_load[key].line = k
+				break
+			end
+		end
+	end
+	
+	if not sys.exists("geomancer.cfg") then
+		SET.cfg_created = true
+		local f = io.output("geomancer.cfg")
+		local str = ""
+		for key, val in ipairs(default_settings_text) do
+			str = str..val.."\n"
+		end
+		io.write(str)
+		io.close(f)
+	else
+		local parse = {}
+		function parse.number(str) return tonumber(str) end
+		function parse.integer(str) return math.floor(tonumber(str)) end
+		function parse.boolean(str)
+			if string.lower(str) == "true" then
+				return true
+			elseif string.lower(str) == "false" then
+				return false
+			end
+		end
+		function parse.colour(str)
+			local comma_1 = string.find(str, ",")
+			local comma_2 = string.find(str, ",", comma_1 + 1)
+			local x = string.sub(str, 1, comma_1 - 1)
+			local y = string.sub(str, comma_1 + 1, comma_2 - 1)
+			local z = string.sub(str, comma_2 + 1)
+			return vmath.vector4(tonumber(x), tonumber(y), tonumber(z), 1)
+		end
+
+		local loaded_settings = {}
+		for line in io.lines("geomancer.cfg") do
+			local equals = string.find(line, "=")
+			if equals then
+				local semicolon = string.find(line, ";")
+				if semicolon then
+					local setting_name = string.sub(line, 1, equals - 1)
+					local str = string.sub(line, equals + 1, semicolon - 1)
+					if settings_to_load[setting_name] then
+						local works, value = pcall(parse[settings_to_load[setting_name].type], str)
+						if works then
+							loaded_settings[setting_name] = value
+						end
+					end
+				end
+			end
+		end
+		local f = io.open("geomancer.cfg", "a")
+		for key in pairs(settings_to_load) do
+			if loaded_settings[key] == nil then
+				f:write("\n"..default_settings_text[settings_to_load[key].line])
+				SET.cfg_appended = true
+			else
+				SET[key] = loaded_settings[key]
+			end
+		end
+		io.close(f)
+	end
+	settings_are_loaded = true
+	start()
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("proxy_loaded") then
+		proxy_is_loaded = true
+		start()
+	end
+end

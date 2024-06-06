@@ -1,0 +1,67 @@
+local UI = require "modules.ui"
+local SET = require "modules.settings"
+local MEM = require "modules.memory"
+
+local model_name, model_to_rename, parent_tab
+
+function init(self)
+	gui.set_render_order(2)
+	msg.post("#", hash("disable"))
+	UI.load_template({"dialog_rename_model_cancel", "dialog_rename_model_accept"}, "dialog_rename_model")
+	local validation = {
+		text = true,
+		json_safe = true,
+		not_empty = true,
+		default = function() return model_name end
+	}
+	UI.load_text_field("field_rename_model", 31, "dialog_rename_model", validation)
+end
+
+local function evaluate_button(button)
+	if button == "dialog_rename_model_accept" then
+		if model_name == MEM.art_data.model_list[model_to_rename].name then
+			msg.post("/navbar#navbar", hash("update_status"), {text = "Enter a different name.", clear = true})
+			return
+		else
+			for key, val in ipairs(MEM.art_data.model_list) do
+				if val.name == model_name then
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Model with that name already exists.", clear = true})
+					return
+				end
+			end
+			msg.post("#", hash("disable"))
+			msg.post("#", hash("release_input_focus"))
+			msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("rename_model"), new_name = model_name, model_to_rename = model_to_rename})
+		end
+	elseif button == "dialog_rename_model_cancel" then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("rename_model")})
+	end
+end
+
+local function evaluate_input(field, text)
+	if field == "field_rename_model" then
+		local new_name = gui.get_text(gui.get_node("field_rename_model/text"))
+		model_name = text
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		parent_tab = sender
+		msg.post("#", hash("acquire_input_focus"))
+		msg.post("#", hash("enable"))
+		model_to_rename = message.model_to_rename
+		model_name = message.model_name
+		gui.set_text(gui.get_node("field_rename_model/text"), model_name)
+	elseif message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		model_name, model_to_rename = nil, nil
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input("dialog_rename_model", action_id, action, evaluate_button, evaluate_input)
+end

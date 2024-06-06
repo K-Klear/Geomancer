@@ -1,5 +1,5 @@
 [bootstrap]
-main_collection = /main/main.collectionc
+main_collection = /main/bootstrap/bootstrap.collectionc
 render = /render/default.renderc
 
 [script]
@@ -8,19 +8,22 @@ shared_state = 1
 [display]
 width = 1280
 height = 840
+samples = 4
+vsync = 0
 
 [android]
 input_method = HiddenInputField
 
 [project]
 title = Geomancer
-version = 0.545b
+version = 0.6
 developer = Klear
+write_log = 1
 dependencies#0 = https://github.com/britzl/defold-png/archive/master.zip
 dependencies#1 = https://github.com/andsve/def-diags/archive/master.zip
-dependencies#2 = https://github.com/britzl/defold-lfs/archive/master.zip
-dependencies#3 = https://github.com/Car3man/extension-zip/archive/refs/tags/1.0.0.zip
-dependencies#4 = https://github.com/britzl/defold-clipboard/archive/master.zip
+dependencies#2 = https://github.com/Car3man/extension-zip/archive/refs/tags/1.0.0.zip
+dependencies#3 = https://github.com/britzl/defold-clipboard/archive/master.zip
+dependencies#4 = https://github.com/britzl/defold-lfs/archive/refs/tags/1.1.0.zip
 
 [graphics]
 default_texture_min_filter = nearest

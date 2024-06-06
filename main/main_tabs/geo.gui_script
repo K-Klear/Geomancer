@@ -1,0 +1,74 @@
+local MEM = require "modules.memory"
+local UI = require "modules.ui"
+
+function init(self)
+	gui.set_render_order(1)
+	UI.load_template({"geo_visual", "geo_collision"}, "tab_geo")
+	msg.post("#", hash("disable"))
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+	elseif message_id == hash("show") then
+		msg.post("#", hash("enable"))
+		msg.post("#", hash("acquire_input_focus"))
+	end
+end
+
+local function load_geo_data()
+	local geo_data
+	local num, path = diags.open("zip,pw_geo")
+	if path then
+		local f = io.open(path, "rb")
+		if f then
+			if string.sub(path, -3) == "zip" then
+				local zip_data = f:read("*a")
+				local archive = zip.open(zip_data)
+				local file_index = zip.get_number_of_entries(archive) - 1
+				for i = 0, file_index do
+					local file = zip.extract_by_index(archive, i)
+					if string.sub(file.name, -6) == "pw_geo" then
+						geo_data = file.content
+						break
+					end
+				end
+			else
+				geo_data = f:read("*a")
+			end
+		end
+		io.close(f)
+	end
+	return geo_data
+end
+
+local function evaluate_button(button)
+	if button == "geo_visual" then
+		local geo_data = load_geo_data()
+		if geo_data then
+			local start, chunk, slices = MEM.load_geo(geo_data, "selected file")
+			if slices then
+				MEM.geo_data.slices = slices
+				msg.post("/navbar#navbar", hash("update_status"), {text = "Visual data replaced.", clear = true})
+			end
+		else
+			msg.post("/navbar#navbar", hash("update_status"), {text = "Error loading geo data.", clear = true})
+		end
+	elseif button == "geo_collision" then
+		local geo_data = load_geo_data()
+		if geo_data then
+			local start, chunk, slices = MEM.load_geo(geo_data, "selected file")
+			if chunk then
+				MEM.geo_data.chunk = chunk
+				msg.post("/navbar#navbar", hash("update_status"), {text = "Collision data replaced.", clear = true})
+			end
+		else
+			msg.post("/navbar#navbar", hash("update_status"), {text = "Error loading geo data.", clear = true})
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input("tab_geo", action_id, action, evaluate_button)
+end

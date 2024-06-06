@@ -1,0 +1,212 @@
+local MEM = require "modules.memory"
+local UI = require "modules.ui"
+local SET = require "modules.settings"
+
+local obstacle_list, selected_obstacle, evaluate_button
+
+MEM.beat_data.changed_obstacles = {}
+
+local obstacle_types = {}
+obstacle_types.Normal = {Sidestep = true, LimboTall = true, LimboShort = true}
+obstacle_types.Pipes = {Sidestep = true, LimboTall = true, LimboShort = true, Wall = true, TunnelTall = true, TunnelShort = true}
+obstacle_types.Rocks = {Sidestep = true, LimboTall = true, LimboShort = true, Wall = true, TunnelTall = true, TunnelShort = true}
+obstacle_types.Colony = {Sidestep = true, LimboTall = true, LimboShort = true, Wall = true}
+obstacle_types.Tower = {Sidestep = true, LimboTall = true, LimboShort = true}
+obstacle_types.Crates = {Sidestep = true, LimboTall = true, LimboShort = true, Wall = true, TunnelTall = true, TunnelShort = true}
+obstacle_types.Train = {Sidestep = true, LimboTall = true, LimboShort = true}
+obstacle_types.EarthCracker = {LimboTall = true, LimboShort = true}
+obstacle_types.ShredPipes = {Sidestep = true, LimboTall = true, LimboShort = true, Wall = true, TunnelTall = true, TunnelShort = true}
+obstacle_types.Vaporwave = {Sidestep = true, LimboTall = true, LimboShort = true, Wall = true, TunnelTall = true, TunnelShort = true}
+obstacle_types.Castle = {Sidestep = true, LimboTall = true, LimboShort = true, Wall = true}
+obstacle_types.Spooky = {LimboTall = true, LimboShort = true}
+obstacle_types.AirDrop = {Sidestep = true, LimboTall = true, LimboShort = true}
+
+local enemy_names = {
+	normal = "Normal",
+	tough = "Tough",
+	chuck = "Heavy",
+	horse = "Horse Rider",
+	shield = "Shielded",
+	turret = "Normal Turret",
+	minigun = "Minigun Turret",
+	skull = "Flying Skull",
+	trap = "Glitched Enemy"
+}
+local internal_names = {
+	normal = "Normal",
+	tough = "Tough",
+	chuck = "ChuckNorris",
+	horse = "Mounted Enemy",
+	shield = "Shield",
+	turret = "Normal Turret",
+	minigun = "Minigun Turret",
+	skull = "FlyingBomb",
+	trap = "Trap Enemy"
+}
+local enemy_name_order = {"normal", "tough", "chuck", "horse", "shield", "turret", "minigun", "skull", "trap"}
+local obstacle_names = {Sidestep = "sidestep", LimboTall = "limbo_tall", LimboShort = "limbo_short", Wall = "wall", TunnelShort = "tunnel_short", TunnelTall = "tunnel_tall"}
+
+--local obstacle_types = {"Sidestep", "LimboTall", "LimboShort", "Wall", "TunnelTall", "TunnelShort"}
+--local obstacle_positions = {"Right", "FarRight", "EvenMoreRight"}
+--obstacle_positions[0] = "Center"
+--obstacle_positions[-1] = "Left"
+--obstacle_positions[-2] = "FarLeft"
+--obstacle_positions[-3] = "EvenMoreLeft"
+
+local function get_button_pos(button_count, button)
+	local pos = 10 / (button_count + 1)
+	pos = pos * button - 5
+	pos = pos * 140 + 640
+	return pos
+end
+
+local function show_enemy_buttons()
+	local button_list = {}
+	for key, val in ipairs(enemy_name_order) do
+		if MEM.beat_data.enemy_types[val] then
+			table.insert(button_list, val)
+			UI.load_template(val, "tab_beat")
+		else
+			UI.unload_template("tab_beat", val)
+		end
+		gui.set_enabled(gui.get_node(val.."/button_white"), MEM.beat_data.enemy_types[val])
+	end
+	if #button_list > 0 then
+		for key, val in ipairs(button_list) do
+			gui.set(gui.get_node(val.."/button_white"), "position.x", get_button_pos(#button_list, key))
+		end
+	end
+end
+
+local function update_obstacle(obstacle_index)
+	local obst = MEM.beat_data.obstacle_list[obstacle_index]
+	local node = gui.get_node("obstacle_props")
+	gui.set_enabled(node, true)
+	local function seconds_to_minutes(time)
+		return math.floor(time / 60)..":"..math.floor(time % 60)
+	end
+	gui.set_text(node, "Time: "..obst.time.." ("..seconds_to_minutes(obst.time)..")\nType: "..obst.type.."\nPosition: "..obst.placement)
+end
+
+function init(self)
+	gui.set_render_order(1)
+	msg.post("#", hash("disable"))
+	gui.set_enabled(gui.get_node("obstacle_props"), false)
+	local list_tab = {
+		{
+			type = hash("exclusive_button"),
+			node = gui.get_node("obstacle_exclusive/button_white"),
+			text_node = gui.get_node("obstacle_exclusive/text"),
+			value_fn = function(i)
+				local obst = MEM.beat_data.obstacle_list[i]
+				return obst.type.." ("..obst.time..")"
+			end,
+			template = "obstacle_exclusive;",
+			fn = evaluate_button
+		},
+		item_count = 0,
+		scroll_prefix = "obstacle_",
+		horizontal = true
+	}
+	obstacle_list = UI.create_list("tab_beat", gui.get_node("obstacle_list"), list_tab)
+	UI.load_template({"sidestep", "limbo_short", "limbo_tall", "wall", "tunnel_short", "tunnel_tall"}, "tab_beat")
+end
+
+local function replace(new_type, old_type)
+	local pos = string.find(MEM.beat_data.string, internal_names[old_type])
+	if pos then
+		local string_start = string.sub(MEM.beat_data.string, 1, pos - 1)
+		local string_end = string.sub(MEM.beat_data.string, pos + #internal_names[old_type])
+		MEM.beat_data.string = string_start..internal_names[new_type]..string_end
+		return replace(new_type, old_type)
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		msg.post("/dialog#dialog_replace_enemy", hash("hide"))
+	elseif message_id == hash("show") then
+		msg.post("#", hash("enable"))
+		msg.post("#", hash("acquire_input_focus"))
+		UI.update_list("tab_beat", obstacle_list, #MEM.beat_data.obstacle_list)
+
+		if MEM.level_data.obstacle_set then
+			for internal, geomancer in pairs(obstacle_names) do
+				if not obstacle_types[MEM.level_data.obstacle_set][internal] then
+					gui.set_color(gui.get_node(geomancer.."/text"), SET.colour_unsupported_obstacle)
+				else
+					gui.set_color(gui.get_node(geomancer.."/text"), vmath.vector4(1, 1, 1, 1))
+				end
+			end
+		end
+		show_enemy_buttons()
+	elseif message_id == hash("reset") then
+		selected_obstacle = nil
+		gui.set_enabled(gui.get_node("obstacle_props"), false)
+		UI.update_list("tab_beat", obstacle_list, 0)
+	elseif message_id == hash("dialog_closed") then
+		if message.dialog == hash("replace_enemy") and message.enemy_clicked then
+			msg.post("/navbar#navbar", hash("update_status"), {text = "Replacing "..enemy_names[message.enemy_to_replace].." with "..enemy_names[message.enemy_clicked]..".", clear = true})
+			replace(message.enemy_clicked, message.enemy_to_replace)
+			MEM.beat_data.enemy_types[message.enemy_clicked] = true
+			MEM.beat_data.enemy_types[message.enemy_to_replace] = false
+			show_enemy_buttons()
+		end
+		msg.post("#", hash("acquire_input_focus"))
+	end
+end
+
+local function set_new_type(obst_type)
+	if not selected_obstacle then
+		msg.post("/navbar#navbar", hash("update_status"), {text = "Select an obstacle first", clear = true})
+		return
+	end
+	local obst = MEM.beat_data.obstacle_list[selected_obstacle]
+	obst.type = obst_type
+	update_obstacle(selected_obstacle)
+	MEM.beat_data.changed_obstacles[obst.beat_data_key] = true
+	MEM.beat_data.table[obst.beat_data_key].obstacles[obst.obstacles_key].type = obst.type
+	if MEM.level_data.obstacle_set then
+		if not obstacle_types[MEM.level_data.obstacle_set][obst_type] then
+			msg.post("/navbar#navbar", hash("update_status"), {text = "Obstacle type "..obst_type.." may not be compatible with the loaded obstacle set ("..MEM.level_data.obstacle_set..")", clear = true})
+		end
+	end
+	UI.update_list("tab_beat", obstacle_list)
+end
+
+function evaluate_button(button, item)
+	if MEM.beat_data.enemy_types[button] then
+		msg.post("/dialog#dialog_replace_enemy", hash("show"), {enemy_to_replace = button})
+		msg.post("#", hash("release_input_focus"))
+	elseif button == "sidestep" then
+		set_new_type("Sidestep")
+	elseif button == "limbo_tall" then
+		set_new_type("LimboTall")
+	elseif button == "limbo_short" then
+		set_new_type("LimboShort")
+	elseif button == "wall" then
+		set_new_type("Wall")
+	elseif button == "tunnel_tall" then
+		set_new_type("TunnelTall")
+	elseif button == "tunnel_short" then
+		set_new_type("TunnelShort")
+	elseif button == obstacle_list then
+		selected_obstacle = item
+		update_obstacle(item)
+	end
+end
+
+
+function update()
+	if UI.current_tab == "tab_beat" then
+		for list_index in pairs(UI.tab.tab_beat.scrolling) do
+			UI.move_list_root("tab_beat", list_index, true)
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input("tab_beat", action_id, action, evaluate_button, evaluate_input)
+end

@@ -1,0 +1,95 @@
+local MEM = require "modules.memory"
+local UI = require "modules.ui"
+
+local enemy_set_names = {}
+enemy_set_names.Normal = "Henchmen"
+enemy_set_names.Robots = "Robots"
+enemy_set_names.Outlaws = "Bandits"
+enemy_set_names.Targets = "Targets"
+enemy_set_names.Majesty = "Knights"
+enemy_set_names.Skeletons = "Skeletons"
+
+
+function init(self)
+	gui.set_render_order(1)
+	UI.load_template({"btn_enemies", "btn_obstacles", "btn_materials", "btn_movement"}, "tab_level")
+	local validation = {
+		integer = true,
+		min = function() return 0 end,
+		max = function() return math.floor(MEM.level_data.song_length) or (1/0) end,
+		default = function() return MEM.level_data.preview_time end
+	}
+	UI.load_text_field("preview_time", 3, "tab_level", validation)
+	msg.post("#", hash("disable"))
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		msg.post("/enemy#dialog_enemy_set", hash("hide"))
+		msg.post("/obstacles#dialog_obstacles", hash("hide"))
+		msg.post("/material#dialog_material", hash("hide"))
+	elseif message_id == hash("show") then
+		msg.post("#", hash("enable"))
+		msg.post("#", hash("acquire_input_focus"))
+		gui.set_text(gui.get_node("btn_enemies/text"), enemy_set_names[MEM.level_data.enemy_set])
+		gui.set_text(gui.get_node("btn_obstacles/text"), MEM.level_data.obstacle_set)
+		gui.set_text(gui.get_node("btn_materials/text"), MEM.level_data.material_set)
+		gui.set_text(gui.get_node("btn_movement/text"), MEM.level_data.move_mode)
+		gui.set_text(gui.get_node("preview_time/text"), MEM.level_data.preview_time)
+	elseif message_id == hash("dialog_closed") then
+		if message.dialog == hash("obstacles") then
+			if message.obstacle then
+				MEM.level_data.obstacle_set = message.obstacle
+				gui.set_text(gui.get_node("btn_obstacles/text"), MEM.level_data.obstacle_set)
+			else
+				msg.post("#", hash("acquire_input_focus"))
+			end
+		elseif message.dialog == hash("material") then
+			if message.material then
+				MEM.level_data.material_set = message.material
+				gui.set_text(gui.get_node("btn_materials/text"), MEM.level_data.material_set)
+			else
+				msg.post("#", hash("acquire_input_focus"))
+			end
+		elseif message.dialog == hash("enemy_set") then
+			if message.enemy_set then
+				MEM.level_data.enemy_set = message.enemy_set
+				gui.set_text(gui.get_node("btn_enemies/text"), enemy_set_names[MEM.level_data.enemy_set])
+			end
+			msg.post("#", hash("acquire_input_focus"))
+		end
+	end
+end
+
+local function evaluate_button(button)
+	if button == "btn_enemies" then
+		msg.post("/enemy#dialog_enemy_set", hash("show"), {enemy_set = MEM.level_data.enemy_set})
+		msg.post("#", hash("release_input_focus"))
+	elseif button == "btn_obstacles" then
+		msg.post("/obstacles#dialog_obstacles", hash("show"), {current_set = MEM.level_data.obstacle_set})
+		msg.post("#", hash("release_input_focus"))
+	elseif button == "btn_materials" then
+		msg.post("/material#dialog_material", hash("show"), {current_set = MEM.level_data.material_set})
+		msg.post("#", hash("release_input_focus"))
+	elseif button == "btn_movement" then
+		if MEM.level_data.move_mode == "Moving" then
+			MEM.level_data.move_mode = "Stationary"
+		else
+			MEM.level_data.move_mode = "Moving"
+		end
+		gui.set_text(gui.get_node("btn_movement/text"), MEM.level_data.move_mode)
+	end
+end
+
+local function evaluate_input(field, text)
+	if field == "preview_time" then
+		MEM.level_data.preview_time = text
+		gui.set_text(gui.get_node("preview_time/text"), MEM.level_data.preview_time)
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input("tab_level", action_id, action, evaluate_button, evaluate_input)
+end

@@ -1,0 +1,97 @@
+local UI = require "modules.ui"
+local MEM = require "modules.memory"
+local SET = require "modules.settings"
+
+local status_text = {"Welcome to Geomancer!", "", "Start by loading a map file, folder or separate files."}
+local status_text_node, status_background, status_font
+
+local function status_update(text, clear)
+	if clear then
+		status_text = {text}
+	elseif text then
+		table.insert(status_text, text)
+	end
+	local str = ""
+	local line_breaks = 0
+	local width = gui.get_size(status_background).x
+	for key, val in ipairs(status_text) do
+		local metrics = resource.get_text_metrics(status_font, val)
+		line_breaks = line_breaks + math.floor(metrics.width / width)
+		str = str..val.."\n"
+	end
+	gui.set_text(status_text_node, str)
+	local metrics = resource.get_text_metrics(status_font, str)
+	gui.set_size(status_background, vmath.vector3(width, metrics.height + (line_breaks * 14), 1))
+end
+
+function init(self)
+	gui.set_render_order(0)
+	if SET.debug then
+		profiler.enable_ui(true)
+		profiler.set_ui_view_mode(profiler.VIEW_MODE_MINIMIZED)
+	end
+	status_background = gui.get_node("status_background")
+	status_text_node = gui.get_node("status_text")
+	status_font = gui.get_font_resource(gui.get_font(status_text_node))
+	if SET.cfg_appended then
+		status_update("__________________________________________")
+		status_update("One or more entries added to geomancer.cfg")
+	elseif SET.cfg_created then
+		status_update("__________________________________________")
+		status_update("geomancer.cfg created using default values")
+	end
+	msg.post("@render:", hash("clear_color"), {color = SET.background_colour})
+	msg.post(".", hash("acquire_input_focus"))
+	msg.post("/file#tab_file", hash("show"))
+	status_update()
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("update_status") then
+		status_update(message.text, message.clear)
+	elseif message_id == hash("update_tabs") then
+		for key, val in pairs(UI.tab) do
+			if not (val.state == nil) then
+				if key == UI.current_tab then
+					val.state = "active"
+				elseif val.state then
+					gui.play_flipbook(gui.get_node(key), "tab_normal")
+				else
+					gui.play_flipbook(gui.get_node(key), "tab_disabled")
+				end
+			end
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	if action.pressed then
+		for key, val in pairs(UI.tab) do
+			if val.state and not (UI.current_tab == key) and gui.pick_node(gui.get_node(key), action.x, action.y) then
+				msg.post(UI.tab[UI.current_tab].path, hash("hide"))
+				msg.post(val.path, hash("show"))
+				gui.play_flipbook(gui.get_node(UI.current_tab), "tab_normal")
+				gui.play_flipbook(gui.get_node(key), "tab_active")
+				UI.current_tab = key
+				if MEM.level_data.scene_name then
+					status_update("Loaded scene: "..MEM.level_data.scene_name, true)
+				else
+					status_update("Unknown scene name", true)
+				end
+				if key == "tab_event" and not SET.autodetect_sample_rate then
+					status_update("Be sure to set the correct sample rate first, otherwise BPM and values in seconds will be inaccurate.")
+				end
+				--[[
+				if key == "tab_art" then
+					ART.update_model_list()
+				elseif key == "tab_beat" then
+					BEAT.update_obstacles()
+					BEAT.update_buttons()
+				elseif key == "tab_meta" then
+					S.update("Start by loading one or more png files with the size of 167 x 166. Their names have to be a number representing the Z position of the resulting geo slice.", false)
+				end
+				--]]
+			end
+		end
+	end
+end

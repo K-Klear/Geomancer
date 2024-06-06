@@ -1,0 +1,6 @@
+INFO:DLIB: Writing log to: ./log.txt
+INFO:ENGINE: Loading data from: build/default
+INFO:LFS: Registered lfs Extension
+
+INFO:ENGINE: Initialised sound device 'default'
+INFO:DLIB: SSDP: Started on address 192.168.0.248
