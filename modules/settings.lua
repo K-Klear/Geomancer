@@ -3,6 +3,14 @@ local SET = {}
 SET.scroll_speed = 150
 SET.scroll_time = 0.6
 
+-- file
+
+SET.default_path_load_directory = ""
+SET.default_path_load_zip = ""
+SET.default_path_load_file = ""
+SET.default_path_export = ""
+SET.default_path_export_overwrite = ""
+
 -- events
 SET.sample_rate = 48000
 SET.default_sample_rate = 48000

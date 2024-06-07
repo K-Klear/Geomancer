@@ -1,11 +1,12 @@
 local UI = require "modules.ui"
 local MEM = require "modules.memory"
 local G = require "modules.global"
+local SET = require "modules.settings"
 
 function init(self)
 	gui.set_render_order(1)
 	gui.set_text(gui.get_node("version_label"), "Version "..sys.get_config("project.version"))
-	UI.load_template({"exit", "load_dir", "load_file", "load_zip", "unload_all", "export_all", "export_overwrite"}, "tab_file")
+	UI.load_template({"exit", "load_dir", "load_file", "load_zip", "unload_all", "export_all", "export_overwrite", "help"}, "tab_file")
 end
 
 function on_message(self, message_id, message, sender)
@@ -398,7 +399,12 @@ end
 
 local function export_all(overwrite)
 	if UI.tab.tab_level.state or UI.tab.tab_event.state or UI.tab.tab_geo.state or UI.tab.tab_beat.state or UI.tab.tab_meta.state or UI.tab.tab_art.state then
-		local num, path = diags.open_folder()
+		local num, path
+		if overwrite then
+			num, path = diags.open_folder(SET.default_path_export)
+		else
+			num, path = diags.open_folder(SET.default_path_export_overwrite)
+		end
 		if path then
 			local filenames = {}
 			local common_filename = "map"
@@ -482,8 +488,10 @@ end
 local function evaluate_button(button)
 	if button == "exit" then
 		os.exit(1)
+	elseif button == "help" then
+		sys.open_url("https://mod.io/g/pistol-whip/r/geomancer")
 	elseif button == "load_file" then
-		local num, path = diags.open("pw_meta,pw,pw_beat,pw_event,pw_geo,pw_art,pw_seq")
+		local num, path = diags.open("pw_meta,pw,pw_beat,pw_event,pw_geo,pw_art,pw_seq", SET.default_path_load_file)
 		if path then
 			local htap = string.reverse(path)
 			local filename = string.reverse(string.sub(htap, 1, string.find(htap, "\\") - 1))
@@ -503,7 +511,7 @@ local function evaluate_button(button)
 			end)
 		end
 	elseif button == "load_zip" then
-		local num, path = diags.open("zip")
+		local num, path = diags.open("zip", SET.default_path_load_zip)
 		if path then
 			local f = io.open(path, "rb")
 			if f then
@@ -566,7 +574,7 @@ local function evaluate_button(button)
 			end
 		end
 	elseif button == "load_dir" then
-		local num, path = diags.open_folder()
+		local num, path = diags.open_folder(SET.default_path_load_directory)
 		if path then
 			msg.post("/navbar#navbar", hash("update_status"), {text = "Loading files from "..path, clear = true})
 			local files_to_load = {}

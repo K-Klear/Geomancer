@@ -2,9 +2,21 @@ local SET = require "modules.settings"
 
 local proxy_is_loaded, settings_are_loaded
 
+SET.default_path_load_directory = "B:\\PISTOL WHIP MAPS\\hors_geomanced"
+SET.default_path_load_zip = "B:\\PISTOL WHIP MAPS"
+SET.default_path_load_file = "B:\\PISTOL WHIP MAPS\\scream_geomanced"
+SET.default_path_export = "C:\\Users\\Public\\PistolWhip\\Sideloads\\zip"
+SET.default_path_export_overwrite = "C:\\Users\\Public\\PistolWhip\\Sideloads\\mix\\scream"
+
 local default_settings_text = {
 	"When editing, keep the format [variable_name][=][value][;]. Anything beyond this is ignored when loading configuration.",
 	"If there are any missing variables or the values cannot be read/are in the wrong format, Geomancer will add new entries for them with default values on launch.",
+	"",
+	"default_path_load_directory=;", 
+	"default_path_load_zip=;",
+	"default_path_load_file=;",
+	"default_path_export=;",
+	"default_path_export_overwrite=;",
 	"",
 	"autodetect_sample_rate=true;",
 	"default_sample_rate=48000;		-- this value is used if autodetect is turned off or sample rate cannot be determined",
@@ -41,7 +53,12 @@ local settings_to_load = {
 	restrict_rotations_to_360 = {type = "boolean"},
 	tween_action_type_dialog = {type = "boolean"},
 	tween_part_dialog = {type = "boolean"},
-	tween_extra_add_buttons = {type = "boolean"}
+	tween_extra_add_buttons = {type = "boolean"},
+	default_path_load_directory = {type = "path"},
+	default_path_load_zip = {type = "path"},
+	default_path_load_file = {type = "path"},
+	default_path_export = {type = "path"},
+	default_path_export_overwrite = {type = "path"}
 }
 
 
@@ -92,7 +109,10 @@ function init(self)
 			local z = string.sub(str, comma_2 + 1)
 			return vmath.vector4(tonumber(x), tonumber(y), tonumber(z), 1)
 		end
-
+		function parse.path(str)
+			return str
+		end
+			
 		local loaded_settings = {}
 		for line in io.lines("geomancer.cfg") do
 			local equals = string.find(line, "=")
