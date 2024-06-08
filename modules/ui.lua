@@ -24,6 +24,7 @@ UI.tab = {
 	tab_meta = {path = "/meta#tab_meta", state = false, buttons = {}, fields = {}},
 	tab_sequence = {path = "/sequence#tab_sequence", state = false, buttons = {}},
 	tab_art = {path = "/art#tab_art", state = false, buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
+	dialog_confirm = {path = "/confirm#dialog_confirm", buttons = {}, fields = {}},
 	dialog_obstacles = {path = "/obstacles#dialog_obstacles", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
 	dialog_material = {path = "/material#dialog_material", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
 	dialog_enemy_set = {path = "/enemy#dialog_enemy_set", buttons = {}, fields = {}},

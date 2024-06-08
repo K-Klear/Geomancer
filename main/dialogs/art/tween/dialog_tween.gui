@@ -3376,7 +3376,182 @@ nodes {
 }
 nodes {
   position {
-    x: -160.0
+    x: -586.0
+    y: -318.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_TEMPLATE
+  id: "tween_signal"
+  parent: "edit_box"
+  layer: ""
+  inherit_alpha: false
+  alpha: 1.0
+  template: "/templates/text_field.gui"
+  template_node_child: false
+  custom_type: 0
+  enabled: true
+}
+nodes {
+  position {
+    x: -9.0
+    y: -20.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 240.0
+    y: 40.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_BOX
+  blend_mode: BLEND_MODE_ALPHA
+  texture: "UI/text_field_small"
+  id: "tween_signal/box"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_W
+  adjust_mode: ADJUST_MODE_FIT
+  parent: "tween_signal"
+  layer: "below"
+  inherit_alpha: false
+  slice9 {
+    x: 10.0
+    y: 10.0
+    z: 10.0
+    w: 10.0
+  }
+  clipping_mode: CLIPPING_MODE_NONE
+  clipping_visible: true
+  clipping_inverted: false
+  alpha: 1.0
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  overridden_fields: 21
+  template_node_child: true
+  size_mode: SIZE_MODE_MANUAL
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
+}
+nodes {
+  position {
+    x: 6.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  type: TYPE_TEXT
+  blend_mode: BLEND_MODE_ALPHA
+  text: "123454678901232"
+  font: "main_menu_button_small"
+  id: "tween_signal/text"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  adjust_mode: ADJUST_MODE_FIT
+  line_break: false
+  parent: "tween_signal/box"
+  layer: "text"
+  inherit_alpha: false
+  alpha: 1.0
+  outline_alpha: 1.0
+  shadow_alpha: 1.0
+  overridden_fields: 8
+  overridden_fields: 20
+  overridden_fields: 21
+  template_node_child: true
+  text_leading: 1.0
+  text_tracking: 0.0
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: "font-df"
+}
+nodes {
+  position {
+    x: -245.0
     y: -335.0
     z: 0.0
     w: 1.0
@@ -3550,7 +3725,7 @@ nodes {
 }
 nodes {
   position {
-    x: 44.0
+    x: -65.0
     y: -335.0
     z: 0.0
     w: 1.0
@@ -3724,7 +3899,7 @@ nodes {
 }
 nodes {
   position {
-    x: 250.0
+    x: 119.0
     y: -335.0
     z: 0.0
     w: 1.0
@@ -3889,6 +4064,73 @@ nodes {
   overridden_fields: 8
   overridden_fields: 20
   template_node_child: true
+  text_leading: 1.0
+  text_tracking: 0.0
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
+}
+nodes {
+  position {
+    x: -480.0
+    y: -303.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 250.0
+    y: 60.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_TEXT
+  blend_mode: BLEND_MODE_ALPHA
+  text: "Signal"
+  font: "tab_caption"
+  id: "lbl_tween_signal"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  adjust_mode: ADJUST_MODE_FIT
+  line_break: true
+  parent: "edit_box"
+  layer: "text"
+  inherit_alpha: false
+  alpha: 1.0
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+  template_node_child: false
   text_leading: 1.0
   text_tracking: 0.0
   custom_type: 0
@@ -4072,8 +4314,8 @@ nodes {
 }
 nodes {
   position {
-    x: -559.0
-    y: -318.0
+    x: 325.0
+    y: -315.0
     z: 0.0
     w: 1.0
   }
@@ -4102,20 +4344,20 @@ nodes {
     w: 1.0
   }
   type: TYPE_TEMPLATE
-  id: "tween_signal"
+  id: "dialog_tween_save"
   parent: "edit_box"
   layer: ""
   inherit_alpha: false
   alpha: 1.0
-  template: "/templates/text_field.gui"
+  template: "/templates/button_white_small.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
 }
 nodes {
   position {
-    x: -9.0
-    y: -20.0
+    x: 0.0
+    y: 0.0
     z: 0.0
     w: 1.0
   }
@@ -4132,7 +4374,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 240.0
+    x: 180.0
     y: 40.0
     z: 0.0
     w: 1.0
@@ -4145,20 +4387,20 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "UI/text_field_small"
-  id: "tween_signal/box"
+  texture: "UI/button_white"
+  id: "dialog_tween_save/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
-  pivot: PIVOT_W
+  pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
-  parent: "tween_signal"
+  parent: "dialog_tween_save"
   layer: "below"
-  inherit_alpha: false
+  inherit_alpha: true
   slice9 {
-    x: 10.0
-    y: 10.0
-    z: 10.0
-    w: 10.0
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
@@ -4167,7 +4409,6 @@ nodes {
   overridden_fields: 1
   overridden_fields: 4
   overridden_fields: 20
-  overridden_fields: 21
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -4177,8 +4418,78 @@ nodes {
 }
 nodes {
   position {
-    x: 6.0
+    x: 0.0
     y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 160.0
+    y: 70.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  type: TYPE_TEXT
+  blend_mode: BLEND_MODE_ALPHA
+  text: "Save tween"
+  font: "main_menu_button_small"
+  id: "dialog_tween_save/text"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  adjust_mode: ADJUST_MODE_FIT
+  line_break: true
+  parent: "dialog_tween_save/button_white"
+  layer: "text"
+  inherit_alpha: true
+  alpha: 1.0
+  outline_alpha: 1.0
+  shadow_alpha: 1.0
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+  text_leading: 1.0
+  text_tracking: 0.0
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
+}
+nodes {
+  position {
+    x: 325.0
+    y: -355.0
     z: 0.0
     w: 1.0
   }
@@ -4201,54 +4512,26 @@ nodes {
     w: 1.0
   }
   color {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  type: TYPE_TEXT
-  blend_mode: BLEND_MODE_ALPHA
-  text: "123454678901232"
-  font: "main_menu_button_small"
-  id: "tween_signal/text"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_W
-  outline {
     x: 1.0
     y: 1.0
     z: 1.0
     w: 1.0
   }
-  shadow {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  adjust_mode: ADJUST_MODE_FIT
-  line_break: false
-  parent: "tween_signal/box"
-  layer: "text"
+  type: TYPE_TEMPLATE
+  id: "dialog_tween_load"
+  parent: "edit_box"
+  layer: ""
   inherit_alpha: false
   alpha: 1.0
-  outline_alpha: 1.0
-  shadow_alpha: 1.0
-  overridden_fields: 8
-  overridden_fields: 20
-  overridden_fields: 21
-  template_node_child: true
-  text_leading: 1.0
-  text_tracking: 0.0
+  template: "/templates/button_white_small.gui"
+  template_node_child: false
   custom_type: 0
   enabled: true
-  visible: true
-  material: "font-df"
 }
 nodes {
   position {
-    x: -453.0
-    y: -303.0
+    x: 0.0
+    y: 0.0
     z: 0.0
     w: 1.0
   }
@@ -4265,8 +4548,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 250.0
-    y: 60.0
+    x: 180.0
+    y: 40.0
     z: 0.0
     w: 1.0
   }
@@ -4276,11 +4559,73 @@ nodes {
     z: 1.0
     w: 1.0
   }
+  type: TYPE_BOX
+  blend_mode: BLEND_MODE_ALPHA
+  texture: "UI/button_white"
+  id: "dialog_tween_load/button_white"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  adjust_mode: ADJUST_MODE_FIT
+  parent: "dialog_tween_load"
+  layer: "below"
+  inherit_alpha: true
+  slice9 {
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
+  }
+  clipping_mode: CLIPPING_MODE_NONE
+  clipping_visible: true
+  clipping_inverted: false
+  alpha: 1.0
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+  size_mode: SIZE_MODE_MANUAL
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
+}
+nodes {
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 160.0
+    y: 70.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "Signal"
-  font: "tab_caption"
-  id: "lbl_tween_signal"
+  text: "Load tween"
+  font: "main_menu_button_small"
+  id: "dialog_tween_load/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -4298,13 +4643,16 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: true
-  parent: "edit_box"
+  parent: "dialog_tween_load/button_white"
   layer: "text"
-  inherit_alpha: false
+  inherit_alpha: true
   alpha: 1.0
-  outline_alpha: 0.0
-  shadow_alpha: 0.0
-  template_node_child: false
+  outline_alpha: 1.0
+  shadow_alpha: 1.0
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
   text_leading: 1.0
   text_tracking: 0.0
   custom_type: 0

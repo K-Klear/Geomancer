@@ -1043,8 +1043,8 @@ nodes {
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
-  outline_alpha: 1.0
-  shadow_alpha: 1.0
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
   overridden_fields: 1
   overridden_fields: 4
   overridden_fields: 8
@@ -1052,6 +1052,8 @@ nodes {
   overridden_fields: 14
   overridden_fields: 18
   overridden_fields: 20
+  overridden_fields: 31
+  overridden_fields: 32
   overridden_fields: 47
   template_node_child: true
   text_leading: 1.0
@@ -2860,8 +2862,8 @@ nodes {
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
-  outline_alpha: 1.0
-  shadow_alpha: 1.0
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
   overridden_fields: 1
   overridden_fields: 4
   overridden_fields: 8
@@ -2869,6 +2871,8 @@ nodes {
   overridden_fields: 14
   overridden_fields: 18
   overridden_fields: 20
+  overridden_fields: 31
+  overridden_fields: 32
   overridden_fields: 47
   template_node_child: true
   text_leading: 1.0

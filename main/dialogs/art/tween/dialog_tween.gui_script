@@ -1,10 +1,12 @@
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
 local SET = require "modules.settings"
+local G = require "modules.global"
 
 local parent_tab
 local action_list, model_index, model_name, tween_actions, signal, evaluate_button
 local dialog_open = false
+local path_to_tween
 
 local function calculate_tween_speed(action_index)
 	local action = tween_actions[action_index]
@@ -33,7 +35,7 @@ local action_types = {T = "Move", R = "Rotate", S = "Scale", W = "Wait", X = "Re
 function init(self)
 	gui.set_render_order(2)
 	msg.post("#", hash("disable"))
-	UI.load_template({"dialog_tween_close", "dialog_tween_add", "dialog_tween_copy", "dialog_tween_delete"}, "dialog_tween")
+	UI.load_template({"dialog_tween_close", "dialog_tween_add", "dialog_tween_copy", "dialog_tween_delete", "dialog_tween_save", "dialog_tween_load"}, "dialog_tween")
 	UI.load_text_field("tween_signal", 14, "dialog_tween", {text = true, json_safe = true, not_empty = true, default = function() return signal end})
 	local function is_not_wait(i)
 		return not (tween_actions[i].type == "W" or tween_actions[i].type == "X")
@@ -419,6 +421,16 @@ local function evaluate_field(field, text, item)
 	end
 end
 
+local function save_tween_data(path)
+	local works, f = pcall(io.output, path)
+	if works then
+		io.write(json.encode(tween_actions))
+		io.close(f)
+	else
+		msg.post("/navbar#navbar", hash("update_status"), {text = "Error saving tween data.", clear = true})
+	end
+end
+
 function evaluate_button(button, item)
 	if button == "dialog_tween_close" then
 		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("tween"), model_index = model_index, signal = signal})
@@ -433,6 +445,43 @@ function evaluate_button(button, item)
 	elseif button == "dialog_tween_copy" then
 		msg.post("/tween_copy#dialog_tween_copy", hash("show"), {model = model_index})
 		msg.post("#", hash("release_input_focus"))
+	elseif button == "dialog_tween_save" then
+		local _, path
+		if sys.exists(SET.default_path_save_tween) then
+			path = SET.default_path_save_tween
+		else
+			_, path = diags.open_folder(SET.default_path_save_tween)
+		end
+		path = path.."\\"
+		local filename = model_name
+		local ext = ".pw_tween"
+		if SET.ask_before_overwriting_tween_file and sys.exists(path..filename..ext) then
+			path_to_tween = {path, filename, ext}
+			msg.post("#", hash("release_input_focus"))
+			msg.post("/confirm#dialog_confirm", hash("show"), {title = filename..ext.." already exitsts. Overwrite?", button_1 = "Overwrite", button_2 = "Rename", button_3 = "Cancel", subject = "overwrite_tween"})
+		else
+			save_tween_data(path..filename..ext)
+		end
+	elseif button == "dialog_tween_load" then
+		_, path = diags.open("pw_tween", SET.default_path_save_tween)
+		if path then
+			local f = io.open(path, "rb")
+			if f then
+				local tween_data = G.safe_decode(f:read("*a"), "saved tween")
+				if tween_data then
+					for i = 1, #tween_actions do
+						tween_actions[i] = nil
+					end
+					for key, val in ipairs(tween_data) do
+						tween_actions[key] = val
+						if val.part > #MEM.art_data.part_names[model_name] then
+							tween_actions[key].part = 0
+						end
+					end
+				end
+			end
+		end
+		UI.update_list("dialog_tween", action_list, #tween_actions)
 	elseif button == "dialog_tween_delete" then
 		for i = #tween_actions, 1, -1 do
 			tween_actions[i] = nil
@@ -535,6 +584,7 @@ function on_message(self, message_id, message, sender)
 		msg.post("/tween_action#dialog_tween_action", hash("hide"))
 		msg.post("/tween_part#dialog_tween_part", hash("hide"))
 		msg.post("/tween_copy#dialog_tween_copy", hash("hide"))
+		msg.post("/confirm#dialog_confirm", hash("hide"))
 		dialog_open = false
 		tween_actions = nil
 		if model_index then
@@ -560,6 +610,25 @@ function on_message(self, message_id, message, sender)
 			if message.selected_part then
 				tween_actions[message.action_index].part = message.selected_part
 				UI.update_list("dialog_tween", action_list)
+			end
+		elseif message.dialog == hash("dialog_confirm") then
+			if message.button == 1 then 			-- buttons are 1 = overwrite, 2 = rename, 3 = cancel
+				save_tween_data(path_to_tween[1]..path_to_tween[2]..path_to_tween[3])
+				path_to_tween = nil
+			elseif message.button == 2 then
+				local i = 0
+				local new_path
+				repeat
+					i = i + 1
+					new_path = path_to_tween[1]..path_to_tween[2].."("..i..")"..path_to_tween[3]
+					if i > 999999 then break end
+				until not (sys.exists(new_path))
+				if i > 999999 then
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Error finding a new filename. Tween not saved", clear = true})
+				end
+				save_tween_data(new_path)
+			elseif message.button == 3 then
+				path_to_tween = nil
 			end
 		end
 	end

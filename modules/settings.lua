@@ -10,6 +10,10 @@ SET.default_path_load_zip = ""
 SET.default_path_load_file = ""
 SET.default_path_export = ""
 SET.default_path_export_overwrite = ""
+SET.default_path_import_models = ""
+SET.default_path_import_model_data = ""
+SET.default_path_save_tween = ""
+SET.confirm_file_overwrite = true
 
 -- events
 SET.sample_rate = 48000
@@ -35,6 +39,7 @@ SET.restrict_rotations_to_360 = true
 SET.tween_action_type_dialog = true
 SET.tween_part_dialog = true
 SET.tween_extra_add_buttons = false
+SET.ask_before_overwriting_tween_file = true
 
 
 SET.debug = false

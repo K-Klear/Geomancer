@@ -2,21 +2,19 @@ local SET = require "modules.settings"
 
 local proxy_is_loaded, settings_are_loaded
 
-SET.default_path_load_directory = "B:\\PISTOL WHIP MAPS\\hors_geomanced"
-SET.default_path_load_zip = "B:\\PISTOL WHIP MAPS"
-SET.default_path_load_file = "B:\\PISTOL WHIP MAPS\\scream_geomanced"
-SET.default_path_export = "C:\\Users\\Public\\PistolWhip\\Sideloads\\zip"
-SET.default_path_export_overwrite = "C:\\Users\\Public\\PistolWhip\\Sideloads\\mix\\scream"
-
 local default_settings_text = {
 	"When editing, keep the format [variable_name][=][value][;]. Anything beyond this is ignored when loading configuration.",
 	"If there are any missing variables or the values cannot be read/are in the wrong format, Geomancer will add new entries for them with default values on launch.",
 	"",
+	"confirm_file_overwrite=true;",
 	"default_path_load_directory=;", 
 	"default_path_load_zip=;",
 	"default_path_load_file=;",
 	"default_path_export=;",
 	"default_path_export_overwrite=;",
+	"default_path_import_models=;",
+	"default_path_import_model_data=;",
+	"default_path_save_tween=;",
 	"",
 	"autodetect_sample_rate=true;",
 	"default_sample_rate=48000;		-- this value is used if autodetect is turned off or sample rate cannot be determined",
@@ -34,7 +32,8 @@ local default_settings_text = {
 	"restrict_rotations_to_360=true; -- If true rotation values outside the 0-360 are recalculated to fall within that range.",
 	"tween_action_type_dialog=true; 	-- If false cycle through tween types instead of opening a dialog",
 	"tween_part_dialog=true; 		-- If false cycle through tween parts instead of opening a dialog",
-	"tween_extra_add_buttons=false; 	-- If true adds \"Add action\" button between tween actions"
+	"tween_extra_add_buttons=false; 	-- If true adds \"Add action\" button between tween actions",
+	"ask_before_overwriting_tween_file=true;"
 }
 
 
@@ -58,7 +57,12 @@ local settings_to_load = {
 	default_path_load_zip = {type = "path"},
 	default_path_load_file = {type = "path"},
 	default_path_export = {type = "path"},
-	default_path_export_overwrite = {type = "path"}
+	default_path_export_overwrite = {type = "path"},
+	default_path_import_models = {type = "path"},
+	default_path_import_model_data = {type = "path"},
+	default_path_save_tween = {type = "path"},
+	confirm_file_overwrite = {type = "boolean"},
+	ask_before_overwriting_tween_file = {type = "boolean"}
 }
 
 

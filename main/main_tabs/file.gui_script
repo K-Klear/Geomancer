@@ -3,19 +3,43 @@ local MEM = require "modules.memory"
 local G = require "modules.global"
 local SET = require "modules.settings"
 
+local files_to_export
+
 function init(self)
 	gui.set_render_order(1)
 	gui.set_text(gui.get_node("version_label"), "Version "..sys.get_config("project.version"))
 	UI.load_template({"exit", "load_dir", "load_file", "load_zip", "unload_all", "export_all", "export_overwrite", "help"}, "tab_file")
 end
 
+local function run_export_fn()
+	for key, val in ipairs(files_to_export) do
+		val.fn(val.path)
+		msg.post("/navbar#navbar", hash("update_status"), {text = val.text})
+	end
+	msg.post("/navbar#navbar", hash("update_status"), {text = "Files exported"})
+	files_to_export = nil
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == hash("hide") then
 		msg.post("#", hash("disable"))
 		msg.post("#", hash("release_input_focus"))
+		msg.post("/confirm#dialog_confirm", hash("hide"))
 	elseif message_id == hash("show") then
 		msg.post("#", hash("enable"))
 		msg.post("#", hash("acquire_input_focus"))
+	elseif message_id == hash("dialog_closed") then
+		msg.post("#", hash("acquire_input_focus"))
+		if message.dialog == hash("dialog_confirm") then
+			if message.subject == "overwrite_export" then
+				if message.button == 1 then 			-- buttons are 1 = overwrite, 3 = cancel
+					run_export_fn()
+				else
+					files_to_export = nil
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Export aborted", clear = true})
+				end
+			end
+		end
 	end
 end
 
@@ -63,9 +87,11 @@ local function export_level(path)
 		msg.post("/navbar#navbar", hash("update_status"), {text = "Level data might be corrupted. Use with caution."})
 	end
 
-	local f = io.output(path)
-	io.write(final_string)
-	io.close(f)
+	local f = G.safe_output(path)
+	if f then
+		io.write(final_string)
+		io.close(f)
+	end
 end
 
 local function export_event(path)
@@ -100,9 +126,11 @@ local function export_event(path)
 	if not G.safe_decode(final_string, "Output pw_event file") then
 		msg.post("/navbar#navbar", hash("update_status"), {text = "Event data might be corrupted. Use with caution."})
 	end
-	local f = io.output(path)
-	io.write(final_string)
-	io.close(f)
+	local f = G.safe_output(path)
+	if f then
+		io.write(final_string)
+		io.close(f)
+	end
 end
 
 local function export_art(path)
@@ -339,9 +367,11 @@ local function export_art(path)
 	if not G.safe_decode(final_string, "Output pw_art file") then
 		msg.post("/navbar#navbar", hash("update_status"), {text = "Model data might be corrupted. Use with caution."})
 	end
-	local f = io.output(path)
-	io.write(final_string)
-	io.close(f)
+	local f = G.safe_output(path)
+	if f then
+		io.write(final_string)
+		io.close(f)
+	end
 end
 
 local function export_beat(path)
@@ -356,9 +386,11 @@ local function export_beat(path)
 	if not G.safe_decode(MEM.beat_data.string, "Output beat data file") then
 		msg.post("/navbar#navbar", hash("update_status"), {text = "Beat data might be corrupted. Use with caution."})
 	end
-	local f = io.output(path)
-	io.write(MEM.beat_data.string)
-	io.close(f)
+	local f = G.safe_output(path)
+	if f then
+		io.write(MEM.beat_data.string)
+		io.close(f)
+	end
 end
 
 local function export_geo(path)
@@ -366,9 +398,11 @@ local function export_geo(path)
 	if not G.safe_decode(final_string, "Output pw_geo file") then
 		msg.post("/navbar#navbar", hash("update_status"), {text = "Geo data might be corrupted. Use with caution."})
 	end
-	local f = io.output(path)
-	io.write(final_string)
-	io.close(f)
+	local f = G.safe_output(path)
+	if f then
+		io.write(final_string)
+		io.close(f)
+	end
 end
 
 local function export_slice(path)
@@ -392,9 +426,11 @@ local function export_slice(path)
 		msg.post("/navbar#navbar", hash("update_status"), {text = "Meta data might be corrupted. Use with caution."})
 	end
 
-	local f = io.output(path)
-	io.write(output_string)
-	io.close(f)
+	local f = G.safe_output(path)
+	if f then
+		io.write(output_string)
+		io.close(f)
+	end
 end
 
 local function export_all(overwrite)
@@ -434,7 +470,7 @@ local function export_all(overwrite)
 				end
 			end
 			if not overwrite then
-				path = path.."/"..common_filename.."_geomanced"
+				path = path.."\\"..common_filename.."_geomanced"
 				if not lfs.mkdir(path) then
 					local index = 0
 					repeat
@@ -447,38 +483,80 @@ local function export_all(overwrite)
 					path = path.."("..index..")"
 				end
 				msg.post("/navbar#navbar", hash("update_status"), {text = "Exporting files to "..path, clear = true})
+				if MEM.level_data.string then
+					export_level(path.."\\level.pw")
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Level settings exported"})
+				end
+				if MEM.event_data.string then
+					export_event(path.."\\"..common_filename..".pw_event")
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Events exported"})
+				end
+				if MEM.art_data.table_static_props then
+					export_art(path.."\\"..common_filename.."_SharedArt.pw_art")
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Model data exported"})
+				end
+				if MEM.beat_data.string then
+					export_beat(path.."\\"..common_filename..".pw_beat")
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Enemies exported"})
+				end
+				if MEM.geo_data.start then
+					export_geo(path.."\\"..common_filename..".pw_geo")
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Geo exported"})
+				end
+				if MEM.meta_data.string then
+					export_slice(path.."\\do_not_ship.pw_meta")
+				end
+				msg.post("/navbar#navbar", hash("update_status"), {text = "Files exported to "..path})
 			else
-				msg.post("/navbar#navbar", hash("update_status"), {text = "Exporting files to "..path.."\nEXISTING FILES ARE BEING OVERWRITTEN", clear = true})
-			end
-			if MEM.level_data.string then
-				export_level(path.."/level.pw")
-				msg.post("/navbar#navbar", hash("update_status"), {text = "Level settings exported"})
-			end
-			if MEM.event_data.string then
-				export_event(path.."/"..common_filename..".pw_event")
-				msg.post("/navbar#navbar", hash("update_status"), {text = "Events exported"})
-			end
-			if MEM.art_data.table_static_props then
-				export_art(path.."/"..common_filename.."_SharedArt.pw_art")
-				msg.post("/navbar#navbar", hash("update_status"), {text = "Model data exported"})
-			end
-			if MEM.beat_data.string then
-				export_beat(path.."/"..common_filename..".pw_beat")
-				msg.post("/navbar#navbar", hash("update_status"), {text = "Enemies exported"})
-			end
-			if MEM.geo_data.start then
-				export_geo(path.."/"..common_filename..".pw_geo")
-				msg.post("/navbar#navbar", hash("update_status"), {text = "Geo exported"})
-			end
-			if MEM.meta_data.string then
-				export_slice(path.."/do_not_ship.pw_meta")
-				if #MEM.meta_data.volumes > 0 then
-					msg.post("/navbar#navbar", hash("update_status"), {text = "Volumes exported. NOTE: this does nothing until you open the map in Pistol Mix and generate geo."})
+				files_to_export = {}
+				local full_path
+				if MEM.level_data.string then
+					full_path = path.."\\level.pw"
+					table.insert(files_to_export, {fn = export_level, path = full_path, exists = sys.exists(full_path), text = "Level settings exported"})
+				end
+				if MEM.event_data.string then
+					full_path = path.."\\"..common_filename..".pw_event"
+					table.insert(files_to_export, {fn = export_event, path = full_path, exists = sys.exists(full_path), text = "Events exported"})
+				end
+				if MEM.art_data.table_static_props then
+					full_path = path.."\\"..common_filename.."_SharedArt.pw_art"
+					table.insert(files_to_export, {fn = export_art, path = full_path, exists = sys.exists(full_path), text = "Model data exported"})
+				end
+				if MEM.beat_data.string then
+					full_path = path.."\\"..common_filename..".pw_beat"
+					table.insert(files_to_export, {fn = export_beat, path = full_path, exists = sys.exists(full_path), text = "Enemies exported"})
+				end
+				if MEM.geo_data.start then
+					full_path = path.."\\"..common_filename..".pw_geo"
+					table.insert(files_to_export, {fn = export_geo, path = full_path, exists = sys.exists(full_path), text = "Geo exported"})
+				end
+				if MEM.meta_data.string then
+					full_path = path.."\\do_not_ship.pw_meta"
+					local text
+					if #MEM.meta_data.volumes > 0 then
+						text = "Volumes exported. NOTE: this does nothing until you open the map in Pistol Mix and generate geo."
+					else
+						text = "do_not_ship.pw_meta exported."
+					end
+					table.insert(files_to_export, {fn = export_slice, path = full_path, exists = sys.exists(full_path), text = text})
+				end
+				local overwrite_count = 0
+				for key, val in ipairs(files_to_export) do
+					if val.exists then
+						overwrite_count = overwrite_count + 1
+					end
+				end
+				if overwrite_count < 1 then
+					run_export_fn()
+				elseif not SET.confirm_file_overwrite then
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Exporting files to "..path.."\nEXISTING FILES ARE BEING OVERWRITTEN", clear = true})
+					run_export_fn()
 				else
-					msg.post("/navbar#navbar", hash("update_status"), {text = "do_not_ship.pw_meta exported."})
+					msg.post("#", hash("release_input_focus"))
+					local title = overwrite_count.." files will be overwritten. Continue with export?"
+					msg.post("/confirm#dialog_confirm", hash("show"), {title = title, button_1 = "Overwrite", button_3 = "Cancel", subject = "overwrite_export"})
 				end
 			end
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Files exported to "..path})
 		end
 	else
 		msg.post("/navbar#navbar", hash("update_status"), {text = "Nothing to export", clear = true})

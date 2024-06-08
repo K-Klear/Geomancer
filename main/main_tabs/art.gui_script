@@ -229,7 +229,7 @@ end
 
 local function import_models()
 	local model_data
-	local num, path = diags.open("zip,pw_art")
+	local num, path = diags.open("zip,pw_art", SET.default_path_import_models)
 	if path then
 		local f = io.open(path, "rb")
 		if f then
@@ -407,7 +407,7 @@ local function rename_model(new_name, model_to_rename)
 		MEM.art_data.dynamic_models[old_name] = nil
 		MEM.art_data.dynamic_models[new_name] = true
 	end
-	msg.post("/navbar#navbar", hash("update_status"), {text = old_name.." renamed to "..new_name})
+	msg.post("/navbar#navbar", hash("update_status"), {text = old_name.." renamed to "..new_name, clear = true})
 end
 
 local function set_model_as_dynamic(key, value)
@@ -446,16 +446,16 @@ function on_message(self, message_id, message, sender)
 			if message.import then
 				local models_added_count = import_models_finish()
 				if models_added_count < 1 then
-					msg.post("/navbar#navbar", hash("update_status"), {text = "No models added."})
+					msg.post("/navbar#navbar", hash("update_status"), {text = "No models added.", clear = true})
 				elseif models_added_count == 1 then
-					msg.post("/navbar#navbar", hash("update_status"), {text = "Imported one model."})
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Imported one model.", clear = true})
 					update_lists()
 				else
-					msg.post("/navbar#navbar", hash("update_status"), {text = "Imported "..models_added_count.." models."})
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Imported "..models_added_count.." models.", clear = true})
 					update_lists()
 				end
 			else
-				msg.post("/navbar#navbar", hash("update_status"), {text = "No models added."})
+				msg.post("/navbar#navbar", hash("update_status"), {text = "No models added.", clear = true})
 			end
 			MEM.art_data.models_for_import = nil
 			MEM.art_data.models_for_import_ignore = nil
@@ -504,12 +504,12 @@ local function sort_models()
 	else
 		UI.update_list("tab_art", model_list)
 	end
-	msg.post("/navbar#navbar", hash("update_status"), {text = "Models sorted alphabetically"})
+	msg.post("/navbar#navbar", hash("update_status"), {text = "Models sorted alphabetically", clear = true})
 end
 
 local function import_model_data()
 	local model_data, filename
-	local num, path = diags.open("zip,pw_art")
+	local num, path = diags.open("zip,pw_art", SET.default_path_import_model_data)
 	if path then
 		local f = io.open(path, "rb")
 		if f then
@@ -678,7 +678,7 @@ local function import_model_data()
 						end
 					end
 					if not all_parts_found then
-						msg.post("/navbar#navbar", hash("update_status"), {text = "Tween of model "..v.key.." refers to a wrong part. Defaulting to tweening the whole model."})
+						msg.post("/navbar#navbar", hash("update_status"), {text = "Action(s) in tween of model "..v.key.." defaulted to tweening the whole prop."})
 					end
 					if tween_replaced then
 						msg.post("/navbar#navbar", hash("update_status"), {text = "Model "..v.key.." had its existing tween replaced."})
@@ -697,9 +697,9 @@ function evaluate_button(button, item)
 	elseif button == "import_model_data" then
 		local model_count = import_model_data()
 		if model_count then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Updated properties of "..model_count.." models."})
+			msg.post("/navbar#navbar", hash("update_status"), {text = "Updated properties of "..model_count.." models.", clear = true})
 		else
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Error loading model data."})
+			msg.post("/navbar#navbar", hash("update_status"), {text = "Error loading model data.", clear = true})
 		end
 	elseif button == "import_models" then
 		import_models()
@@ -771,10 +771,6 @@ function evaluate_button(button, item)
 	end
 end
 
-local function evaluate_input(field, text)
-
-end
-
 function update()
 	if UI.current_tab == "tab_art" then
 		for list_index in pairs(UI.tab.tab_art.scrolling) do
@@ -792,6 +788,6 @@ function on_input(self, action_id, action)
 			end
 		end
 	else
-		UI.on_input("tab_art", action_id, action, evaluate_button, evaluate_input)
+		UI.on_input("tab_art", action_id, action, evaluate_button)
 	end
 end

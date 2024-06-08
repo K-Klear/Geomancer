@@ -26,6 +26,15 @@ function G.safe_decode(json_str, filename)
 	end
 end
 
+function G.safe_output(path)
+	local works, f = pcall(io.output, path)
+	if works then
+		return f
+	else
+		msg.post("/navbar#navbar", hash("update_status"), {text = "Error when writing into a file. Operation aborted.", clear = true})
+	end
+end
+
 function G.check_version(str, filename)
 	local pos = string.find(str, "\"version\":")
 	if not pos then

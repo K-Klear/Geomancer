@@ -7,4 +7,6 @@ Thumbs.db
 *.pyc
 .project
 .cproject
+geomancer.cfg
+log.txt
 builtins

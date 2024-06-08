@@ -80,6 +80,7 @@ embedded_instances {
 }
 embedded_instances {
   id: "navbar"
+  children: "confirm"
   data: "components {\n"
   "  id: \"navbar\"\n"
   "  component: \"/main/navbar.gui\"\n"
@@ -834,6 +835,43 @@ embedded_instances {
   data: "components {\n"
   "  id: \"tab_meta\"\n"
   "  component: \"/main/main_tabs/slices.gui\"\n"
+  "  position {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "  }\n"
+  "  rotation {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "    w: 1.0\n"
+  "  }\n"
+  "  property_decls {\n"
+  "  }\n"
+  "}\n"
+  ""
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+embedded_instances {
+  id: "confirm"
+  data: "components {\n"
+  "  id: \"dialog_confirm\"\n"
+  "  component: \"/main/dialogs/dialog_confirm.gui\"\n"
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
