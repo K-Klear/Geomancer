@@ -18,6 +18,9 @@ To do:
 - Maybe "delete all" buttons for the event tab
 - Unify atlases
 - Custom dialog transparency?
+- Show enemy position in the beat editor as a picture rather than text
+- Custom sequence name support
+	- Add a new section for sequences found among the enemies/in the sequence file?
 
 Bugs:
 
@@ -28,10 +31,9 @@ Bugs:
 Done:
 
 Features:
-- Ability to save/load tweens into a file
-- Default path for model imports, model data imports and tween save/load added to cfg
-- Confirmation dialog when overwriting files during export
-- Check before writing a file, aborting the operation and issuing a warning if there's a problem
+- Added an "import data" button to the event tab
+- Enemy types can now be changed per enemy
+- Enemy sequences can be changed, including some not availabled in the editor
 
 Fixes:
 

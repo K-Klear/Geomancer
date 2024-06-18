@@ -15,9 +15,8 @@ input_method = HiddenInputField
 
 [project]
 title = Geomancer
-version = 0.62b
+version = 0.64
 developer = Klear
-write_log = 1
 dependencies#0 = https://github.com/britzl/defold-png/archive/master.zip
 dependencies#1 = https://github.com/andsve/def-diags/archive/master.zip
 dependencies#2 = https://github.com/Car3man/extension-zip/archive/refs/tags/1.0.0.zip

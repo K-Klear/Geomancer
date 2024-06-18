@@ -1,0 +1,67 @@
+local UI = require "modules.ui"
+local SET = require "modules.settings"
+
+local parent_tab, current_type, selected_type
+
+function init(self)
+	gui.set_render_order(2)
+	msg.post("#", hash("disable"))
+	UI.load_template({"choice_normal", "choice_tough", "choice_chuck", "choice_turret", "choice_minigun", "choice_shield", "choice_horse", "choice_skull", "choice_trap", "choice_cancel", "choice_accept"}, "dialog_change_enemy_type")
+end
+
+local function evaluate_button(button)
+	if button == "choice_cancel" then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("change_type")})
+		gui.set_color(gui.get_node("choice_"..current_type.."/button_white"), vmath.vector4(1, 1, 1, 1))
+		if selected_type then
+			gui.set_color(gui.get_node("choice_"..selected_type.."/button_white"), vmath.vector4(1, 1, 1, 1))
+		end
+		current_type, selected_type = nil, nil
+	elseif button == "choice_accept" then
+		if not selected_type then
+			msg.post("/navbar#navbar", hash("update_status"), {text = "You must select a new enemy type.", clear = true})
+		elseif selected_type == current_type then
+			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a different enemy type.", clear = true})
+		else
+			msg.post("#", hash("disable"))
+			msg.post("#", hash("release_input_focus"))
+			msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("change_type"), new_type = selected_type})
+			gui.set_color(gui.get_node("choice_"..current_type.."/button_white"), vmath.vector4(1, 1, 1, 1))
+			gui.set_color(gui.get_node("choice_"..selected_type.."/button_white"), vmath.vector4(1, 1, 1, 1))
+			current_type, selected_type = nil, nil
+		end
+	else
+		local underscore = string.find(button, "_")
+		local type = string.sub(button, underscore + 1)
+		if not (type == selected_type) then
+			if current_type == selected_type then
+				gui.set_color(gui.get_node("choice_"..selected_type.."/button_white"), SET.colour_current_enemy_type)
+			elseif selected_type then
+				gui.set_color(gui.get_node("choice_"..selected_type.."/button_white"), vmath.vector4(1, 1, 1, 1))
+			end
+			gui.set_color(gui.get_node("choice_"..type.."/button_white"), SET.colour_selection_change_enemy_type)
+			selected_type = type
+		end
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		parent_tab = sender
+		msg.post("#", hash("acquire_input_focus"))
+		msg.post("#", hash("enable"))
+		current_type = message.current_type or "dummy"
+		gui.set_color(gui.get_node("choice_"..current_type.."/button_white"), SET.colour_current_enemy_type)
+	elseif message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		current_type, selected_type = nil, nil
+	end
+end
+
+
+function on_input(self, action_id, action)
+	UI.on_input("dialog_change_enemy_type", action_id, action, evaluate_button)
+end

@@ -1,4 +1,4 @@
-script: "/main/dialogs/level/dialog_obstacles.gui_script"
+script: "/main/dialogs/beat/dialog_change_sequence.gui_script"
 fonts {
   name: "main_menu_button"
   font: "/assets/fonts/final/main_menu_button.font"
@@ -31,8 +31,8 @@ background_color {
 }
 nodes {
   position {
-    x: 410.0
-    y: 437.0
+    x: 640.0
+    y: 420.0
     z: 0.0
     w: 1.0
   }
@@ -49,8 +49,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 490.0
-    y: 700.0
+    x: 460.0
+    y: 800.0
     z: 0.0
     w: 1.0
   }
@@ -90,7 +90,7 @@ nodes {
 nodes {
   position {
     x: 0.0
-    y: 285.0
+    y: 371.0
     z: 0.0
     w: 1.0
   }
@@ -120,12 +120,12 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "Select obstacle set"
+  text: "Select a sequence"
   font: "main_menu_button"
-  id: "title_obstacles"
+  id: "title_sequence"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
+  pivot: PIVOT_N
   outline {
     x: 1.0
     y: 1.0
@@ -156,8 +156,8 @@ nodes {
 }
 nodes {
   position {
-    x: 115.0
-    y: -139.0
+    x: -100.0
+    y: -335.0
     z: 0.0
     w: 1.0
   }
@@ -186,180 +186,7 @@ nodes {
     w: 1.0
   }
   type: TYPE_TEMPLATE
-  id: "obstacle_guide"
-  parent: "edit_box"
-  layer: ""
-  inherit_alpha: false
-  alpha: 1.0
-  template: "/templates/button_white_small.gui"
-  template_node_child: false
-  custom_type: 0
-  enabled: true
-}
-nodes {
-  position {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 180.0
-    y: 84.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: "UI/button_white"
-  id: "obstacle_guide/button_white"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  adjust_mode: ADJUST_MODE_FIT
-  parent: "obstacle_guide"
-  layer: "below"
-  inherit_alpha: true
-  slice9 {
-    x: 24.0
-    y: 24.0
-    z: 24.0
-    w: 24.0
-  }
-  clipping_mode: CLIPPING_MODE_NONE
-  clipping_visible: true
-  clipping_inverted: false
-  alpha: 1.0
-  overridden_fields: 1
-  overridden_fields: 4
-  overridden_fields: 20
-  template_node_child: true
-  size_mode: SIZE_MODE_MANUAL
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
-}
-nodes {
-  position {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 160.0
-    y: 70.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  type: TYPE_TEXT
-  blend_mode: BLEND_MODE_ALPHA
-  text: "Obstacle guide"
-  font: "main_menu_button_small"
-  id: "obstacle_guide/text"
-  xanchor: XANCHOR_NONE
-  yanchor: YANCHOR_NONE
-  pivot: PIVOT_CENTER
-  outline {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  shadow {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  adjust_mode: ADJUST_MODE_FIT
-  line_break: true
-  parent: "obstacle_guide/button_white"
-  layer: "text"
-  inherit_alpha: true
-  alpha: 1.0
-  outline_alpha: 1.0
-  shadow_alpha: 1.0
-  overridden_fields: 8
-  overridden_fields: 20
-  template_node_child: true
-  text_leading: 1.0
-  text_tracking: 0.0
-  custom_type: 0
-  enabled: true
-  visible: true
-  material: ""
-}
-nodes {
-  position {
-    x: 115.0
-    y: -259.0
-    z: 0.0
-    w: 1.0
-  }
-  rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
-  }
-  scale {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  size {
-    x: 200.0
-    y: 100.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  type: TYPE_TEMPLATE
-  id: "dialog_obstacles_cancel"
+  id: "dialog_sequence_accept"
   parent: "edit_box"
   layer: ""
   inherit_alpha: false
@@ -403,12 +230,12 @@ nodes {
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
   texture: "UI/button_white"
-  id: "dialog_obstacles_cancel/button_white"
+  id: "dialog_sequence_accept/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
-  parent: "dialog_obstacles_cancel"
+  parent: "dialog_sequence_accept"
   layer: "below"
   inherit_alpha: true
   slice9 {
@@ -464,9 +291,9 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "Close"
+  text: "Accept"
   font: "main_menu_button_small"
-  id: "dialog_obstacles_cancel/text"
+  id: "dialog_sequence_accept/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -484,7 +311,7 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: true
-  parent: "dialog_obstacles_cancel/button_white"
+  parent: "dialog_sequence_accept/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
@@ -502,8 +329,8 @@ nodes {
 }
 nodes {
   position {
-    x: -200.0
-    y: 243.0
+    x: 100.0
+    y: -335.0
     z: 0.0
     w: 1.0
   }
@@ -520,8 +347,181 @@ nodes {
     w: 1.0
   }
   size {
-    x: 232.0
-    y: 544.0
+    x: 200.0
+    y: 100.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_TEMPLATE
+  id: "dialog_sequence_cancel"
+  parent: "edit_box"
+  layer: ""
+  inherit_alpha: false
+  alpha: 1.0
+  template: "/templates/button_white_small.gui"
+  template_node_child: false
+  custom_type: 0
+  enabled: true
+}
+nodes {
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 180.0
+    y: 64.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_BOX
+  blend_mode: BLEND_MODE_ALPHA
+  texture: "UI/button_white"
+  id: "dialog_sequence_cancel/button_white"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  adjust_mode: ADJUST_MODE_FIT
+  parent: "dialog_sequence_cancel"
+  layer: "below"
+  inherit_alpha: true
+  slice9 {
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
+  }
+  clipping_mode: CLIPPING_MODE_NONE
+  clipping_visible: true
+  clipping_inverted: false
+  alpha: 1.0
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+  size_mode: SIZE_MODE_MANUAL
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
+}
+nodes {
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 160.0
+    y: 70.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  type: TYPE_TEXT
+  blend_mode: BLEND_MODE_ALPHA
+  text: "Cancel"
+  font: "main_menu_button_small"
+  id: "dialog_sequence_cancel/text"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  adjust_mode: ADJUST_MODE_FIT
+  line_break: true
+  parent: "dialog_sequence_cancel/button_white"
+  layer: "text"
+  inherit_alpha: true
+  alpha: 1.0
+  outline_alpha: 1.0
+  shadow_alpha: 1.0
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+  text_leading: 1.0
+  text_tracking: 0.0
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
+}
+nodes {
+  position {
+    x: -176.0
+    y: 319.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 322.0
+    y: 620.0
     z: 0.0
     w: 1.0
   }
@@ -534,7 +534,7 @@ nodes {
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
   texture: "UI/empty_pixel"
-  id: "obstacles_list"
+  id: "sequence_list"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_NW
@@ -561,7 +561,7 @@ nodes {
 }
 nodes {
   position {
-    x: 201.0
+    x: 313.0
     y: -428.0
     z: 0.0
     w: 1.0
@@ -593,12 +593,12 @@ nodes {
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
   texture: "UI/scrollbar_button"
-  id: "obstacles_scroll_up"
+  id: "sequence_list_scroll_up"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
-  parent: "obstacles_list"
+  parent: "sequence_list"
   layer: "below"
   inherit_alpha: false
   slice9 {
@@ -620,7 +620,7 @@ nodes {
 }
 nodes {
   position {
-    x: 201.0
+    x: 313.0
     y: -569.0
     z: 0.0
     w: 1.0
@@ -652,12 +652,12 @@ nodes {
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
   texture: "UI/scrollbar_button"
-  id: "obstacles_scroll_down"
+  id: "sequence_list_scroll_down"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
-  parent: "obstacles_list"
+  parent: "sequence_list"
   layer: "below"
   inherit_alpha: false
   slice9 {
@@ -679,7 +679,7 @@ nodes {
 }
 nodes {
   position {
-    x: 201.0
+    x: 313.0
     y: -466.0
     z: 0.0
     w: 1.0
@@ -711,12 +711,12 @@ nodes {
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
   texture: "UI/scrollbar"
-  id: "obstacles_scroll_background"
+  id: "sequence_list_scroll_background"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_N
   adjust_mode: ADJUST_MODE_FIT
-  parent: "obstacles_list"
+  parent: "sequence_list"
   layer: "below"
   inherit_alpha: false
   slice9 {
@@ -738,7 +738,7 @@ nodes {
 }
 nodes {
   position {
-    x: 201.0
+    x: 313.0
     y: -466.0
     z: 0.0
     w: 1.0
@@ -770,12 +770,12 @@ nodes {
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
   texture: "UI/scrollbar"
-  id: "obstacles_scroll_grip"
+  id: "sequence_list_scroll_grip"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_N
   adjust_mode: ADJUST_MODE_FIT
-  parent: "obstacles_list"
+  parent: "sequence_list"
   layer: "below"
   inherit_alpha: false
   slice9 {
@@ -798,7 +798,7 @@ nodes {
 nodes {
   position {
     x: 0.0
-    y: -20.0
+    y: -12.0
     z: 0.0
     w: 1.0
   }
@@ -827,8 +827,8 @@ nodes {
     w: 1.0
   }
   type: TYPE_TEMPLATE
-  id: "obstacle_exclusive"
-  parent: "obstacles_list"
+  id: "sequence_list_exclusive"
+  parent: "sequence_list"
   layer: ""
   inherit_alpha: false
   alpha: 1.0
@@ -857,8 +857,8 @@ nodes {
     w: 1.0
   }
   size {
-    x: 200.0
-    y: 40.0
+    x: 290.0
+    y: 24.0
     z: 0.0
     w: 1.0
   }
@@ -871,12 +871,12 @@ nodes {
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
   texture: "UI/button_exclusive"
-  id: "obstacle_exclusive/button_white"
+  id: "sequence_list_exclusive/button_white"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_W
   adjust_mode: ADJUST_MODE_FIT
-  parent: "obstacle_exclusive"
+  parent: "sequence_list_exclusive"
   layer: "below"
   inherit_alpha: true
   slice9 {
@@ -923,7 +923,7 @@ nodes {
   }
   size {
     x: 160.0
-    y: 30.0
+    y: 24.0
     z: 0.0
     w: 1.0
   }
@@ -935,9 +935,9 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "Earthcracker"
-  font: "main_menu_button_small"
-  id: "obstacle_exclusive/text"
+  text: "BeatSpawn___DefaultEnemySequence_NoFire"
+  font: "status_text"
+  id: "sequence_list_exclusive/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_W
@@ -955,7 +955,7 @@ nodes {
   }
   adjust_mode: ADJUST_MODE_FIT
   line_break: false
-  parent: "obstacle_exclusive/button_white"
+  parent: "sequence_list_exclusive/button_white"
   layer: "text"
   inherit_alpha: true
   alpha: 1.0
@@ -976,6 +976,73 @@ nodes {
   enabled: true
   visible: true
   material: "font-df"
+}
+nodes {
+  position {
+    x: 0.0
+    y: -12.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 250.0
+    y: 24.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_TEXT
+  blend_mode: BLEND_MODE_ALPHA
+  text: "Default Sequences"
+  font: "tab_caption"
+  id: "lbl_sequence"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  adjust_mode: ADJUST_MODE_FIT
+  line_break: false
+  parent: "sequence_list"
+  layer: "text"
+  inherit_alpha: false
+  alpha: 1.0
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+  template_node_child: false
+  text_leading: 1.0
+  text_tracking: 0.0
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
 }
 layers {
   name: "list_background"

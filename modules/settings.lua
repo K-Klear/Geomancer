@@ -31,6 +31,9 @@ SET.colour_model_import_selection = vmath.vector4(0.5, 0.5, 0.7, 1)
 SET.colour_model_replace = vmath.vector4(1, 0.7, 0.7, 1)
 SET.colour_unsupported_obstacle = vmath.vector4(0.8, 0.2, 0.2, 1)
 SET.colour_current_enemy_set = vmath.vector4(0.2, 0.4, 0.8, 1)
+SET.colour_highlight_replace_enemy = vmath.vector4(0.7, 0.1, 0.1, 1)
+SET.colour_selection_change_enemy_type = vmath.vector4(0.1, 0.7, 0.1, 1)
+SET.colour_current_enemy_type = vmath.vector4(0.1, 0.1, 0.1, 1)
 
 -- model
 SET.restrict_rotations_to_360 = true

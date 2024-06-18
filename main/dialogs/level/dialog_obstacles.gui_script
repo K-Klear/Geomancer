@@ -8,7 +8,7 @@ local dialog_open = false
 
 local obstacle_names = {
 	"Normal", "Pipes", "Rocks", "Colony", "Tower", "Crates", "Train", "EarthCracker", "ShredPipes", "Vaporwave",
-	"Castle", "Spooky", "AirDrop"}
+	"Castle", "Spooky", "AirDrop", "Logs"}
 
 function init(self)
 	gui.set_render_order(2)
@@ -23,10 +23,11 @@ function init(self)
 			template = "obstacle_exclusive;",
 			fn = evaluate_button
 		},
-		item_count = #obstacle_names,
+		item_count = #obstacle_names, --0,
 		scroll_prefix = "obstacles_"
 	}
 	obstacle_list = UI.create_list("dialog_obstacles", gui.get_node("obstacles_list"), obstacle_list_tab)
+	UI.update_list("dialog_obstacles", obstacle_list, #obstacle_names)
 end
 
 function evaluate_button(button, item)

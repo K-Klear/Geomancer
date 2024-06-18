@@ -1,0 +1,241 @@
+local UI = require "modules.ui"
+
+local parent_tab
+local sequence_list, selected_sequence, evaluate_button
+local dialog_open = false
+
+local seq = {
+	{
+		"BeatSpawn___DefaultEnemySequence",
+		"BeatSpawn___DefaultEnemySequence_NoFire",
+		"BeatSpawn___DefaultShieldRun",
+		"BeatSpawn__Crouch Cover",
+		"BeatSpawn__Crouch Cover ShootLate",
+		"BeatSpawn__CrouchStandShoot",
+		"BeatSpawn_Dance_01",
+		"BeatSpawn_Dance_02",
+		"BeatSpawn_JustShootAfterBeat",
+		"BeatSpawn_Run Forward_Shoot",
+		"BeatSpawn_Run Forward_ShootOnce",
+		"BeatSpawn_Run_BeatShoot_Stop",
+		"BeatSpawn_Run_Shoot_Stop",
+		"BeatSpawn_Stationary",
+		"BeatSpawn_Stationary_AimOnly",
+		"BeatSpawn_Stationary_Early",
+		"BeatSpawn_Stationary_NoFire",
+		"BeatSpawn_Stationary_Shield",
+		"BeatSpawn_Stationary_ShootOnce",
+		"BeatSpawn_Walk_Shoot_Stop",
+		"BeatSpawn_Walk_Stop",
+		"BeatSpawn_Walk_Stop_Shoot"
+	},
+	{
+		"Dance_01",
+		"Dance_02",
+		"Dance_03"
+	},
+	{
+		"__DefaultEnemySequence",
+		"__DefaultEnemySequence_EarlyFire",
+		"__DefaultEnemySequence_NoFire",
+		"__DefaultShieldRun"
+	},
+	{
+		"Gallop_Forward_BeatShoot",
+		"Gallop_Forward_EarlyBeatShoot",
+		"Gallop_Forward_NoShoot",
+		"Gallop_Forward_ShootEarly",
+		"Gallop_Forward_ShootLate",
+		"Train_Horse_01"
+	},
+	{
+		"__RobotLand",
+		"__RobotLand_Dance",
+		"__RobotLand_NOSHOOT",
+		"__RobotLand_Shield",
+		"Robot Crawl"
+	},
+	{
+		"__Long Run",
+		"__Long Run_thenchill",
+		"__Long_Shield_Run",
+		"__Roadie_Run",
+		"LongestRun",
+		"LongestRun_2",
+		"LongestRun_4",
+		"LongestRun_6",
+		"LongestRun_8",
+		"LongestRun_10",
+		"LongestRun_12",
+		"Run Forward_NoFire",
+		"Run Forward_NoFireButAim",
+		"Run Forward_Shoot",
+		"Run_BeatShoot_Continue",
+		"Run_BeatShoot_Stop",
+		"Run_Shoot_Stop",
+		"ShortRun",
+		"ShortRun_EarlyFire",
+		"ShortRun_EarlyFireOnce",
+		"ShortRun_Shield",
+		"ShortRunNoFire"
+	},
+	{
+		"_Crouch Cover",
+		"_CrouchStandShoot",
+		"_Standing Cover",
+		"_Standing Cover_NOSHOOT",
+		"JustShootAfterBeat",
+		"JustWaitThenShootAfterBeat",
+		"Scared",
+		"Stationary",
+		"Stationary_AimNoFire",
+		"Stationary_Early",
+		"Stationary_NoFire",
+		"Stationary_ShootOnce"
+	},
+	{
+		"Strafe_Shoot_Stop",
+		"Strafe_Stop_Shoot"
+	},
+	{
+		"__Flying",
+		"Walk Forward_Shoot twice",
+		"Walk_Shoot_Stop",
+		"Walk_Stop_Shoot"
+	},
+	{
+		"__Flying_ATTACK",
+		"Zig_shoot _Zag_shoot",
+		"Strafe_shoot_retreat",
+		"FWD_RGHT_FWD_SHT",
+		"STRAFE SHOOT x3",
+--		"High_FlyingSkull Basic",
+--		"ONBEAT_High_FlyingSkull",
+--		"FlyingSkull Basic",
+--		"FlyingSkull Short"
+--		"DefaultEnemySequence_Jetpack",
+		"BeatSpawn_Jetpack_Stationary",
+		"_Run Roll Shoot",
+--		"__SniperJoeTest",
+--		"ImmediateDespawn",
+		"CrookedTestSequence",
+		"EmptyEnemySequence 1",
+		"Run_Slide_Shoot_01",
+		"_VaultShoot_01",
+		"ENME_SEQ_06",
+		"ENME_SEQ_07",
+		"StrafeRightLeft",
+		"Canter_Forward_Shoot",
+		"TestEnemySequence"
+	}
+}
+seq[1].name = "Beatspawn"
+seq[2].name = "Dance"
+seq[3].name = "Default Sequences"
+seq[4].name = "Horse Rider"
+seq[5].name = "Robot"
+seq[6].name = "Run"
+seq[7].name = "Stationary"
+seq[8].name = "Strafe"
+seq[9].name = "Uncategorised"
+seq[10].name = "Extra sequences"
+
+local sequences = {}
+local sequence_types = {}
+
+for key, val in ipairs(seq) do
+	table.insert(sequences, #sequences + 1)
+	sequence_types[#sequences] = val.name
+	for k, v in ipairs(val) do
+		table.insert(sequences, v)
+	end
+end
+
+seq = nil
+
+function init(self)
+	gui.set_render_order(2)
+	msg.post("#", hash("disable"))
+	UI.load_template({"dialog_sequence_cancel", "dialog_sequence_accept"}, "dialog_change_sequence")
+	local sequence_list_tab = {
+		{
+			type = hash("exclusive_button"),
+			node = gui.get_node("sequence_list_exclusive/button_white"),
+			text_node = gui.get_node("sequence_list_exclusive/text"),
+			value_fn = function(i) return sequences[i] end,
+			template = "sequence_list_exclusive;",
+			enabled = function(i) return not sequence_types[sequences[i]] end,
+			fn = evaluate_button,
+		},
+		{
+			type = hash("label"),
+			node = gui.get_node("lbl_sequence"),
+			value_fn = function(i) return sequence_types[sequences[i]] end,
+			enabled = function(i) return sequence_types[sequences[i]] end
+		},
+		item_count = 0,
+		scroll_prefix = "sequence_list_"
+	}
+	sequence_list = UI.create_list("dialog_change_sequence", gui.get_node("sequence_list"), sequence_list_tab)
+end
+
+function evaluate_button(button, item)
+	if button == "dialog_sequence_accept" then
+		if not selected_sequence then
+			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a sequence first.", clear = true})
+		else
+			msg.post("#", hash("disable"))
+			msg.post("#", hash("release_input_focus"))
+			dialog_open = false
+			msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("dialog_change_sequence"), sequence = selected_sequence})
+		end
+	elseif button == "dialog_sequence_cancel" then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		dialog_open = false
+		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("dialog_change_sequence")})
+	elseif button == sequence_list then
+		selected_sequence = sequences[item]
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		parent_tab = sender
+		msg.post("#", hash("acquire_input_focus"))
+		msg.post("#", hash("enable"))
+		UI.update_list("dialog_change_sequence", sequence_list, #sequences)
+		local sequence_found
+		for key, val in ipairs(sequences) do
+			if val == message.current_sequence then
+				UI.select_exclusive_button("dialog_change_sequence", sequence_list, key, nil, true)
+				selected_sequence = val
+				sequence_found = true
+				break
+			end
+		end
+		if not sequence_found then
+			UI.select_exclusive_button("dialog_change_sequence", sequence_list, 0)
+			msg.post("/navbar#navbar", hash("update_status"), {text = "Unknown sequence. Note that Geomancer doesn't support custom sequence names yet."})
+			selected_sequence = nil
+		end
+		dialog_open = true
+	elseif message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		dialog_open = false
+		UI.update_list("dialog_change_sequence", sequence_list, 0)
+	end
+end
+
+function update()
+	if dialog_open then
+		for list_index in pairs(UI.tab.dialog_change_sequence.scrolling) do
+			UI.move_list_root("dialog_change_sequence", list_index, true)
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input("dialog_change_sequence", action_id, action, evaluate_button)
+end

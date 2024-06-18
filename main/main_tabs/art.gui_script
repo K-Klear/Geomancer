@@ -294,7 +294,12 @@ local function import_models_finish()
 		MEM.art_data.model_list[existing_model_count + i].string = string.sub(string_props_dictionary, key_indices[i], key_indices[i + 1] - 2)
 	end
 	if #key_indices > 0 then
-		MEM.art_data.model_list[existing_model_count + #key_indices].string = string.sub(string_props_dictionary, key_indices[#key_indices], -3)
+		local next_key_index = string.find(string_props_dictionary, search_string, key_indices[#key_indices] + 5)
+		if next_key_index then
+			MEM.art_data.model_list[existing_model_count + #key_indices].string = string.sub(string_props_dictionary, key_indices[#key_indices], next_key_index - 2)
+		else
+			MEM.art_data.model_list[existing_model_count + #key_indices].string = string.sub(string_props_dictionary, key_indices[#key_indices], -3)
+		end
 	end
 	if existing_model_count < 1 and model_count > 0 then
 		MEM.art_data.string_dictionary = string.sub(MEM.art_data.string_dictionary, 1, -2)..","

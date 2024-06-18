@@ -383,6 +383,35 @@ local function export_beat(path)
 		local js = json.encode(MEM.beat_data.table[beat_data_key].obstacles)
 		MEM.beat_data.string = string.sub(MEM.beat_data.string, 1, obstacles_start)..js..string.sub(MEM.beat_data.string, obstacles_end)
 	end
+	local used_keys = {}
+	for key, val in ipairs(MEM.beat_data.changed_enemies) do
+		local beat_data_key = MEM.beat_data.enemy_list[val].beat_data_key
+		if not used_keys[beat_data_key] then
+			used_keys[beat_data_key] = true
+			local t = MEM.beat_data.table[beat_data_key].time
+			local find_time = string.find(MEM.beat_data.string, "\"time\":\""..t)
+			local targets_start = string.find(MEM.beat_data.string, "\"targets\"", find_time) + 9
+			local targets_end = string.find(MEM.beat_data.string, "]", targets_start, true) + 1
+
+			local targets_tab = {}
+			
+			local start_index = val - MEM.beat_data.enemy_list[val].enemies_key + 1
+			repeat
+				local e = MEM.beat_data.enemy_list[start_index]
+				if e.beat_data_key == beat_data_key then
+					table.insert(targets_tab, {
+						enemyType = e.type, distance = e.distance, placement = e.placement, enemyOffset = e.offset, enemySequence = e.sequence,
+						bonusEnemy = e.bonus, shielded = e.shielded, noGround = e.no_ground, noCarve = e.no_carve
+					})
+					start_index = start_index + 1
+				else
+					break
+				end
+			until start_index > #MEM.beat_data.enemy_list
+			local js = json.encode(targets_tab)
+			MEM.beat_data.string = string.sub(MEM.beat_data.string, 1, targets_start)..js..string.sub(MEM.beat_data.string, targets_end)
+		end
+	end
 	if not G.safe_decode(MEM.beat_data.string, "Output beat data file") then
 		msg.post("/navbar#navbar", hash("update_status"), {text = "Beat data might be corrupted. Use with caution."})
 	end

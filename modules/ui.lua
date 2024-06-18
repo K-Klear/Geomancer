@@ -39,7 +39,9 @@ UI.tab = {
 	dialog_tween_action = {path = "/tween_action#dialog_tween_action", buttons = {}, fields = {}},
 	dialog_tween_copy = {path = "/tween_copy#dialog_tween_copy", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
 	dialog_tween_part = {path = "/tween_part#dialog_tween_part", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-	dialog_replace_enemy = {path = "/dialog#dialog_replace_enemy", buttons = {}, fields = {}}
+	dialog_replace_enemy = {path = "/dialog#dialog_replace_enemy", buttons = {}, fields = {}},
+	dialog_change_sequence = {path = "/sequence#dialog_change_sequence", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
+	dialog_change_enemy_type = {path = "/type#dialog_change_enemy_type", buttons = {}, fields = {}}
 }
 
 local mouse_held, r_ctr_held, l_ctr_held
@@ -198,7 +200,8 @@ end
 local function create_list_item(tab, list_index, item)
 	local list_tab = UI.tab[tab].scrolling_lists[list_index]
 	local height_adjust = (item - 1) * list_tab.item_height
-	if list_tab.exclusive_button and not list_tab.exclusive_button.list[item] then
+	if list_tab.exclusive_button and not list_tab.exclusive_button.list[item] and 
+	(not list_tab.exclusive_button.enabled or list_tab.exclusive_button.enabled(item)) then
 		local new = gui.clone_tree(list_tab.exclusive_button.node)
 		local button_box = new[list_tab.exclusive_button.node_id]
 		gui.set_parent(button_box, list_tab.root_node)
@@ -353,7 +356,7 @@ local function end_scrolling(tab, list_index)
 	UI.tab[tab].scrolling[list_index] = nil
 end
 
-function UI.select_exclusive_button(tab, list_index, selected, no_move)
+function UI.select_exclusive_button(tab, list_index, selected, no_move, fast)
 	local exclusive = UI.tab[tab].scrolling_lists[list_index].exclusive_button
 	if not (exclusive.selected == selected) then
 		if exclusive.list[exclusive.selected] then
@@ -365,7 +368,7 @@ function UI.select_exclusive_button(tab, list_index, selected, no_move)
 		end
 		UI.update_list(tab, list_index)
 		if not no_move then
-			UI.scroll_to_item(tab, list_index, selected)
+			UI.scroll_to_item(tab, list_index, selected, fast)
 		end
 	end
 end
@@ -429,7 +432,8 @@ function UI.create_list(tab, stencil_node, item_features)
 				list = {},
 				fn = val.fn,
 				selected = 0,
-				tint = val.tint
+				tint = val.tint,
+				enabled = val.enabled
 			}
 			gui.set_enabled(val.node, false)
 		elseif val.type == hash("label") then
@@ -537,7 +541,9 @@ function UI.move_list_root(tab, list_index, adjust_grip)
 	end
 end
 
-function UI.scroll_to_item(tab, list_index, item)
+function UI.scroll_to_item(tab, list_index, item, fast)
+	local time_mult = 1
+	if fast then time_mult = 0.75 end
 	local list_tab = UI.tab[tab].scrolling_lists[list_index]
 	if item == 0 then
 		gui.set(list_tab.root_node, "position.y", 0)
@@ -545,7 +551,7 @@ function UI.scroll_to_item(tab, list_index, item)
 		list_tab.scroll_target = 0
 	else
 		list_tab.scroll_target = math.max(math.min((item - 1) * list_tab.item_height, list_tab.scroll_max), 0)
-		gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_LINEAR, SET.scroll_time, 0, function() end_scrolling(tab, list_index) end)
+		gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_LINEAR, SET.scroll_time * time_mult, 0, function() end_scrolling(tab, list_index) end)
 		if not UI.tab[tab].scrolling[list_index] then
 			UI.tab[tab].scrolling[list_index] = true
 		end

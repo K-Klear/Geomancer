@@ -1,0 +1,127 @@
+local UI = require "modules.ui"
+local MEM = require "modules.memory"
+local SET = require "modules.settings"
+
+local parent_tab, enemy_to_replace, new_type
+
+local enemy_names = {
+	normal = "Normal",
+	tough = "Tough",
+	chuck = "Heavy",
+	horse = "Horse Rider",
+	shield = "Shielded",
+	turret = "Normal Turret",
+	minigun = "Minigun Turret",
+	skull = "Flying Skull",
+	trap = "Glitched Enemy"
+}
+local enemy_name_order = {"normal", "tough", "chuck", "horse", "shield", "turret", "minigun", "skull", "trap"}
+
+local function update_label()
+	local str = "Replace all "..(enemy_names[enemy_to_replace] or "_____________").." with "..(enemy_names[new_type] or "_____________")
+	gui.set_text(gui.get_node("replace_title"), str)
+end
+
+local function show_enemy_buttons()
+	local function get_button_pos(button_count, button)
+		local pos = 10 / (button_count + 1)
+		pos = pos * button - 5
+		pos = pos * 140
+		return pos
+	end
+	local button_list = {}
+	for key, val in ipairs(enemy_name_order) do
+		if MEM.beat_data.enemy_types[val] then
+			table.insert(button_list, "choice_"..val)
+			UI.load_template("choice_"..val, "dialog_replace_enemy")
+		else
+			UI.unload_template("dialog_replace_enemy", "choice_"..val)
+		end
+		gui.set_enabled(gui.get_node("choice_"..val.."/button_white"), MEM.beat_data.enemy_types[val])
+	end
+	if #button_list > 0 then
+		for key, val in ipairs(button_list) do
+			gui.set(gui.get_node(val.."/button_white"), "position.x", get_button_pos(#button_list, key))
+		end
+	else
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("replace_enemy")})
+		msg.post("/navbar#navbar", hash("update_status"), {text = "Map has no enemies", clear = true})
+	end
+end
+
+local function remove_selection()
+	if enemy_to_replace then
+		gui.set_color(gui.get_node("choice_"..enemy_to_replace.."/button_white"), vmath.vector4(1, 1, 1, 1))
+	end
+	if new_type then
+		gui.set_color(gui.get_node("replace_"..new_type.."/button_white"), vmath.vector4(1, 1, 1, 1))
+	end
+	enemy_to_replace, new_type = nil, nil
+end
+
+function init(self)
+	gui.set_render_order(2)
+	msg.post("#", hash("disable"))
+	UI.load_template({"replace_normal", "replace_tough", "replace_chuck", "replace_turret", "replace_minigun", "replace_shield", "replace_horse", "replace_skull", "replace_trap", "choice_cancel", "choice_accept"}, "dialog_replace_enemy")
+	update_label()
+end
+
+local function evaluate_button(button, item)
+	if button == "choice_cancel" then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("replace_enemy")})
+		remove_selection()
+	elseif button == "choice_accept" then
+		if not enemy_to_replace then
+			msg.post("/navbar#navbar", hash("update_status"), {text = "You must select an enemy type to replace.", clear = true})
+		elseif not new_type then
+			msg.post("/navbar#navbar", hash("update_status"), {text = "You must select a new enemy type.", clear = true})
+		elseif enemy_to_replace == new_type then
+			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a different enemy type.", clear = true})
+		else
+			msg.post("#", hash("disable"))
+			msg.post("#", hash("release_input_focus"))
+			msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("replace_enemy"), enemy_to_replace = enemy_to_replace, new_type = new_type})
+			remove_selection()
+		end
+	else
+		local underscore = string.find(button, "_")
+		local prefix = string.sub(button, 1, underscore - 1)
+		local type = string.sub(button, underscore + 1)
+		if prefix == "choice" then
+			if enemy_to_replace and not (enemy_to_replace == type) then
+				gui.set_color(gui.get_node("choice_"..enemy_to_replace.."/button_white"), vmath.vector4(1, 1, 1, 1))
+			end
+			gui.set_color(gui.get_node("choice_"..type.."/button_white"), SET.colour_highlight_replace_enemy)
+			enemy_to_replace = type
+		elseif prefix == "replace" then
+			if new_type and not (new_type == type) then
+				gui.set_color(gui.get_node("replace_"..new_type.."/button_white"), vmath.vector4(1, 1, 1, 1))
+			end
+			gui.set_color(gui.get_node("replace_"..type.."/button_white"), SET.colour_highlight_replace_enemy)
+			new_type = type
+		end
+		update_label()
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		parent_tab = sender
+		msg.post("#", hash("acquire_input_focus"))
+		msg.post("#", hash("enable"))
+		show_enemy_buttons()
+	elseif message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		remove_selection()
+	end
+end
+
+
+function on_input(self, action_id, action)
+	UI.on_input("dialog_replace_enemy", action_id, action, evaluate_button)
+end

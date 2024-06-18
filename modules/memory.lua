@@ -79,15 +79,25 @@ function load.pw_beat(data, filename)
 	tab, data = G.safe_decode(data, filename)
 	if not (tab and G.check_version(data, filename)) then return end
 	MEM.beat_data.obstacle_list = {}
+	MEM.beat_data.enemy_list = {}
 	for key, val in ipairs(tab.beatData) do
-		if not (val.obstacles == {}) then
-			for k, v in ipairs(val.obstacles) do
-				table.insert(MEM.beat_data.obstacle_list, {time = val.time, placement = v.placement, type = v.type, beat_data_key = key, obstacles_key = k})
-			end
+		for k, v in ipairs(val.obstacles) do
+			table.insert(MEM.beat_data.obstacle_list, {time = val.time, placement = v.placement, type = v.type, beat_data_key = key, obstacles_key = k})
+		end
+		for k, v in ipairs(val.targets) do
+			local comma = string.find(v.placement, ",")
+			local placement_x = string.sub(v.placement, 1, comma - 1)
+			local placement_y = string.sub(v.placement, comma + 1)
+			table.insert(MEM.beat_data.enemy_list, {
+				time = val.time, type = v.enemyType, distance = v.distance, placement = v.placement, placement_x = placement_x, placement_y = placement_y, 
+				offset = v.enemyOffset, sequence = v.enemySequence, bonus = v.bonusEnemy, shielded = v.shielded, no_ground = v.noGround, no_carve = v.noCarve,
+				beat_data_key = key, enemies_key = k
+			})
 		end
 	end
 
 	MEM.beat_data.changed_obstacles = {}
+	MEM.beat_data.changed_enemies = {}
 
 	MEM.beat_data.table = tab.beatData
 	MEM.beat_data.string = data
@@ -160,6 +170,9 @@ end
 function MEM.get_root_transform(model_tab)
 	if type(model_tab) == "string" then
 		model_tab = G.safe_decode(model_tab, "tween information")
+	end
+	if not model_tab then
+		return
 	end
 	local found_name
 	for key, val in ipairs(model_tab.object.children) do

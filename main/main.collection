@@ -573,6 +573,8 @@ embedded_instances {
 embedded_instances {
   id: "beat"
   children: "dialog"
+  children: "sequence"
+  children: "type"
   data: "components {\n"
   "  id: \"tab_beat\"\n"
   "  component: \"/main/main_tabs/beat.gui\"\n"
@@ -612,7 +614,7 @@ embedded_instances {
   id: "dialog"
   data: "components {\n"
   "  id: \"dialog_replace_enemy\"\n"
-  "  component: \"/main/dialogs/dialog_replace_enemy.gui\"\n"
+  "  component: \"/main/dialogs/beat/dialog_replace_enemy.gui\"\n"
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"
@@ -872,6 +874,80 @@ embedded_instances {
   data: "components {\n"
   "  id: \"dialog_confirm\"\n"
   "  component: \"/main/dialogs/dialog_confirm.gui\"\n"
+  "  position {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "  }\n"
+  "  rotation {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "    w: 1.0\n"
+  "  }\n"
+  "  property_decls {\n"
+  "  }\n"
+  "}\n"
+  ""
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+embedded_instances {
+  id: "sequence"
+  data: "components {\n"
+  "  id: \"dialog_change_sequence\"\n"
+  "  component: \"/main/dialogs/beat/dialog_change_sequence.gui\"\n"
+  "  position {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "  }\n"
+  "  rotation {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "    w: 1.0\n"
+  "  }\n"
+  "  property_decls {\n"
+  "  }\n"
+  "}\n"
+  ""
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+embedded_instances {
+  id: "type"
+  data: "components {\n"
+  "  id: \"dialog_change_enemy_type\"\n"
+  "  component: \"/main/dialogs/beat/dialog_change_type.gui\"\n"
   "  position {\n"
   "    x: 0.0\n"
   "    y: 0.0\n"

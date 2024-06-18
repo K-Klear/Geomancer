@@ -25,7 +25,7 @@ end
 function init(self)
 	gui.set_render_order(1)
 	msg.post("#", hash("disable"))
-	UI.load_template({"sample_48000", "sample_44100", "nobeat_add", "event_add", "event_add_multiple", "tempo_add"}, "tab_event")
+	UI.load_template({"sample_48000", "sample_44100", "nobeat_add", "event_add", "event_add_multiple", "tempo_add", "import_events"}, "tab_event")
 	local validation = {
 		integer = true,
 		min = function() return 1 end,
@@ -275,6 +275,49 @@ local function evaluate_button(button, item)
 		UI.update_list("tab_event", nobeat_list)
 		UI.update_list("tab_event", event_list)
 		UI.update_list("tab_event", tempo_list)
+	elseif button == "import_events" then
+		local _, path = diags.open("zip,pw_event", SET.default_path_load_file)
+		if path then
+			local f = io.open(path, "rb")
+			if f then
+				local event_data, filename
+				if string.sub(path, -3) == "zip" then
+					local zip_data = f:read("*a")
+					local archive = zip.open(zip_data)
+					local file_index = zip.get_number_of_entries(archive) - 1
+					for i = 0, file_index do
+						local file = zip.extract_by_index(archive, i)
+						if string.sub(file.name, -8) == "pw_event" then
+							event_data = file.content
+							filename = file.name
+							break
+						end
+					end
+				else
+					local htap = string.reverse(path)
+					filename = string.reverse(string.sub(htap, 1, string.find(htap, "\\") - 1))
+					event_data = f:read("*a")
+				end
+				msg.post("/navbar#navbar", hash("update_status"), {text = "Loading event data from "..filename, clear = true})
+				timer.delay(0.02, false, function()
+					local panel = MEM.load_file(path, filename, "pw_event", event_data)
+					if panel then
+						msg.post("/navbar#navbar", hash("update_status"), {text = "Event data loaded successfully"})
+					else
+						msg.post("/navbar#navbar", hash("update_status"), {text = "File not loaded"})
+					end
+					MEM.event_reloaded = false
+					reset()
+					UI.update_list("tab_event", nobeat_list, #MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events)
+					UI.update_list("tab_event", event_list, #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events)
+					UI.update_list("tab_event", tempo_list, #MEM.event_data.table.tempoSections)
+				end)
+			else
+				msg.post("/navbar#navbar", hash("update_status"), {text = "File not loaded"})
+			end
+		else
+			msg.post("/navbar#navbar", hash("update_status"), {text = "File not loaded"})
+		end
 	elseif button == "nobeat_add" then
 		local nobeats = MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events
 		local previous_time = 0
