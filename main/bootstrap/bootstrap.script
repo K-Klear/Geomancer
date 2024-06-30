@@ -1,4 +1,5 @@
 local SET = require "modules.settings"
+local COL = require "modules.colours"
 
 local proxy_is_loaded, settings_are_loaded
 
@@ -16,6 +17,8 @@ local default_settings_text = {
 	"default_path_import_model_data=;",
 	"default_path_save_tween=;",
 	"",
+	"ignore_char_limit=false;		-- if true, all text fields will accept inputs of any lengths, even if it makes the text spill out",
+	"",
 	"autodetect_sample_rate=true;",
 	"default_sample_rate=48000;		-- this value is used if autodetect is turned off or sample rate cannot be determined",
 	"new_event_sample_offset=0;",
@@ -29,13 +32,33 @@ local default_settings_text = {
 	"colour_unsupported_obstacle=0.8,0.2,0.2;",
 	"colour_current_enemy_set=0.2,0.4,0.8;",
 	"colour_selection_change_enemy_type=0.1,0.7,0.1;",
+	"colour_highlight_replace_enemy=0.7,0.1,0.1;",
 	"colour_current_enemy_type=0.1,0.1,0.1;",
 	"",
 	"restrict_rotations_to_360=true; -- If true rotation values outside the 0-360 are recalculated to fall within that range.",
 	"tween_action_type_dialog=true; 	-- If false cycle through tween types instead of opening a dialog",
 	"tween_part_dialog=true; 		-- If false cycle through tween parts instead of opening a dialog",
 	"tween_extra_add_buttons=false; 	-- If true adds \"Add action\" button between tween actions",
-	"ask_before_overwriting_tween_file=true;"
+	"ask_before_overwriting_tween_file=true;",
+	"",
+	"model_rotation_sensitivity=0.5;",
+	"model_move_sensitivity=0.01;",
+	"model_zoom_sensitivity=1;",
+	"",
+	"default_colour_set=1;			-- Sets which unique colour set from the map will be selected by default. Use 0 to default to the custom colours.",
+	"custom_colour_main=471537;		-- uses the same hexadecimal format as Pistol Mix",
+	"custom_colour_fog=C9C3C1;",
+	"custom_colour_glow=FCC69D;",
+	"custom_colour_enemy=000000;",
+	"",
+	"model_show_grid=1;				-- Set to 1 to show main-coloured ground, 2 for a white grid, 3 to turn off",
+	"model_grid_dots=false;			-- Changes the grid to just dots",
+	"",
+	"default_cam_position_x=0;",
+	"default_cam_position_y=0.5;",
+	"default_cam_position_z=5.5;",
+	"default_rotation=0;			-- Euler angle.",
+	"default_pitch=25;				-- Euler angle ranging from -90 to 90"
 }
 
 
@@ -53,6 +76,7 @@ local settings_to_load = {
 	colour_current_enemy_set = {type = "colour"},
 	colour_selection_change_enemy_type = {type = "colour"},
 	colour_current_enemy_type = {type = "colour"},
+	colour_highlight_replace_enemy = {type = "colour"},
 	restrict_rotations_to_360 = {type = "boolean"},
 	tween_action_type_dialog = {type = "boolean"},
 	tween_part_dialog = {type = "boolean"},
@@ -66,7 +90,27 @@ local settings_to_load = {
 	default_path_import_model_data = {type = "path"},
 	default_path_save_tween = {type = "path"},
 	confirm_file_overwrite = {type = "boolean"},
-	ask_before_overwriting_tween_file = {type = "boolean"}
+	ask_before_overwriting_tween_file = {type = "boolean"},
+	ignore_char_limit = {type = "boolean"},
+
+	model_rotation_sensitivity = {type = "non_zero"},
+	model_move_sensitivity = {type = "non_zero"},
+	model_zoom_sensitivity = {type = "non_zero"},
+
+	default_colour_set = {type = "integer"},
+	custom_colour_main = {type = "hex_colour"},
+	custom_colour_fog = {type = "hex_colour"},
+	custom_colour_glow = {type = "hex_colour"},
+	custom_colour_enemy = {type = "hex_colour"},
+
+	model_show_grid = {type = "integer"},
+	model_grid_dots = {type = "boolean"},
+
+	default_cam_position_x = {type = "number"},
+	default_cam_position_y = {type = "number"},
+	default_cam_position_z = {type = "number"},
+	default_rotation = {type = "number"},
+	default_pitch = {type = "angle_pitch"},
 }
 
 
@@ -74,6 +118,7 @@ local function start()
 	if settings_are_loaded and proxy_is_loaded then
 		msg.post("#main", "enable")
 		msg.post("#main", "acquire_input_focus")
+		msg.post("@render:", hash("use_camera_mine"))
 	end
 end
 
@@ -117,8 +162,20 @@ function init(self)
 			local z = string.sub(str, comma_2 + 1)
 			return vmath.vector4(tonumber(x), tonumber(y), tonumber(z), 1)
 		end
-		function parse.path(str)
-			return str
+		function parse.path(str) return str end
+		function parse.non_zero(str)
+			local n = tonumber(str)
+			if n > 0 then
+				return n
+			end
+		end
+		function parse.hex_colour(str)
+			if COL.str_to_colour(str) then
+				return str
+			end
+		end
+		function parse.angle_pitch(str)
+			return math.max(-90, math.min(tonumber(str), 90))
 		end
 			
 		local loaded_settings = {}

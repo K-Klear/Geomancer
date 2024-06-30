@@ -156,7 +156,7 @@ nodes {
 }
 nodes {
   position {
-    x: -549.0
+    x: -553.0
     y: 322.0
     z: 0.0
     w: 1.0
@@ -187,7 +187,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "Action         Time          Start state (X/Y/Z)       End state (X/Y/Z)         Speed                   Model part"
+  text: "Action      Time          Start state (X/Y/Z)              End state (X/Y/Z)            Speed             Model part"
   font: "tab_caption"
   id: "lbl_tween_legend"
   xanchor: XANCHOR_NONE
@@ -841,7 +841,7 @@ nodes {
 }
 nodes {
   position {
-    x: 107.0
+    x: 103.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -1017,7 +1017,7 @@ nodes {
 }
 nodes {
   position {
-    x: 176.0
+    x: 154.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -1193,7 +1193,7 @@ nodes {
 }
 nodes {
   position {
-    x: 303.0
+    x: 260.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -1253,7 +1253,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 65.0
+    x: 85.0
     y: 40.0
     z: 0.0
     w: 1.0
@@ -1328,7 +1328,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "128.569"
+  text: "1234567890"
   font: "main_menu_button_small"
   id: "tween_start_x/text"
   xanchor: XANCHOR_NONE
@@ -1369,7 +1369,7 @@ nodes {
 }
 nodes {
   position {
-    x: 370.0
+    x: 345.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -1429,7 +1429,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 65.0
+    x: 85.0
     y: 40.0
     z: 0.0
     w: 1.0
@@ -1545,7 +1545,7 @@ nodes {
 }
 nodes {
   position {
-    x: 436.0
+    x: 430.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -1605,7 +1605,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 65.0
+    x: 85.0
     y: 40.0
     z: 0.0
     w: 1.0
@@ -1781,7 +1781,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 65.0
+    x: 85.0
     y: 40.0
     z: 0.0
     w: 1.0
@@ -1897,7 +1897,7 @@ nodes {
 }
 nodes {
   position {
-    x: 593.0
+    x: 611.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -1957,7 +1957,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 65.0
+    x: 85.0
     y: 40.0
     z: 0.0
     w: 1.0
@@ -2073,7 +2073,7 @@ nodes {
 }
 nodes {
   position {
-    x: 659.0
+    x: 696.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -2133,7 +2133,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 65.0
+    x: 85.0
     y: 40.0
     z: 0.0
     w: 1.0
@@ -2249,7 +2249,7 @@ nodes {
 }
 nodes {
   position {
-    x: 756.0
+    x: 789.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -2425,7 +2425,7 @@ nodes {
 }
 nodes {
   position {
-    x: 1002.0
+    x: 1010.0
     y: -20.0
     z: 0.0
     w: 1.0

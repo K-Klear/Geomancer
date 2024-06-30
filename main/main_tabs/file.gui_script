@@ -638,9 +638,11 @@ local function evaluate_button(button)
 						msg.post("/navbar#navbar", hash("update_status"), {text = "Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually."})
 						return
 					end
-					local extension = string.find(file.name, "%.")
-					if extension then
-						extension = string.sub(file.name, extension + 1)
+					
+					local emanelif = string.reverse(file.name)
+					local extension_index = string.find(emanelif, "%.")
+					if extension_index then
+						local extension = string.reverse(string.sub(emanelif, 1, extension_index - 1))
 						if ext_list[extension] then
 							local panel = MEM.load_file(nil, file.name, extension, file.content) 
 							if panel then

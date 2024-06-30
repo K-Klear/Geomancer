@@ -1,0 +1,291 @@
+local MEM = require "modules.memory"
+local SET = require "modules.settings"
+local G = require "modules.global"
+local MOD = require "main.model_viewer.model"
+local COL = require "modules.colours"
+
+go.property("prop_material", resource.material("/render/model.material"))
+go.property("glow_material", resource.material("/render/glow.material"))
+go.property("no_light_material", resource.material("/render/no_light.material"))
+
+go.property("glow_tex", resource.texture("/assets/gfx/white_pixel.png"))
+go.property("prop_tex", resource.texture("/assets/gfx/textures/prop.png"))
+go.property("cont_1_tex", resource.texture("/assets/gfx/textures/continental_1.png"))
+go.property("cont_2_tex", resource.texture("/assets/gfx/textures/continental_2.png"))
+go.property("shield_tex", resource.texture("/assets/gfx/textures/shielded.png"))
+
+go.property("grid_tex_dots", resource.texture("/assets/gfx/textures/grid_dots.png"))
+go.property("grid_tex", resource.texture("/assets/gfx/textures/grid.png"))
+go.property("floor_tex", resource.texture("/assets/gfx/textures/default_floor.png"))
+
+local created_meshes = {}
+local created_transforms = {}
+local buffer_resources = {}
+
+local show_fog = true
+
+local function reset_view()
+	MOD.is_dragged = false
+	MOD.camera_is_dragged = false
+	MOD.target_x = SET.default_rotation
+	MOD.target_y = SET.default_pitch
+	MOD.cam_target_x = SET.default_cam_position_x
+	MOD.cam_target_y = SET.default_cam_position_y
+	MOD.cam_target_z = SET.default_cam_position_z
+end
+
+local function show_grid(self)
+	if SET.model_show_grid == 1 then
+		go.set("/grid#grid", "texture0", self.floor_tex)
+		go.set("/grid#grid", "tint", COL.get_current("main"))
+		msg.post("/grid#grid", hash("enable"))
+	elseif SET.model_show_grid == 2 then
+		if SET.model_grid_dots then
+			go.set("/grid#grid", "texture0", self.grid_tex_dots)
+		else
+			go.set("/grid#grid", "texture0", self.grid_tex)
+		end
+		go.set("/grid#grid", "tint", vmath.vector4(1, 1, 1, 0.5))
+	else
+		msg.post("/grid#grid", hash("disable"))
+	end
+end
+
+function init(self)
+	msg.post(".", hash("disable"))
+	go.set("#background", "tint", COL.get_current("fog"))
+	reset_view()
+	show_grid(self)
+end
+
+function update(self, dt)
+	if MOD.viewer_active then
+		local pitch = vmath.quat_rotation_x(math.rad(MOD.target_y))
+		local yaw = vmath.quat_rotation_y(math.rad(MOD.target_x))
+		go.set_rotation(yaw, "/model_yaw")
+		go.set_rotation(pitch, "/model_pitch")
+		local pos = vmath.vector3(MOD.cam_target_x, MOD.cam_target_y, MOD.cam_target_z)
+		go.set_position(pos, "/model_camera")
+	end
+end
+
+local tex_glow = hash("glow")
+local tex_prop = hash("prop")
+local tex_shaded = hash("shaded")
+local tex_cont_1 = hash("cont_1")
+local tex_cont_2 = hash("cont_2")
+local tex_ped = hash("ped")
+local tex_shield = hash("shield")
+local tex_funky = hash("funky")
+
+local function set_material(self, part_index, model_index)
+	local model_url = msg.url(nil, created_meshes[part_index], "mesh")
+	local mat = MEM.art_data.model_list[model_index].parts[part_index]
+	if not COL.materials[mat] then
+		go.set(model_url, "texture0", self.glow_tex)
+		go.set(model_url, "material", self.glow_material)
+	elseif COL.materials[mat].texture == tex_glow then
+		go.set(model_url, "texture0", self.glow_tex)
+		go.set(model_url, "material", self.glow_material)
+	elseif COL.materials[mat].texture == tex_shield then
+		go.set(model_url, "texture0", self.shield_tex)
+		go.set(model_url, "material", self.no_light_material)
+	elseif COL.materials[mat].texture == tex_cont_1 then
+		go.set(model_url, "texture0", self.cont_1_tex)
+		go.set(model_url, "material", self.prop_material)
+	elseif COL.materials[mat].texture == tex_cont_2 then
+		go.set(model_url, "texture0", self.cont_2_tex)
+		go.set(model_url, "material", self.prop_material)
+	elseif COL.materials[mat].texture == tex_shaded then
+		go.set(model_url, "texture0", self.glow_tex)
+		go.set(model_url, "material", self.prop_material)
+	else
+		go.set(model_url, "texture0", self.prop_tex)
+		go.set(model_url, "material", self.prop_material)
+	end
+	if COL.materials[mat] then
+		go.set(model_url, "tint", COL.materials[mat].tint())
+	else
+		go.set(model_url, "tint", vmath.vector4(1, 0, 1, 1))
+	end
+end
+
+local function delete_model()
+	for key, val in ipairs(created_meshes) do
+		go.delete(val)
+	end
+	for key, val in ipairs(created_transforms) do
+		go.delete(val)
+	end
+	created_meshes, created_transforms = {}, {}
+end
+
+local function show_model(self, model)
+	local model_name = MEM.art_data.model_list[model].name
+	delete_model()
+	local function parse_vertex_data(str)
+		local comma_1 = string.find(str, ",")
+		local comma_2 = string.find(str, ",", comma_1 + 1)
+		local x = string.sub(str, 1, comma_1 - 1)
+		local y = string.sub(str, comma_1 + 1, comma_2 - 1)
+		local z = string.sub(str, comma_2 + 1)
+		return tonumber(x), tonumber(y), tonumber(z)
+	end
+
+	local function parse_transform(str)
+		local commas = {string.find(str, ",")}
+		for i = 2, 9 do
+			commas[i] = string.find(str, ",", commas[i - 1] + 1)
+		end
+		local values = {string.sub(str, 1, commas[1] - 1)}
+		for i = 2, 9 do
+			values[i] = string.sub(str, commas[i - 1] + 1, commas[i] - 1)
+		end
+		values[10] = string.sub(str, commas[9] + 1)
+		local pos = vmath.vector3(values[1], values[2], values[3])
+		local rot = vmath.quat(values[4], values[5], values[6], values[7])
+		local sc = vmath.vector3(values[8], values[9], values[10])
+		return pos, rot, sc
+	end
+
+	local function create_mesh(mesh_tab, parent, key)
+		local new_mesh = factory.create("#create_mesh")
+		go.set_parent(new_mesh, parent)
+		if not mesh_tab.triangles then
+			mesh_tab.triangles = {}
+			mesh_tab.normals_parsed = {}
+			for i = mesh_tab.IndexStart, mesh_tab.IndexEnd, 3 do
+				local function add_triangle(index)
+					index = index + 1
+					local x, y, z = parse_vertex_data(mesh_tab.verts[index])
+					table.insert(mesh_tab.triangles, x); table.insert(mesh_tab.triangles, y); table.insert(mesh_tab.triangles, z)
+					x, y, z = parse_vertex_data(mesh_tab.normals[index])
+					table.insert(mesh_tab.normals_parsed, x); table.insert(mesh_tab.normals_parsed, y); table.insert(mesh_tab.normals_parsed, z)
+				end
+				add_triangle(mesh_tab.tris[i])
+				add_triangle(mesh_tab.tris[i + 1])
+				add_triangle(mesh_tab.tris[i + 2])
+			end
+			mesh_tab.tris = nil
+			mesh_tab.normals = nil
+			mesh_tab.verts = nil
+		end
+
+		-- create a buffer with a position stream
+		local buf = buffer.create(#mesh_tab.triangles / 3, {
+			{name = hash("position"), type = buffer.VALUE_TYPE_FLOAT32, count = 3},
+			{name = hash("normal"), type = buffer.VALUE_TYPE_FLOAT32, count = 3},
+			{name = hash("texcoord0"), type = buffer.VALUE_TYPE_FLOAT32, count = 2}
+		})
+
+		-- get the position stream and write the vertices
+
+		local positions = buffer.get_stream(buf, "position")
+		local normal = buffer.get_stream(buf, "normal")
+		local texcoord0 = buffer.get_stream(buf, "texcoord0")
+
+		local tex_index = 1
+		for i, value in ipairs(mesh_tab.triangles) do
+			positions[i] = mesh_tab.triangles[i]
+			normal[i] = mesh_tab.normals_parsed[i]
+			if not (i % 3 == 0) then
+				texcoord0[tex_index] = mesh_tab.triangles[i] * 0.25
+				tex_index = tex_index + 1
+			end
+		end
+
+		if not buffer_resources[key] then
+			local resource_name = "/buffer"..key..".bufferc"
+			buffer_resources[key] = resource.create_buffer(resource_name, {buffer = buf})
+		end
+
+		local _url = msg.url(nil, new_mesh, "mesh")
+		go.set(_url, "vertices", buffer_resources[key])
+		local res = go.get(_url, "vertices")
+		resource.set_buffer(res, buf)
+		table.insert(created_meshes, new_mesh)
+		set_material(self, key, model)
+		if #created_transforms > 3 then
+			go.set(new_mesh, "scale.z", -1)
+		end
+	end
+
+	local function create_transforms(tab, parent)
+		if tab.transform then
+			local new_transform = factory.create("#create_transform")
+			go.set_parent(new_transform, parent)
+			if not (parent == "/model_yaw") then
+				local pos, rot, sc = parse_transform(tab.transform)
+				sc.z = -sc.z
+				go.set_position(pos, new_transform)
+				go.set_rotation(rot, new_transform)
+				go.set(new_transform, "scale", sc)
+			end
+			table.insert(created_transforms, new_transform)
+			parent = new_transform
+		end
+		if tab.meshes then
+			for key, val in ipairs(tab.meshes) do
+				create_mesh(MEM.art_data.mesh_list[model_name][val], parent, val)
+			end
+		end
+		for key, val in ipairs(tab) do
+			create_transforms(val, parent)
+		end
+	end
+	create_transforms(MEM.art_data.model_tree[model_name], "/model_yaw")
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		msg.post(".", hash("enable"))
+		MOD.viewer_active = true
+		if not message.model then
+			for key, val in ipairs(created_meshes) do
+				msg.post(val, hash("enable"))
+			end
+		elseif message.model > 0 then
+			show_model(self, message.model)
+		elseif message.model == 0 then
+			delete_model()
+		end
+		msg.post(".", hash("acquire_input_focus"))
+		msg.post("/grid#grid", hash("enable"))
+	elseif message_id == hash("hide") then
+		MOD.viewer_active = false
+		MOD.is_dragged = false
+		MOD.camera_is_dragged = false
+		msg.post(".", hash("release_input_focus"))
+		msg.post(".", hash("disable"))
+		msg.post("/grid#grid", hash("disable"))
+		for key, val in ipairs(created_meshes) do
+			msg.post(val, hash("disable"))
+		end
+	elseif message_id == hash("remove_model") then
+		delete_model()
+	elseif message_id == hash("colours_changed") then
+		if show_fog then
+			go.set("#background", "tint", COL.get_current("fog"))
+		end
+		if SET.model_show_grid == 1 then
+			go.set("/grid#grid", "tint", COL.get_current("main"))
+		end
+	elseif message_id == hash("change_material") then
+		set_material(self, message.part_index, message.model_index)
+	elseif message_id == hash("switch_background") then
+		show_fog = not show_fog
+		if show_fog then
+			go.set("#background", "tint", COL.get_current("fog"))
+		else
+			go.set("#background", "tint", vmath.vector4(0))
+		end
+	elseif message_id == hash("reset_view") then
+		reset_view()
+	elseif message_id == hash("show_grid") then
+		SET.model_show_grid = SET.model_show_grid + 1
+		if SET.model_show_grid > 3 then
+			SET.model_show_grid = 1
+		end
+		show_grid(self)
+	end
+end

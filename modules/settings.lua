@@ -3,6 +3,8 @@ local SET = {}
 SET.scroll_speed = 150
 SET.scroll_time = 0.6
 
+SET.ignore_char_limit = false
+
 -- file
 
 SET.default_path_load_directory = ""
@@ -37,6 +39,26 @@ SET.colour_current_enemy_type = vmath.vector4(0.1, 0.1, 0.1, 1)
 
 -- model
 SET.restrict_rotations_to_360 = true
+
+-- model viewer
+SET.model_rotation_sensitivity = 0.5
+SET.model_move_sensitivity = 0.01
+SET.model_zoom_sensitivity = 1
+
+SET.default_colour_set = 1
+SET.custom_colour_main = "471537"
+SET.custom_colour_fog = "C9C3C1"
+SET.custom_colour_glow = "FCC69D"
+SET.custom_colour_enemy = "000000"
+
+SET.model_show_grid = 1
+SET.model_grid_dots = false
+
+SET.default_cam_position_x = 0
+SET.default_cam_position_y = 0.5
+SET.default_cam_position_z = 5.5
+SET.default_rotation = 0
+SET.default_pitch = 25
 
 -- tween
 SET.tween_action_type_dialog = true

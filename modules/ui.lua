@@ -1,5 +1,6 @@
 local UI = {active = {}, text_fields = {}}
 local SET = require "modules.settings"
+local MOD = require "main.model_viewer.model"
 
 UI.COLOUR_DEFAULT = vmath.vector4(0.35, 0.75, 0.15, 1)
 UI.COLOUR_DISABLED = vmath.vector4(0.1, 0.1, 0.1, 1)
@@ -41,7 +42,9 @@ UI.tab = {
 	dialog_tween_part = {path = "/tween_part#dialog_tween_part", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
 	dialog_replace_enemy = {path = "/dialog#dialog_replace_enemy", buttons = {}, fields = {}},
 	dialog_change_sequence = {path = "/sequence#dialog_change_sequence", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-	dialog_change_enemy_type = {path = "/type#dialog_change_enemy_type", buttons = {}, fields = {}}
+	dialog_change_enemy_type = {path = "/type#dialog_change_enemy_type", buttons = {}, fields = {}},
+	model_viewer = {path = "not_used_anywhere_actually_why_do_I_bother", buttons = {}, fields = {}},
+	dialog_colours = {path = "screw this", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}}
 }
 
 local mouse_held, r_ctr_held, l_ctr_held
@@ -146,7 +149,7 @@ local function text_field_input(action_id, action)
 			reset_cursor_timer()
 		end
 	elseif action_id == hash("text") then
-		if #text_field_text + #action.text > active_text_field.char_limit then
+		if #text_field_text + #action.text > active_text_field.char_limit and not SET.ignore_char_limit then
 			return
 		end
 		text_field_text = text_field_text..action.text
@@ -216,14 +219,16 @@ local function create_list_item(tab, list_index, item)
 			gui.set_color(button_box, list_tab.exclusive_button.tint(item))
 		end
 	end
-	if list_tab.background and not list_tab.background.list[item] then
-		local new = gui.clone(list_tab.background.node)
-		gui.set_parent(new, list_tab.root_node)
-		gui.set(new, "position.y", gui.get(new, "position.y") - height_adjust)
-		gui.set_enabled(new, true)
-		list_tab.background.list[item] = new
-		if list_tab.background.tint then
-			gui.set_color(new, list_tab.background.tint(item))
+	for key, val in ipairs(list_tab.backgrounds) do
+		if not val.list[item] and (not (val.enabled) or val.enabled(item)) then
+			local new = gui.clone(val.node)
+			gui.set_parent(new, list_tab.root_node)
+			gui.set(new, "position.y", gui.get(new, "position.y") - height_adjust)
+			gui.set_enabled(new, true)
+			val.list[item] = new
+			if val.tint then
+				gui.set_color(new, val.tint(item))
+			end
 		end
 	end
 	for key, val in ipairs(list_tab.buttons) do
@@ -315,9 +320,11 @@ local function delete_list_item(tab, list_index, item)
 			val.list[item] = nil
 		end
 	end
-	if list_tab.background and list_tab.background.list[item] then
-		gui.delete_node(list_tab.background.list[item])
-		list_tab.background.list[item] = nil
+	for key, val in ipairs(list_tab.backgrounds) do
+		if val.list[item] then
+			gui.delete_node(val.list[item])
+			val.list[item] = nil
+		end
 	end
 end
 
@@ -404,6 +411,7 @@ function UI.create_list(tab, stencil_node, item_features)
 	local list_tab = {
 		size_y = gui.get_size(stencil_node).y,
 		root_node = gui.new_box_node(vmath.vector3(0, 0, 0), vmath.vector3(1, 1, 1)),
+		backgrounds = {},
 		labels = {},
 		buttons = {},
 		fields = {},
@@ -417,11 +425,11 @@ function UI.create_list(tab, stencil_node, item_features)
 	local min_y, max_y = 9999, -9999
 	for key, val in ipairs(item_features) do
 		if val.type == hash("background") then
-			list_tab.background = {
+			table.insert(list_tab.backgrounds, {
 				node = val.node,
 				list = {},
 				tint = val.tint
-			}
+			})
 		elseif val.type == hash("exclusive_button") then
 			list_tab.exclusive_button = {
 				node = val.node,
@@ -578,6 +586,9 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
 		else
 			return
 		end
+	end
+	if MOD.is_dragged then
+		return
 	end
 	if active_text_field then
 		if action_id == hash("touch") or action_id == hash("enter") then

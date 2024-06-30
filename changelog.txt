@@ -31,11 +31,26 @@ Bugs:
 Done:
 
 Features:
-- Added an "import data" button to the event tab
-- Enemy types can now be changed per enemy
-- Enemy sequences can be changed, including some not availabled in the editor
+- Added a model preview to the model tab. It's a work in progress
+	- Rotate the model by holding the left mouse button and dragging it
+	- Move the camera by holding the right mouse button and dragging it, move forwards/backwards using the mouse wheel
+	- Buttons at the bottom of the viewport in order:
+		- Recentre the view
+		- Toggle background (fog). Useful to examine props with fog-coloured materials
+		- Toggle between ground, grid and nothing at the ground level
+		- Select colour set. A dialog lets you pick from all unique colour combinations present in the map. The last option is always available and uses the initial Pistol Mix colours by default.
 
 Fixes:
+- Increased character limit on tween start/end states to 10
+- The tab buttons at the bottom can no longer be pressed using the mouse wheel or the keys ctrl, c and v.
 
+New configs:
+- colour_highlight_replace_enemy (colour) - sets the colour of the selected enemy types when replacing them in bulk
+- ignore_char_limit (boolean) - makes all text fields ignore character limits
 
 Bugs:
+- Fixed a bug which prevented files with a full stop in their name from loading.
+
+
+
+

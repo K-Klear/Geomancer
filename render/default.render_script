@@ -27,6 +27,9 @@ local DEFAULT_NEAR = -1
 local DEFAULT_FAR =   1
 local DEFAULT_ZOOM =  1
 
+local SET_MODEL_VIEWPORT = hash("set_model_viewport")
+local GET_MODEL_VIEWPORT = hash("get_model_viewport")
+
 --
 -- projection that centers content with maintained aspect ratio and optional zoom
 --
@@ -82,10 +85,14 @@ local function update_state(state)
     if state.window_width == state.prev_window_width and state.window_height == state.prev_window_height then
         return true
     end
+    if state.prev_window_height then
+        msg.post("main:/model_viewer", GET_MODEL_VIEWPORT)
+    end
     state.prev_window_width = state.window_width
     state.prev_window_height = state.window_height
     state.width = render.get_width()
     state.height = render.get_height()
+  
     for _, camera in pairs(state.cameras) do
         update_camera(camera, state)
     end
@@ -132,6 +139,8 @@ local function create_state()
         [render.BUFFER_STENCIL_BIT] = 0
     }
     state.cameras = {}
+    state.viewport_x = 434; state.viewport_y = 40
+    state.viewport_width = 400; state.viewport_height = 507
     return state
 end
 
@@ -177,26 +186,32 @@ function update(self)
     -- setup camera view and projection
     --
     local camera_world = state.cameras.camera_world
-    render.set_viewport(0, 0, state.window_width, state.window_height)
+    render.draw(predicates.tile, camera_world.frustum)
+    render.set_viewport(state.viewport_x, state.viewport_y, state.viewport_width, state.viewport_height)
+    
+
     render.set_view(camera_world.view)
     render.set_projection(camera_world.proj)
 
+
     -- set states used for all the world predicates
     render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
+    render.enable_state(render.STATE_BLEND)
     render.enable_state(render.STATE_DEPTH_TEST)
 
     -- render `model` predicate for default 3D material
     --
+    render.set_camera(self.camera)
     render.enable_state(render.STATE_CULL_FACE)
+    render.set_blend_func(render.BLEND_ONE, render.BLEND_ONE_MINUS_SRC_ALPHA)
     render.draw(predicates.model, camera_world.frustum)
     render.set_depth_mask(false)
     render.disable_state(render.STATE_CULL_FACE)
+    render.set_camera()
+    render.set_viewport(0, 0, state.window_width, state.window_height)
 
     -- render the other components: sprites, tilemaps, particles etc
     --
-    render.enable_state(render.STATE_BLEND)
-    render.draw(predicates.tile, camera_world.frustum)
-    render.draw(predicates.particle, camera_world.frustum)
     render.disable_state(render.STATE_DEPTH_TEST)
 
     render.draw_debug3d()
@@ -233,6 +248,8 @@ function on_message(self, message_id, message)
         update_camera(camera, state)
     elseif message_id == MSG_SET_CAMERA_PROJ then
         camera.projection_fn = function() return self.camera_projection end
+    elseif message_id == hash("use_camera_mine") then
+        self.camera = "main:/model_camera#camera"
     elseif message_id == MSG_USE_STRETCH_PROJ then
         init_camera(camera, get_stretch_projection, message.near, message.far)
         update_camera(camera, state)
@@ -242,6 +259,9 @@ function on_message(self, message_id, message)
     elseif message_id == MSG_USE_FIXED_FIT_PROJ then
         init_camera(camera, get_fixed_fit_projection, message.near, message.far)
         update_camera(camera, state)
+    elseif message_id == SET_MODEL_VIEWPORT then
+        state.viewport_x = message.x; state.viewport_y = message.y
+        state.viewport_width = message.w; state.viewport_height = message.h
     elseif message_id == hash("invert_preview") then
         self.inverted = message.invert
         if message.invert then

@@ -2,9 +2,11 @@ local MEM = require "modules.memory"
 local UI = require "modules.ui"
 local G = require "modules.global"
 local SET = require "modules.settings"
+local COL = require "modules.colours"
 
 local model_list, part_list, evaluate_button, current_material
 local material_buttons = {}
+local colour_set
 
 local material_list = {
 	-- default
@@ -91,6 +93,7 @@ function init(self)
 		gui.set_id(new["mat_0/text"], "mat_"..key.."/text")
 		gui.set_position(new["mat_0/button_white"], position)
 		gui.set_text(new["mat_0/text"], string.sub(material_list[key], 20))
+		--gui.set_color(new["mat_0/button_white"], COL.materials[material_list[key]].tint())
 		table.insert(material_buttons, new["mat_0/button_white"])
 	end
 	gui.delete_node(gui.get_node("mat_0/text"))
@@ -226,6 +229,11 @@ local function update_lists()
 	end
 end
 
+local function open_dialog(dialog, message_tab)
+	msg.post("#", hash("release_input_focus"))
+	msg.post(dialog, hash("show"), message_tab)
+	msg.post("/model_viewer", hash("hide"))
+end
 
 local function import_models()
 	local model_data
@@ -254,14 +262,11 @@ local function import_models()
 		local data
 		model_data, data = G.safe_decode(model_data, "Selected pw_art file")
 		if not (model_data and G.check_version(data, "Selected pw_art file")) then return end
-
 		MEM.art_data.models_for_import = model_data
 		MEM.art_data.import_string = data
-
-		msg.post("#", hash("release_input_focus"))
-		msg.post("/import#dialog_import_models", hash("show"))
+		open_dialog("/import#dialog_import_models")
 	else
-		msg.post("/navbar#navbar", hash("update_status"), {text = "Error reading model data."})
+		msg.post("/navbar#navbar", hash("update_status"), {text = "Error reading model data.", clear = true})
 	end
 end
 
@@ -435,18 +440,30 @@ function on_message(self, message_id, message, sender)
 		msg.post("/import#dialog_import_models", hash("hide"))
 		msg.post("/replace#dialog_replace_model", hash("hide"))
 		msg.post("/rename#dialog_rename_model", hash("hide"))
+		msg.post("/colours#dialog_colour", hash("hide"))
+		msg.post("/model_viewer", hash("hide"))
 	elseif message_id == hash("show") then
 		msg.post("#", hash("enable"))
 		msg.post("#", hash("acquire_input_focus"))
 		update_lists()
+		msg.post("/model_viewer", hash("show"))
+		if not colour_set then
+			colour_set = true
+			COL.set_current_to_default()
+		end
 	elseif message_id == hash("reset") then
 		UI.update_list("tab_art", model_list, 0)
 		UI.update_list("tab_art", part_list, 0)
 		UI.scroll_to_item("tab_art", model_list, 0)
 		UI.scroll_to_item("tab_art", part_list, 0)
+		colour_set = false
 		update_materials()
+		msg.post("/model_viewer", hash("remove_model"))
+	elseif message_id == hash("open_colour_picker") then
+		open_dialog("/colours#dialog_colour")
 	elseif message_id == hash("dialog_closed") then
 		msg.post("#", hash("acquire_input_focus"))
+		msg.post("/model_viewer", hash("show"))
 		if message.dialog == hash("import") then
 			if message.import then
 				local models_added_count = import_models_finish()
@@ -483,6 +500,9 @@ function on_message(self, message_id, message, sender)
 				MEM.art_data.model_list[message.model_index].tween.signal = message.signal
 			end
 			UI.update_list("tab_art", model_list, #MEM.art_data.model_list)
+		elseif message.dialog == hash("colours") then
+			local selected_model = get_selected_model()
+			msg.post("/model_viewer", hash("show"), {model = selected_model})
 		end
 	elseif message_id == hash("update_labels") then
 
@@ -713,16 +733,14 @@ function evaluate_button(button, item)
 	elseif button == "button_replace" then
 		local selected_model = get_selected_model()
 		if selected_model > 0 then
-			msg.post("#", hash("release_input_focus"))
-			msg.post("/replace#dialog_replace_model", hash("show"), {model_to_replace = selected_model})
+			open_dialog("/replace#dialog_replace_model", {model_to_replace = selected_model})
 		else
 			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a model first", clear = true})
 		end
 	elseif button == "button_rename" then
 		local selected_model = get_selected_model()
 		if selected_model > 0 then
-			msg.post("#", hash("release_input_focus"))
-			msg.post("/rename#dialog_rename_model", hash("show"), {model_to_rename = selected_model, model_name = MEM.art_data.model_list[selected_model].name})
+			open_dialog("/rename#dialog_rename_model", {model_to_rename = selected_model, model_name = MEM.art_data.model_list[selected_model].name})
 		else
 			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a model first", clear = true})
 		end
@@ -748,15 +766,18 @@ function evaluate_button(button, item)
 			local str_end = str_start + #material_list[current_material] + 1
 			model_tab.parts[selected_part] = material_list[item]
 			model_tab.string = string.sub(model_tab.string, 1, str_start)..material_list[item]..string.sub(model_tab.string, str_end)
+			msg.post("/model_viewer", hash("change_material"), {part_index = selected_part, model_index = selected_model})
 			update_materials()
 		else
 			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a model and one of its parts first.", clear = true})
 		end
 	elseif button == model_list then
-		local model_name = MEM.art_data.model_list[get_selected_model()].name
+		local selected_model = get_selected_model()
+		local model_name = MEM.art_data.model_list[selected_model].name
 		UI.update_list("tab_art", part_list, #MEM.art_data.part_names[model_name])
 		UI.select_exclusive_button("tab_art", part_list, 1)
 		update_materials()
+		msg.post("/model_viewer", hash("show"), {model = selected_model})
 	elseif button == part_list then
 		update_materials()
 	else
@@ -770,8 +791,7 @@ function evaluate_button(button, item)
 			if not model_data.tween then
 				model_data.tween = {signal = "tween", script = {}}
 			end
-			msg.post("#", hash("release_input_focus"))
-			msg.post("/tween#dialog_tween", hash("show"), {model_index = item})
+			open_dialog("/tween#dialog_tween", {model_index = item})
 		end
 	end
 end

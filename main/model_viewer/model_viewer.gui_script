@@ -1,0 +1,101 @@
+local MEM = require "modules.memory"
+local MOD = require "main.model_viewer.model"
+local SET = require "modules.settings"
+local UI = require "modules.ui"
+local COL = require "modules.colours"
+
+local bounding_node, aux_node
+
+local SET_MODEL_VIEWPORT = hash("set_model_viewport")
+local GET_MODEL_VIEWPORT = hash("get_model_viewport")
+
+local function set_button_colours()
+	gui.set_color(gui.get_node("button_colour/main"), COL.get_current("main"))
+	gui.set_color(gui.get_node("button_colour/fog"), COL.get_current("fog"))
+	gui.set_color(gui.get_node("button_colour/glow"), COL.get_current("glow"))
+	gui.set_color(gui.get_node("button_colour/enemy"), COL.get_current("enemy"))
+end
+
+function init(self)
+	bounding_node = gui.get_node("model_viewer")
+	local pos = gui.get_position(bounding_node)
+	local size = gui.get_size(bounding_node) * gui.get(bounding_node, "scale.x")
+	pos.x = pos.x + size.x
+	pos.y = pos.y - size.y
+	aux_node = gui.new_box_node(pos, vmath.vector3(1))
+	gui.set_pivot(aux_node, gui.PIVOT_NW)
+	gui.set_visible(aux_node, false)
+	gui.set_render_order(1)
+	UI.load_template({"button_colour", "reset_view", "show_grid", "show_background"}, "model_viewer")
+	set_button_colours()
+	--msg.post("#", hash("disable"))
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == GET_MODEL_VIEWPORT then
+		local pos_1 = gui.get_screen_position(bounding_node)
+		local pos_2 = gui.get_screen_position(aux_node)
+		msg.post("@render:", SET_MODEL_VIEWPORT, {x = pos_1.x, y = pos_2.y, w = pos_2.x - pos_1.x, h = pos_1.y - pos_2.y})
+	elseif message_id == hash("show") then
+		set_button_colours()
+	end
+end
+
+local function evaluate_button(button)
+	if button == "button_colour" then
+		msg.post("/art", hash("open_colour_picker"))
+		msg.post("/colours", hash("show"))
+		msg.post("#", hash("release_input_focus"))
+		MOD.is_dragged = false
+		MOD.camera_is_dragged = false
+	elseif button == "show_background" then
+		msg.post(".", hash("switch_background"))
+	elseif button == "reset_view" then
+		msg.post(".", hash("reset_view"))
+	elseif button == "show_grid" then
+		msg.post(".", hash("show_grid"))
+	end
+end
+
+function on_input(self, action_id, action)
+	local cursor_over_buttons = gui.pick_node(gui.get_node("button_colour/button_white"), action.x, action.y)
+	if action_id == hash("touch") then
+		if action.released then
+			MOD.is_dragged = false
+		elseif action.pressed and (not cursor_over_buttons) and gui.pick_node(bounding_node, action.x, action.y) then
+			MOD.is_dragged = true
+			return
+		end
+	elseif action_id == hash("r_click") then
+		if action.released then
+			MOD.camera_is_dragged = false
+		elseif action.pressed and (not cursor_over_buttons) and gui.pick_node(bounding_node, action.x, action.y) then
+			MOD.camera_is_dragged = true
+			return
+		end
+	elseif action_id == hash("scroll_up") and action.value > 0 then
+		if gui.pick_node(bounding_node, action.x, action.y) then
+			MOD.cam_target_z = MOD.cam_target_z - SET.model_zoom_sensitivity
+		end
+		return
+	elseif action_id == hash("scroll_down") and action.value > 0 then
+		if gui.pick_node(bounding_node, action.x, action.y) then
+			MOD.cam_target_z = MOD.cam_target_z + SET.model_zoom_sensitivity
+		end
+		return
+	elseif not action_id then
+		if MOD.is_dragged then
+			MOD.target_x = MOD.target_x + action.dx * SET.model_rotation_sensitivity
+			MOD.target_y = MOD.target_y - action.dy * SET.model_rotation_sensitivity
+			MOD.target_y = math.max(-90, math.min(90, MOD.target_y))
+		end
+		if MOD.camera_is_dragged then
+			MOD.cam_target_x = MOD.cam_target_x - action.dx * SET.model_move_sensitivity
+			MOD.cam_target_y = MOD.cam_target_y - action.dy * SET.model_move_sensitivity
+		end
+		if MOD.is_dragged or MOD.camera_is_dragged then
+			return
+		end
+	end
+	UI.on_input("model_viewer", action_id, action, evaluate_button)
+end

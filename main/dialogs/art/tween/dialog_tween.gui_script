@@ -117,7 +117,7 @@ function init(self)
 			template = "tween_start_x;",
 			enabled = is_not_wait,
 			validation = validation_xyz,
-			char_limit = 7
+			char_limit = 9
 		},
 		{
 			type = hash("field"),
@@ -133,7 +133,7 @@ function init(self)
 			template = "tween_start_y;",
 			enabled = is_not_wait,
 			validation = validation_xyz,
-			char_limit = 7
+			char_limit = 9
 		},
 		{
 			type = hash("field"),
@@ -149,7 +149,7 @@ function init(self)
 			template = "tween_start_z;",
 			enabled = is_not_wait,
 			validation = validation_xyz,
-			char_limit = 7
+			char_limit = 9
 		},
 		{
 			type = hash("field"),
@@ -165,7 +165,7 @@ function init(self)
 			template = "tween_end_x;",
 			enabled = is_not_wait,
 			validation = validation_xyz,
-			char_limit = 7
+			char_limit = 9
 		},
 		{
 			type = hash("field"),
@@ -181,7 +181,7 @@ function init(self)
 			template = "tween_end_y;",
 			enabled = is_not_wait,
 			validation = validation_xyz,
-			char_limit = 7
+			char_limit = 9
 		},
 		{
 			type = hash("field"),
@@ -197,7 +197,7 @@ function init(self)
 			template = "tween_end_z;",
 			enabled = is_not_wait,
 			validation = validation_xyz,
-			char_limit = 7
+			char_limit = 9
 		},
 		{
 			type = hash("field"),
@@ -211,7 +211,7 @@ function init(self)
 				return tween_actions[i].type == "T"
 			end,
 			validation = validation_time,
-			char_limit = 7
+			char_limit = 9
 		},
 		{
 			type = hash("button"),

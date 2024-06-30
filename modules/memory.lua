@@ -1,5 +1,6 @@
 local UI = require "modules.ui"
 local G = require "modules.global"
+local SET = require "modules.settings"
 
 local MEM = {}
 
@@ -231,7 +232,8 @@ end
 function MEM.load_props_dictionary(model_table, ignored_models)
 	ignored_models = ignored_models or {}
 	local current_name = ""
-	local function find_section(tab, model_index, name)
+	
+	local function find_section_old(tab, model_index, name, tree_section)
 		if type(tab) == "table" then
 			current_name = tab.name or current_name
 			if tab.materials then
@@ -239,9 +241,57 @@ function MEM.load_props_dictionary(model_table, ignored_models)
 					table.insert(MEM.art_data.model_list[model_index].parts, val)
 					table.insert(MEM.art_data.part_names[name], current_name)
 				end
+			elseif tab.subMeshes then
+				local mesh_tab = {}
+				if tab.subMeshes then
+					for key, val in ipairs(tab.subMeshes) do
+						mesh_tab[key] = {IndexStart = val.IndexStart + 1, IndexEnd = val.IndexCount + val.IndexStart, verts = tab.verts, tris = tab.tris, normals = tab.normals}
+					end
+					for key, val in ipairs(mesh_tab) do
+						table.insert(MEM.art_data.mesh_list[name], val)
+					end
+				end
 			else
 				for key, val in pairs(tab) do
 					find_section(val, model_index, name)
+				end
+			end
+		end
+	end
+	local function find_section(tab, model_index, name, tree_section)
+		if type(tab) == "table" then
+			current_name = tab.name or current_name
+			if tab.components then
+				for key, val in ipairs(tab.components) do
+					if val.type == "Transform" then
+						tree_section.transform = val.values
+					elseif val.materials then
+						for k, v in ipairs(val.materials) do
+							table.insert(MEM.art_data.model_list[model_index].parts, v)
+							table.insert(MEM.art_data.part_names[name], current_name)
+						end
+					elseif val.subMeshes then
+						local mesh_tab = {}
+						for k, v in ipairs(val.subMeshes) do
+							mesh_tab[k] = {IndexStart = v.IndexStart + 1, IndexEnd = v.IndexCount + v.IndexStart, verts = val.verts, tris = val.tris, normals = val.normals}
+						end
+						tree_section.meshes = {}
+						for k, v in ipairs(mesh_tab) do
+							table.insert(MEM.art_data.mesh_list[name], v)
+							tree_section.meshes[k] = #MEM.art_data.mesh_list[name]
+						end
+					end
+				end
+			end
+			if tab.children then
+				for key, val in ipairs(tab.children) do
+					table.insert(tree_section, {})
+					find_section(val, model_index, name, tree_section[#tree_section])
+				end
+			end
+			if not (tab.children or tab.components) then
+				for key, val in pairs(tab) do
+					find_section(val, model_index, name, tree_section)
 				end
 			end
 		end
@@ -287,7 +337,9 @@ function MEM.load_props_dictionary(model_table, ignored_models)
 			table.insert(MEM.art_data.model_names, v.key)
 			table.insert(MEM.art_data.model_list, {name = v.key, parts = {}, dynamic = MEM.art_data.dynamic_models[v.key], tween = tween})
 			MEM.art_data.part_names[v.key] = {}
-			find_section(v, #MEM.art_data.model_list, v.key)
+			MEM.art_data.mesh_list[v.key] = {}
+			MEM.art_data.model_tree[v.key] = {}
+			find_section(v, #MEM.art_data.model_list, v.key, MEM.art_data.model_tree[v.key])
 			if tween then
 				local tween_root = MEM.get_root_transform(v)
 				local all_parts_found = true
@@ -341,6 +393,27 @@ function load.pw_art(data, filename)
 	MEM.art_data.model_list = {}
 	MEM.art_data.model_names = {}
 	MEM.art_data.part_names = {[false] = {}}
+	MEM.art_data.mesh_list = {}
+	MEM.art_data.model_tree = {}
+	MEM.art_data.colours = {}
+	local colour_check = {}
+	for key, val in ipairs(model_table.colors) do
+		local all_colours = val.mainColor..val.fogColor..val.glowColor..val.enemyColor
+		local add_this_colour = true
+		for k, v in ipairs(colour_check) do
+			if v == all_colours then
+				add_this_colour = false
+				break
+			end
+		end
+		if add_this_colour then
+			local t = {main = val.mainColor, fog = val.fogColor, glow = val.glowColor, enemy = val.enemyColor}
+			table.insert(MEM.art_data.colours, t)
+			table.insert(colour_check, all_colours)
+		end
+	end
+	local t = {main = SET.custom_colour_main, fog = SET.custom_colour_fog, glow = SET.custom_colour_glow, enemy = SET.custom_colour_enemy}
+	table.insert(MEM.art_data.colours, t)
 
 	MEM.load_props_dictionary(model_table.propsDictionary)
 

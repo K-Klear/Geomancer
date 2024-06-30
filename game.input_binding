@@ -38,6 +38,10 @@ mouse_trigger {
   input: MOUSE_WHEEL_DOWN
   action: "scroll_down"
 }
+mouse_trigger {
+  input: MOUSE_BUTTON_RIGHT
+  action: "r_click"
+}
 text_trigger {
   input: TEXT
   action: "text"
