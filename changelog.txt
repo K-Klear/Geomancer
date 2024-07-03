@@ -27,6 +27,7 @@ Bugs:
 - Volumes generate wrong on the edge of the pictures
 - Geomancer gets rekt by whitespace =/
 - The colour guide button acts weird, probably because it's parented to the list background.
+- background doesn't stay put when resizing window
 
 Done:
 
@@ -39,6 +40,7 @@ Features:
 		- Toggle background (fog). Useful to examine props with fog-coloured materials
 		- Toggle between ground, grid and nothing at the ground level
 		- Select colour set. A dialog lets you pick from all unique colour combinations present in the map. The last option is always available and uses the initial Pistol Mix colours by default.
+- Added bulk replace for sequences. The list of existing sequences is in the order they appear in the map
 
 Fixes:
 - Increased character limit on tween start/end states to 10
@@ -47,6 +49,7 @@ Fixes:
 New configs:
 - colour_highlight_replace_enemy (colour) - sets the colour of the selected enemy types when replacing them in bulk
 - ignore_char_limit (boolean) - makes all text fields ignore character limits
+- bulk_sequence_sort 
 
 Bugs:
 - Fixed a bug which prevented files with a full stop in their name from loading.

@@ -131,7 +131,7 @@ function init(self)
 		horizontal = true
 	}
 	enemy_list = UI.create_list("tab_beat", gui.get_node("enemy_list"), list_tab)
-	UI.load_template({"sidestep", "limbo_short", "limbo_tall", "wall", "tunnel_short", "tunnel_tall", "button_replace_bulk"}, "tab_beat")
+	UI.load_template({"sidestep", "limbo_short", "limbo_tall", "wall", "tunnel_short", "tunnel_tall", "button_replace_bulk", "button_sequence_bulk"}, "tab_beat")
 end
 
 local function replace(new_type, old_type)
@@ -178,7 +178,7 @@ function on_message(self, message_id, message, sender)
 		gui.set_enabled(gui.get_node("selected_enemy_label"), false)
 		UI.unload_template("tab_beat", "selected_enemy_type")
 		UI.unload_template("tab_beat", "selected_enemy_sequence")
-		UI.load_template({"sidestep", "limbo_short", "limbo_tall", "wall", "tunnel_short", "tunnel_tall", "button_replace_bulk"}, "tab_beat")
+		UI.load_template({"sidestep", "limbo_short", "limbo_tall", "wall", "tunnel_short", "tunnel_tall", "button_replace_bulk", "button_sequence_bulk"}, "tab_beat")
 		UI.update_list("tab_beat", obstacle_list, 0)
 		UI.update_list("tab_beat", enemy_list, 0)
 	elseif message_id == hash("dialog_closed") then
@@ -195,7 +195,21 @@ function on_message(self, message_id, message, sender)
 				MEM.beat_data.enemy_list[selected_enemy].sequence = message.sequence
 				UI.update_list("tab_beat", enemy_list)
 				gui.set_text(gui.get_node("selected_enemy_sequence/text"), message.sequence)
-				table.insert(MEM.beat_data.changed_enemies, selected_enemy)
+				MEM.beat_data.changed_enemies[selected_enemy] = true
+			end
+		elseif message.dialog == hash("dialog_bulk_sequence") then
+			if message.sequence and message.existing_sequence then
+				msg.post("/navbar#navbar", hash("update_status"), {text = "Replacing all instances of "..message.existing_sequence.." with "..message.sequence, clear = true})
+				for key, val in ipairs(MEM.beat_data.enemy_list) do
+					if val.sequence == message.existing_sequence then
+						MEM.beat_data.enemy_list[key].sequence = message.sequence
+						MEM.beat_data.changed_enemies[key] = true
+					end
+				end
+				UI.update_list("tab_beat", enemy_list)
+				if selected_enemy then
+					gui.set_text(gui.get_node("selected_enemy_sequence/text"), MEM.beat_data.enemy_list[selected_enemy].sequence)
+				end
 			end
 		elseif message.dialog == hash("change_type") then
 			if message.new_type then
@@ -220,7 +234,7 @@ function on_message(self, message_id, message, sender)
 				MEM.beat_data.enemy_types[previous_type] = type_found
 				UI.update_list("tab_beat", enemy_list)
 				update_enemy(selected_enemy)
-				table.insert(MEM.beat_data.changed_enemies, selected_enemy)
+				MEM.beat_data.changed_enemies[selected_enemy] = true
 			end
 		end
 		msg.post("#", hash("acquire_input_focus"))
@@ -248,6 +262,9 @@ end
 function evaluate_button(button, item)
 	if button == "button_replace_bulk" then
 		msg.post("/dialog#dialog_replace_enemy", hash("show"))
+		msg.post("#", hash("release_input_focus"))
+	elseif button == "button_sequence_bulk" then
+		msg.post("/sequence_bulk#dialog_bulk_sequence", hash("show"))
 		msg.post("#", hash("release_input_focus"))
 	elseif button == "sidestep" then
 		set_new_type("Sidestep")

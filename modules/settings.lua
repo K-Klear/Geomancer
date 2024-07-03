@@ -66,6 +66,8 @@ SET.tween_part_dialog = true
 SET.tween_extra_add_buttons = false
 SET.ask_before_overwriting_tween_file = true
 
+-- beat
+SET.bulk_sequence_sort = false
 
 SET.debug = false
 

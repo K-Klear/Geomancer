@@ -42,6 +42,7 @@ UI.tab = {
 	dialog_tween_part = {path = "/tween_part#dialog_tween_part", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
 	dialog_replace_enemy = {path = "/dialog#dialog_replace_enemy", buttons = {}, fields = {}},
 	dialog_change_sequence = {path = "/sequence#dialog_change_sequence", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
+	dialog_bulk_sequence = {path = "/sequence_bulk#dialog_bulk_sequence", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
 	dialog_change_enemy_type = {path = "/type#dialog_change_enemy_type", buttons = {}, fields = {}},
 	model_viewer = {path = "not_used_anywhere_actually_why_do_I_bother", buttons = {}, fields = {}},
 	dialog_colours = {path = "screw this", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}}

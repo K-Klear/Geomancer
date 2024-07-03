@@ -58,7 +58,9 @@ local default_settings_text = {
 	"default_cam_position_y=0.5;",
 	"default_cam_position_z=5.5;",
 	"default_rotation=0;			-- Euler angle.",
-	"default_pitch=25;				-- Euler angle ranging from -90 to 90"
+	"default_pitch=25;				-- Euler angle ranging from -90 to 90",
+	"",
+	"bulk_sequence_sort=false;		-- Existing sequences when bulk replacing can be sorted alphabetically. Otherwise they are listed in the order they appear"
 }
 
 
@@ -111,6 +113,8 @@ local settings_to_load = {
 	default_cam_position_z = {type = "number"},
 	default_rotation = {type = "number"},
 	default_pitch = {type = "angle_pitch"},
+
+	bulk_sequence_sort = {type = "boolean"}
 }
 
 

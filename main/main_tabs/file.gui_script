@@ -384,8 +384,8 @@ local function export_beat(path)
 		MEM.beat_data.string = string.sub(MEM.beat_data.string, 1, obstacles_start)..js..string.sub(MEM.beat_data.string, obstacles_end)
 	end
 	local used_keys = {}
-	for key, val in ipairs(MEM.beat_data.changed_enemies) do
-		local beat_data_key = MEM.beat_data.enemy_list[val].beat_data_key
+	for key in pairs(MEM.beat_data.changed_enemies) do
+		local beat_data_key = MEM.beat_data.enemy_list[key].beat_data_key
 		if not used_keys[beat_data_key] then
 			used_keys[beat_data_key] = true
 			local t = MEM.beat_data.table[beat_data_key].time
@@ -395,7 +395,7 @@ local function export_beat(path)
 
 			local targets_tab = {}
 			
-			local start_index = val - MEM.beat_data.enemy_list[val].enemies_key + 1
+			local start_index = key - MEM.beat_data.enemy_list[key].enemies_key + 1
 			repeat
 				local e = MEM.beat_data.enemy_list[start_index]
 				if e.beat_data_key == beat_data_key then
