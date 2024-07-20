@@ -66,6 +66,13 @@ SET.tween_part_dialog = true
 SET.tween_extra_add_buttons = false
 SET.ask_before_overwriting_tween_file = true
 
+-- easing  													ALL IS NEW!!!
+SET.easing_node_scale = 0.5
+SET.easing_curve_thickness = 3
+SET.easing_node_colour = vmath.vector4(0, 0, 0, 1)
+SET.easing_node_highlight_colour = vmath.vector4(1, 0, 0, 1)
+SET.easing_curve_colour = vmath.vector4(0, 0, 1, 1)
+
 -- beat
 SET.bulk_sequence_sort = false
 

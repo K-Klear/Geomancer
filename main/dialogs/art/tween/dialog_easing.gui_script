@@ -1,0 +1,357 @@
+local UI = require "modules.ui"
+local MEM = require "modules.memory"
+local SET = require "modules.settings"
+
+local evaluate_button, evaluate_input, parent_tab, action_index, model_index, action_tab, easing_list, dialog_active
+local vertices = {}
+local lines = {}
+local vertex_temp, line_temp
+local vertex_count = 6
+local current_easing = "outsine"
+local vertex_dragged = false
+local current_vertex
+local graph_node, aux_node
+
+local supported_easings = {"linear", "insine", "outsine", "inoutsine", "custom"}
+
+local DIALOG_NAME = "dialog_easing"
+
+local function delete_graph()
+	for key, val in ipairs(vertices) do
+		gui.delete_node(val.node)
+	end
+	for key, val in ipairs(lines) do
+		gui.delete_node(val)
+	end
+	vertices, lines = {}, {}
+	current_vertex = nil
+end
+
+local HALF_PI = math.pi * 0.5
+local GRAPH_SIZE_X, GRAPH_SIZE_Y = 400, 400
+
+local easing_fn = {}
+function easing_fn.outsine(x) return math.sin(x * HALF_PI) end
+function easing_fn.insine(x) return 1 - math.cos(x * HALF_PI) end
+function easing_fn.inoutsine(x) return - (math.cos(math.pi * x) - 1) / 2 end
+function easing_fn.linear(x) return x end
+
+
+local function build_graph()
+	delete_graph()
+	local nodes
+	if current_easing == "custom" then
+		nodes = MEM.art_data.model_list[model_index].tween.script[action_index].easing.nodes
+	end
+	local x_dist = 1 / (vertex_count - 1)
+	for i = 0, vertex_count - 1 do
+		local x, y
+		if nodes then
+			y = nodes[i + 1].comp
+			x = nodes[i + 1].time
+		else
+			x = i * x_dist
+			y = easing_fn[current_easing](x)
+		end
+		local new_node = gui.clone(vertex_temp)
+		local pos = vmath.vector3(x * GRAPH_SIZE_X, y * GRAPH_SIZE_Y, 0)
+		table.insert(vertices, {node = new_node, pos = pos})
+		gui.set_position(new_node, pos)
+		gui.set_enabled(new_node, true)
+		if i > 0 then
+			new_node = gui.clone(line_temp)
+			local prev_pos = vertices[#vertices - 1].pos
+			gui.set_position(new_node, prev_pos)
+			gui.set(new_node, "size.x", vmath.length(prev_pos - pos) * 4)
+			local angle = math.atan2(pos.x - prev_pos.x, prev_pos.y - pos.y) - HALF_PI
+			gui.set(new_node, "euler.z", math.deg(angle))
+			table.insert(lines, new_node)
+			gui.set_enabled(new_node, true)
+		end
+	end
+end
+
+function init(self)
+	gui.set_render_order(3)
+	msg.post("#", hash("disable"))
+	UI.load_template({"easing_accept", "easing_cancel", "sections_plus", "sections_minus"}, DIALOG_NAME)
+	vertex_temp, line_temp = gui.get_node("vertex_template"), gui.get_node("line_template")
+	gui.set_scale(vertex_temp, vmath.vector3(SET.easing_node_scale))
+	gui.set(line_temp, "size.y", SET.easing_curve_thickness)
+	gui.set_color(vertex_temp, SET.easing_node_colour)
+	gui.set_color(line_temp, SET.easing_curve_colour)
+	local validation = {
+		integer = true,
+		min = function() return 2 end,
+		max = function() return 99 end,
+		default = function() return 6 end
+	}
+	UI.load_text_field("sections", 2, DIALOG_NAME, validation)
+	graph_node = gui.get_node("graph")
+	local pos = gui.get_position(graph_node)
+	local size = gui.get_size(graph_node) * gui.get(graph_node, "scale.y")
+	pos.x = pos.x + size.x
+	pos.y = pos.y + size.y
+	aux_node = gui.new_box_node(pos, vmath.vector3(1))
+	gui.set_parent(aux_node, gui.get_node("edit_box"))
+	gui.set_visible(aux_node, false)
+	gui.set_text(gui.get_node("vertex_info"), "")
+
+	local easings_tab = {
+		{
+			type = hash("exclusive_button"),
+			node = gui.get_node("easing_exclusive/button_white"),
+			text_node = gui.get_node("easing_exclusive/text"),
+			value_fn = function(i) return supported_easings[i] end,
+			template = "copy_tween_exclusive;",
+			fn = evaluate_button
+		},
+		item_count = #supported_easings,
+		scroll_prefix = "easing_"
+	}
+	easing_list = UI.create_list(DIALOG_NAME, gui.get_node("easing_list"), easings_tab)
+end
+
+local function get_vertex_data(vertex_index)
+	local pos = gui.get_position(vertices[vertex_index].node)
+	local time = math.floor((pos.x * 0.25) * 100) * 0.01
+	local comp = math.floor((pos.y * 0.25) * 100) * 0.01
+	return time, comp
+end
+
+function evaluate_button(button, item)
+	if button == "easing_accept" then
+		local easing = {vertex_count = vertex_count, easing_type = current_easing, nodes = {}}
+		for key in ipairs(vertices) do
+			local t, c = get_vertex_data(key)
+			table.insert(easing.nodes, {time = t * 0.01, comp = c * 0.01})
+		end
+		MEM.art_data.model_list[model_index].tween.script[action_index].easing = easing
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash(DIALOG_NAME), action_index = action_index, easing = true})
+		dialog_active = false
+	elseif button == "easing_cancel" then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash(DIALOG_NAME)})
+		dialog_active = false
+	elseif button == "sections_plus" then
+		if vertex_count < 99 and not (current_easing == "custom") then
+			vertex_count = vertex_count + 1
+			gui.set_text(gui.get_node("sections/text"), vertex_count - 1)
+			build_graph()
+		end
+	elseif button == "sections_minus" then
+		if vertex_count > 2 and not (current_easing == "custom") then
+			vertex_count = vertex_count - 1
+			gui.set_text(gui.get_node("sections/text"), vertex_count - 1)
+			build_graph()
+		end
+	elseif button == easing_list then
+		current_easing = supported_easings[item]
+		if not (current_easing == "custom") then
+			build_graph()
+		end
+	end
+end
+
+function evaluate_input(field, text)
+	if field == "sections" then
+		if not (current_easing == "custom") then
+			vertex_count = text + 1
+			build_graph()
+		else
+			gui.set_text(gui.get_node("sections/text"), vertex_count - 1)
+		end
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		parent_tab = sender
+		msg.post("#", hash("acquire_input_focus"))
+		msg.post("#", hash("enable"))
+		model_index = message.model_index
+		action_index = message.action_index
+		action_tab = MEM.art_data.model_list[model_index].tween.script[action_index]
+		if action_tab.easing then
+			vertex_count = action_tab.easing.vertex_count
+			current_easing = action_tab.easing.easing_type
+		else
+			vertex_count = 2
+			current_easing = "linear"
+		end
+		gui.set_text(gui.get_node("sections/text"), vertex_count - 1)
+		vertex_dragged = false
+		current_vertex = nil
+		dialog_active = true
+		local easing_index
+		for key, val in ipairs(supported_easings) do
+			if val == current_easing then
+				easing_index = key
+				break
+			end
+		end
+		UI.select_exclusive_button(DIALOG_NAME, easing_list, easing_index, false, true)
+		build_graph()
+	elseif message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		dialog_active = false
+	end
+end
+
+local function adjust_lines()
+	local angle, pos_1, pos_2, pos_3, line_1, line_2
+	pos_2 = gui.get_position(vertices[current_vertex].node)
+	if current_vertex > 1 then
+		pos_1 = gui.get_position(vertices[current_vertex - 1].node)
+		line_1 = lines[current_vertex - 1]
+		angle = math.atan2(pos_2.x - pos_1.x, pos_1.y - pos_2.y) - HALF_PI	
+		gui.set(line_1, "euler.z", math.deg(angle))
+		gui.set(line_1, "size.x", vmath.length(pos_2 - pos_1) * 4)
+	end
+	if current_vertex < #vertices then
+		pos_3 = gui.get_position(vertices[current_vertex + 1].node)
+		line_2 = lines[current_vertex]
+		gui.set_position(line_2, pos_2)
+		angle = math.atan2(pos_3.x - pos_2.x, pos_2.y - pos_3.y) - HALF_PI
+		gui.set(line_2, "euler.z", math.deg(angle))
+		gui.set(line_2, "size.x", vmath.length(pos_3 - pos_2) * 4)
+	end
+	current_easing = "custom"
+	UI.select_exclusive_button(DIALOG_NAME, easing_list, #supported_easings, false, true)
+end
+
+local function show_vertex_info()
+	if current_vertex then
+		local time, comp = get_vertex_data(current_vertex)
+		
+		gui.set_text(gui.get_node("vertex_info"), "Time:\n"..string.format(" %.2f", time).." %\nCompletion:\n"..string.format(" %.2f", comp).."%")
+	else
+		gui.set_text(gui.get_node("vertex_info"), "")
+	end
+end
+
+local function delete_vertex(vertex)
+	if vertex == 1 or vertex == #vertices then
+		return
+	end
+	gui.delete_node(vertices[current_vertex].node)
+	table.remove(vertices, current_vertex)
+	gui.delete_node(lines[current_vertex])
+	table.remove(lines, current_vertex)
+	adjust_lines()
+	current_vertex = nil
+	show_vertex_info()
+	vertex_count = vertex_count - 1
+	gui.set_text(gui.get_node("sections/text"), vertex_count - 1)
+end
+
+local function add_vertex(x, y)
+	local new_index
+	for key, val in ipairs(vertices) do
+		if gui.get_screen_position(val.node).x > x then
+			new_index = key
+			break
+		end
+	end
+	local prev_pos = gui.get_position(vertices[new_index - 1].node)
+	local next_pos = gui.get_position(vertices[new_index].node)
+	local new_node = gui.clone(vertex_temp)
+	local pos = vmath.vector3((next_pos.x + prev_pos.x) * 0.5, (next_pos.y + prev_pos.y) * 0.5, 0)
+	table.insert(vertices, new_index, {node = new_node, pos = pos})
+	gui.set_position(new_node, pos)
+	gui.set_enabled(new_node, true)
+	
+	new_node = gui.clone(line_temp)
+	table.insert(lines, new_index, new_node)
+	gui.set_enabled(new_node, true)
+	current_vertex = new_index
+	adjust_lines()
+	current_vertex = nil
+	vertex_count = vertex_count + 1
+	gui.set_text(gui.get_node("sections/text"), vertex_count - 1)
+end
+
+function update()
+	if dialog_active then
+		for list_index in pairs(UI.tab[DIALOG_NAME].scrolling) do
+			UI.move_list_root(DIALOG_NAME, list_index, true)
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	if vertex_dragged then
+		if action_id == hash("touch") and action.released then
+			vertex_dragged = false
+			gui.set(vertices[current_vertex].node, "color", SET.easing_node_colour)
+			current_vertex = nil
+		else
+			local min_x, max_x, min_y, max_y
+			if current_vertex == 1 then
+				min_x = gui.get_screen_position(graph_node).x
+				max_x = min_x
+			elseif current_vertex == #vertices then
+				max_x = gui.get_screen_position(aux_node).x
+				min_x = max_x
+			else
+				max_x = gui.get_screen_position(vertices[current_vertex + 1].node).x
+				min_x = gui.get_screen_position(vertices[current_vertex - 1].node).x
+			end
+			max_y = gui.get_screen_position(aux_node).y
+			min_y = gui.get_screen_position(graph_node).y
+			local pos = gui.get_screen_position(vertices[current_vertex].node)
+			pos.x = action.screen_x
+			pos.x = math.max(min_x, math.min(max_x, pos.x))
+			pos.y = action.screen_y
+			pos.y = math.max(min_y, pos.y)
+			pos.y = math.max(min_y, math.min(max_y, pos.y))
+			gui.set_screen_position(vertices[current_vertex].node, pos)
+			adjust_lines()
+			show_vertex_info()
+		end
+	else
+		if gui.pick_node(graph_node, action.x, action.y) then
+			if action_id == hash("touch") and action.pressed and current_vertex then
+				vertex_dragged = true
+			elseif action_id == hash("r_click") and action.pressed then
+				if current_vertex then 
+					delete_vertex(current_vertex)
+				else
+					add_vertex(action.screen_x, action.screen_y)
+				end
+			else
+				local new_hover
+				for key, val in ipairs(vertices) do
+					if gui.pick_node(val.node, action.x, action.y) then
+						new_hover = key
+						break
+					end
+				end
+				if current_vertex and not (current_vertex == new_hover) then
+					gui.set(vertices[current_vertex].node, "color", SET.easing_node_colour)
+				end
+				if new_hover then
+					if not (current_vertex == new_hover) then
+						gui.set(vertices[new_hover].node, "color", SET.easing_node_highlight_colour)
+						current_vertex = new_hover
+						show_vertex_info()
+					end
+				else
+					current_vertex = nil
+					show_vertex_info()
+				end
+			end
+		else
+			if current_vertex then
+				gui.set(vertices[current_vertex].node, "color", SET.easing_node_colour)
+				current_vertex = nil
+				show_vertex_info()
+			end
+			UI.on_input(DIALOG_NAME, action_id, action, evaluate_button, evaluate_input)
+		end
+	end
+end

@@ -238,6 +238,7 @@ function on_message(self, message_id, message, sender)
 				for i = 0, message.repeats - 1 do
 					add_event(message.start_sample + (i * message.offset), message.signal)
 				end
+				table.sort(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, sort_f)
 				UI.update_list("tab_event", event_list, #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events)
 				msg.post("/navbar#navbar", hash("update_status"), {text = message.repeats.." events have been created.", clear = true})
 			end

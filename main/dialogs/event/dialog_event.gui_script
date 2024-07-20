@@ -14,7 +14,7 @@ local function seconds_to_samples(seconds)
 end
 
 function init(self)
-	gui.set_render_order(2)
+	gui.set_render_order(3)
 	msg.post("#", hash("disable"))
 	UI.load_template({"dialog_event_cancel", "dialog_event_accept"}, "dialog_event")
 	local validation = {

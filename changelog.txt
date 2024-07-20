@@ -21,6 +21,8 @@ To do:
 - Show enemy position in the beat editor as a picture rather than text
 - Custom sequence name support
 	- Add a new section for sequences found among the enemies/in the sequence file?
+- Filter events by signal
+- Add a cfg for default easing and number of nodes
 
 Bugs:
 
@@ -28,8 +30,36 @@ Bugs:
 - Geomancer gets rekt by whitespace =/
 - The colour guide button acts weird, probably because it's parented to the list background.
 - background doesn't stay put when resizing window
+- Events aren't sorted when adding multiple
 
 Done:
+
+Features:
+- Added easing for tween actions
+	- Predefined easings inSine, outSine and inOutSine. More *might* come later
+	- Click and drag nodes to make a custom easing function
+	- Right click a node to remove it, right click elsewhere to add a new node
+	- You can set the number of nodes directly. This will reset the easing to whichever function was last selected an clear any custom positions
+	- Geomancer will split the tween action into the required parts on export. The actions will be separate next time you load the exported file
+- The delete tween button is now a trash can icon. I will probably use that elsewhere too, later.
+
+Fixes:
+- model_show_grid value gets clamped to within 1-3
+
+Bugs:
+- Fixed a bug preventing tweens with wait and repeat actions from loading.
+- Fixed an error when canceling out of the folder selection dialog when saving a tween
+- Events now get correctly sorted when adding multiple
+
+New configs:
+- easing_node_scale = 0.5
+- easing_curve_thickness = 3
+- easing_node_colour = vmath.vector4(0, 0, 0, 1)
+- easing_node_highlight_colour = vmath.vector4(1, 0, 0, 1)
+- easing_curve_colour = vmath.vector4(0, 0, 1, 1)
+
+
+OLD BETA:
 
 Features:
 - Added a model preview to the model tab. It's a work in progress

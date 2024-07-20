@@ -19,6 +19,10 @@ fonts {
   name: "event_label"
   font: "/assets/fonts/final/event_label.font"
 }
+fonts {
+  name: "main_menu_button_smaller"
+  font: "/assets/fonts/final/main_menu_button_smaller.font"
+}
 textures {
   name: "UI"
   texture: "/assets/gfx/UI.atlas"
@@ -156,7 +160,7 @@ nodes {
 }
 nodes {
   position {
-    x: -553.0
+    x: -585.0
     y: 322.0
     z: 0.0
     w: 1.0
@@ -187,7 +191,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "Action      Time          Start state (X/Y/Z)              End state (X/Y/Z)            Speed             Model part"
+  text: "Action      Time          Start state (X/Y/Z)              End state (X/Y/Z)            Speed      Model part             Easing"
   font: "tab_caption"
   id: "lbl_tween_legend"
   xanchor: XANCHOR_NONE
@@ -518,7 +522,7 @@ nodes {
 }
 nodes {
   position {
-    x: 32.0
+    x: 16.0
     y: -12.0
     z: 0.0
     w: 1.0
@@ -578,7 +582,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 64.0
+    x: 32.0
     y: 16.0
     z: 0.0
     w: 1.0
@@ -610,6 +614,7 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -631,7 +636,7 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
+    x: 0.25
     y: 0.5
     z: 1.0
     w: 1.0
@@ -669,6 +674,7 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 3
   overridden_fields: 20
   template_node_child: true
   size_mode: SIZE_MODE_AUTO
@@ -679,7 +685,7 @@ nodes {
 }
 nodes {
   position {
-    x: 32.0
+    x: 16.0
     y: -28.0
     z: 0.0
     w: 1.0
@@ -739,7 +745,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 64.0
+    x: 32.0
     y: 16.0
     z: 0.0
     w: 1.0
@@ -771,6 +777,7 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 4
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -792,7 +799,7 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.5
+    x: 0.25
     y: 0.5
     z: 1.0
     w: 1.0
@@ -830,6 +837,7 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 3
   overridden_fields: 9
   overridden_fields: 20
   template_node_child: true
@@ -841,7 +849,7 @@ nodes {
 }
 nodes {
   position {
-    x: 103.0
+    x: 71.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -1017,7 +1025,7 @@ nodes {
 }
 nodes {
   position {
-    x: 154.0
+    x: 122.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -1193,7 +1201,7 @@ nodes {
 }
 nodes {
   position {
-    x: 260.0
+    x: 228.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -1369,7 +1377,7 @@ nodes {
 }
 nodes {
   position {
-    x: 345.0
+    x: 313.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -1545,7 +1553,7 @@ nodes {
 }
 nodes {
   position {
-    x: 430.0
+    x: 398.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -1721,7 +1729,7 @@ nodes {
 }
 nodes {
   position {
-    x: 526.0
+    x: 494.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -1897,7 +1905,7 @@ nodes {
 }
 nodes {
   position {
-    x: 611.0
+    x: 579.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -2073,7 +2081,7 @@ nodes {
 }
 nodes {
   position {
-    x: 696.0
+    x: 664.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -2249,7 +2257,7 @@ nodes {
 }
 nodes {
   position {
-    x: 789.0
+    x: 750.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -2309,7 +2317,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 100.0
+    x: 85.0
     y: 40.0
     z: 0.0
     w: 1.0
@@ -2365,8 +2373,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.8
-    y: 0.78
+    x: 0.5
+    y: 0.5
     z: 1.0
     w: 1.0
   }
@@ -2425,7 +2433,7 @@ nodes {
 }
 nodes {
   position {
-    x: 1010.0
+    x: 933.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -2485,7 +2493,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 240.0
+    x: 200.0
     y: 40.0
     z: 0.0
     w: 1.0
@@ -2561,7 +2569,7 @@ nodes {
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
   text: "Close"
-  font: "main_menu_button_small"
+  font: "main_menu_button_smaller"
   id: "tween_part/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -2588,6 +2596,7 @@ nodes {
   shadow_alpha: 1.0
   overridden_fields: 4
   overridden_fields: 8
+  overridden_fields: 10
   overridden_fields: 18
   overridden_fields: 20
   overridden_fields: 21
@@ -2601,7 +2610,7 @@ nodes {
 }
 nodes {
   position {
-    x: 1165.0
+    x: 1188.0
     y: -20.0
     z: 0.0
     w: 1.0
@@ -2636,7 +2645,7 @@ nodes {
   layer: ""
   inherit_alpha: false
   alpha: 1.0
-  template: "/templates/button_white_small.gui"
+  template: "/templates/button_delete.gui"
   template_node_child: false
   custom_type: 0
   enabled: true
@@ -2661,7 +2670,7 @@ nodes {
     w: 1.0
   }
   size {
-    x: 86.0
+    x: 40.0
     y: 40.0
     z: 0.0
     w: 1.0
@@ -2681,8 +2690,8 @@ nodes {
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "tween_delete"
-  layer: "below"
-  inherit_alpha: false
+  layer: ""
+  inherit_alpha: true
   slice9 {
     x: 24.0
     y: 24.0
@@ -2693,9 +2702,6 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
-  overridden_fields: 4
-  overridden_fields: 20
-  overridden_fields: 21
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
   custom_type: 0
@@ -2717,59 +2723,46 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.8
-    y: 0.8
+    x: 1.0
+    y: 1.0
     z: 1.0
     w: 1.0
   }
   size {
-    x: 160.0
-    y: 40.0
+    x: 200.0
+    y: 100.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 0.0
-    y: 0.0
-    z: 0.0
+    x: 1.0
+    y: 1.0
+    z: 1.0
     w: 1.0
   }
-  type: TYPE_TEXT
+  type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  text: "Delete"
-  font: "main_menu_button_small"
+  texture: "UI/icon_delete"
   id: "tween_delete/text"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
-  outline {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
-  shadow {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
-  }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: true
   parent: "tween_delete/button_white"
   layer: "text"
-  inherit_alpha: false
+  inherit_alpha: true
+  slice9 {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 0.0
+  }
+  clipping_mode: CLIPPING_MODE_NONE
+  clipping_visible: true
+  clipping_inverted: false
   alpha: 1.0
-  outline_alpha: 1.0
-  shadow_alpha: 1.0
-  overridden_fields: 3
-  overridden_fields: 4
-  overridden_fields: 8
-  overridden_fields: 20
-  overridden_fields: 21
   template_node_child: true
-  text_leading: 1.0
-  text_tracking: 0.0
+  size_mode: SIZE_MODE_AUTO
   custom_type: 0
   enabled: true
   visible: true
@@ -3363,6 +3356,185 @@ nodes {
   overridden_fields: 3
   overridden_fields: 4
   overridden_fields: 8
+  overridden_fields: 18
+  overridden_fields: 20
+  overridden_fields: 21
+  template_node_child: true
+  text_leading: 1.0
+  text_tracking: 0.0
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
+}
+nodes {
+  position {
+    x: 1090.0
+    y: -20.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_TEMPLATE
+  id: "tween_easing"
+  parent: "tween_list"
+  layer: ""
+  inherit_alpha: false
+  alpha: 1.0
+  template: "/templates/button_white_small.gui"
+  template_node_child: false
+  custom_type: 0
+  enabled: true
+}
+nodes {
+  position {
+    x: 11.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 150.0
+    y: 40.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  type: TYPE_BOX
+  blend_mode: BLEND_MODE_ALPHA
+  texture: "UI/button_white"
+  id: "tween_easing/button_white"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  adjust_mode: ADJUST_MODE_FIT
+  parent: "tween_easing"
+  layer: "below"
+  inherit_alpha: false
+  slice9 {
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
+  }
+  clipping_mode: CLIPPING_MODE_NONE
+  clipping_visible: true
+  clipping_inverted: false
+  alpha: 1.0
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  overridden_fields: 21
+  template_node_child: true
+  size_mode: SIZE_MODE_MANUAL
+  custom_type: 0
+  enabled: true
+  visible: true
+  material: ""
+}
+nodes {
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 160.0
+    y: 40.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  type: TYPE_TEXT
+  blend_mode: BLEND_MODE_ALPHA
+  text: "Inoutsine"
+  font: "main_menu_button_smaller"
+  id: "tween_easing/text"
+  xanchor: XANCHOR_NONE
+  yanchor: YANCHOR_NONE
+  pivot: PIVOT_CENTER
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+  adjust_mode: ADJUST_MODE_FIT
+  line_break: false
+  parent: "tween_easing/button_white"
+  layer: "text"
+  inherit_alpha: false
+  alpha: 1.0
+  outline_alpha: 1.0
+  shadow_alpha: 1.0
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
   overridden_fields: 18
   overridden_fields: 20
   overridden_fields: 21

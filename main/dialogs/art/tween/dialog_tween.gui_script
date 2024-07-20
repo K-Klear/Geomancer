@@ -260,6 +260,20 @@ function init(self)
 			value_fn = get_repeat_label,
 			enabled = is_repeat
 		},
+		{
+			type = hash("button"),
+			node = gui.get_node("tween_easing/button_white"),
+			text_node = gui.get_node("tween_easing/text"),
+			value_fn = function(i)
+				if tween_actions[i].easing then
+					return tween_actions[i].easing.easing_type
+				else
+					return "linear"
+				end
+			end,
+			template = "tween_easing;",
+			enabled = is_not_wait
+		},
 		item_count = 0,
 		scroll_prefix = "tween_"
 	}
@@ -452,15 +466,17 @@ function evaluate_button(button, item)
 		else
 			_, path = diags.open_folder(SET.default_path_save_tween)
 		end
-		path = path.."\\"
-		local filename = model_name
-		local ext = ".pw_tween"
-		if SET.ask_before_overwriting_tween_file and sys.exists(path..filename..ext) then
-			path_to_tween = {path, filename, ext}
-			msg.post("#", hash("release_input_focus"))
-			msg.post("/confirm#dialog_confirm", hash("show"), {title = filename..ext.." already exitsts. Overwrite?", button_1 = "Overwrite", button_2 = "Rename", button_3 = "Cancel", subject = "overwrite_tween"})
-		else
-			save_tween_data(path..filename..ext)
+		if path then
+			path = path.."\\"
+			local filename = model_name
+			local ext = ".pw_tween"
+			if SET.ask_before_overwriting_tween_file and sys.exists(path..filename..ext) then
+				path_to_tween = {path, filename, ext}
+				msg.post("#", hash("release_input_focus"))
+				msg.post("/confirm#dialog_confirm", hash("show"), {title = filename..ext.." already exitsts. Overwrite?", button_1 = "Overwrite", button_2 = "Rename", button_3 = "Cancel", subject = "overwrite_tween"})
+			else
+				save_tween_data(path..filename..ext)
+			end
 		end
 	elseif button == "dialog_tween_load" then
 		_, path = diags.open("pw_tween", SET.default_path_save_tween)
@@ -474,7 +490,7 @@ function evaluate_button(button, item)
 					end
 					for key, val in ipairs(tween_data) do
 						tween_actions[key] = val
-						if val.part > #MEM.art_data.part_names[model_name] then
+						if val.part and val.part > #MEM.art_data.part_names[model_name] then
 							tween_actions[key].part = 0
 						end
 					end
@@ -535,6 +551,9 @@ function evaluate_button(button, item)
 		elseif str == "tween_add;" then
 			table.insert(tween_actions, item, get_tween_defaults(nil, item))
 			UI.update_list("dialog_tween", action_list, #tween_actions)
+		elseif str == "tween_easing;" then
+			msg.post("/easing#dialog_easing", hash("show"), {model_index = model_index, action_index = item})
+			msg.post("#", hash("release_input_focus"))
 		end
 	end
 end
@@ -545,9 +564,16 @@ local function copy_tween(source_index, target_index)
 	signal = source_tween.signal
 	for key, val in ipairs(source_tween.script) do
 		local start_state, end_state
+		local easing
 		if val.start_state then
 			start_state = {x = val.start_state.x, y = val.start_state.y, z = val.start_state.z}
 			end_state = {x = val.end_state.x, y = val.end_state.y, z = val.end_state.z}
+		end
+		if val.easing then
+			easing = {easing_type = val.easing.easing_type, vertex_count = val.easing.vertex_count, nodes = {}}
+			for k, v in ipairs(val.easing.nodes) do
+				table.insert(easing.nodes, {time = v.time, comp = v.comp})
+			end
 		end
 		local source_name = MEM.art_data.model_list[source_index].name
 		local target_name = MEM.art_data.model_list[target_index].name
@@ -558,7 +584,7 @@ local function copy_tween(source_index, target_index)
 			part = 0
 		end
 		target_tween[key] = {type = val.type, part = part, time = val.time, start_state = start_state, end_state = end_state,
-		actions_to_repeat = val.actions_to_repeat, number_of_repetitions = val.number_of_repetitions}
+		actions_to_repeat = val.actions_to_repeat, number_of_repetitions = val.number_of_repetitions, easing = easing}
 	end
 	tween_actions = target_tween
 	MEM.art_data.model_list[target_index].tween.signal = signal
@@ -585,6 +611,7 @@ function on_message(self, message_id, message, sender)
 		msg.post("/tween_part#dialog_tween_part", hash("hide"))
 		msg.post("/tween_copy#dialog_tween_copy", hash("hide"))
 		msg.post("/confirm#dialog_confirm", hash("hide"))
+		msg.post("/easing#dialog_easing", hash("hide"))
 		dialog_open = false
 		tween_actions = nil
 		if model_index then
@@ -609,6 +636,11 @@ function on_message(self, message_id, message, sender)
 		elseif message.dialog == hash("dialog_tween_part") then
 			if message.selected_part then
 				tween_actions[message.action_index].part = message.selected_part
+				UI.update_list("dialog_tween", action_list)
+			end
+		elseif message.dialog == hash("dialog_easing") then
+			if message.easing then
+				--pprint(MEM.art_data.model_list[model_index].tween.script[message.action_index].easing)
 				UI.update_list("dialog_tween", action_list)
 			end
 		elseif message.dialog == hash("dialog_confirm") then

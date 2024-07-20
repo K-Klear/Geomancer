@@ -250,7 +250,8 @@ function on_message(self, message_id, message, sender)
 			delete_model()
 		end
 		msg.post(".", hash("acquire_input_focus"))
-		msg.post("/grid#grid", hash("enable"))
+		--msg.post("/grid#grid", hash("enable"))
+		show_grid(self)
 	elseif message_id == hash("hide") then
 		MOD.viewer_active = false
 		MOD.is_dragged = false

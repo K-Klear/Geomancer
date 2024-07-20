@@ -274,7 +274,6 @@ local function export_art(path)
 			return ""
 		else
 			local str = ",{\"type\":\"ScriptedTween\",\"Script\":\""
-			
 			local deletion_count = 0
 			for key = #tween_data.script, 1, -1 do
 				local val = tween_data.script[key]
@@ -284,7 +283,7 @@ local function export_art(path)
 					local actions_to_repeat = val.actions_to_repeat
 					table.remove(tween_data.script, key)
 					for action_index = key - val.actions_to_repeat, key - 1 do
-						if action_index < 1 or tween_data.script[action_index].type == "X" then
+						if action_index < 1 or tween_data.script[action_index].type == "X" or (tween_data.script[action_index].easing and tween_data.script[action_index].easing.vertex_count > 2) then
 							deletion_count = deletion_count + 1
 							ignore_repeat = true
 							break
@@ -316,12 +315,47 @@ local function export_art(path)
 
 
 			for key, val in ipairs(tween_data.script) do
-				str = str..val.type
 				if val.type == "W" then
-					str = str..val.time..";"
+					str = str..val.type..val.time..";"
 				else
-					str = str..MEM.art_data.part_names[model_name][val.part]..";"..val.start_state.x..","..val.start_state.y..","
-					str = str..val.start_state.z..";"..val.end_state.x..","..val.end_state.y..","..val.end_state.z..";"..val.time..";"
+					if val.easing then
+						local x_diff = val.end_state.x - val.start_state.x
+						local y_diff = val.end_state.y - val.start_state.y
+						local z_diff = val.end_state.z - val.start_state.z
+						if val.type == "R" then
+							if x_diff > 180 then
+								x_diff = x_diff - 360
+							elseif x_diff < -180 then
+								x_diff = x_diff + 360
+							end
+							if y_diff > 180 then
+								y_diff = y_diff - 360
+							elseif y_diff < -180 then
+								y_diff = y_diff + 360
+							end
+							if z_diff > 180 then
+								z_diff = z_diff - 360
+							elseif z_diff < -180 then
+								z_diff = z_diff + 360
+							end
+						end
+						local node_tab = val.easing.nodes
+						for i = 1, #node_tab - 1 do
+							local s_x = val.start_state.x + (node_tab[i].comp * x_diff)
+							local s_y = val.start_state.y + (node_tab[i].comp * y_diff)
+							local s_z = val.start_state.z + (node_tab[i].comp * z_diff)
+							local e_x = val.start_state.x + (node_tab[i + 1].comp * x_diff)
+							local e_y = val.start_state.y + (node_tab[i + 1].comp * y_diff)
+							local e_z = val.start_state.z + (node_tab[i + 1].comp * z_diff)
+							local t = val.time * (node_tab[i + 1].time - node_tab[i].time)
+							str = str..val.type..MEM.art_data.part_names[model_name][val.part]..";"
+							str = str..s_x..","..s_y..","..s_z..";"
+							str = str..e_x..","..e_y..","..e_z..";"..t..";"
+						end
+					else
+						str = str..val.type..MEM.art_data.part_names[model_name][val.part]..";"..val.start_state.x..","..val.start_state.y..","
+						str = str..val.start_state.z..";"..val.end_state.x..","..val.end_state.y..","..val.end_state.z..";"..val.time..";"
+					end
 				end
 			end
 			return str.."\"},{\"type\":\"LevelEventReceiver\",\"EventId\":\""..tween_data.signal.."\",\"ActionType\":\"ScriptedTweenTrigger\"}"

@@ -45,7 +45,8 @@ UI.tab = {
 	dialog_bulk_sequence = {path = "/sequence_bulk#dialog_bulk_sequence", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
 	dialog_change_enemy_type = {path = "/type#dialog_change_enemy_type", buttons = {}, fields = {}},
 	model_viewer = {path = "not_used_anywhere_actually_why_do_I_bother", buttons = {}, fields = {}},
-	dialog_colours = {path = "screw this", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}}
+	dialog_colours = {path = "screw this", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
+	dialog_easing = {path = "whatever", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}}
 }
 
 local mouse_held, r_ctr_held, l_ctr_held

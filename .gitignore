@@ -9,4 +9,5 @@ Thumbs.db
 .cproject
 geomancer.cfg
 log.txt
+error_logs
 builtins
