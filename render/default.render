@@ -1,9 +1,9 @@
 script: "/render/default.render_script"
-materials {
+render_resources {
   name: "preview"
-  material: "/render/preview.material"
+  path: "/render/preview.material"
 }
-materials {
+render_resources {
   name: "gui"
-  material: "/builtins/materials/gui.material"
+  path: "/builtins/materials/gui.material"
 }

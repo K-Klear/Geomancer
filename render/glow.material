@@ -29,4 +29,3 @@ fragment_constants {
     w: 1.0
   }
 }
-max_page_count: 0

@@ -1,253 +1,183 @@
 images {
   image: "/assets/gfx/button_white.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/text_field.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/empty_pixel.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/button_white_hover.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/panel_green.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/text_field_small.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/tab_active.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/tab_normal.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/tab_disabled.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/made_with_defold.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/scrollbar.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/scrollbar_button.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/button_exclusive.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/button_exclusive_press_5.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/button_down_wide.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/button_up_wide.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/model_viewer_border.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/button_colour_segment.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/white_pixel.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/button_show_background.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/button_show_grid.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/button_reset_view.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/easing_line.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/easing_vertex.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/graph.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/gfx/icon_delete.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 animations {
   id: "button_white_down"
   images {
     image: "/assets/gfx/button_white_press_1.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_white_press_2.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_white_press_3.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_white_press_4.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_white_press_5.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
-  playback: PLAYBACK_ONCE_FORWARD
   fps: 100
-  flip_horizontal: 0
-  flip_vertical: 0
 }
 animations {
   id: "button_white_up"
   images {
     image: "/assets/gfx/button_white_hover.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_white_press_1.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_white_press_2.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_white_press_3.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_white_press_4.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_white_press_5.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   playback: PLAYBACK_ONCE_BACKWARD
   fps: 120
-  flip_horizontal: 0
-  flip_vertical: 0
 }
 animations {
   id: "scrollbar_button_press"
   images {
     image: "/assets/gfx/scrollbar_button.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/scrollbar_button_press_1.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/scrollbar_button_press_2.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/scrollbar_button_press_3.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/scrollbar_button_press_4.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/scrollbar_button_press_5.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   playback: PLAYBACK_ONCE_PINGPONG
   fps: 60
-  flip_horizontal: 0
-  flip_vertical: 0
 }
 animations {
   id: "button_exclusive_press"
   images {
     image: "/assets/gfx/button_exclusive_press_1.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_exclusive_press_2.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_exclusive_press_3.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_exclusive_press_4.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_exclusive_press_5.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
-  playback: PLAYBACK_ONCE_FORWARD
   fps: 45
-  flip_horizontal: 0
-  flip_vertical: 0
 }
 animations {
   id: "button_exclusive_unpress"
   images {
     image: "/assets/gfx/button_exclusive_press_4.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_exclusive_press_3.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_exclusive_press_2.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_exclusive_press_1.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
   images {
     image: "/assets/gfx/button_exclusive.png"
-    sprite_trim_mode: SPRITE_TRIM_MODE_OFF
   }
-  playback: PLAYBACK_ONCE_FORWARD
   fps: 45
-  flip_horizontal: 0
-  flip_vertical: 0
 }
 margin: 2
 extrude_borders: 2
-inner_padding: 0
-max_page_width: 0
-max_page_height: 0
-rename_patterns: ""
