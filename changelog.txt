@@ -30,34 +30,22 @@ Bugs:
 - Geomancer gets rekt by whitespace =/
 - The colour guide button acts weird, probably because it's parented to the list background.
 - background doesn't stay put when resizing window
-- Events aren't sorted when adding multiple
 
 Done:
 
 Features:
-- Added easing for tween actions
-	- Predefined easings inSine, outSine and inOutSine. More *might* come later
-	- Click and drag nodes to make a custom easing function
-	- Right click a node to remove it, right click elsewhere to add a new node
-	- You can set the number of nodes directly. This will reset the easing to whichever function was last selected an clear any custom positions
-	- Geomancer will split the tween action into the required parts on export. The actions will be separate next time you load the exported file
-- The delete tween button is now a trash can icon. I will probably use that elsewhere too, later.
+- Added Logs obstacle set from Voidslayer
+- Adding new nobeats/events/tempo sections now opens the edit box. Can be disabled in config
 
 Fixes:
-- model_show_grid value gets clamped to within 1-3
+- Added sidesteps as valid Spooky obstacle type
 
 Bugs:
-- Fixed a bug preventing tweens with wait and repeat actions from loading.
-- Fixed an error when canceling out of the folder selection dialog when saving a tween
-- Events now get correctly sorted when adding multiple
+- Fixed a bug which could result in action-less tweens under obscure circumstances
+
 
 New configs:
-- easing_node_scale = 0.5
-- easing_curve_thickness = 3
-- easing_node_colour = vmath.vector4(0, 0, 0, 1)
-- easing_node_highlight_colour = vmath.vector4(1, 0, 0, 1)
-- easing_curve_colour = vmath.vector4(0, 0, 1, 1)
-
+- add_opens_edit_box
 
 OLD BETA:
 
@@ -71,19 +59,37 @@ Features:
 		- Toggle between ground, grid and nothing at the ground level
 		- Select colour set. A dialog lets you pick from all unique colour combinations present in the map. The last option is always available and uses the initial Pistol Mix colours by default.
 - Added bulk replace for sequences. The list of existing sequences is in the order they appear in the map
+- Added easing for tween actions
+	- Predefined easings inSine, outSine, inOutSine and linear. More *might* come later
+	- Click and drag nodes to make a custom easing function
+	- Right click a node to remove it, right click elsewhere to add a new node
+	- You can set the number of nodes directly. This is disabled when the function is set to custom
+	- Geomancer will split the tween action into the required parts on export. The actions will be separate next time you load the exported file
+	- Actions with easing cannot be repeated. Repeat actions targeting them will be ignored.
+- The delete tween button is now a trash can icon. I will probably use that elsewhere too, later.
 
 Fixes:
 - Increased character limit on tween start/end states to 10
 - The tab buttons at the bottom can no longer be pressed using the mouse wheel or the keys ctrl, c and v.
+- model_show_grid value gets clamped to within 1-3
 
 New configs:
 - colour_highlight_replace_enemy (colour) - sets the colour of the selected enemy types when replacing them in bulk
 - ignore_char_limit (boolean) - makes all text fields ignore character limits
 - bulk_sequence_sort 
 
+CHECK IF IMPLEMENTED!!!
+- easing_node_scale = 0.5
+- easing_curve_thickness = 3
+- easing_node_colour = vmath.vector4(0, 0, 0, 1)
+- easing_node_highlight_colour = vmath.vector4(1, 0, 0, 1)
+- easing_curve_colour = vmath.vector4(0, 0, 1, 1)
+
 Bugs:
 - Fixed a bug which prevented files with a full stop in their name from loading.
-
+- Fixed a bug preventing tweens with wait and repeat actions from loading.
+- Fixed an error when canceling out of the folder selection dialog when saving a tween
+- Events now get correctly sorted when adding multiple
 
 
 

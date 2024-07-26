@@ -1,7 +1,10 @@
 local UI = require "modules.ui"
 local MEM = require "modules.memory"
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "dialog_tween_part"
+local DIALOG_DATA
 
-local evaluate_button, selected_part, model_index, action_index, list, parent_tab, dialog_active
+local evaluate_button, selected_part, model_index, action_index, list
 local part_list = {}
 
 function init(self)

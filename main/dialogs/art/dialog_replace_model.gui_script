@@ -1,15 +1,16 @@
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
 local SET = require "modules.settings"
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "dialog_replace_model"
+local DIALOG_DATA
 
-local parent_tab
 local replace_model_list, model_to_replace, selected_model, evaluate_button
-local dialog_open = false
 
 function init(self)
-	gui.set_render_order(2)
-	msg.post("#", hash("disable"))
-	UI.load_template({"dialog_replace_cancel", "dialog_replace_accept"}, "dialog_replace")
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+	UI.load_template({"dialog_replace_cancel", "dialog_replace_accept"}, DIALOG_NAME)
 	local model_list = {
 		{
 			type = hash("exclusive_button"),
@@ -29,7 +30,7 @@ function init(self)
 		item_count = 0,
 		scroll_prefix = "replace_model_"
 	}
-	replace_model_list = UI.create_list("dialog_replace", gui.get_node("replace_model_list"), model_list)
+	replace_model_list = UI.create_list(DIALOG_NAME, gui.get_node("replace_model_list"), model_list)
 end
 
 function evaluate_button(button, item)
@@ -39,16 +40,10 @@ function evaluate_button(button, item)
 		elseif selected_model == model_to_replace then
 			msg.post("/navbar#navbar", hash("update_status"), {text = "Cannot replace a model with itself", clear = true})
 		else
-			msg.post("#", hash("disable"))
-			msg.post("#", hash("release_input_focus"))
-			dialog_open = false
-			msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("replace"), selected_model = selected_model, model_to_replace = model_to_replace})
+			DIALOG.close(DIALOG_NAME, {selected_model = selected_model, model_to_replace = model_to_replace})
 		end
 	elseif button == "dialog_replace_cancel" then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		dialog_open = false
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("replace")})
+		DIALOG.close(DIALOG_NAME)
 	elseif button == replace_model_list then
 		if selected_model == model_to_replace then
 			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a different model", clear = true})
@@ -59,30 +54,22 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
-		parent_tab = sender
-		msg.post("#", hash("acquire_input_focus"))
-		msg.post("#", hash("enable"))
+		DIALOG.show(DIALOG_DATA, sender)
 		model_to_replace = message.model_to_replace
 		gui.set_text(gui.get_node("title_replace_model"), "Choose a model to replace\n"..MEM.art_data.model_list[model_to_replace].name)
-		dialog_open = true
 		selected_model = nil
-		UI.update_list("dialog_replace", replace_model_list, #MEM.art_data.model_list)
-	elseif message_id == hash("hide") then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		dialog_open = false
-		UI.update_list("dialog_replace", replace_model_list, 0)
+		UI.update_list(DIALOG_NAME, replace_model_list, #MEM.art_data.model_list)
 	end
 end
 
 function update()
-	if dialog_open then
-		for list_index in pairs(UI.tab.dialog_replace.scrolling) do
-			UI.move_list_root("dialog_replace", list_index, true)
+	if DIALOG_DATA.dialog_open then
+		for list_index in pairs(UI.tab[DIALOG_NAME].scrolling) do
+			UI.move_list_root(DIALOG_NAME, list_index, true)
 		end
 	end
 end
 
 function on_input(self, action_id, action)
-	UI.on_input("dialog_replace", action_id, action, evaluate_button)
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button)
 end

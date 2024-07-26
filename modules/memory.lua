@@ -126,6 +126,7 @@ function load.pw_event(data, filename)
 	MEM.event_data.table = tab
 	MEM.event_data.string = data
 	MEM.event_data.filename = filename
+	MEM.event_data.filter = {}
 	UI.tab.tab_event.state = true
 	MEM.event_reloaded = true
 	return true

@@ -1,18 +1,18 @@
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
-local SET = require "modules.settings"
 local COL = require "modules.colours"
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "dialog_colours"
+local DIALOG_DATA
 
-local parent_tab
-local colour_list, selected_colours, evaluate_button
-local dialog_open = false
+local colour_list, evaluate_button
 
 local button_text = " MAIN     FOG    GLOW  ENEMY"
 
 function init(self)
-	gui.set_render_order(2)
-	msg.post("#", hash("disable"))
-	UI.load_template({"colour_cancel"}, "dialog_colours")
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+	UI.load_template({"colour_cancel"}, DIALOG_NAME)
 	local colours = {
 		{
 			type = hash("exclusive_button"),
@@ -45,15 +45,12 @@ function init(self)
 		item_count = 0,
 		scroll_prefix = "colour_"
 	}
-	colour_list = UI.create_list("dialog_colours", gui.get_node("colour_list"), colours)
+	colour_list = UI.create_list(DIALOG_NAME, gui.get_node("colour_list"), colours)
 end
 
 function evaluate_button(button, item)
 	if button == "colour_cancel" then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		dialog_open = false
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("colours")})
+		DIALOG.close(DIALOG_NAME)
 	elseif button == colour_list then
 		COL.set_current(MEM.art_data.colours[item])
 	end
@@ -61,27 +58,19 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
-		parent_tab = sender
-		msg.post("#", hash("acquire_input_focus"))
-		msg.post("#", hash("enable"))
-		dialog_open = true
-		UI.update_list("dialog_colours", colour_list, #MEM.art_data.colours)
-	elseif message_id == hash("hide") then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		dialog_open = false
-		UI.update_list("dialog_colours", colour_list, 0)
+		DIALOG.show(DIALOG_DATA, sender)
+		UI.update_list(DIALOG_NAME, colour_list, #MEM.art_data.colours)
 	end
 end
 
 function update()
-	if dialog_open then
-		for list_index in pairs(UI.tab.dialog_colours.scrolling) do
-			UI.move_list_root("dialog_colours", list_index, true)
+	if DIALOG_DATA.dialog_open then
+		for list_index in pairs(UI.tab[DIALOG_NAME].scrolling) do
+			UI.move_list_root(DIALOG_NAME, list_index, true)
 		end
 	end
 end
 
 function on_input(self, action_id, action)
-	UI.on_input("dialog_colours", action_id, action, evaluate_button)
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button)
 end

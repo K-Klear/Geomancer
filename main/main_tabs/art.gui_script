@@ -3,6 +3,8 @@ local UI = require "modules.ui"
 local G = require "modules.global"
 local SET = require "modules.settings"
 local COL = require "modules.colours"
+local DIALOG = UI.DIALOG
+local TAB_NAME = "tab_art"
 
 local model_list, part_list, evaluate_button, current_material
 local material_buttons = {}
@@ -71,7 +73,7 @@ end
 function init(self)
 	gui.set_render_order(1)
 	msg.post("#", hash("disable"))
-	UI.load_template({"sort", "button_replace", "button_rename", "import_model_data", "colour_guide", "import_models"}, "tab_art")
+	UI.load_template({"sort", "button_replace", "button_rename", "import_model_data", "colour_guide", "import_models"}, TAB_NAME)
 	local mat_template = gui.get_node("mat_0/button_white")
 	local position = gui.get_position(mat_template)
 	local start_y = position.y
@@ -163,7 +165,7 @@ function init(self)
 		item_count = 0,
 		scroll_prefix = "model_"
 	}
-	model_list = UI.create_list("tab_art", gui.get_node("model_list"), model_list_tab)
+	model_list = UI.create_list(TAB_NAME, gui.get_node("model_list"), model_list_tab)
 	local part_list_tab = {
 		{
 			type = hash("exclusive_button"),
@@ -181,7 +183,7 @@ function init(self)
 		item_count = 0,
 		scroll_prefix = "part_"
 	}
-	part_list = UI.create_list("tab_art", gui.get_node("part_list"), part_list_tab)
+	part_list = UI.create_list(TAB_NAME, gui.get_node("part_list"), part_list_tab)
 end
 
 local function update_materials()
@@ -189,7 +191,7 @@ local function update_materials()
 	if selected_model > 0 then
 		local selected_part = get_selected_part()
 		if selected_part == 0 then
-			UI.select_exclusive_button("tab_art", part_list, 1)
+			UI.select_exclusive_button(TAB_NAME, part_list, 1)
 			selected_part = 1
 		end
 		local part_material = MEM.art_data.model_list[selected_model].parts[selected_part]
@@ -221,17 +223,16 @@ local function update_materials()
 end
 
 local function update_lists()
-	UI.update_list("tab_art", model_list, #MEM.art_data.model_list)
+	UI.update_list(TAB_NAME, model_list, #MEM.art_data.model_list)
 	if get_selected_model() > 0 then
 		local model_name = MEM.art_data.model_list[get_selected_model()].name
-		UI.update_list("tab_art", part_list, #MEM.art_data.part_names[model_name])
+		UI.update_list(TAB_NAME, part_list, #MEM.art_data.part_names[model_name])
 		update_materials()
 	end
 end
 
 local function open_dialog(dialog, message_tab)
-	msg.post("#", hash("release_input_focus"))
-	msg.post(dialog, hash("show"), message_tab)
+	DIALOG.open(TAB_NAME, dialog, message_tab)
 	msg.post("/model_viewer", hash("hide"))
 end
 
@@ -264,7 +265,7 @@ local function import_models()
 		if not (model_data and G.check_version(data, "Selected pw_art file")) then return end
 		MEM.art_data.models_for_import = model_data
 		MEM.art_data.import_string = data
-		open_dialog("/import#dialog_import_models")
+		open_dialog("dialog_import")
 	else
 		msg.post("/navbar#navbar", hash("update_status"), {text = "Error reading model data.", clear = true})
 	end
@@ -361,6 +362,10 @@ local function model_replace(selected_model_index, replace_model_index)
 	end
 	MEM.art_data.part_names[selected_model] = MEM.art_data.part_names[replace_model]
 	MEM.art_data.part_names[replace_model] = nil
+	MEM.art_data.model_tree[selected_model] = MEM.art_data.model_tree[replace_model]
+	MEM.art_data.model_tree[replace_model] = nil
+	MEM.art_data.mesh_list[selected_model] = MEM.art_data.mesh_list[replace_model]
+	MEM.art_data.mesh_list[replace_model] = nil
 	MEM.art_data.dynamic_models[replace_model] = nil
 	msg.post("/navbar#navbar", hash("update_status"), {text = "All instances of "..selected_model.." have been replaced by "..replace_model.." keeping the original model name and properties.", clear = true})
 	table.remove(MEM.art_data.model_list, replace_model_index)
@@ -368,7 +373,7 @@ local function model_replace(selected_model_index, replace_model_index)
 	for key, val in ipairs(MEM.art_data.model_list) do
 		if val.name == selected_model then
 			timer.delay(0, false, function()
-				UI.select_exclusive_button("tab_art", model_list, key)
+				UI.select_exclusive_button(TAB_NAME, model_list, key)
 			end)
 			break
 		end
@@ -417,6 +422,10 @@ local function rename_model(new_name, model_to_rename)
 		MEM.art_data.dynamic_models[old_name] = nil
 		MEM.art_data.dynamic_models[new_name] = true
 	end
+	MEM.art_data.model_tree[new_name] = MEM.art_data.model_tree[old_name]
+	MEM.art_data.model_tree[old_name] = nil
+	MEM.art_data.mesh_list[new_name] = MEM.art_data.mesh_list[old_name]
+	MEM.art_data.mesh_list[old_name] = nil
 	msg.post("/navbar#navbar", hash("update_status"), {text = old_name.." renamed to "..new_name, clear = true})
 end
 
@@ -436,11 +445,10 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("hide") then
 		msg.post("#", hash("disable"))
 		msg.post("#", hash("release_input_focus"))
-		msg.post("/tween#dialog_tween", hash("hide"))
-		msg.post("/import#dialog_import_models", hash("hide"))
-		msg.post("/replace#dialog_replace_model", hash("hide"))
-		msg.post("/rename#dialog_rename_model", hash("hide"))
-		msg.post("/colours#dialog_colour", hash("hide"))
+		if UI.tab[TAB_NAME].child_dialog == "dialog_tween" then
+			msg.post(UI.tab.dialog_tween.path, hash("hide"))
+		end
+		DIALOG.close_all(TAB_NAME)
 		msg.post("/model_viewer", hash("hide"))
 	elseif message_id == hash("show") then
 		msg.post("#", hash("enable"))
@@ -452,19 +460,19 @@ function on_message(self, message_id, message, sender)
 			COL.set_current_to_default()
 		end
 	elseif message_id == hash("reset") then
-		UI.update_list("tab_art", model_list, 0)
-		UI.update_list("tab_art", part_list, 0)
-		UI.scroll_to_item("tab_art", model_list, 0)
-		UI.scroll_to_item("tab_art", part_list, 0)
+		UI.update_list(TAB_NAME, model_list, 0)
+		UI.update_list(TAB_NAME, part_list, 0)
+		UI.scroll_to_item(TAB_NAME, model_list, 0)
+		UI.scroll_to_item(TAB_NAME, part_list, 0)
 		colour_set = false
 		update_materials()
 		msg.post("/model_viewer", hash("remove_model"))
 	elseif message_id == hash("open_colour_picker") then
-		open_dialog("/colours#dialog_colour")
+		open_dialog("dialog_colours")
 	elseif message_id == hash("dialog_closed") then
 		msg.post("#", hash("acquire_input_focus"))
 		msg.post("/model_viewer", hash("show"))
-		if message.dialog == hash("import") then
+		if message.dialog == "dialog_import" then
 			if message.import then
 				local models_added_count = import_models_finish()
 				if models_added_count < 1 then
@@ -482,16 +490,16 @@ function on_message(self, message_id, message, sender)
 			MEM.art_data.models_for_import = nil
 			MEM.art_data.models_for_import_ignore = nil
 			MEM.art_data.import_string = nil
-		elseif message.dialog == hash("replace") then
+		elseif message.dialog == "dialog_replace_model" then
 			if message.selected_model then
 				model_replace(message.model_to_replace, message.selected_model)
 			end
-		elseif message.dialog == hash("rename_model") then
+		elseif message.dialog == "dialog_rename_model" then
 			if message.new_name then
 				rename_model(message.new_name, message.model_to_rename)
 				update_lists()
 			end
-		elseif message.dialog == hash("tween") then
+		elseif message.dialog == "dialog_tween" then
 			if #MEM.art_data.model_list[message.model_index].tween.script < 1 then
 				MEM.art_data.model_list[message.model_index].tween = nil
 				set_model_as_dynamic(message.model_index, false)
@@ -499,13 +507,22 @@ function on_message(self, message_id, message, sender)
 				set_model_as_dynamic(message.model_index, true)
 				MEM.art_data.model_list[message.model_index].tween.signal = message.signal
 			end
-			UI.update_list("tab_art", model_list, #MEM.art_data.model_list)
-		elseif message.dialog == hash("colours") then
+			UI.update_list(TAB_NAME, model_list, #MEM.art_data.model_list)
+		elseif message.dialog == "dialog_colours" then
 			local selected_model = get_selected_model()
 			msg.post("/model_viewer", hash("show"), {model = selected_model})
 		end
+	elseif message_id == hash("tween_closed") then
+		if #MEM.art_data.model_list[message.model_index].tween.script < 1 then
+			MEM.art_data.model_list[message.model_index].tween = nil
+			set_model_as_dynamic(message.model_index, false)
+		else
+			set_model_as_dynamic(message.model_index, true)
+			MEM.art_data.model_list[message.model_index].tween.signal = message.signal
+		end
+		UI.update_list(TAB_NAME, model_list, #MEM.art_data.model_list)
 	elseif message_id == hash("update_labels") then
-
+		
 	end
 end
 
@@ -522,12 +539,12 @@ local function sort_models()
 		for key, val in ipairs(MEM.art_data.model_names) do
 			if val == selected_model_name then
 				selected_model = key
-				UI.select_exclusive_button("tab_art", model_list, selected_model)
+				UI.select_exclusive_button(TAB_NAME, model_list, selected_model)
 			end
 		end
-		--UI.update_list("tab_art", part_list, #MEM.art_data.part_names[selected_model_name])
+		--UI.update_list(TAB_NAME, part_list, #MEM.art_data.part_names[selected_model_name])
 	else
-		UI.update_list("tab_art", model_list)
+		UI.update_list(TAB_NAME, model_list)
 	end
 	msg.post("/navbar#navbar", hash("update_status"), {text = "Models sorted alphabetically", clear = true})
 end
@@ -733,14 +750,14 @@ function evaluate_button(button, item)
 	elseif button == "button_replace" then
 		local selected_model = get_selected_model()
 		if selected_model > 0 then
-			open_dialog("/replace#dialog_replace_model", {model_to_replace = selected_model})
+			open_dialog("dialog_replace_model", {model_to_replace = selected_model})
 		else
 			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a model first", clear = true})
 		end
 	elseif button == "button_rename" then
 		local selected_model = get_selected_model()
 		if selected_model > 0 then
-			open_dialog("/rename#dialog_rename_model", {model_to_rename = selected_model, model_name = MEM.art_data.model_list[selected_model].name})
+			open_dialog("dialog_rename_model", {model_to_rename = selected_model, model_name = MEM.art_data.model_list[selected_model].name})
 		else
 			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a model first", clear = true})
 		end
@@ -774,8 +791,8 @@ function evaluate_button(button, item)
 	elseif button == model_list then
 		local selected_model = get_selected_model()
 		local model_name = MEM.art_data.model_list[selected_model].name
-		UI.update_list("tab_art", part_list, #MEM.art_data.part_names[model_name])
-		UI.select_exclusive_button("tab_art", part_list, 1)
+		UI.update_list(TAB_NAME, part_list, #MEM.art_data.part_names[model_name])
+		UI.select_exclusive_button(TAB_NAME, part_list, 1)
 		update_materials()
 		msg.post("/model_viewer", hash("show"), {model = selected_model})
 	elseif button == part_list then
@@ -785,21 +802,21 @@ function evaluate_button(button, item)
 		local str = string.sub(button, 1, div)
 		if str == "model_dynamic;" then
 			set_model_as_dynamic(item)
-			UI.update_list("tab_art", model_list)
+			UI.update_list(TAB_NAME, model_list)
 		elseif str == "model_tween;" then
 			local model_data = MEM.art_data.model_list[item]
 			if not model_data.tween then
 				model_data.tween = {signal = "tween", script = {}}
 			end
-			open_dialog("/tween#dialog_tween", {model_index = item})
+			open_dialog("dialog_tween", {model_index = item})
 		end
 	end
 end
 
 function update()
-	if UI.current_tab == "tab_art" then
-		for list_index in pairs(UI.tab.tab_art.scrolling) do
-			UI.move_list_root("tab_art", list_index, true)
+	if UI.current_tab == TAB_NAME then
+		for list_index in pairs(UI.tab[TAB_NAME].scrolling) do
+			UI.move_list_root(TAB_NAME, list_index, true)
 		end
 	end
 end
@@ -813,6 +830,6 @@ function on_input(self, action_id, action)
 			end
 		end
 	else
-		UI.on_input("tab_art", action_id, action, evaluate_button)
+		UI.on_input(TAB_NAME, action_id, action, evaluate_button)
 	end
 end

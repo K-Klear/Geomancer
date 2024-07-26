@@ -1,0 +1,133 @@
+local MEM = require "modules.memory"
+local UI = require "modules.ui"
+local SET = require "modules.settings"
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "dialog_filter"
+local DIALOG_DATA
+
+local filter_list, evaluate_button
+local signal_list = {}
+local selection_list = {}
+
+function init(self)
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+	UI.load_template({"filter_show_all", "filter_hide_all", "filter_accept", "filter_cancel"}, DIALOG_NAME)
+	local filter_list_tab = {
+		{
+			type = hash("exclusive_button"),
+			node = gui.get_node("filter_exclusive/button_white"),
+			text_node = gui.get_node("filter_exclusive/text"),
+			value_fn = function(i) return signal_list[i].signal end,
+			template = "filter_exclusive;",
+			fn = evaluate_button,
+			tint = function(i)
+				if selection_list[signal_list[i].signal] then
+					return vmath.vector4(1, 1, 1, 1)
+				else
+					return SET.colour_signal_filter_selection
+				end
+			end,
+		},
+		item_count = 0,
+		scroll_prefix = "filter_"
+	}
+	filter_list = UI.create_list(DIALOG_NAME, gui.get_node("filter_list"), filter_list_tab)
+end
+
+local function update_label()
+	local selected_count, instance_count, instance_selected = 0, 0, 0
+	for key, val in ipairs(signal_list) do
+		if selection_list[val.signal] then
+			selected_count = selected_count + 1
+			instance_selected = instance_selected + val.count
+		end
+		instance_count = instance_count + val.count
+	end
+	selected_count = #signal_list - selected_count
+	instance_selected = instance_count - instance_selected
+	local str = "Showing "..selected_count.." out of "..#signal_list.." signals.\n\n"..instance_selected.." out of "..instance_count.." total events shown."
+	gui.set_text(gui.get_node("filter_label"), str)
+end
+
+function evaluate_button(button, item)
+	if button == "filter_accept" then
+		MEM.event_data.filter = {}
+		local event_count = 0
+		for key, val in ipairs(signal_list) do
+			if selection_list[val.signal] then
+				MEM.event_data.filter[val.signal] = true
+				event_count = event_count + val.count
+			end
+		end
+		if event_count > 0 then
+			msg.post("/navbar#navbar", hash("update_status"), {text = event_count.." events hidden.", clear = true})
+		else
+			msg.post("/navbar#navbar", hash("update_status"), {text = "All events shown.", clear = true})
+		end
+		DIALOG.close(DIALOG_NAME, {filter = true})
+		UI.update_list(DIALOG_NAME, filter_list, 0)
+	elseif button == "filter_cancel" then
+		DIALOG.close(DIALOG_NAME)
+		UI.update_list(DIALOG_NAME, filter_list, 0)
+	elseif button == "filter_hide_all" then
+		for key, val in ipairs(signal_list) do
+			selection_list[val.signal] = true
+		end
+		update_label()
+		UI.update_list(DIALOG_NAME, filter_list)
+	elseif button == "filter_show_all" then
+		selection_list = {}
+		update_label()
+		UI.update_list(DIALOG_NAME, filter_list)
+	elseif button == filter_list then
+		UI.select_exclusive_button(DIALOG_NAME, filter_list, 0, true)
+		if selection_list[signal_list[item].signal] then
+			selection_list[signal_list[item].signal] = nil
+		else
+			selection_list[signal_list[item].signal] = true
+		end
+		update_label()
+		UI.update_list(DIALOG_NAME, filter_list)
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		DIALOG.show(DIALOG_DATA, sender)
+		selection_list = {}
+		for key in pairs(MEM.event_data.filter) do
+			selection_list[key] = true
+		end
+		signal_list = {}
+		local temp_list = {}
+		for key, val in ipairs(MEM.event_data.table.eventsData[message.event_track].events) do
+			temp_list[val.payload] = temp_list[val.payload] or {signal = val.payload, count = 0}
+			temp_list[val.payload].count = temp_list[val.payload].count + 1
+		end
+		for key, val in pairs(temp_list) do
+			table.insert(signal_list, {count = val.count, signal = val.signal})
+		end
+		table.sort(signal_list, function(a, b) return string.lower(a.signal) < string.lower(b.signal) end)
+		if #signal_list == 0 then
+			msg.post("/navbar#navbar", hash("update_status"), {text = "No events found. Cannot set filter."})
+			DIALOG.close(DIALOG_NAME)
+			UI.update_list(DIALOG_NAME, filter_list, 0)
+		else
+			UI.update_list(DIALOG_NAME, filter_list, #signal_list)
+			update_label()
+		end
+	end
+end
+
+function update()
+	if DIALOG_DATA.dialog_open then
+		for list_index in pairs(UI.tab[DIALOG_NAME].scrolling) do
+			UI.move_list_root(DIALOG_NAME, list_index, true)
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button)
+end

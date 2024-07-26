@@ -1,4 +1,4 @@
-script: "/main/dialogs/level/dialog_obstacles.gui_script"
+script: "/main/dialogs/event/dialog_event_filter.gui_script"
 fonts {
   name: "main_menu_button"
   font: "/assets/fonts/final/main_menu_button.font"
@@ -25,12 +25,12 @@ textures {
 }
 nodes {
   position {
-    x: 410.0
+    x: 537.0
     y: 437.0
   }
   size {
-    x: 490.0
-    y: 720.0
+    x: 680.0
+    y: 800.0
   }
   type: TYPE_BOX
   texture: "UI/panel_green"
@@ -46,16 +46,16 @@ nodes {
 }
 nodes {
   position {
-    y: 312.0
+    y: 350.0
   }
   size {
     x: 250.0
     y: 60.0
   }
   type: TYPE_TEXT
-  text: "Select obstacle set"
+  text: "Filter events by singal"
   font: "main_menu_button"
-  id: "title_obstacles"
+  id: "title_filter"
   outline {
     x: 1.0
     y: 1.0
@@ -74,45 +74,11 @@ nodes {
 }
 nodes {
   position {
-    x: 126.0
-    y: -139.0
+    x: 170.0
+    y: -10.0
   }
   type: TYPE_TEMPLATE
-  id: "obstacle_guide"
-  parent: "edit_box"
-  template: "/templates/button_white_small.gui"
-}
-nodes {
-  size {
-    x: 180.0
-    y: 84.0
-  }
-  type: TYPE_BOX
-  id: "obstacle_guide/button_white"
-  parent: "obstacle_guide"
-  layer: "below"
-  overridden_fields: 1
-  overridden_fields: 4
-  overridden_fields: 20
-  template_node_child: true
-}
-nodes {
-  type: TYPE_TEXT
-  text: "Obstacle guide"
-  id: "obstacle_guide/text"
-  parent: "obstacle_guide/button_white"
-  layer: "text"
-  overridden_fields: 8
-  overridden_fields: 20
-  template_node_child: true
-}
-nodes {
-  position {
-    x: 126.0
-    y: -259.0
-  }
-  type: TYPE_TEMPLATE
-  id: "dialog_obstacles_cancel"
+  id: "filter_show_all"
   parent: "edit_box"
   template: "/templates/button_white_small.gui"
 }
@@ -122,8 +88,8 @@ nodes {
     y: 64.0
   }
   type: TYPE_BOX
-  id: "dialog_obstacles_cancel/button_white"
-  parent: "dialog_obstacles_cancel"
+  id: "filter_show_all/button_white"
+  parent: "filter_show_all"
   layer: "below"
   overridden_fields: 1
   overridden_fields: 4
@@ -132,9 +98,9 @@ nodes {
 }
 nodes {
   type: TYPE_TEXT
-  text: "Close"
-  id: "dialog_obstacles_cancel/text"
-  parent: "dialog_obstacles_cancel/button_white"
+  text: "Show all"
+  id: "filter_show_all/text"
+  parent: "filter_show_all/button_white"
   layer: "text"
   overridden_fields: 8
   overridden_fields: 20
@@ -142,16 +108,84 @@ nodes {
 }
 nodes {
   position {
-    x: -205.0
-    y: 270.0
+    x: 170.0
+    y: -110.0
+  }
+  type: TYPE_TEMPLATE
+  id: "filter_hide_all"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 180.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  id: "filter_hide_all/button_white"
+  parent: "filter_hide_all"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Hide all"
+  id: "filter_hide_all/text"
+  parent: "filter_hide_all/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 170.0
+    y: -210.0
+  }
+  type: TYPE_TEMPLATE
+  id: "filter_cancel"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 180.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  id: "filter_cancel/button_white"
+  parent: "filter_cancel"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Cancel"
+  id: "filter_cancel/text"
+  parent: "filter_cancel/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -299.0
+    y: 325.0
   }
   size {
-    x: 232.0
-    y: 584.0
+    x: 352.0
+    y: 690.0
   }
   type: TYPE_BOX
   texture: "UI/empty_pixel"
-  id: "obstacles_list"
+  id: "filter_list"
   pivot: PIVOT_NW
   parent: "edit_box"
   clipping_mode: CLIPPING_MODE_STENCIL
@@ -159,19 +193,19 @@ nodes {
 }
 nodes {
   position {
-    x: 201.0
+    x: 313.0
     y: -428.0
   }
   type: TYPE_BOX
   texture: "UI/scrollbar_button"
-  id: "obstacles_scroll_up"
-  parent: "obstacles_list"
+  id: "filter_scroll_up"
+  parent: "filter_list"
   layer: "below"
   size_mode: SIZE_MODE_AUTO
 }
 nodes {
   position {
-    x: 201.0
+    x: 313.0
     y: -569.0
   }
   rotation {
@@ -179,14 +213,14 @@ nodes {
   }
   type: TYPE_BOX
   texture: "UI/scrollbar_button"
-  id: "obstacles_scroll_down"
-  parent: "obstacles_list"
+  id: "filter_scroll_down"
+  parent: "filter_list"
   layer: "below"
   size_mode: SIZE_MODE_AUTO
 }
 nodes {
   position {
-    x: 201.0
+    x: 313.0
     y: -466.0
   }
   size {
@@ -200,9 +234,9 @@ nodes {
   }
   type: TYPE_BOX
   texture: "UI/scrollbar"
-  id: "obstacles_scroll_background"
+  id: "filter_scroll_background"
   pivot: PIVOT_N
-  parent: "obstacles_list"
+  parent: "filter_list"
   layer: "below"
   slice9 {
     x: 6.0
@@ -213,7 +247,7 @@ nodes {
 }
 nodes {
   position {
-    x: 201.0
+    x: 313.0
     y: -466.0
   }
   size {
@@ -222,9 +256,9 @@ nodes {
   }
   type: TYPE_BOX
   texture: "UI/scrollbar"
-  id: "obstacles_scroll_grip"
+  id: "filter_scroll_grip"
   pivot: PIVOT_N
-  parent: "obstacles_list"
+  parent: "filter_list"
   layer: "below"
   slice9 {
     x: 6.0
@@ -235,23 +269,23 @@ nodes {
 }
 nodes {
   position {
-    y: -20.0
+    y: -16.0
   }
   type: TYPE_TEMPLATE
-  id: "obstacle_exclusive"
-  parent: "obstacles_list"
+  id: "filter_exclusive"
+  parent: "filter_list"
   template: "/templates/button_white_small.gui"
 }
 nodes {
   size {
-    x: 200.0
-    y: 40.0
+    x: 320.0
+    y: 32.0
   }
   type: TYPE_BOX
   texture: "UI/button_exclusive"
-  id: "obstacle_exclusive/button_white"
+  id: "filter_exclusive/button_white"
   pivot: PIVOT_W
-  parent: "obstacle_exclusive"
+  parent: "filter_exclusive"
   layer: "below"
   slice9 {
     x: 6.0
@@ -276,11 +310,11 @@ nodes {
     y: 30.0
   }
   type: TYPE_TEXT
-  text: "Earthcracker"
-  font: "main_menu_button_small"
-  id: "obstacle_exclusive/text"
+  text: "123456789012345678901234567890123456789"
+  font: "status_text"
+  id: "filter_exclusive/text"
   pivot: PIVOT_W
-  parent: "obstacle_exclusive/button_white"
+  parent: "filter_exclusive/button_white"
   layer: "text"
   overridden_fields: 1
   overridden_fields: 4
@@ -292,6 +326,61 @@ nodes {
   overridden_fields: 47
   template_node_child: true
   material: "font-df"
+}
+nodes {
+  position {
+    x: 61.0
+    y: 201.0
+  }
+  size {
+    x: 240.0
+    y: 15.0
+  }
+  type: TYPE_TEXT
+  text: "Showing 999 out of 999 signals.\n"
+  "\n"
+  "Total 9999 out of 9999 events shown."
+  font: "tab_caption"
+  id: "filter_label"
+  pivot: PIVOT_NW
+  line_break: true
+  parent: "edit_box"
+  layer: "text"
+  shadow_alpha: 0.5
+}
+nodes {
+  position {
+    x: 170.0
+    y: -310.0
+  }
+  type: TYPE_TEMPLATE
+  id: "filter_accept"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 180.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  id: "filter_accept/button_white"
+  parent: "filter_accept"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Accept"
+  id: "filter_accept/text"
+  parent: "filter_accept/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
 }
 layers {
   name: "list_background"

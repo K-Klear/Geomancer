@@ -17,25 +17,21 @@ UI.input_enabled = true
 UI.current_tab = "tab_file"
 
 UI.tab = {
-	tab_file = {path = "/file#tab_file", state = "active", buttons = {}, fields = {}, scrolling_lists = {}},
-	tab_level = {path = "/level#tab_level", state = false, buttons = {}, fields = {}, scrolling_lists = {}},
-	tab_event = {path = "/event#tab_event", state = false, buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-	tab_geo = {path = "/geo#tab_geo", state = false, buttons = {}, fields = {}},
-	tab_beat = {path = "/beat#tab_beat", state = false, buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-	tab_meta = {path = "/meta#tab_meta", state = false, buttons = {}, fields = {}},
-	tab_sequence = {path = "/sequence#tab_sequence", state = false, buttons = {}},
-	tab_art = {path = "/art#tab_art", state = false, buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-	dialog_confirm = {path = "/confirm#dialog_confirm", buttons = {}, fields = {}},
-	dialog_obstacles = {path = "/obstacles#dialog_obstacles", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-	dialog_material = {path = "/material#dialog_material", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-	dialog_enemy_set = {path = "/enemy#dialog_enemy_set", buttons = {}, fields = {}},
-	dialog_nobeat = {path = "/nobeat#dialog_nobeat", buttons = {}, fields = {}},
-	dialog_event = {path = "/dialog_event#dialog_event", buttons = {}, fields = {}},
-	dialog_event_multiple = {path = "/multiple#dialog_event_multiple", buttons = {}, fields = {}},
-	dialog_tempo = {path = "/tempo#dialog_tempo", buttons = {}, fields = {}},
-	dialog_import = {path = "/import#dialog_import", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-	dialog_replace = {path = "/replace#dialog_replace", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-	dialog_rename_model = {path = "/rename#dialog_rename_model", buttons = {}, fields = {}},
+	tab_file = {path = "/file#tab_file", state = "active", render_order = 1, buttons = {}, fields = {}},
+	tab_level = {path = "/level#tab_level", state = false, render_order = 1, buttons = {}, fields = {}},
+	tab_event = {path = "/event#tab_event", state = false, render_order = 1, buttons = {}, fields = {}},
+	tab_geo = {path = "/geo#tab_geo", state = false, render_order = 1, buttons = {}, fields = {}},
+	tab_beat = {path = "/beat#tab_beat", state = false, render_order = 1, buttons = {}, fields = {}},
+	tab_meta = {path = "/meta#tab_meta", state = false, render_order = 1, buttons = {}, fields = {}},
+	tab_sequence = {path = "/sequence#tab_sequence", state = false, render_order = 1, buttons = {}, fields = {}},
+	tab_art = {path = "/art#tab_art", state = false, render_order = 1, buttons = {}, fields = {}},
+	dialog_nobeat = {buttons = {}, fields = {}},
+	dialog_event = {buttons = {}, fields = {}},
+	dialog_event_multiple = {buttons = {}, fields = {}},
+	dialog_tempo = {buttons = {}, fields = {}},
+	dialog_import = {buttons = {}, fields = {}},
+	dialog_replace = {buttons = {}, fields = {}},
+	dialog_rename_model = {buttons = {}, fields = {}},
 	dialog_tween = {path = "/tween#dialog_tween", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
 	dialog_tween_action = {path = "/tween_action#dialog_tween_action", buttons = {}, fields = {}},
 	dialog_tween_copy = {path = "/tween_copy#dialog_tween_copy", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
@@ -46,7 +42,8 @@ UI.tab = {
 	dialog_change_enemy_type = {path = "/type#dialog_change_enemy_type", buttons = {}, fields = {}},
 	model_viewer = {path = "not_used_anywhere_actually_why_do_I_bother", buttons = {}, fields = {}},
 	dialog_colours = {path = "screw this", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-	dialog_easing = {path = "whatever", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}}
+	dialog_easing = {path = "whatever", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
+	dialog_filter = {path = "", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}}
 }
 
 local mouse_held, r_ctr_held, l_ctr_held
@@ -430,7 +427,8 @@ function UI.create_list(tab, stencil_node, item_features)
 			table.insert(list_tab.backgrounds, {
 				node = val.node,
 				list = {},
-				tint = val.tint
+				tint = val.tint,
+				enabled = val.enabled
 			})
 		elseif val.type == hash("exclusive_button") then
 			list_tab.exclusive_button = {
@@ -519,7 +517,8 @@ function UI.create_list(tab, stencil_node, item_features)
 	gui.set_position(list_tab.scroll_grip, vmath.vector3(width - 16, -48, 0))
 	gui.set(list_tab.scroll_background, "size.y", list_tab.size_y - 64)
 	list_tab.scroll_grip_position = -48	
-
+	UI.tab[tab].scrolling_lists = UI.tab[tab].scrolling_lists or {}
+	UI.tab[tab].scrolling = UI.tab[tab].scrolling or {}
 	table.insert(UI.tab[tab].scrolling_lists, list_tab)
 	local list_index = #UI.tab[tab].scrolling_lists
 	UI.update_list(tab, list_index, item_features.item_count)
@@ -820,5 +819,58 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
 		end
 	end
 end
+
+local DIALOG = {}
+
+function DIALOG.setup(dialog_name)
+	UI.tab[dialog_name] = {buttons = {}, fields = {}, path = msg.url("#"), dialog_open = false}
+	msg.post("#", hash("disable"))
+end
+
+function DIALOG.open(tab, dialog_name, data)
+	msg.post(UI.tab[dialog_name].path, hash("show"), data)
+	UI.tab[dialog_name].render_order = UI.tab[tab].render_order + 1
+	UI.tab[dialog_name].parent_name = tab
+	msg.post("#", hash("release_input_focus"))
+	UI.tab[tab].child_dialog = dialog_name
+end
+
+function DIALOG.show(DIALOG_DATA, parent)
+	gui.set_render_order(DIALOG_DATA.render_order)
+	DIALOG_DATA.parent_tab = parent
+	msg.post("#", hash("acquire_input_focus"))
+	msg.post("#", hash("enable"))
+	DIALOG_DATA.dialog_open = true
+end
+
+function DIALOG.close(DIALOG_NAME, data)
+	msg.post("#", hash("disable"))
+	msg.post("#", hash("release_input_focus"))
+	UI.tab[DIALOG_NAME].dialog_open = false
+	data = data or {}
+	data.dialog = DIALOG_NAME
+	msg.post(UI.tab[DIALOG_NAME].parent_tab, hash("dialog_closed"), data)
+	local parent = UI.tab[DIALOG_NAME].parent_name
+	UI.tab[parent].child_dialog = nil
+end
+
+function DIALOG.hide(DIALOG_NAME)
+	local dialog_path = UI.tab[DIALOG_NAME].path
+	msg.post(dialog_path, hash("disable"))
+	msg.post(dialog_path, hash("release_input_focus"))
+	UI.tab[DIALOG_NAME].dialog_open = false
+	if UI.tab[DIALOG_NAME].child_dialog then
+		DIALOG.close_all(DIALOG_NAME)
+	end
+end
+
+function DIALOG.close_all(TAB_NAME)
+	if UI.tab[TAB_NAME].child_dialog then
+		DIALOG.hide(UI.tab[TAB_NAME].child_dialog)
+		UI.tab[TAB_NAME].child_dialog = nil
+	end
+end
+
+UI.DIALOG = DIALOG
 
 return UI

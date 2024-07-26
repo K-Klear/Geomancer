@@ -1,32 +1,28 @@
-local MEM = require "modules.memory"
 local UI = require "modules.ui"
 local SET = require "modules.settings"
+local DIALOG = UI.DIALOG
 
-local parent_tab
-local material_list
 local button_list = {"Normal", "Robots", "Outlaws", "Majesty", "Skeletons", "Targets"}
+local DIALOG_NAME = "enemy_set"
+local DIALOG_DATA
 
 function init(self)
-	gui.set_render_order(2)
-	msg.post("#", hash("disable"))
-	UI.load_template({"Normal", "Robots", "Outlaws", "Majesty", "Skeletons", "Targets", "btn_enemies_close"}, "dialog_enemy_set")
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+	UI.load_template({"Normal", "Robots", "Outlaws", "Majesty", "Skeletons", "Targets", "btn_enemies_close"}, DIALOG_NAME)
 end
 
 local function evaluate_button(button, item)
-	if button == "btn_enemies_close" then
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("enemy_set")})
-	else
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("enemy_set"), enemy_set = button})
+	local data
+	if not (button == "btn_enemies_close") then
+		data = {enemy_set = button}
 	end
-	msg.post("#", hash("disable"))
-	msg.post("#", hash("release_input_focus"))
+	DIALOG.close(DIALOG_NAME, data)
 end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
-		parent_tab = sender
-		msg.post("#", hash("acquire_input_focus"))
-		msg.post("#", hash("enable"))
+		DIALOG.show(DIALOG_DATA, sender)
 		for key, val in ipairs(button_list) do
 			if val == message.enemy_set then
 				gui.set_color(gui.get_node(val.."/button_white"), SET.colour_current_enemy_set)
@@ -34,12 +30,9 @@ function on_message(self, message_id, message, sender)
 				gui.set_color(gui.get_node(val.."/button_white"), vmath.vector4(1, 1, 1, 1))
 			end
 		end
-	elseif message_id == hash("hide") then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
 	end
 end
 
 function on_input(self, action_id, action)
-	UI.on_input("dialog_enemy_set", action_id, action, evaluate_button)
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button)
 end

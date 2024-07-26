@@ -1,6 +1,9 @@
 local UI = require "modules.ui"
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "dialog_tween_action"
+local DIALOG_DATA
 
-local item, parent_tab
+local item
 
 function init(self)
 	gui.set_render_order(3)

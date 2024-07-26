@@ -2,6 +2,8 @@ local MEM = require "modules.memory"
 local UI = require "modules.ui"
 local G = require "modules.global"
 local SET = require "modules.settings"
+local DIALOG = UI.DIALOG
+local TAB_NAME = "tab_event"
 
 local nobeat_list, event_list, tempo_list
 local previous_signal
@@ -22,18 +24,35 @@ local function BPM_to_spb(BPM)
 	return (60 / BPM) * SET.sample_rate
 end
 
+local function update_filter_text()
+	local event_count = #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events
+	local events_filtered = 0
+	local str
+	if #MEM.event_data.filter > 0 then
+		for key, val in ipairs(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events) do
+			if MEM.event_data.filter[val.payload] then
+				events_filtered = events_filtered + 1
+			end
+		end
+		str = (event_count - events_filtered).." out of "..event_count.."\nevents displayed"
+	else
+		str = "Displaying all events."
+	end
+	gui.set_text(gui.get_node("label_filter"), str)
+end
+
 function init(self)
 	gui.set_render_order(1)
 	msg.post("#", hash("disable"))
-	UI.load_template({"sample_48000", "sample_44100", "nobeat_add", "event_add", "event_add_multiple", "tempo_add", "import_events"}, "tab_event")
+	UI.load_template({"sample_48000", "sample_44100", "nobeat_add", "event_add", "event_add_multiple", "tempo_add", "import_events", "event_filter"}, TAB_NAME)
 	local validation = {
 		integer = true,
 		min = function() return 1 end,
 		default = function() return SET.sample_rate end
 	}
-	UI.load_text_field("sample_rate_field", 5, "tab_event", validation)
-	UI.load_text_field("sample_offset_field", 8, "tab_event", {integer = true, min = function() return 0 end, default = function() return SET.new_event_sample_offset end})
-	UI.load_text_field("sample_offset_seconds_field", 8, "tab_event", {number = true, min = function() return 0 end, default = function() return samples_to_seconds(SET.new_event_sample_offset) end})
+	UI.load_text_field("sample_rate_field", 5, TAB_NAME, validation)
+	UI.load_text_field("sample_offset_field", 8, TAB_NAME, {integer = true, min = function() return 0 end, default = function() return SET.new_event_sample_offset end})
+	UI.load_text_field("sample_offset_seconds_field", 8, TAB_NAME, {number = true, min = function() return 0 end, default = function() return samples_to_seconds(SET.new_event_sample_offset) end})
 	gui.set_text(gui.get_node("sample_offset_field/text"), SET.new_event_sample_offset)
 	gui.set_text(gui.get_node("sample_offset_seconds_field/text"), samples_to_seconds(SET.new_event_sample_offset))
 	gui.set_text(gui.get_node("sample_rate_field/text"), SET.sample_rate)
@@ -69,40 +88,48 @@ function init(self)
 		item_count = 0,
 		scroll_prefix = "nobeat_"
 	}
-	nobeat_list = UI.create_list("tab_event", gui.get_node("nobeat_list"), nobeat_list_tab)
+	nobeat_list = UI.create_list(TAB_NAME, gui.get_node("nobeat_list"), nobeat_list_tab)
 	local function get_event_label(i)
 		local start_sample = MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[i].startSample
 		local signal = MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[i].payload
 		return "Seconds: "..samples_to_seconds(start_sample).."\nSample: "..start_sample.."\nSignal: "..signal
 	end
+	local function is_filtered(i)
+		local signal = MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[i].payload
+		return not MEM.event_data.filter[signal]
+	end
 	local event_list_tab = {
 		{
 			type = hash("background"),
-			node = gui.get_node("event_panel")
+			node = gui.get_node("event_panel"),
+			enabled = is_filtered
 		},
 		{
 			type = hash("label"),
 			node = gui.get_node("event_label"),
-			value_fn = get_event_label
+			value_fn = get_event_label,
+			enabled = is_filtered
 		},
 		{
 			type = hash("button"),
 			node = gui.get_node("event_edit/button_white"),
 			text_node = gui.get_node("event_edit/text"),
 			value_fn = function() return "Edit" end,
-			template = "event_edit;"
+			template = "event_edit;",
+			enabled = is_filtered
 		},
 		{
 			type = hash("button"),
 			node = gui.get_node("event_remove/button_white"),
 			text_node = gui.get_node("event_remove/text"),
 			value_fn = function() return "Remove" end,
-			template = "event_remove;"
+			template = "event_remove;",
+			enabled = is_filtered
 		},
 		item_count = 0,
 		scroll_prefix = "event_"
 	}
-	event_list = UI.create_list("tab_event", gui.get_node("event_list"), event_list_tab)
+	event_list = UI.create_list(TAB_NAME, gui.get_node("event_list"), event_list_tab)
 	local function get_tempo_label(i)
 		local start_sample = MEM.event_data.table.tempoSections[i].startSample
 		local spb = MEM.event_data.table.tempoSections[i].samplesPerBeat
@@ -136,7 +163,7 @@ function init(self)
 		item_count = 0,
 		scroll_prefix = "tempo_"
 	}
-	tempo_list = UI.create_list("tab_event", gui.get_node("tempo_list"), tempo_list_tab)
+	tempo_list = UI.create_list(TAB_NAME, gui.get_node("tempo_list"), tempo_list_tab)
 end
 
 local function sort_f(a, b)
@@ -162,20 +189,18 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("hide") then
 		msg.post("#", hash("disable"))
 		msg.post("#", hash("release_input_focus"))
-		msg.post("/nobeat#dialog_nobeat", hash("hide"))
-		msg.post("/dialog_event#dialog_event", hash("hide"))
-		msg.post("/tempo#dialog_tempo", hash("hide"))
-		msg.post("/multiple#dialog_event_multiple", hash("hide"))
-		UI.update_list("tab_event", nobeat_list, 0)
-		UI.update_list("tab_event", event_list, 0)
-		UI.update_list("tab_event", tempo_list, 0)
+		DIALOG.close_all(TAB_NAME)
+		UI.update_list(TAB_NAME, nobeat_list, 0)
+		UI.update_list(TAB_NAME, event_list, 0)
+		UI.update_list(TAB_NAME, tempo_list, 0)
 	elseif message_id == hash("show") then
 		msg.post("#", hash("enable"))
 		msg.post("#", hash("acquire_input_focus"))
 		reset()
-		UI.update_list("tab_event", nobeat_list, #MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events)
-		UI.update_list("tab_event", event_list, #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events)
-		UI.update_list("tab_event", tempo_list, #MEM.event_data.table.tempoSections)
+		UI.update_list(TAB_NAME, nobeat_list, #MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events)
+		UI.update_list(TAB_NAME, event_list, #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events)
+		UI.update_list(TAB_NAME, tempo_list, #MEM.event_data.table.tempoSections)
+		update_filter_text()
 		if not MEM.event_data.sample_rate_set then
 			if SET.autodetect_sample_rate then
 				if MEM.beat_data.table then
@@ -213,47 +238,60 @@ function on_message(self, message_id, message, sender)
 		end
 	elseif message_id == hash("dialog_closed") then
 		msg.post("#", hash("acquire_input_focus"))
-		if message.dialog == hash("nobeat") then
-			if message.start_sample then
-				MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events[message.item].startSample = message.start_sample
-			end
-			if message.end_sample then
-				MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events[message.item].endSample = message.end_sample
+		if message.dialog == "dialog_nobeat" then
+			if message.item then
+				local item = message.item
+				if message.item == -1 then
+					local nobeat_count = #MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events
+					table.insert(MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events, {})
+					item = nobeat_count + 1
+				end
+				MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events[item].startSample = message.start_sample
+				MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events[item].endSample = message.end_sample
 			end
 			table.sort(MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events, sort_f)
-			UI.update_list("tab_event", nobeat_list)
-		elseif message.dialog == hash("event") then
-			if message.start_sample then
-				MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[message.item].startSample = message.start_sample
-				MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[message.item].endSample = message.start_sample
-			end
-			if message.signal then
-				MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[message.item].payload = message.signal
+			UI.update_list(TAB_NAME, nobeat_list, #MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events)
+		elseif message.dialog == "dialog_event" then
+			if message.item then
+				local item = message.item
+				if message.item == -1 then
+					local event_count = #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events
+					table.insert(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, {})
+					item = event_count + 1
+				end
+				MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[item].startSample = message.start_sample
+				MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[item].endSample = message.start_sample
+				MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[item].payload = message.signal
 				previous_signal = message.signal
 			end
 			table.sort(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, sort_f)
-			UI.update_list("tab_event", event_list)
-		elseif message.dialog == hash("multiple") then
+			UI.update_list(TAB_NAME, event_list, #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events)
+		elseif message.dialog == "dialog_event_multiple" then
 			if message.start_sample then
 				for i = 0, message.repeats - 1 do
 					add_event(message.start_sample + (i * message.offset), message.signal)
 				end
 				table.sort(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, sort_f)
-				UI.update_list("tab_event", event_list, #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events)
+				UI.update_list(TAB_NAME, event_list, #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events)
 				msg.post("/navbar#navbar", hash("update_status"), {text = message.repeats.." events have been created.", clear = true})
 			end
-		elseif message.dialog == hash("tempo") then
-			if message.start_sample then
-				MEM.event_data.table.tempoSections[message.item].startSample = message.start_sample
+		elseif message.dialog == "dialog_tempo" then
+			if message.item then
+				local item = message.item
+				if message.item == -1 then
+					local tempo_count = #MEM.event_data.table.tempoSections
+					table.insert(MEM.event_data.table.tempoSections, {})
+					item = tempo_count + 1
+				end
+				MEM.event_data.table.tempoSections[item].startSample = message.start_sample
+				MEM.event_data.table.tempoSections[item].samplesPerBeat = message.spb
+				MEM.event_data.table.tempoSections[item].beatsPerMeasure = message.signature
 			end
-			if message.spb then
-				MEM.event_data.table.tempoSections[message.item].samplesPerBeat = message.spb
-			end
-			if message.signature then
-				MEM.event_data.table.tempoSections[message.item].beatsPerMeasure = message.signature
-			end
-			table.sort(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, sort_f)
-			UI.update_list("tab_event", tempo_list)
+			table.sort(MEM.event_data.table.tempoSections, sort_f)
+			UI.update_list(TAB_NAME, tempo_list, #MEM.event_data.table.tempoSections)
+		elseif message.dialog == hash("filter") then
+			UI.update_list(TAB_NAME, event_list)
+			update_filter_text()
 		end
 	elseif message_id == hash("update") then
 		reset()
@@ -267,15 +305,15 @@ local function evaluate_button(button, item)
 	if button == "sample_48000" then
 		SET.sample_rate = 48000
 		gui.set_text(gui.get_node("sample_rate_field/text"), SET.sample_rate)
-		UI.update_list("tab_event", nobeat_list)
-		UI.update_list("tab_event", event_list)
-		UI.update_list("tab_event", tempo_list)
+		UI.update_list(TAB_NAME, nobeat_list)
+		UI.update_list(TAB_NAME, event_list)
+		UI.update_list(TAB_NAME, tempo_list)
 	elseif button == "sample_44100" then
 		SET.sample_rate = 44100
 		gui.set_text(gui.get_node("sample_rate_field/text"), SET.sample_rate)
-		UI.update_list("tab_event", nobeat_list)
-		UI.update_list("tab_event", event_list)
-		UI.update_list("tab_event", tempo_list)
+		UI.update_list(TAB_NAME, nobeat_list)
+		UI.update_list(TAB_NAME, event_list)
+		UI.update_list(TAB_NAME, tempo_list)
 	elseif button == "import_events" then
 		local _, path = diags.open("zip,pw_event", SET.default_path_load_file)
 		if path then
@@ -309,9 +347,9 @@ local function evaluate_button(button, item)
 					end
 					MEM.event_reloaded = false
 					reset()
-					UI.update_list("tab_event", nobeat_list, #MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events)
-					UI.update_list("tab_event", event_list, #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events)
-					UI.update_list("tab_event", tempo_list, #MEM.event_data.table.tempoSections)
+					UI.update_list(TAB_NAME, nobeat_list, #MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events)
+					UI.update_list(TAB_NAME, event_list, #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events)
+					UI.update_list(TAB_NAME, tempo_list, #MEM.event_data.table.tempoSections)
 				end)
 			else
 				msg.post("/navbar#navbar", hash("update_status"), {text = "File not loaded"})
@@ -326,8 +364,12 @@ local function evaluate_button(button, item)
 			previous_time = nobeats[#nobeats].endSample
 		end
 		local t = {startSample = previous_time, endSample = previous_time, payload = ""}
-		table.insert(MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events, t)
-		UI.update_list("tab_event", nobeat_list, #MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events)
+		if SET.add_opens_edit_box then
+			DIALOG.open(TAB_NAME, "dialog_nobeat", {data = t})
+		else
+			table.insert(MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events, t)
+			UI.update_list(TAB_NAME, nobeat_list, #MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events)
+		end
 	elseif button == "event_add" then
 		local events = MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events
 		local previous_time = 0
@@ -337,8 +379,13 @@ local function evaluate_button(button, item)
 			signal = events[#events].payload
 		end
 		signal = previous_signal or signal
-		add_event(previous_time, signal)
-		UI.update_list("tab_event", event_list, #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events)
+		if SET.add_opens_edit_box then
+			local data = {startSample = previous_time, endSample = previous_time, payload = signal}
+			DIALOG.open(TAB_NAME, "dialog_event", {data = data})
+		else
+			add_event(previous_time, signal)
+			UI.update_list(TAB_NAME, event_list, #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events)
+		end
 	elseif button == "event_add_multiple" then
 		local events = MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events
 		local previous_time = 0
@@ -347,8 +394,7 @@ local function evaluate_button(button, item)
 			previous_time = events[#events].startSample + SET.new_event_sample_offset
 			signal = events[#events].payload
 		end
-		msg.post("#", hash("release_input_focus"))
-		msg.post("/multiple#dialog_event_multiple", hash("show"), {start = previous_time, signal = signal})
+		DIALOG.open(TAB_NAME, "dialog_event_multiple", {start = previous_time, signal = signal})
 	elseif button == "tempo_add" then
 		local tempo = MEM.event_data.table.tempoSections
 		local previous_time, previous_spb, previous_signature = 0, 120, 4
@@ -358,33 +404,36 @@ local function evaluate_button(button, item)
 			previous_signature = tempo[#tempo].beatsPerMeasure
 		end
 		local t = {startSample = previous_time, samplesPerBeat = previous_spb, beatsPerMeasure = previous_signature}
-		table.insert(MEM.event_data.table.tempoSections, t)
-		UI.update_list("tab_event", tempo_list, #MEM.event_data.table.tempoSections)
+		if SET.add_opens_edit_box then
+			DIALOG.open(TAB_NAME, "dialog_tempo", {data = t})
+		else
+			table.insert(MEM.event_data.table.tempoSections, t)
+			UI.update_list(TAB_NAME, tempo_list, #MEM.event_data.table.tempoSections)
+		end
+	elseif button == "event_filter" then
+		DIALOG.open(TAB_NAME, "dialog_filter", {event_track = MEM.event_data.event_track_index})
 	else
 		local div = string.find(button, ";")
 		local str = string.sub(button, 1, div)
 		if str == "nobeat_remove;" then
 			table.remove(MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events, item)
-			UI.update_list("tab_event", nobeat_list, #MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events)
+			UI.update_list(TAB_NAME, nobeat_list, #MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events)
 		elseif str == "nobeat_edit;" then
-			msg.post("#", hash("release_input_focus"))
-			msg.post("/nobeat#dialog_nobeat", hash("show"), {item = item, data = MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events[item]})
+			DIALOG.open(TAB_NAME, "dialog_nobeat", {item = item, data = MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events[item]})
 		elseif str == "event_remove;" then
 			table.remove(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, item)
-			UI.update_list("tab_event", event_list, #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events)
+			UI.update_list(TAB_NAME, event_list, #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events)
 		elseif str == "event_edit;" then
-			msg.post("#", hash("release_input_focus"))
-			msg.post("/dialog_event#dialog_event", hash("show"), {item = item, data = MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[item]})
+			DIALOG.open(TAB_NAME, "dialog_event", {item = item, data = MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[item]})
 		elseif str == "tempo_remove;" then
 			if #MEM.event_data.table.tempoSections > 1 then
 				table.remove(MEM.event_data.table.tempoSections, item)
-				UI.update_list("tab_event", tempo_list, #MEM.event_data.table.tempoSections)
+				UI.update_list(TAB_NAME, tempo_list, #MEM.event_data.table.tempoSections)
 			else
 				msg.post("/navbar#navbar", hash("update_status"), {text = "There must always be at least one tempo section!", clear = true})
 			end
 		elseif str == "tempo_edit;" then
-			msg.post("#", hash("release_input_focus"))
-			msg.post("/tempo#dialog_tempo", hash("show"), {item = item, data = MEM.event_data.table.tempoSections[item]})
+			DIALOG.open(TAB_NAME, "dialog_tempo", {item = item, data = MEM.event_data.table.tempoSections[item]})
 		end
 	end
 end
@@ -392,9 +441,9 @@ end
 local function evaluate_input(field, text)
 	if field == "sample_rate_field" then
 		SET.sample_rate = text
-		UI.update_list("tab_event", nobeat_list)
-		UI.update_list("tab_event", event_list)
-		UI.update_list("tab_event", tempo_list)
+		UI.update_list(TAB_NAME, nobeat_list)
+		UI.update_list(TAB_NAME, event_list)
+		UI.update_list(TAB_NAME, tempo_list)
 	elseif field == "sample_offset_field" then
 		SET.new_event_sample_offset = text
 		gui.set_text(gui.get_node("sample_offset_seconds_field/text"), samples_to_seconds(SET.new_event_sample_offset))
@@ -405,13 +454,13 @@ local function evaluate_input(field, text)
 end
 
 function update()
-	if UI.current_tab == "tab_event" then
-		for list_index in pairs(UI.tab.tab_event.scrolling) do
-			UI.move_list_root("tab_event", list_index, true)
+	if UI.current_tab == TAB_NAME then
+		for list_index in pairs(UI.tab[TAB_NAME].scrolling) do
+			UI.move_list_root(TAB_NAME, list_index, true)
 		end
 	end
 end
 
 function on_input(self, action_id, action)
-	UI.on_input("tab_event", action_id, action, evaluate_button, evaluate_input)
+	UI.on_input(TAB_NAME, action_id, action, evaluate_button, evaluate_input)
 end

@@ -1,46 +1,41 @@
 local UI = require "modules.ui"
-local SET = require "modules.settings"
-local MEM = require "modules.memory"
+local DIALOG = UI.DIALOG
 
-local subject, parent_tab
+local subject
+local DIALOG_NAME = "dialog_confirm"
+local DIALOG_DATA
 
 function init(self)
-	gui.set_render_order(15)
-	msg.post("#", hash("disable"))
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
 end
 
 local function evaluate_button(button)
+	local data = {subject = subject}
 	if button == "dialog_confirm_button_1" then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("dialog_confirm"), button = 1, subject = subject})
+		data.button = 1
 	elseif button == "dialog_confirm_button_2" then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("dialog_confirm"), button = 2, subject = subject})
+		data.button = 2
 	elseif button == "dialog_confirm_button_3" then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("dialog_confirm"), button = 3, subject = subject})
+		data.button = 3
 	end
+	DIALOG.close(DIALOG_NAME, data)
 end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
-		parent_tab = sender
-		msg.post("#", hash("acquire_input_focus"))
-		msg.post("#", hash("enable"))
-		UI.unload_template("dialog_confirm")
+		DIALOG.show(DIALOG_DATA, sender)
+		UI.unload_template(DIALOG_NAME)
 		if message.button_1 then
-			UI.load_template("dialog_confirm_button_1", "dialog_confirm")
+			UI.load_template("dialog_confirm_button_1", DIALOG_NAME)
 			gui.set_text(gui.get_node("dialog_confirm_button_1/text"), message.button_1)
 		end
 		if message.button_2 then
-			UI.load_template("dialog_confirm_button_2", "dialog_confirm")
+			UI.load_template("dialog_confirm_button_2", DIALOG_NAME)
 			gui.set_text(gui.get_node("dialog_confirm_button_2/text"), message.button_2)
 		end
 		if message.button_3 then
-			UI.load_template("dialog_confirm_button_3", "dialog_confirm")
+			UI.load_template("dialog_confirm_button_3", DIALOG_NAME)
 			gui.set_text(gui.get_node("dialog_confirm_button_3/text"), message.button_3)
 		end
 		subject = message.subject
@@ -48,13 +43,9 @@ function on_message(self, message_id, message, sender)
 		gui.set_enabled(gui.get_node("dialog_confirm_button_2/button_white"), message.button_2)
 		gui.set_enabled(gui.get_node("dialog_confirm_button_3/button_white"), message.button_3)
 		gui.set_text(gui.get_node("dialog_confirm_title"), message.title)
-	elseif message_id == hash("hide") then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		subject = nil
 	end
 end
 
 function on_input(self, action_id, action)
-	UI.on_input("dialog_confirm", action_id, action, evaluate_button)
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button)
 end

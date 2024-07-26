@@ -1,9 +1,10 @@
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
+local TAB_NAME = "tab_geo"
 
 function init(self)
 	gui.set_render_order(1)
-	UI.load_template({"geo_visual", "geo_collision"}, "tab_geo")
+	UI.load_template({"geo_visual", "geo_collision"}, TAB_NAME)
 	msg.post("#", hash("disable"))
 end
 
@@ -70,5 +71,5 @@ local function evaluate_button(button)
 end
 
 function on_input(self, action_id, action)
-	UI.on_input("tab_geo", action_id, action, evaluate_button)
+	UI.on_input(TAB_NAME, action_id, action, evaluate_button)
 end

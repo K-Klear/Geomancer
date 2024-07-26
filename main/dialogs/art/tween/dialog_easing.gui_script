@@ -1,8 +1,11 @@
 local UI = require "modules.ui"
 local MEM = require "modules.memory"
 local SET = require "modules.settings"
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "dialog_easing"
+local DIALOG_DATA
 
-local evaluate_button, evaluate_input, parent_tab, action_index, model_index, action_tab, easing_list, dialog_active
+local evaluate_button, evaluate_input, action_index, model_index, action_tab, easing_list
 local vertices = {}
 local lines = {}
 local vertex_temp, line_temp
@@ -13,8 +16,6 @@ local current_vertex
 local graph_node, aux_node
 
 local supported_easings = {"linear", "insine", "outsine", "inoutsine", "custom"}
-
-local DIALOG_NAME = "dialog_easing"
 
 local function delete_graph()
 	for key, val in ipairs(vertices) do
@@ -35,7 +36,6 @@ function easing_fn.outsine(x) return math.sin(x * HALF_PI) end
 function easing_fn.insine(x) return 1 - math.cos(x * HALF_PI) end
 function easing_fn.inoutsine(x) return - (math.cos(math.pi * x) - 1) / 2 end
 function easing_fn.linear(x) return x end
-
 
 local function build_graph()
 	delete_graph()
@@ -72,8 +72,7 @@ local function build_graph()
 end
 
 function init(self)
-	gui.set_render_order(3)
-	msg.post("#", hash("disable"))
+	DIALOG.setup(DIALOG_NAME)
 	UI.load_template({"easing_accept", "easing_cancel", "sections_plus", "sections_minus"}, DIALOG_NAME)
 	vertex_temp, line_temp = gui.get_node("vertex_template"), gui.get_node("line_template")
 	gui.set_scale(vertex_temp, vmath.vector3(SET.easing_node_scale))
@@ -96,7 +95,6 @@ function init(self)
 	gui.set_parent(aux_node, gui.get_node("edit_box"))
 	gui.set_visible(aux_node, false)
 	gui.set_text(gui.get_node("vertex_info"), "")
-
 	local easings_tab = {
 		{
 			type = hash("exclusive_button"),
