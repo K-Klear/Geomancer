@@ -1,10 +1,11 @@
 local UI = require "modules.ui"
 local MEM = require "modules.memory"
 local SET = require "modules.settings"
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "dialog_bulk_sequence"
+local DIALOG_DATA
 
-local parent_tab
 local sequence_list, existing_sequence_list, existing_sequences, selected_sequence, selected_existing_sequence, evaluate_button
-local dialog_open = false
 
 local seq = {
 	{
@@ -156,9 +157,9 @@ end
 seq = nil
 
 function init(self)
-	gui.set_render_order(2)
-	msg.post("#", hash("disable"))
-	UI.load_template({"bulk_sequence_cancel", "bulk_sequence_accept"}, "dialog_bulk_sequence")
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+	UI.load_template({"bulk_sequence_cancel", "bulk_sequence_accept"}, DIALOG_NAME)
 	local sequence_list_tab = {
 		{
 			type = hash("exclusive_button"),
@@ -178,7 +179,7 @@ function init(self)
 		item_count = 0,
 		scroll_prefix = "sequence_list_"
 	}
-	sequence_list = UI.create_list("dialog_bulk_sequence", gui.get_node("sequence_list"), sequence_list_tab)
+	sequence_list = UI.create_list(DIALOG_NAME, gui.get_node("sequence_list"), sequence_list_tab)
 	sequence_list_tab = {
 		{
 			type = hash("exclusive_button"),
@@ -191,16 +192,7 @@ function init(self)
 		item_count = 0,
 		scroll_prefix = "existing_sequence_list_"
 	}
-	existing_sequence_list = UI.create_list("dialog_bulk_sequence", gui.get_node("existing_sequence_list"), sequence_list_tab)
-end
-
-local function close_dialog()
-	msg.post("#", hash("disable"))
-	msg.post("#", hash("release_input_focus"))
-	dialog_open = false
-	UI.update_list("dialog_bulk_sequence", sequence_list, 0)
-	UI.update_list("dialog_bulk_sequence", existing_sequence_list, 0)
-	selected_sequence, selected_existing_sequence = nil, nil
+	existing_sequence_list = UI.create_list(DIALOG_NAME, gui.get_node("existing_sequence_list"), sequence_list_tab)
 end
 
 function evaluate_button(button, item)
@@ -212,12 +204,10 @@ function evaluate_button(button, item)
 		elseif selected_sequence == selected_existing_sequence then
 			msg.post("/navbar#navbar", hash("update_status"), {text = "Can't replace a sequence with itself.", clear = true})
 		else
-			msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("dialog_bulk_sequence"), sequence = selected_sequence, existing_sequence = selected_existing_sequence})
-			close_dialog()
+			DIALOG.close(DIALOG_NAME, {sequence = selected_sequence, existing_sequence = selected_existing_sequence})
 		end
 	elseif button == "bulk_sequence_cancel" then
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("dialog_bulk_sequence")})
-		close_dialog()
+		DIALOG.close(DIALOG_NAME)
 	elseif button == sequence_list then
 		selected_sequence = sequences[item]
 	elseif button == existing_sequence_list then
@@ -227,10 +217,11 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
-		parent_tab = sender
-		msg.post("#", hash("acquire_input_focus"))
-		msg.post("#", hash("enable"))
-		UI.update_list("dialog_bulk_sequence", sequence_list, #sequences)
+		selected_sequence, selected_existing_sequence = nil, nil
+		DIALOG.show(DIALOG_DATA, sender)
+		UI.update_list(DIALOG_NAME, sequence_list, 0)
+		UI.update_list(DIALOG_NAME, existing_sequence_list, 0)
+		UI.update_list(DIALOG_NAME, sequence_list, #sequences)
 		local existing = {}
 		existing_sequences = {}
 		for key, val in ipairs(MEM.beat_data.enemy_list) do
@@ -242,21 +233,18 @@ function on_message(self, message_id, message, sender)
 		if SET.bulk_sequence_sort then
 			table.sort(existing_sequences, function(a, b) return string.lower(a) < string.lower(b) end)
 		end
-		UI.update_list("dialog_bulk_sequence", existing_sequence_list, #existing_sequences)
-		dialog_open = true
-	elseif message_id == hash("hide") then
-		close_dialog()
+		UI.update_list(DIALOG_NAME, existing_sequence_list, #existing_sequences)
 	end
 end
 
 function update()
-	if dialog_open then
-		for list_index in pairs(UI.tab.dialog_bulk_sequence.scrolling) do
-			UI.move_list_root("dialog_bulk_sequence", list_index, true)
+	if DIALOG_DATA.dialog_open then
+		for list_index in pairs(DIALOG_DATA.scrolling) do
+			UI.move_list_root(DIALOG_NAME, list_index, true)
 		end
 	end
 end
 
 function on_input(self, action_id, action)
-	UI.on_input("dialog_bulk_sequence", action_id, action, evaluate_button)
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button)
 end

@@ -1,8 +1,11 @@
 local UI = require "modules.ui"
 local MEM = require "modules.memory"
 local SET = require "modules.settings"
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "dialog_replace_enemy"
+local DIALOG_DATA
 
-local parent_tab, enemy_to_replace, new_type
+local enemy_to_replace, new_type
 
 local enemy_names = {
 	normal = "Normal",
@@ -33,9 +36,9 @@ local function show_enemy_buttons()
 	for key, val in ipairs(enemy_name_order) do
 		if MEM.beat_data.enemy_types[val] then
 			table.insert(button_list, "choice_"..val)
-			UI.load_template("choice_"..val, "dialog_replace_enemy")
+			UI.load_template("choice_"..val, DIALOG_NAME)
 		else
-			UI.unload_template("dialog_replace_enemy", "choice_"..val)
+			UI.unload_template(DIALOG_NAME, "choice_"..val)
 		end
 		gui.set_enabled(gui.get_node("choice_"..val.."/button_white"), MEM.beat_data.enemy_types[val])
 	end
@@ -62,17 +65,15 @@ local function remove_selection()
 end
 
 function init(self)
-	gui.set_render_order(2)
-	msg.post("#", hash("disable"))
-	UI.load_template({"replace_normal", "replace_tough", "replace_chuck", "replace_turret", "replace_minigun", "replace_shield", "replace_horse", "replace_skull", "replace_trap", "choice_cancel", "choice_accept"}, "dialog_replace_enemy")
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+	UI.load_template({"replace_normal", "replace_tough", "replace_chuck", "replace_turret", "replace_minigun", "replace_shield", "replace_horse", "replace_skull", "replace_trap", "choice_cancel", "choice_accept"}, DIALOG_NAME)
 	update_label()
 end
 
 local function evaluate_button(button, item)
 	if button == "choice_cancel" then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("replace_enemy")})
+		DIALOG.close(DIALOG_NAME)
 		remove_selection()
 	elseif button == "choice_accept" then
 		if not enemy_to_replace then
@@ -82,9 +83,7 @@ local function evaluate_button(button, item)
 		elseif enemy_to_replace == new_type then
 			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a different enemy type.", clear = true})
 		else
-			msg.post("#", hash("disable"))
-			msg.post("#", hash("release_input_focus"))
-			msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("replace_enemy"), enemy_to_replace = enemy_to_replace, new_type = new_type})
+			DIALOG.close(DIALOG_NAME, {enemy_to_replace = enemy_to_replace, new_type = new_type})
 			remove_selection()
 		end
 	else
@@ -110,18 +109,13 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
-		parent_tab = sender
-		msg.post("#", hash("acquire_input_focus"))
-		msg.post("#", hash("enable"))
+		DIALOG.show(DIALOG_DATA, sender)
+		enemy_to_replace, new_type = nil, nil
+		update_label()
 		show_enemy_buttons()
-	elseif message_id == hash("hide") then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		remove_selection()
 	end
 end
 
-
 function on_input(self, action_id, action)
-	UI.on_input("dialog_replace_enemy", action_id, action, evaluate_button)
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button)
 end

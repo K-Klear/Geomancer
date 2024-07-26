@@ -6,52 +6,34 @@ local DIALOG_DATA
 local item
 
 function init(self)
-	gui.set_render_order(3)
-	msg.post("#", hash("disable"))
-	UI.load_template({"tween_action_move", "tween_action_rotate", "tween_action_scale", "tween_action_wait", "tween_action_repeat", "tween_action_cancel"}, "dialog_tween_action")
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+	UI.load_template({"tween_action_move", "tween_action_rotate", "tween_action_scale", "tween_action_wait", "tween_action_repeat", "tween_action_cancel"}, DIALOG_NAME)
 end
 
 local function evaluate_button(button)
 	if button == "tween_action_cancel" then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("tween_action")})
+		DIALOG.close(DIALOG_NAME)
 	elseif button == "tween_action_move" then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("tween_action"), action = "T", item = item})
+		DIALOG.close(DIALOG_NAME, {action = "T", item = item})
 	elseif button == "tween_action_rotate" then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("tween_action"), action = "R", item = item})
+		DIALOG.close(DIALOG_NAME, {action = "R", item = item})
 	elseif button == "tween_action_scale" then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("tween_action"), action = "S", item = item})
+		DIALOG.close(DIALOG_NAME, {action = "S", item = item})
 	elseif button == "tween_action_wait" then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("tween_action"), action = "W", item = item})
+		DIALOG.close(DIALOG_NAME, {action = "W", item = item})
 	elseif button == "tween_action_repeat" then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("tween_action"), action = "X", item = item})
+		DIALOG.close(DIALOG_NAME, {action = "X", item = item})
 	end
 end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
-		parent_tab = sender
-		msg.post("#", hash("acquire_input_focus"))
-		msg.post("#", hash("enable"))
+		DIALOG.show(DIALOG_DATA, sender)
 		item = message.item
-	elseif message_id == hash("hide") then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		item = nil
 	end
 end
 
 function on_input(self, action_id, action)
-	UI.on_input("dialog_tween_action", action_id, action, evaluate_button)
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button)
 end

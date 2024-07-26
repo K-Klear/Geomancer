@@ -56,7 +56,7 @@ end
 
 function update()
 	if DIALOG_DATA.dialog_open then
-		for list_index in pairs(UI.tab[DIALOG_NAME].scrolling) do
+		for list_index in pairs(DIALOG_DATA.scrolling) do
 			UI.move_list_root(DIALOG_NAME, list_index, true)
 		end
 	end

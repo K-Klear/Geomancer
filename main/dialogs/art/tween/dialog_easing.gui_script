@@ -73,6 +73,7 @@ end
 
 function init(self)
 	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
 	UI.load_template({"easing_accept", "easing_cancel", "sections_plus", "sections_minus"}, DIALOG_NAME)
 	vertex_temp, line_temp = gui.get_node("vertex_template"), gui.get_node("line_template")
 	gui.set_scale(vertex_temp, vmath.vector3(SET.easing_node_scale))
@@ -125,15 +126,9 @@ function evaluate_button(button, item)
 			table.insert(easing.nodes, {time = t * 0.01, comp = c * 0.01})
 		end
 		MEM.art_data.model_list[model_index].tween.script[action_index].easing = easing
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash(DIALOG_NAME), action_index = action_index, easing = true})
-		dialog_active = false
+		DIALOG.close(DIALOG_NAME, {action_index = action_index, easing = true})
 	elseif button == "easing_cancel" then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash(DIALOG_NAME)})
-		dialog_active = false
+		DIALOG.close(DIALOG_NAME)
 	elseif button == "sections_plus" then
 		if vertex_count < 99 and not (current_easing == "custom") then
 			vertex_count = vertex_count + 1
@@ -167,9 +162,7 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
-		parent_tab = sender
-		msg.post("#", hash("acquire_input_focus"))
-		msg.post("#", hash("enable"))
+		DIALOG.show(DIALOG_DATA, sender)
 		model_index = message.model_index
 		action_index = message.action_index
 		action_tab = MEM.art_data.model_list[model_index].tween.script[action_index]
@@ -193,10 +186,6 @@ function on_message(self, message_id, message, sender)
 		end
 		UI.select_exclusive_button(DIALOG_NAME, easing_list, easing_index, false, true)
 		build_graph()
-	elseif message_id == hash("hide") then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		dialog_active = false
 	end
 end
 
@@ -225,7 +214,6 @@ end
 local function show_vertex_info()
 	if current_vertex then
 		local time, comp = get_vertex_data(current_vertex)
-		
 		gui.set_text(gui.get_node("vertex_info"), "Time:\n"..string.format(" %.2f", time).." %\nCompletion:\n"..string.format(" %.2f", comp).."%")
 	else
 		gui.set_text(gui.get_node("vertex_info"), "")
@@ -274,7 +262,7 @@ local function add_vertex(x, y)
 end
 
 function update()
-	if dialog_active then
+	if DIALOG_DATA.dialog_active then
 		for list_index in pairs(UI.tab[DIALOG_NAME].scrolling) do
 			UI.move_list_root(DIALOG_NAME, list_index, true)
 		end

@@ -29,6 +29,7 @@ default_texture_min_filter = nearest
 default_texture_mag_filter = nearest
 texture_profiles = /assets/gfx/UI.texture_profiles
 max_characters = 16384
+max_font_batches = 256
 
 [input]
 game_binding = /game.input_bindingc

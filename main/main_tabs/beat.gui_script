@@ -33,7 +33,8 @@ local enemy_names = {
 	turret = "Normal Turret",
 	minigun = "Minigun Turret",
 	skull = "Flying Skull",
-	trap = "Glitched Enemy"
+	trap = "Glitched Enemy",
+	temp = "temp"
 }
 local internal_names = {
 	normal = "Normal",
@@ -44,7 +45,8 @@ local internal_names = {
 	turret = "Normal Turret",
 	minigun = "Minigun Turret",
 	skull = "FlyingBomb",
-	trap = "Trap Enemy"
+	trap = "Trap Enemy",
+	temp = "temp"
 }
 
 local internal_to_display = {}
@@ -156,8 +158,7 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("hide") then
 		msg.post("#", hash("disable"))
 		msg.post("#", hash("release_input_focus"))
-		msg.post("/dialog#dialog_replace_enemy", hash("hide"))
-		msg.post("/sequence#dialog_change_sequence", hash("hide"))
+		DIALOG.close_all(TAB_NAME)
 	elseif message_id == hash("show") then
 		msg.post("#", hash("enable"))
 		msg.post("#", hash("acquire_input_focus"))
@@ -184,14 +185,19 @@ function on_message(self, message_id, message, sender)
 		UI.update_list(TAB_NAME, obstacle_list, 0)
 		UI.update_list(TAB_NAME, enemy_list, 0)
 	elseif message_id == hash("dialog_closed") then
-		if message.dialog == hash("replace_enemy") and message.enemy_to_replace then
+		if message.dialog == "dialog_replace_enemy" and message.enemy_to_replace then
 			msg.post("/navbar#navbar", hash("update_status"), {text = "Replacing "..enemy_names[message.enemy_to_replace].." with "..enemy_names[message.new_type]..".", clear = true})
-			replace(message.new_type, message.enemy_to_replace)
+			if message.new_type == "turret" and message.enemy_to_replace == "normal" then
+				replace("temp", message.enemy_to_replace)
+				replace(message.new_type, "temp")
+			else
+				replace(message.new_type, message.enemy_to_replace)
+			end
 			MEM.beat_data.enemy_types[message.new_type] = true
 			MEM.beat_data.enemy_types[message.enemy_to_replace] = false
 			UI.update_list(TAB_NAME, enemy_list)
 			update_enemy(selected_enemy)
-		elseif message.dialog == hash("dialog_change_sequence") then
+		elseif message.dialog == "dialog_change_sequence" then
 			if message.sequence then
 				msg.post("/navbar#navbar", hash("update_status"), {text = "Sequence changed to "..message.sequence, clear = true})
 				MEM.beat_data.enemy_list[selected_enemy].sequence = message.sequence
@@ -199,7 +205,7 @@ function on_message(self, message_id, message, sender)
 				gui.set_text(gui.get_node("selected_enemy_sequence/text"), message.sequence)
 				MEM.beat_data.changed_enemies[selected_enemy] = true
 			end
-		elseif message.dialog == hash("dialog_bulk_sequence") then
+		elseif message.dialog == "dialog_bulk_sequence" then
 			if message.sequence and message.existing_sequence then
 				msg.post("/navbar#navbar", hash("update_status"), {text = "Replacing all instances of "..message.existing_sequence.." with "..message.sequence, clear = true})
 				for key, val in ipairs(MEM.beat_data.enemy_list) do
@@ -213,7 +219,7 @@ function on_message(self, message_id, message, sender)
 					gui.set_text(gui.get_node("selected_enemy_sequence/text"), MEM.beat_data.enemy_list[selected_enemy].sequence)
 				end
 			end
-		elseif message.dialog == hash("change_type") then
+		elseif message.dialog == "dialog_change_enemy_type" then
 			if message.new_type then
 				msg.post("/navbar#navbar", hash("update_status"), {text = "Enemy type changed to "..enemy_names[message.new_type], clear = true})
 				local previous_type
@@ -263,11 +269,9 @@ end
 
 function evaluate_button(button, item)
 	if button == "button_replace_bulk" then
-		msg.post("/dialog#dialog_replace_enemy", hash("show"))
-		msg.post("#", hash("release_input_focus"))
+		DIALOG.open(TAB_NAME, "dialog_replace_enemy")
 	elseif button == "button_sequence_bulk" then
-		msg.post("/sequence_bulk#dialog_bulk_sequence", hash("show"))
-		msg.post("#", hash("release_input_focus"))
+		DIALOG.open(TAB_NAME, "dialog_bulk_sequence")
 	elseif button == "sidestep" then
 		set_new_type("Sidestep")
 	elseif button == "limbo_tall" then
@@ -281,8 +285,7 @@ function evaluate_button(button, item)
 	elseif button == "tunnel_short" then
 		set_new_type("TunnelShort")
 	elseif button == "selected_enemy_sequence" then
-		msg.post("/sequence#dialog_change_sequence", hash("show"), {current_sequence = MEM.beat_data.enemy_list[selected_enemy].sequence})
-		msg.post("#", hash("release_input_focus"))
+		DIALOG.open(TAB_NAME, "dialog_change_sequence", {current_sequence = MEM.beat_data.enemy_list[selected_enemy].sequence})
 	elseif button == "selected_enemy_type" then
 		local geomancer_type
 		for key, val in pairs(internal_names) do
@@ -294,8 +297,7 @@ function evaluate_button(button, item)
 		if not geomancer_type then
 			msg.post("/navbar#navbar", hash("update_status"), {text = "Unknown enemy type.", clear = true})
 		end
-		msg.post("/type#dialog_change_enemy_type", hash("show"), {current_type = geomancer_type})
-		msg.post("#", hash("release_input_focus"))
+		DIALOG.open(TAB_NAME, "dialog_change_enemy_type", {current_type = geomancer_type})
 	elseif button == obstacle_list then
 		selected_obstacle = item
 		update_obstacle(item)
@@ -315,5 +317,5 @@ function update()
 end
 
 function on_input(self, action_id, action)
-	UI.on_input(TAB_NAME, action_id, action, evaluate_button, evaluate_input)
+	UI.on_input(TAB_NAME, action_id, action, evaluate_button)
 end

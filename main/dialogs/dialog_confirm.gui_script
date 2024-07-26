@@ -1,9 +1,10 @@
 local UI = require "modules.ui"
 local DIALOG = UI.DIALOG
-
-local subject
 local DIALOG_NAME = "dialog_confirm"
 local DIALOG_DATA
+
+local subject
+
 
 function init(self)
 	DIALOG.setup(DIALOG_NAME)

@@ -29,7 +29,7 @@ Bugs:
 - Volumes generate wrong on the edge of the pictures
 - Geomancer gets rekt by whitespace =/
 - The colour guide button acts weird, probably because it's parented to the list background.
-- background doesn't stay put when resizing window
+- Model viewer background doesn't stay put when resizing window
 
 Done:
 
@@ -39,10 +39,13 @@ Features:
 
 Fixes:
 - Added sidesteps as valid Spooky obstacle type
+- Model part selection dialog now shows the currently selected part correctly
+- Bulk enemy replace dialog properly resets when opened
 
 Bugs:
 - Fixed a bug which could result in action-less tweens under obscure circumstances
-
+- Fixed a freeze when bulk replacing "Normal" enemy with "Normal Turret"
+- Fixed a crash when clicking a text field in the tween editor while scrolling it
 
 New configs:
 - add_opens_edit_box

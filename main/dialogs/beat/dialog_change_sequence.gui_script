@@ -1,8 +1,9 @@
 local UI = require "modules.ui"
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "dialog_change_sequence"
+local DIALOG_DATA
 
-local parent_tab
 local sequence_list, selected_sequence, evaluate_button
-local dialog_open = false
 
 local seq = {
 	{
@@ -154,9 +155,9 @@ end
 seq = nil
 
 function init(self)
-	gui.set_render_order(2)
-	msg.post("#", hash("disable"))
-	UI.load_template({"dialog_sequence_cancel", "dialog_sequence_accept"}, "dialog_change_sequence")
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+	UI.load_template({"dialog_sequence_cancel", "dialog_sequence_accept"}, DIALOG_NAME)
 	local sequence_list_tab = {
 		{
 			type = hash("exclusive_button"),
@@ -176,7 +177,7 @@ function init(self)
 		item_count = 0,
 		scroll_prefix = "sequence_list_"
 	}
-	sequence_list = UI.create_list("dialog_change_sequence", gui.get_node("sequence_list"), sequence_list_tab)
+	sequence_list = UI.create_list(DIALOG_NAME, gui.get_node("sequence_list"), sequence_list_tab)
 end
 
 function evaluate_button(button, item)
@@ -184,16 +185,10 @@ function evaluate_button(button, item)
 		if not selected_sequence then
 			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a sequence first.", clear = true})
 		else
-			msg.post("#", hash("disable"))
-			msg.post("#", hash("release_input_focus"))
-			dialog_open = false
-			msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("dialog_change_sequence"), sequence = selected_sequence})
+			DIALOG.close(DIALOG_NAME, {sequence = selected_sequence})
 		end
 	elseif button == "dialog_sequence_cancel" then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		dialog_open = false
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("dialog_change_sequence")})
+		DIALOG.close(DIALOG_NAME)
 	elseif button == sequence_list then
 		selected_sequence = sequences[item]
 	end
@@ -201,41 +196,33 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
-		parent_tab = sender
-		msg.post("#", hash("acquire_input_focus"))
-		msg.post("#", hash("enable"))
-		UI.update_list("dialog_change_sequence", sequence_list, #sequences)
+		DIALOG.show(DIALOG_DATA, sender)
+		UI.update_list(DIALOG_NAME, sequence_list, #sequences)
 		local sequence_found
 		for key, val in ipairs(sequences) do
 			if val == message.current_sequence then
-				UI.select_exclusive_button("dialog_change_sequence", sequence_list, key, nil, true)
+				UI.select_exclusive_button(DIALOG_NAME, sequence_list, key, nil, true)
 				selected_sequence = val
 				sequence_found = true
 				break
 			end
 		end
 		if not sequence_found then
-			UI.select_exclusive_button("dialog_change_sequence", sequence_list, 0)
+			UI.select_exclusive_button(DIALOG_NAME, sequence_list, 0)
 			msg.post("/navbar#navbar", hash("update_status"), {text = "Unknown sequence. Note that Geomancer doesn't support custom sequence names yet."})
 			selected_sequence = nil
 		end
-		dialog_open = true
-	elseif message_id == hash("hide") then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		dialog_open = false
-		UI.update_list("dialog_change_sequence", sequence_list, 0)
 	end
 end
 
 function update()
-	if dialog_open then
-		for list_index in pairs(UI.tab.dialog_change_sequence.scrolling) do
-			UI.move_list_root("dialog_change_sequence", list_index, true)
+	if DIALOG_DATA.dialog_open then
+		for list_index in pairs(DIALOG_DATA.scrolling) do
+			UI.move_list_root(DIALOG_NAME, list_index, true)
 		end
 	end
 end
 
 function on_input(self, action_id, action)
-	UI.on_input("dialog_change_sequence", action_id, action, evaluate_button)
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button)
 end
