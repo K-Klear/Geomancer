@@ -286,8 +286,10 @@ function MEM.load_props_dictionary(model_table, ignored_models)
 			end
 			if tab.children then
 				for key, val in ipairs(tab.children) do
-					table.insert(tree_section, {})
-					find_section(val, model_index, name, tree_section[#tree_section])
+					if not (val.name == "Colliders") then
+						table.insert(tree_section, {})
+						find_section(val, model_index, name, tree_section[#tree_section])
+					end
 				end
 			end
 			if not (tab.children or tab.components) then

@@ -260,6 +260,7 @@ embedded_instances {
 }
 embedded_instances {
   id: "model_yaw"
+  children: "base_transform"
   children: "grid"
   data: ""
 }
@@ -280,7 +281,7 @@ embedded_instances {
   "name: \\\"{{NAME}}\\\"\\n"
   "materials {\\n"
   "  name: \\\"default\\\"\\n"
-  "  material: \\\"/render/no_light.material\\\"\\n"
+  "  material: \\\"/render/no_light_inv.material\\\"\\n"
   "  textures {\\n"
   "    sampler: \\\"tex0\\\"\\n"
   "    texture: \\\"/assets/gfx/textures/default_floor.png\\\"\\n"
@@ -294,9 +295,8 @@ embedded_instances {
   "}\n"
   ""
   scale3 {
-    x: 8.0
-    y: 8.0
-    z: 8.0
+    x: 32.0
+    z: 32.0
   }
 }
 embedded_instances {
@@ -322,4 +322,11 @@ embedded_instances {
   "  component: \"/main/dialogs/event/dialog_event_filter.gui\"\n"
   "}\n"
   ""
+}
+embedded_instances {
+  id: "base_transform"
+  data: ""
+  scale3 {
+    z: -1.0
+  }
 }

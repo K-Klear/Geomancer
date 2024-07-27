@@ -277,6 +277,7 @@ local function export_art(path)
 		else
 			local str = ",{\"type\":\"ScriptedTween\",\"Script\":\""
 			local deletion_count = 0
+			
 			for key = #tween_data.script, 1, -1 do
 				local val = tween_data.script[key]
 				local ignore_repeat = false
@@ -285,7 +286,8 @@ local function export_art(path)
 					local actions_to_repeat = val.actions_to_repeat
 					table.remove(tween_data.script, key)
 					for action_index = key - val.actions_to_repeat, key - 1 do
-						if action_index < 1 or tween_data.script[action_index].type == "X" or (tween_data.script[action_index].easing and tween_data.script[action_index].easing.vertex_count > 2) then
+						if action_index < 1 or tween_data.script[action_index].type == "X" then
+						--(tween_data.script[action_index].easing and tween_data.script[action_index].easing.vertex_count > 2) then
 							deletion_count = deletion_count + 1
 							ignore_repeat = true
 							break
@@ -302,6 +304,9 @@ local function export_art(path)
 								if tab.end_state then
 									new_tab.end_state = {x = tab.end_state.x, y = tab.end_state.y, z = tab.end_state.z}
 								end
+								if tab.easing then
+									new_tab.easing = tab.easing
+								end
 								table.insert(tween_data.script, key, new_tab)
 							end
 						end
@@ -314,7 +319,6 @@ local function export_art(path)
 			elseif deletion_count > 1 then
 				msg.post("/navbar#navbar", hash("update_status"), {text = deletion_count.." invalid repeat actions have been removed from tween of "..model_name})
 			end
-
 
 			for key, val in ipairs(tween_data.script) do
 				if val.type == "W" then

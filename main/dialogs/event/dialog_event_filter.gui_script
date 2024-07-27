@@ -65,11 +65,11 @@ function evaluate_button(button, item)
 		else
 			msg.post("/navbar#navbar", hash("update_status"), {text = "All events shown.", clear = true})
 		end
+		UI.update_list(DIALOG_NAME, filter_list, 0)
 		DIALOG.close(DIALOG_NAME, {filter = true})
-		UI.update_list(DIALOG_NAME, filter_list, 0)
 	elseif button == "filter_cancel" then
-		DIALOG.close(DIALOG_NAME)
 		UI.update_list(DIALOG_NAME, filter_list, 0)
+		DIALOG.close(DIALOG_NAME)
 	elseif button == "filter_hide_all" then
 		for key, val in ipairs(signal_list) do
 			selection_list[val.signal] = true

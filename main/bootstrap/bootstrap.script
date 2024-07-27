@@ -22,6 +22,7 @@ local default_settings_text = {
 	"autodetect_sample_rate=true;",
 	"default_sample_rate=48000;		-- this value is used if autodetect is turned off or sample rate cannot be determined",
 	"new_event_sample_offset=0;",
+	"add_opens_edit_box=true;		-- open the edit dialog when adding new events/nobeats/tempo sections",
 	"",
 	"background_colour=0.15,0.03,0.12;	-- All colours are r,g,b going from 0 to 1",
 	"colour_highlight_material=0.8,0.8,0.35;",
@@ -43,7 +44,13 @@ local default_settings_text = {
 	"",
 	"model_rotation_sensitivity=0.5;",
 	"model_move_sensitivity=0.01;",
-	"model_zoom_sensitivity=1;",
+	"model_zoom_sensitivity=2.5;",
+	"",
+	"easing_node_scale=0.5;",
+	"easing_curve_thickness=3;",
+	"easing_node_colour=0,0,0;",
+	"easing_node_highlight_colour=1,0,0;",
+	"easing_curve_colour=0,0,1;",
 	"",
 	"default_colour_set=1;			-- Sets which unique colour set from the map will be selected by default. Use 0 to default to the custom colours.",
 	"custom_colour_main=471537;		-- uses the same hexadecimal format as Pistol Mix",
@@ -62,7 +69,6 @@ local default_settings_text = {
 	"",
 	"bulk_sequence_sort=false;		-- Existing sequences when bulk replacing can be sorted alphabetically. Otherwise they are listed in the order they appear"
 }
-
 
 local settings_to_load = {
 	autodetect_sample_rate = {type = "boolean"},
@@ -114,7 +120,14 @@ local settings_to_load = {
 	default_rotation = {type = "number"},
 	default_pitch = {type = "angle_pitch"},
 
-	bulk_sequence_sort = {type = "boolean"}
+	bulk_sequence_sort = {type = "boolean"},
+
+	add_opens_edit_box = {type = "boolean"},
+	easing_node_scale = {type = "number"},
+	easing_curve_thickness = {type = "number"},
+	easing_node_colour = {type = "colour"},
+	easing_node_highlight_colour = {type = "colour"},
+	easing_curve_colour = {type = "colour"},
 }
 
 

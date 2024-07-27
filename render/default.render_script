@@ -145,7 +145,7 @@ local function create_state()
 end
 
 function init(self)
-    self.predicates = create_predicates("tile", "gui", "preview", "text", "particle", "model")
+    self.predicates = create_predicates("tile", "gui", "preview", "text", "particle", "model", "model_inv")
 
     self.invert_preview = render.constant_buffer()
     self.invert_preview.invert = vmath.vector4(0, 0, 0, 0)
@@ -203,8 +203,11 @@ function update(self)
     --
     render.set_camera(self.camera)
     render.enable_state(render.STATE_CULL_FACE)
+    render.set_cull_face(render.FACE_FRONT)
     render.set_blend_func(render.BLEND_ONE, render.BLEND_ONE_MINUS_SRC_ALPHA)
     render.draw(predicates.model, camera_world.frustum)
+    render.set_cull_face(render.FACE_BACK)
+    render.draw(predicates.model_inv, camera_world.frustum)
     render.set_depth_mask(false)
     render.disable_state(render.STATE_CULL_FACE)
     render.set_camera()

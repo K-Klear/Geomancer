@@ -25,14 +25,7 @@ UI.tab = {
 	tab_meta = {path = "/meta#tab_meta", state = false, render_order = 1, buttons = {}, fields = {}},
 	tab_sequence = {path = "/sequence#tab_sequence", state = false, render_order = 1, buttons = {}, fields = {}},
 	tab_art = {path = "/art#tab_art", state = false, render_order = 1, buttons = {}, fields = {}},
-	dialog_replace_enemy = {path = "/dialog#dialog_replace_enemy", buttons = {}, fields = {}},
-	dialog_change_sequence = {path = "/sequence#dialog_change_sequence", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-	dialog_bulk_sequence = {path = "/sequence_bulk#dialog_bulk_sequence", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-	dialog_change_enemy_type = {path = "/type#dialog_change_enemy_type", buttons = {}, fields = {}},
-	model_viewer = {path = "not_used_anywhere_actually_why_do_I_bother", buttons = {}, fields = {}},
-	dialog_colours = {path = "screw this", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-	dialog_easing = {path = "whatever", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}},
-	dialog_filter = {path = "", buttons = {}, fields = {}, scrolling_lists = {}, scrolling = {}}
+	model_viewer = {buttons = {}, fields = {}},
 }
 
 local mouse_held, r_ctr_held, l_ctr_held

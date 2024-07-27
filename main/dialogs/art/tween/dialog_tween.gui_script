@@ -664,6 +664,10 @@ function on_message(self, message_id, message, sender)
 			if message.easing then
 				UI.update_list(DIALOG_NAME, action_list)
 			end
+		elseif message.dialog == "dialog_event" then
+			if message.start_sample then
+				msg.post(UI.tab.tab_event.path, hash("add_event"), {start_sample = message.start_sample, signal = message.signal})
+			end
 		elseif message.dialog == "dialog_confirm" then
 			if message.button == 1 then 			-- buttons are 1 = overwrite, 2 = rename, 3 = cancel
 				save_tween_data(path_to_tween[1]..path_to_tween[2]..path_to_tween[3])
