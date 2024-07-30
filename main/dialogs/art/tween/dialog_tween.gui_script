@@ -489,7 +489,9 @@ function evaluate_button(button, item)
 	elseif button == "dialog_tween_copy" then
 		DIALOG.open(DIALOG_NAME, "dialog_tween_copy", {model = model_index})
 	elseif button == "dialog_tween_event" then
-		DIALOG.open(DIALOG_NAME, "dialog_event", {data = {startSample = 0, payload = signal}})
+		if MEM.event_data.table then
+			DIALOG.open(DIALOG_NAME, "dialog_event", {data = {startSample = 0, payload = signal}})
+		end
 	elseif button == "dialog_tween_save" then
 		local _, path
 		if sys.exists(SET.default_path_save_tween) then
@@ -631,6 +633,7 @@ function on_message(self, message_id, message, sender)
 		DIALOG.show(DIALOG_DATA, sender)
 		model_index = message.model_index
 		model_name = MEM.art_data.model_list[model_index].name
+		gui.set_text(gui.get_node("title_tween"), "Tween editor ("..model_name..")")
 		tween_actions = MEM.art_data.model_list[model_index].tween.script
 		signal = MEM.art_data.model_list[model_index].tween.signal
 		gui.set_text(gui.get_node("tween_signal/text"), signal)

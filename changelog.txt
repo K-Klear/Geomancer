@@ -23,6 +23,7 @@ To do:
 - Add a cfg for default easing and number of nodes
 - Option to view colliders in model viewer
 - Auto-rotate for model viewer
+- Reorganise cfgs - look into the guide
 
 Bugs:
 
@@ -30,60 +31,24 @@ Bugs:
 - Geomancer gets rekt by whitespace =/
 - The colour guide button acts weird, probably because it's parented to the list background.
 - Model viewer background doesn't stay put when resizing window
+- Moving camera leaves the centre of rotation in place
 
 Done:
 
 Features:
-- Added the Logs obstacle set from Voidslayer
-- Events can now be filtered by signal. Events which are filtered will still export, they just don't clog the list
-- Adding a new nobeat, even or tempo section now opens the edit box. Can be changed back in config
-- Added a model preview to the model tab
-	- Rotate the model by holding the left mouse button and dragging it
-	- Move the camera by holding the right mouse button and dragging it, move forwards/backwards using the mouse wheel
-	- Buttons at the bottom of the viewport in order:
-		- Recentre the view
-		- Toggle background (fog). Useful to examine props with fog-coloured materials
-		- Toggle between ground, grid and nothing at the ground level
-		- Select colour set. A dialog lets you pick from all unique colour combinations present in the map. The last option is always available and uses the initial Pistol Mix colours by default.
-- Added easing for tween actions
-	- Predefined easings inSine, outSine, inOutSine and linear. More *might* come later
-	- Click and drag nodes to make a custom easing function
-	- Right click a node to remove it, right click elsewhere to add a new node
-	- You can set the number of nodes directly. This is disabled when the function is set to custom
-	- Geomancer will split the tween action into the required parts on export. The actions will be separate next time you load the exported file
-- The delete tween button is now a trash can icon
-- Add event button in tween editor
-- Added bulk replace for sequences. The list of existing sequences is in the order they appear in the map
-- Adding new nobeats/events/tempo sections now opens the edit box. Can be disabled in config
+- Tween editor title shows the model's name
 
 Fixes:
-- Added sidesteps as valid Spooky obstacle type
-- Model part selection dialog now shows the currently selected part correctly
-- Bulk enemy replace dialog properly resets when opened
-- Increased character limit on tween start/end states to 10
-- The tab buttons at the bottom can no longer be pressed using the mouse wheel or the keys ctrl, c and v.
-- model_show_grid value gets clamped to within 1-3
-- Refactored code relating to dialogs
+- Deleting an event updates the filter information
+- Fixed a bug causing parts of some models to appear with inverted normals
 
 Bugs:
-- Fixed a bug which could result in action-less tweens under some obscure circumstances
-- Fixed a freeze when bulk replacing "Normal" enemy type with "Normal Turret" enemy type
-- Fixed a crash when clicking a text field in the tween editor while scrolling it
-- Fixed a bug which prevented files with a full stop in their name from loading.
-- Fixed a bug preventing tweens with wait and repeat actions from loading.
-- Fixed an error when canceling out of the folder selection dialog when saving a tween
-- Events now get correctly sorted when adding multiple
+- Fixed a bug causing edit/remove event buttons to refer to wrong events if there's a filter applied
+- Fixed a crash caused by trying to add an event from the tween editor without a loaded pw_event file
+- Fixed a bug causing the model viewer grid to disappear when changing colours
 
 New configs:
-- colour_highlight_replace_enemy (colour) - sets the colour of the selected enemy types when replacing them in bulk
-- ignore_char_limit (boolean) - makes all text fields ignore character limits
-- bulk_sequence_sort 	- Sort sequences alphabetically rather than map order when bulk replacing
-- add_opens_edit_box
-- easing_node_scale = 0.5
-- easing_curve_thickness = 3
-- easing_node_colour = vmath.vector4(0, 0, 0, 1)
-- easing_node_highlight_colour = vmath.vector4(1, 0, 0, 1)
-- easing_curve_colour = vmath.vector4(0, 0, 1, 1)
+
 
 OLD BETA:
 

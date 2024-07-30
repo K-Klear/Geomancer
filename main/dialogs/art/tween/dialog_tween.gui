@@ -52,12 +52,17 @@ nodes {
   position {
     y: 356.0
   }
+  scale {
+    x: 0.8
+    y: 0.8
+    z: 0.8
+  }
   size {
     x: 250.0
     y: 60.0
   }
   type: TYPE_TEXT
-  text: "Tween editor"
+  text: "Tween editor - "
   font: "main_menu_button"
   id: "title_tween"
   outline {

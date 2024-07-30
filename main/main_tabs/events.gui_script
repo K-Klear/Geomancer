@@ -435,10 +435,11 @@ local function evaluate_button(button, item)
 		elseif str == "nobeat_edit;" then
 			DIALOG.open(TAB_NAME, "dialog_nobeat", {item = item, data = MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events[item]})
 		elseif str == "event_remove;" then
-			table.remove(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, item)
+			table.remove(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, events_aux[item])
 			update_event_list()
+			update_filter_text()
 		elseif str == "event_edit;" then
-			DIALOG.open(TAB_NAME, "dialog_event", {item = item, data = MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[item]})
+			DIALOG.open(TAB_NAME, "dialog_event", {item = events_aux[item], data = MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[events_aux[item]]})
 		elseif str == "tempo_remove;" then
 			if #MEM.event_data.table.tempoSections > 1 then
 				table.remove(MEM.event_data.table.tempoSections, item)

@@ -49,7 +49,8 @@ local function show_grid(self)
 		else
 			go.set("/grid#grid", "texture0", self.grid_tex)
 		end
-		go.set("/grid#grid", "tint", vmath.vector4(1, 1, 1, 0.5))
+		go.set("/grid#grid", "tint", vmath.vector4(1, 1, 1, 1))
+		msg.post("/grid#grid", hash("enable"))
 	else
 		msg.post("/grid#grid", hash("disable"))
 	end
@@ -127,8 +128,6 @@ local function delete_model()
 end
 
 local function show_model(self, model)
-	local inversion_count = 0
-	
 	local model_name = MEM.art_data.model_list[model].name
 	delete_model()
 	local function parse_vertex_data(str)
@@ -140,7 +139,7 @@ local function show_model(self, model)
 		return tonumber(x), tonumber(y), tonumber(z)
 	end
 
-	local function parse_transform(str)
+	local function parse_transform(str, inverted)
 		local commas = {string.find(str, ",")}
 		for i = 2, 9 do
 			commas[i] = string.find(str, ",", commas[i - 1] + 1)
@@ -154,18 +153,18 @@ local function show_model(self, model)
 		local rot = vmath.quat(values[4], values[5], values[6], values[7])
 		local sc = vmath.vector3(values[8], values[9], values[10])
 		if sc.x < 0 then
-			inversion_count = inversion_count + 1
+			inverted = not inverted
 		end
 		if sc.y < 0 then
-			inversion_count = inversion_count + 1
+			inverted = not inverted
 		end
 		if sc.z < 0 then
-			inversion_count = inversion_count + 1
+			inverted = not inverted
 		end
-		return pos, rot, sc
+		return pos, rot, sc, inverted
 	end
 
-	local function create_mesh(mesh_tab, parent, key)
+	local function create_mesh(mesh_tab, parent, key, invert)
 		local new_mesh = factory.create("#create_mesh")
 		go.set_parent(new_mesh, parent)
 		if not mesh_tab.triangles then
@@ -220,17 +219,17 @@ local function show_model(self, model)
 		go.set(_url, "vertices", buffer_resources[key])
 		local res = go.get(_url, "vertices")
 		resource.set_buffer(res, buf)
-		local invert = inversion_count % 2 == 1
 		table.insert(created_meshes, {mesh = new_mesh, invert = invert})
 		set_material(self, key, model)
 	end
 
-	local function create_transforms(tab, parent)
+	local function create_transforms(tab, parent, invert)
 		if tab.transform then
 			local new_transform = factory.create("#create_transform")
 			go.set_parent(new_transform, parent)
 			if not (parent == "/base_transform") then
-				local pos, rot, sc = parse_transform(tab.transform)
+				local pos, rot, sc
+				pos, rot, sc, invert = parse_transform(tab.transform, invert)
 				go.set_position(pos, new_transform)
 				go.set_rotation(rot, new_transform)
 				go.set(new_transform, "scale", sc)
@@ -240,14 +239,14 @@ local function show_model(self, model)
 		end
 		if tab.meshes then
 			for key, val in ipairs(tab.meshes) do
-				create_mesh(MEM.art_data.mesh_list[model_name][val], parent, val)
+				create_mesh(MEM.art_data.mesh_list[model_name][val], parent, val, invert)
 			end
 		end
 		for key, val in ipairs(tab) do
-			create_transforms(val, parent)
+			create_transforms(val, parent, invert)
 		end
 	end
-	create_transforms(MEM.art_data.model_tree[model_name], "/base_transform")
+	create_transforms(MEM.art_data.model_tree[model_name], "/base_transform", false)
 end
 
 function on_message(self, message_id, message, sender)
