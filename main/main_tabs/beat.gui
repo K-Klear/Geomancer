@@ -710,6 +710,46 @@ nodes {
   template_node_child: true
   material: "font-df"
 }
+nodes {
+  position {
+    x: 1180.0
+    y: 102.0
+  }
+  type: TYPE_TEMPLATE
+  id: "import_beat"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  position {
+    x: 14.0
+    y: 5.0
+  }
+  size {
+    x: 130.0
+    y: 76.0
+  }
+  type: TYPE_BOX
+  id: "import_beat/button_white"
+  parent: "import_beat"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 100.0
+    y: 70.0
+  }
+  type: TYPE_TEXT
+  text: "Import data"
+  id: "import_beat/text"
+  line_break: true
+  parent: "import_beat/button_white"
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 18
+  template_node_child: true
+}
 layers {
   name: "below"
 }

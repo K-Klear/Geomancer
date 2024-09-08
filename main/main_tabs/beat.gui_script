@@ -3,6 +3,7 @@ local UI = require "modules.ui"
 local SET = require "modules.settings"
 local DIALOG = UI.DIALOG
 local TAB_NAME = "tab_beat"
+local G = require "modules.global"
 
 local obstacle_list, selected_obstacle, selected_enemy, enemy_list, evaluate_button
 
@@ -135,7 +136,7 @@ function init(self)
 		horizontal = true
 	}
 	enemy_list = UI.create_list(TAB_NAME, gui.get_node("enemy_list"), list_tab)
-	UI.load_template({"sidestep", "limbo_short", "limbo_tall", "wall", "tunnel_short", "tunnel_tall", "button_replace_bulk", "button_sequence_bulk"}, TAB_NAME)
+	UI.load_template({"sidestep", "limbo_short", "limbo_tall", "wall", "tunnel_short", "tunnel_tall", "button_replace_bulk", "button_sequence_bulk", "import_beat"}, TAB_NAME)
 end
 
 local function replace(new_type, old_type)
@@ -298,6 +299,119 @@ function evaluate_button(button, item)
 			msg.post("/navbar#navbar", hash("update_status"), {text = "Unknown enemy type.", clear = true})
 		end
 		DIALOG.open(TAB_NAME, "dialog_change_enemy_type", {current_type = geomancer_type})
+	elseif button == "import_beat" then
+		local _, path = diags.open("zip,pw_beat", SET.default_path_load_file)
+		if path then
+			local f = io.open(path, "rb")
+			if f then
+				local tab, beat_data, filename
+				if string.sub(path, -3) == "zip" then
+					local zip_data = f:read("*a")
+					local archive = zip.open(zip_data)
+					local file_index = zip.get_number_of_entries(archive) - 1
+					for i = 0, file_index do
+						local file = zip.extract_by_index(archive, i)
+						if string.sub(file.name, -8) == "pw_event" then
+							beat_data = file.content
+							filename = file.name
+							break
+						end
+					end
+				else
+					local htap = string.reverse(path)
+					filename = string.reverse(string.sub(htap, 1, string.find(htap, "\\") - 1))
+					beat_data = f:read("*a")
+				end
+				msg.post("/navbar#navbar", hash("update_status"), {text = "Loading beat data from "..filename, clear = true})
+				tab, beat_data = G.safe_decode(beat_data, filename)
+				if not (tab and G.check_version(beat_data, filename)) then
+					msg.post("/navbar#navbar", hash("update_status"), {text = "File not loaded"})
+					return
+				end
+				local advanced_types = {Wall = true, TunnelTall = true, TunnelShort = true}
+				local advanced_sequences = 	{
+					__Flying_ATTACK = true,
+					["Zig_shoot _Zag_shoot"] = true,
+					Strafe_shoot_retreat = true,
+					FWD_RGHT_FWD_SHT = true,
+					["STRAFE SHOOT x3"] = true,
+					--		High_FlyingSkull Basic = true,
+					--		ONBEAT_High_FlyingSkull = true,
+					--		FlyingSkull Basic = true,
+					--		FlyingSkull Short
+					--		DefaultEnemySequence_Jetpack = true,
+					BeatSpawn_Jetpack_Stationary = true,
+					["_Run Roll Shoot"] = true,
+					--		__SniperJoeTest = true,
+					--		ImmediateDespawn = true,
+					CrookedTestSequence = true,
+					["EmptyEnemySequence 1"] = true,
+					Run_Slide_Shoot_01 = true,
+					_VaultShoot_01 = true,
+					ENME_SEQ_06 = true,
+					ENME_SEQ_07 = true,
+					StrafeRightLeft = true,
+					Canter_Forward_Shoot = true,
+					TestEnemySequence = true
+				}
+
+				local obstacle_count, enemy_count = 0, 0
+			
+				for key, val in ipairs(tab.beatData) do
+					for k, v in ipairs(val.obstacles) do
+						if advanced_types[v.type] then
+							for _, list_val in ipairs(MEM.beat_data.obstacle_list) do
+								if list_val.time > val.time then break end
+								if list_val.time == val.time and list_val.placement == v.placement then
+									list_val.type = v.type
+									obstacle_count = obstacle_count + 1
+									break
+								end
+							end
+						end
+					end
+					for k, v in ipairs(val.targets) do
+						if advanced_sequences[v.enemySequence] then
+							for _, list_val in ipairs(MEM.beat_data.enemy_list) do
+								if list_val.time > val.time then break end
+								if list_val.time == val.time and list_val.placement == v.placement and list_val.distance == v.distance and
+								list_val.offset == v.enemyOffset and list_val.type == v.enemyType then
+									list_val.sequence = v.enemySequence
+									enemy_count = enemy_count + 1
+									break
+								end
+							end
+						end
+					end
+				end
+				local str
+				if obstacle_count + enemy_count < 1 then
+					str = "No changes made"
+				else
+					UI.update_list(TAB_NAME, obstacle_list, #MEM.beat_data.obstacle_list)
+					UI.update_list(TAB_NAME, enemy_list, #MEM.beat_data.enemy_list)
+					str = "Changed "
+					if enemy_count > 1 then
+						str = str.."the sequence of "..enemy_count.." enemies."
+					elseif enemy_count > 0 then
+						str = str.."the sequence of one enemy"
+					end
+					if obstacle_count > 0 then
+						if enemy_count > 0 then
+							str = str.." and "
+						end
+						if obstacle_count > 1 then
+							str = str.."the type of "..obstacle_count.." obstacles"
+						else
+							str = str.."the type of one obstacle"
+						end
+					end
+				end
+				msg.post("/navbar#navbar", hash("update_status"), {text = str})
+			else
+				msg.post("/navbar#navbar", hash("update_status"), {text = "File not loaded"})
+			end
+		end
 	elseif button == obstacle_list then
 		selected_obstacle = item
 		update_obstacle(item)

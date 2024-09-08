@@ -24,6 +24,10 @@ To do:
 - Option to view colliders in model viewer
 - Auto-rotate for model viewer
 - Reorganise cfgs - look into the guide
+- Add more easing types
+- Tween preview
+- Universal change import button
+
 
 Bugs:
 
@@ -36,29 +40,13 @@ Bugs:
 Done:
 
 Features:
-- Tween editor title shows the model's name
-
-Fixes:
-- Deleting an event updates the filter information
-- Fixed a bug causing parts of some models to appear with inverted normals
-
-Bugs:
-- Fixed a bug causing edit/remove event buttons to refer to wrong events if there's a filter applied
-- Fixed a crash caused by trying to add an event from the tween editor without a loaded pw_event file
-- Fixed a bug causing the model viewer grid to disappear when changing colours
-
-New configs:
-
-
-OLD BETA:
-
-Features:
+- Ability to import advanced obstacle types and sequences from a file
 
 Fixes:
 
-New configs:
-
 Bugs:
+
+New configs:
 
 
 
