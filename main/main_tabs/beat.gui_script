@@ -329,6 +329,7 @@ function evaluate_button(button, item)
 					return
 				end
 				local advanced_types = {Wall = true, TunnelTall = true, TunnelShort = true}
+				local advanced_enemies = {FlyingBomb = true, ["Trap Enemy"] = true}
 				local advanced_sequences = 	{
 					__Flying_ATTACK = true,
 					["Zig_shoot _Zag_shoot"] = true,
@@ -360,10 +361,15 @@ function evaluate_button(button, item)
 				for key, val in ipairs(tab.beatData) do
 					for k, v in ipairs(val.obstacles) do
 						if advanced_types[v.type] then
-							for _, list_val in ipairs(MEM.beat_data.obstacle_list) do
+							for _key, list_val in ipairs(MEM.beat_data.obstacle_list) do
 								if list_val.time > val.time then break end
 								if list_val.time == val.time and list_val.placement == v.placement then
 									list_val.type = v.type
+									MEM.beat_data.table[list_val.beat_data_key].obstacles[list_val.obstacles_key].type = v.type
+									MEM.beat_data.changed_obstacles[list_val.beat_data_key] = true
+									if selected_obstacle then
+										update_obstacle(selected_obstacle)
+									end
 									obstacle_count = obstacle_count + 1
 									break
 								end
@@ -371,12 +377,23 @@ function evaluate_button(button, item)
 						end
 					end
 					for k, v in ipairs(val.targets) do
-						if advanced_sequences[v.enemySequence] then
-							for _, list_val in ipairs(MEM.beat_data.enemy_list) do
-								if list_val.time > val.time then break end
+						local change_type = advanced_enemies[v.enemyType]
+						local change_sequence = advanced_sequences[v.enemySequence]
+						if change_type or change_sequence then
+							for _key, list_val in ipairs(MEM.beat_data.enemy_list) do
+								if tonumber(list_val.time) > tonumber(val.time) then break end
 								if list_val.time == val.time and list_val.placement == v.placement and list_val.distance == v.distance and
-								list_val.offset == v.enemyOffset and list_val.type == v.enemyType then
-									list_val.sequence = v.enemySequence
+								list_val.offset == v.enemyOffset then
+									if change_sequence then
+										list_val.sequence = v.enemySequence
+									end
+									if change_type then
+										list_val.type = v.enemyType
+									end
+									MEM.beat_data.changed_enemies[_key] = true
+									if selected_enemy then
+										update_enemy(selected_enemy)
+									end
 									enemy_count = enemy_count + 1
 									break
 								end
@@ -390,20 +407,20 @@ function evaluate_button(button, item)
 				else
 					UI.update_list(TAB_NAME, obstacle_list, #MEM.beat_data.obstacle_list)
 					UI.update_list(TAB_NAME, enemy_list, #MEM.beat_data.enemy_list)
-					str = "Changed "
+					str = "Updated "
 					if enemy_count > 1 then
-						str = str.."the sequence of "..enemy_count.." enemies."
+						str = str..enemy_count.." enemies."
 					elseif enemy_count > 0 then
-						str = str.."the sequence of one enemy"
+						str = str.."one enemy"
 					end
 					if obstacle_count > 0 then
 						if enemy_count > 0 then
 							str = str.." and "
 						end
 						if obstacle_count > 1 then
-							str = str.."the type of "..obstacle_count.." obstacles"
+							str = str..obstacle_count.." obstacles"
 						else
-							str = str.."the type of one obstacle"
+							str = str.."one obstacle"
 						end
 					end
 				end

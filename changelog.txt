@@ -27,7 +27,7 @@ To do:
 - Add more easing types
 - Tween preview
 - Universal change import button
-
+- Stats screen, showing enemy count, max score etc.
 
 Bugs:
 
@@ -40,7 +40,7 @@ Bugs:
 Done:
 
 Features:
-- Ability to import advanced obstacle types and sequences from a file
+- Ability to import advanced obstacle types, enemy sequences and types from a file
 
 Fixes:
 
