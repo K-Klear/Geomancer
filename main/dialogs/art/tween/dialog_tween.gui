@@ -996,11 +996,17 @@ nodes {
   template_node_child: true
 }
 nodes {
+  scale {
+    x: 0.7
+    y: 0.7
+    z: 0.7
+  }
   type: TYPE_TEXT
-  text: "123454678901232"
+  text: "123454678901234567890"
   id: "tween_signal/text"
   parent: "tween_signal/box"
   layer: "text"
+  overridden_fields: 3
   overridden_fields: 8
   overridden_fields: 20
   overridden_fields: 21

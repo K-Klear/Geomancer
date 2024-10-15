@@ -4,10 +4,6 @@ fonts {
   font: "/assets/fonts/final/main_menu_button_small.font"
 }
 fonts {
-  name: "menu_title"
-  font: "/assets/fonts/final/menu_title.font"
-}
-fonts {
   name: "main_menu_button"
   font: "/assets/fonts/final/main_menu_button.font"
 }
@@ -1124,46 +1120,6 @@ nodes {
   text: "Add multiple"
   id: "event_add_multiple/text"
   parent: "event_add_multiple/button_white"
-  overridden_fields: 8
-  overridden_fields: 18
-  template_node_child: true
-}
-nodes {
-  position {
-    x: 1134.0
-    y: 329.0
-  }
-  type: TYPE_TEMPLATE
-  id: "import_events"
-  template: "/templates/button_white_small.gui"
-}
-nodes {
-  position {
-    x: 14.0
-    y: 5.0
-  }
-  size {
-    x: 130.0
-    y: 76.0
-  }
-  type: TYPE_BOX
-  id: "import_events/button_white"
-  parent: "import_events"
-  overridden_fields: 1
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  size {
-    x: 100.0
-    y: 70.0
-  }
-  type: TYPE_TEXT
-  text: "Import data"
-  id: "import_events/text"
-  line_break: true
-  parent: "import_events/button_white"
-  overridden_fields: 4
   overridden_fields: 8
   overridden_fields: 18
   template_node_child: true

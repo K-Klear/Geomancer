@@ -16,6 +16,17 @@ SET.default_path_import_models = ""
 SET.default_path_import_model_data = ""
 SET.default_path_save_tween = ""
 SET.confirm_file_overwrite = true
+SET.import_changes_from_zip = false
+SET.create_folder_on_export = true
+
+SET.import_level_changes = true
+SET.import_event_changes = true
+SET.import_model_changes = true
+SET.import_beat_changes = true
+
+SET.degeomance_sequence = "Dance_03"
+SET.degeomance_glitched_enemy = "Normal"
+SET.degeomance_skull = "Normal Turret"
 
 -- events
 SET.sample_rate = 48000
@@ -27,6 +38,8 @@ SET.add_opens_edit_box = true
 -- colours
 SET.background_colour = vmath.vector4(0.15, 1.03, 0.12, 1)
 
+SET.colour_active_text_field = vmath.vector4(0.65, 0.65, 0.65, 1)
+
 SET.colour_highlight_material = vmath.vector4(0.8, 0.8, 0.35, 1)
 SET.colour_highlight_dynamic = vmath.vector4(0.6, 0.75, 1, 1)
 SET.colour_highlight_tween = vmath.vector4(0.3, 0.55, 1, 1)
@@ -37,7 +50,7 @@ SET.colour_current_enemy_set = vmath.vector4(0.2, 0.4, 0.8, 1)
 SET.colour_highlight_replace_enemy = vmath.vector4(0.7, 0.1, 0.1, 1)
 SET.colour_selection_change_enemy_type = vmath.vector4(0.1, 0.7, 0.1, 1)
 SET.colour_current_enemy_type = vmath.vector4(0.1, 0.1, 0.1, 1)
-SET.colour_signal_filter_selection = vmath.vector4(0.5, 0.5, 0.7, 1) -- NEW!
+SET.colour_signal_filter_selection = vmath.vector4(0.5, 0.5, 0.7, 1)
 
 -- model
 SET.restrict_rotations_to_360 = true

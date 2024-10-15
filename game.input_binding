@@ -26,6 +26,18 @@ key_trigger {
   input: KEY_V
   action: "v"
 }
+key_trigger {
+  input: KEY_TAB
+  action: "tab"
+}
+key_trigger {
+  input: KEY_LSHIFT
+  action: "lshift"
+}
+key_trigger {
+  input: KEY_RSHIFT
+  action: "rshift"
+}
 mouse_trigger {
   input: MOUSE_BUTTON_1
   action: "touch"

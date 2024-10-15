@@ -7,10 +7,25 @@ local TAB_NAME = "tab_file"
 
 local files_to_export
 
+local function set_checkbox(checkbox, value)
+	if value then
+		gui.set_text(gui.get_node(checkbox.."/text"), "X")
+	else
+		gui.set_text(gui.get_node(checkbox.."/text"), "")
+	end
+end
+
 function init(self)
 	gui.set_render_order(1)
 	gui.set_text(gui.get_node("version_label"), "Version "..sys.get_config("project.version"))
-	UI.load_template({"exit", "load_dir", "load_file", "load_zip", "unload_all", "export_all", "export_overwrite", "help"}, TAB_NAME)
+	UI.load_template({"exit", "load_dir", "load_file", "load_zip", "unload_all", "export_all", "export_folder_checkbox", "import_changes",
+	"import_checkbox", "degeomance", "import_level", "import_events", "import_beat", "import_models", "help"}, TAB_NAME)
+	set_checkbox("import_checkbox", SET.import_changes_from_zip)
+	set_checkbox("export_folder_checkbox", SET.create_folder_on_export)
+	set_checkbox("import_level", SET.import_level_changes)
+	set_checkbox("import_events", SET.import_event_changes)
+	set_checkbox("import_beat", SET.import_beat_changes)
+	set_checkbox("import_models", SET.import_model_changes)
 end
 
 local function run_export_fn()
@@ -577,6 +592,7 @@ local function export_all(overwrite)
 				end
 				msg.post("/navbar#navbar", hash("update_status"), {text = "Files exported to "..path})
 			else
+				msg.post("/navbar#navbar", hash("update_status"), {text = "Starting export", clear = true})
 				files_to_export = {}
 				local full_path
 				if MEM.level_data.string then
@@ -631,11 +647,424 @@ local function export_all(overwrite)
 	end
 end
 
+local advanced_sequences = 	{
+	__Flying_ATTACK = true,
+	["Zig_shoot _Zag_shoot"] = true,
+	Strafe_shoot_retreat = true,
+	FWD_RGHT_FWD_SHT = true,
+	["STRAFE SHOOT x3"] = true,
+	--		High_FlyingSkull Basic = true,
+	--		ONBEAT_High_FlyingSkull = true,
+	--		FlyingSkull Basic = true,
+	--		FlyingSkull Short
+	--		DefaultEnemySequence_Jetpack = true,
+	BeatSpawn_Jetpack_Stationary = true,
+	["_Run Roll Shoot"] = true,
+	--		__SniperJoeTest = true,
+	--		ImmediateDespawn = true,
+	CrookedTestSequence = true,
+	["EmptyEnemySequence 1"] = true,
+	Run_Slide_Shoot_01 = true,
+	_VaultShoot_01 = true,
+	ENME_SEQ_06 = true,
+	ENME_SEQ_07 = true,
+	StrafeRightLeft = true,
+	Canter_Forward_Shoot = true,
+	TestEnemySequence = true
+}
+
+local function degeomance()
+	if not (UI.tab.tab_level.state or UI.tab.tab_event.state or UI.tab.tab_beat.state or UI.tab.tab_art.state or UI.tab.tab_meta.state) then
+		G.update_navbar("You must open a map first.", true)
+		return
+	end
+	G.update_navbar("De-geomancing map", true)
+	if UI.tab.tab_level.state then
+		local change = false
+		if not (MEM.level_data.preview_time == 0) then
+			MEM.level_data.preview_time = 0
+			G.update_navbar("Preview time reset to 0")
+			change = true
+		end
+		if not (MEM.level_data.move_mode == "Moving") then
+			MEM.level_data.move_mode = "Moving"
+			G.update_navbar("Move mode set to Moving")
+			change = true
+		end
+		if not change then
+			G.update_navbar("No level info changes necessary")
+		end
+	end
+	if UI.tab.tab_event.state then
+		local nobeat_count = #MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events
+		local event_count = #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events
+		local tempo_count = #MEM.event_data.table.tempoSections
+		MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events = {}
+		local skipped_count = 0
+		if not MEM.level_data.obstacle_set then
+			for key = event_count, 1, -1 do
+				local payload = MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[key].payload
+				if (payload == "PillarDrop") or (payload == "RisePillar") then
+					event_count = event_count - 1
+				else
+					table.remove(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, key)
+				end
+			end
+		elseif MEM.level_data.obstacle_set == "AirDrop" then
+			for key = event_count, 1, -1 do
+				local payload = MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[key].payload
+				if payload == "PillarDrop" then
+					event_count = event_count - 1
+					skipped_count = skipped_count + 1
+				else
+					table.remove(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, key)
+				end
+			end
+			if MEM.beat_data.obstacle_list then
+				if skipped_count < #MEM.beat_data.obstacle_list then
+					local new_event_count = #MEM.beat_data.obstacle_list - skipped_count
+					for i = 1, new_event_count do
+						msg.post(UI.tab.tab_event.path, hash("add_event"), {start_sample = i, signal = "PillarDrop"})
+					end
+					if new_event_count > 1 then
+						G.update_navbar("Created "..new_event_count.." PillarDrop events at the start of the map.")
+					else
+						G.update_navbar("Created a PillarDrop event at the start of the map.")
+					end
+				end
+			end
+		elseif MEM.level_data.obstacle_set == "Spooky" then
+			for key = event_count, 1, -1 do
+				local payload = MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[key].payload
+				if payload == "RisePillar" then
+					event_count = event_count - 1
+					skipped_count = skipped_count + 1
+				else
+					table.remove(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, key)
+				end
+			end
+			if MEM.beat_data.obstacle_list then
+				if skipped_count < #MEM.beat_data.obstacle_list then
+					local new_event_count = #MEM.beat_data.obstacle_list - skipped_count
+					for i = 1, new_event_count do
+						msg.post(UI.tab.tab_event.path, hash("add_event"), {start_sample = i, signal = "RisePillar"})
+					end
+					if new_event_count > 1 then
+						G.update_navbar("Created "..new_event_count.." RisePillar events at the start of the map.")
+					else
+						G.update_navbar("Created a RisePillar event at the start of the map.")
+					end
+				end
+			end
+		else
+			MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events = {}
+		end
+		
+		
+		if #MEM.event_data.table.tempoSections > 1 then
+			MEM.event_data.table.tempoSections = {MEM.event_data.table.tempoSections[1]}
+		end
+		local change = false
+		if nobeat_count > 1 then
+			G.update_navbar("Removed "..nobeat_count.." no-beat sections")
+			change = true
+		elseif nobeat_count > 0 then
+			G.update_navbar("Removed one no-beat section")
+			change = true
+		end
+		if event_count > 1 then
+			G.update_navbar("Removed "..event_count.." event triggers")
+			change = true
+		elseif event_count > 0 then
+			G.update_navbar("Removed one event trigger")
+			change = true
+		end
+		if tempo_count > 2 then
+			G.update_navbar("Removed "..(tempo_count - 1).." tempo sections")
+			change = true
+		elseif tempo_count > 1 then
+			G.update_navbar("Removed one tempo section")
+			change = true
+		end
+		if not change then
+			G.update_navbar("No event file changes necessary")
+		end
+	end
+	if UI.tab.tab_art.state then
+		msg.post("/art#tab_art", hash("degeomance"))
+	end
+	if UI.tab.tab_beat.state then
+		local obstacle_count, enemy_type_count, sequence_count = 0, 0, 0
+		local obstacle_types = {Wall = "Sidestep", TunnelTall = "LimboTall", TunnelShort = "LimboShort"}
+		for key, val in ipairs(MEM.beat_data.obstacle_list) do
+			if obstacle_types[val.type] then
+				obstacle_count = obstacle_count + 1
+				val.type = obstacle_types[val.type]
+				MEM.beat_data.changed_obstacles[val.beat_data_key] = true
+				MEM.beat_data.table[val.beat_data_key].obstacles[val.obstacles_key].type = val.type
+			end
+		end
+
+		local enemy_names = {
+			Normal = "normal",
+			Tough = "tough",
+			ChuckNorris = "chuck",
+			["Mounted Enemy"] = "horse",
+			Shield = "shield",
+			["Normal Turret"] = "turret",
+			["Minigun Turret"] = "minigun",
+			FlyingBomb = "skull",
+			["Trap Enemy"] = "trap"
+		}
+		
+		for key, val in ipairs(MEM.beat_data.enemy_list) do
+			if val.type == "FlyingBomb" then
+				val.type = SET.degeomance_skull
+				MEM.beat_data.enemy_types[enemy_names[SET.degeomance_skull]] = true
+				MEM.beat_data.changed_enemies[key] = true
+				enemy_type_count = enemy_type_count + 1
+			elseif val.type == "Trap Enemy" then
+				val.type = SET.degeomance_glitched_enemy
+				MEM.beat_data.enemy_types[enemy_names[SET.degeomance_glitched_enemy]] = true
+				MEM.beat_data.changed_enemies[key] = true
+			end
+			if advanced_sequences[val.sequence] then
+				val.sequence = SET.degeomance_sequence
+				MEM.beat_data.changed_enemies[key] = true
+				sequence_count = sequence_count + 1
+			end
+			MEM.beat_data.enemy_types.FlyingBomb = false
+			MEM.beat_data.enemy_types["Trap Enemy"] = false
+		end
+		local change = false
+		if obstacle_count > 1 then
+			G.update_navbar("Changed "..obstacle_count.." obstacles")
+			change = true
+		elseif obstacle_count > 0 then
+			G.update_navbar("Changed one obstacle")
+			change = true
+		end
+		if enemy_type_count > 1 then
+			G.update_navbar("Changed "..enemy_type_count.." enemy types")
+			change = true
+		elseif enemy_type_count > 0 then
+			G.update_navbar("Changed one enemy type")
+			change = true
+		end
+		if sequence_count > 1 then
+			G.update_navbar("Changed "..sequence_count.." sequences")
+			change = true
+		elseif sequence_count > 0 then
+			G.update_navbar("Changed one sequence")
+			change = true
+		end
+	end
+	if UI.tab.tab_meta.state then
+		
+	end
+end
+
+local function import_changes()
+	if not ((SET.import_level_changes and UI.tab.tab_level.state) or (SET.import_event_changes and UI.tab.tab_event.state) or
+	(SET.import_beat_changes and UI.tab.tab_beat.state) or (SET.import_model_changes and UI.tab.tab_art.state)) then
+		G.update_navbar("You must open a map first.", true)
+		return
+	else
+		G.update_navbar("Importing changes", true)
+	end
+	local _, path, tab, level_data, event_data, art_data, beat_data, filename
+	local error = false
+	if SET.import_changes_from_zip then
+		_, path = diags.open("zip", SET.default_path_import_model_data)
+		if path then
+			local f = io.open(path, "rb")
+			if f then
+				local zip_data = f:read("*a")
+				local archive = zip.open(zip_data)
+				local file_index = zip.get_number_of_entries(archive) - 1
+				for i = 0, file_index do
+					local file = zip.extract_by_index(archive, i)
+					if SET.import_event_changes and string.sub(file.name, -8) == "pw_event" then
+						event_data = file.content
+					elseif SET.import_level_changes and string.sub(file.name, -2) == "pw" then
+						level_data = file.content
+					elseif SET.import_model_changes and string.sub(file.name, -6) == "pw_art" then
+						art_data = file.content
+					elseif SET.import_beat_changes and string.sub(file.name, -7) == "pw_beat" then
+						beat_data = file.content
+					end
+				end
+			else
+				error = true
+			end
+		else
+			error = true
+		end
+	else
+		_, path = diags.open_folder(SET.default_path_import_model_data)
+		if path then
+			local files_to_load = {}
+			for filename in lfs.dir(path) do
+				if not (filename == "." or filename == "..") then
+					local extension = string.find(filename, "%.")
+					if extension then
+						extension = string.sub(filename, extension + 1)
+						local function read_file(full_path)
+							local f = io.open(full_path, "rb")
+							if f then
+								local data = f:read("*a")
+								io.close(f)
+								return data
+							else
+								error = true
+							end
+						end
+						if SET.import_event_changes and extension == "pw_event" then
+							event_data = read_file(path.."/"..filename)
+						elseif SET.import_level_changes and extension == "pw" then
+							level_data = read_file(path.."/"..filename)
+						elseif SET.import_model_changes and extension == "pw_art" then
+							art_data = read_file(path.."/"..filename)
+						elseif SET.import_beat_changes and extension == "pw_beat" then
+							beat_data = read_file(path.."/"..filename)
+						end
+					end
+				end
+			end
+		else
+			error = true
+		end
+	end
+	if UI.tab.tab_level.state and level_data then
+		local level_tab = G.safe_decode(level_data, "Level data")
+		if level_tab then
+			MEM.level_data.enemy_set = level_tab.enemySet
+			MEM.level_data.obstacle_set = level_tab.obstacleSet
+			MEM.level_data.material_set = level_tab.materialPropertiesSet
+			MEM.level_data.preview_time = level_tab.previewTime
+			MEM.level_data.move_mode = level_tab.moveMode
+			G.update_navbar("Level info updated")
+		end
+	end
+	if UI.tab.tab_event.state and event_data then
+		local samplesPerBeat = MEM.event_data.table.tempoSections[1].samplesPerBeat
+		local beatsPerMeasure = MEM.event_data.table.tempoSections[1].beatsPerMeasure
+		local startSample = MEM.event_data.table.tempoSections[1].startSample
+		local panel = MEM.load_file(nil, nil, "pw_event", event_data)
+		MEM.event_data.table.tempoSections[1].samplesPerBeat = samplesPerBeat
+		MEM.event_data.table.tempoSections[1].beatsPerMeasure = beatsPerMeasure
+		MEM.event_data.table.tempoSections[1].startSample = startSample
+		if panel then
+			G.update_navbar("Event data updated")
+		else
+			G.update_navbar("Error loading event data")
+		end
+		MEM.event_reloaded = false
+	end
+	if UI.tab.tab_art.state and art_data then
+		MEM.art_data.temp = art_data
+		msg.post("/art#tab_art", hash("import_changes"))
+	end
+	if UI.tab.tab_beat.state and beat_data then
+		local beat_tab
+		beat_tab, beat_data = G.safe_decode(beat_data)
+		if not (beat_tab and G.check_version(beat_data)) then
+			G.update_navbar("Enemy/obstacle data not loaded")
+		else
+			local advanced_types = {Wall = true, TunnelTall = true, TunnelShort = true}
+			local advanced_enemies = {FlyingBomb = true, ["Trap Enemy"] = true}
+			local obstacle_count, enemy_count = 0, 0
+			for key, val in ipairs(beat_tab.beatData) do
+				local num_time = tonumber(val.time)
+				for k, v in ipairs(val.obstacles) do
+					if advanced_types[v.type] then
+						for _key, list_val in ipairs(MEM.beat_data.obstacle_list) do
+							if tonumber(list_val.time) > num_time then break end
+							if list_val.time == val.time and list_val.placement == v.placement then
+								list_val.type = v.type
+								MEM.beat_data.table[list_val.beat_data_key].obstacles[list_val.obstacles_key].type = v.type
+								MEM.beat_data.changed_obstacles[list_val.beat_data_key] = true
+								obstacle_count = obstacle_count + 1
+								break
+							end
+						end
+					end
+				end
+				for k, v in ipairs(val.targets) do
+					local change_type = advanced_enemies[v.enemyType]
+					local change_sequence = advanced_sequences[v.enemySequence]
+					if change_type or change_sequence then
+						for _key, list_val in ipairs(MEM.beat_data.enemy_list) do
+							if tonumber(list_val.time) > num_time then break end
+							if list_val.time == val.time and list_val.placement == v.placement and list_val.distance == v.distance and
+							list_val.offset == v.enemyOffset then
+								if change_sequence then
+									list_val.sequence = v.enemySequence
+								end
+								if change_type then
+									list_val.type = v.enemyType
+								end
+								MEM.beat_data.changed_enemies[_key] = true
+								enemy_count = enemy_count + 1
+								break
+							end
+						end
+					end
+				end
+			end
+			local str
+			if obstacle_count + enemy_count < 1 then
+				str = "No changes made"
+			else
+				str = "Updated "
+				if enemy_count > 1 then
+					str = str..enemy_count.." enemies."
+				elseif enemy_count > 0 then
+					str = str.."one enemy"
+				end
+				if obstacle_count > 0 then
+					if enemy_count > 0 then
+						str = str.." and "
+					end
+					if obstacle_count > 1 then
+						str = str..obstacle_count.." obstacles"
+					else
+						str = str.."one obstacle"
+					end
+				end
+			end
+			G.update_navbar(str)
+		end
+	end
+end
+
 local function evaluate_button(button)
 	if button == "exit" then
 		os.exit(1)
 	elseif button == "help" then
 		sys.open_url("https://mod.io/g/pistol-whip/r/geomancer")
+	elseif button == "import_checkbox" then
+		SET.import_changes_from_zip = not SET.import_changes_from_zip
+		set_checkbox("import_checkbox", SET.import_changes_from_zip)
+	elseif button == "export_folder_checkbox" then
+		SET.create_folder_on_export = not SET.create_folder_on_export
+		set_checkbox("export_folder_checkbox", SET.create_folder_on_export)
+	elseif button == "import_level" then
+		SET.import_level_changes = not SET.import_level_changes
+		set_checkbox("import_level", SET.import_level_changes)
+	elseif button == "import_events" then
+		SET.import_event_changes = not SET.import_event_changes
+		set_checkbox("import_events", SET.import_event_changes)
+	elseif button == "import_models" then
+		SET.import_model_changes = not SET.import_model_changes
+		set_checkbox("import_models", SET.import_model_changes)
+	elseif button == "import_beat" then
+		SET.import_beat_changes = not SET.import_beat_changes
+		set_checkbox("import_beat", SET.import_beat_changes)
+	elseif button == "import_changes" then
+		import_changes()
+	elseif button == "degeomance" then
+		degeomance()
 	elseif button == "load_file" then
 		local num, path = diags.open("pw_meta,pw,pw_beat,pw_event,pw_geo,pw_art,pw_seq", SET.default_path_load_file)
 		if path then
@@ -793,9 +1222,7 @@ local function evaluate_button(button)
 		msg.post("/navbar#navbar", hash("update_status"), {text = "All data unloaded.", clear = true})
 		msg.post("/navbar#navbar", hash("update_tabs"))
 	elseif button == "export_all" then
-		export_all(false)
-	elseif button == "export_overwrite" then
-		export_all(true)
+		export_all(not SET.create_folder_on_export)
 	end
 end
 

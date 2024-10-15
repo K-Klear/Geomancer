@@ -21,7 +21,7 @@ function init(self)
 	UI.load_template({"dialog_tempo_cancel", "dialog_tempo_accept"}, DIALOG_NAME)
 	local validation = {
 		integer = true,
-		min = function() return 0 end,
+		--min = function() return 0 end,
 		max = function() return max_sample end,
 		default = function() return 0 end
 	}

@@ -11,7 +11,72 @@ enemy_set_names.Targets = "Targets"
 enemy_set_names.Majesty = "Knights"
 enemy_set_names.Skeletons = "Skeletons"
 
+local desc_node, desc_font
+local DESCRIPTION_WIDTH = 517
 
+local function shorten_last_word(line, char_count)
+	local shorter
+	for i = 1, char_count + 1 do
+		shorter = string.sub(line, 1, -i).."..."
+		local width = resource.get_text_metrics(desc_font, shorter).width
+		if not (width > DESCRIPTION_WIDTH) then
+			break
+		end
+	end
+	return shorter
+end
+
+local function display_description(text)
+	local lines = {"", "", "", ""}
+	local current_line = 1
+	local cursor = 1
+	local newlines = {}
+
+	repeat
+		local newline = string.find(text, "\n", cursor)
+		table.insert(newlines, newline)
+		cursor = (newline or 0) + 1
+	until not newline
+
+	repeat
+		local space = string.find(text, " ", cursor)
+		local new_word
+		local force_break = false
+		if space then
+			if newlines[1] and (space > newlines[1]) then
+				space = newlines[1]
+				table.remove(newlines, 1)
+				force_break = true
+			end
+			new_word = string.sub(text, cursor, space - 1)
+			cursor = space + 1
+		else
+			new_word = string.sub(text, cursor)
+		end
+		local new_line = lines[current_line]..new_word
+		local width = resource.get_text_metrics(desc_font, new_line).width
+		if width > DESCRIPTION_WIDTH then
+			if current_line == 4 then
+				lines[current_line] = shorten_last_word(new_line, #new_word)
+				break
+			end
+			current_line = current_line + 1
+			lines[current_line] = new_word.." "
+		else
+			lines[current_line] = new_line.." "
+		end
+		if force_break then
+			current_line = current_line + 1
+		end
+	until (not space) or (current_line > 4)
+
+	local str = ""
+	for key, val in ipairs(lines) do
+		if key > 4 then break end
+		str = str..val.."\n"
+	end
+	gui.set_text(desc_node, str)
+end
 
 function init(self)
 	gui.set_render_order(1)
@@ -24,6 +89,8 @@ function init(self)
 	}
 	UI.load_text_field("preview_time", 3, TAB_NAME, validation)
 	msg.post("#", hash("disable"))
+	desc_node = gui.get_node("description")
+	desc_font = gui.get_font_resource(gui.get_font(desc_node))
 end
 
 function on_message(self, message_id, message, sender)
@@ -39,6 +106,37 @@ function on_message(self, message_id, message, sender)
 		gui.set_text(gui.get_node("btn_materials/text"), MEM.level_data.material_set)
 		gui.set_text(gui.get_node("btn_movement/text"), MEM.level_data.move_mode)
 		gui.set_text(gui.get_node("preview_time/text"), MEM.level_data.preview_time)
+		gui.set_text(gui.get_node("label_name"), "Map name:\n"..MEM.level_data.scene_name)
+		display_description(MEM.level_data.description)
+		if not MEM.beat_data.enemy_list then
+			gui.set_text(gui.get_node("label_enemy_count"), "Enemy count:\nUnknown")
+		else
+			local enemy_count = 0
+			local hit_count = 0
+			local hits = {
+				Normal = 1,
+				Tough = 2,
+				ChuckNorris = 4,
+				["Mounted Enemy"] = 1,
+				Shield = 4,
+				["Normal Turret"] = 1,
+				["Minigun Turret"] = 16,
+				FlyingBomb = 1,
+				["Trap Enemy"] = 1
+			}
+			
+			for key, val in ipairs(MEM.beat_data.enemy_list) do
+				local temp = 0
+				enemy_count = enemy_count + 1
+				hit_count = hit_count + hits[val.type]
+				temp = hits[val.type]
+				if val.shielded == "True" then
+					hit_count = hit_count + 4
+					temp = temp + 4
+				end
+			end
+			gui.set_text(gui.get_node("label_enemy_count"), "Enemy count:\n"..enemy_count.." ("..hit_count.." hits total)")
+		end
 	elseif message_id == hash("dialog_closed") then
 		if message.dialog == "obstacles" then
 			if message.obstacle then

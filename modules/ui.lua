@@ -28,7 +28,7 @@ UI.tab = {
 	model_viewer = {buttons = {}, fields = {}},
 }
 
-local mouse_held, r_ctr_held, l_ctr_held
+local mouse_held, r_ctr_held, l_ctr_held, l_shift_held, r_shift_held
 local hover = {}
 
 function UI.load_template(template, tab)
@@ -166,6 +166,7 @@ end
 
 local function text_field_clicked(text_field)
 	active_text_field = text_field
+	gui.set_color(active_text_field.node, SET.colour_active_text_field)
 	text_field_text = gui.get_text(active_text_field.text)
 	cursor_visible = false
 	text_field_cursor()
@@ -557,6 +558,12 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
 	elseif action_id == hash("rctrl") then
 		r_ctr_held = not action.released
 		return
+	elseif action_id == hash("rshift") then
+		r_shift_held = not action.released
+		return
+	elseif action_id == hash("lshift") then
+		l_shift_held = not action.released
+		return
 	elseif action_id == hash("v") then
 		if action.pressed and (r_ctr_held or l_ctr_held) then
 			action_id = hash("paste")
@@ -564,7 +571,7 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
 			return
 		end
 	elseif action_id == hash("c") then
-		if action.pressed and (r_ctr_held or l_ctr_held)  then
+		if action.pressed and (r_ctr_held or l_ctr_held) then
 			action_id = hash("copy")
 		else
 			return
@@ -574,9 +581,10 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
 		return
 	end
 	if active_text_field then
-		if action_id == hash("touch") or action_id == hash("enter") then
+		if action.pressed and (action_id == hash("touch") or action_id == hash("enter") or action_id == hash("tab")) then
 			timer.cancel(cursor_timer)
 			cursor_visible = false
+			gui.set_color(active_text_field.node, vmath.vector4(1, 1, 1, 1))
 			local valid = active_text_field.validation
 			if valid then
 				if valid.number or valid.integer then
@@ -619,7 +627,31 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
 			end
 			gui.set_text(active_text_field.text, text_field_text)
 			text_field_fn(active_text_field.template, text_field_text, active_text_field.item)
-			active_text_field = nil
+			if action_id == hash("tab") then
+				local field_index
+				for key, val in ipairs(UI.tab[tab].fields) do
+					if active_text_field.template == val.template then
+						field_index = key
+					end
+				end
+				if not field_index then
+					return
+				end
+				if (l_shift_held or r_shift_held) then
+					field_index = field_index - 1
+					if field_index < 1 then
+						field_index = #UI.tab[tab].fields
+					end
+				else
+					field_index = field_index + 1
+					if field_index > #UI.tab[tab].fields then
+						field_index = 1
+					end
+				end
+				text_field_clicked(UI.tab[tab].fields[field_index])
+			else
+				active_text_field = nil
+			end
 		elseif action_id == hash("copy") then
 			reset_cursor_timer(true)
 			clipboard.copy(gui.get_text(active_text_field.text))

@@ -34,20 +34,21 @@ nodes {
 }
 nodes {
   position {
-    y: 64.0
+    y: 108.0
   }
   scale {
     x: 0.75
     y: 0.75
   }
   size {
-    x: 600.0
+    x: 1180.0
     y: 60.0
   }
   type: TYPE_TEXT
   text: "PF_pedcluster_chilliung2.verison2.pw_tween already exitsts. Overwrite?"
   font: "main_menu_button"
   id: "dialog_confirm_title"
+  pivot: PIVOT_N
   outline {
     x: 1.0
     y: 1.0

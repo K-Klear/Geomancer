@@ -73,7 +73,7 @@ end
 function init(self)
 	gui.set_render_order(1)
 	msg.post("#", hash("disable"))
-	UI.load_template({"sort", "button_replace", "button_rename", "import_model_data", "colour_guide", "import_models"}, TAB_NAME)
+	UI.load_template({"sort", "button_replace", "button_rename", "colour_guide", "import_models"}, TAB_NAME)
 	local mat_template = gui.get_node("mat_0/button_white")
 	local position = gui.get_position(mat_template)
 	local start_y = position.y
@@ -441,91 +441,6 @@ local function set_model_as_dynamic(key, value)
 	return value
 end
 
-function on_message(self, message_id, message, sender)
-	if message_id == hash("hide") then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		if UI.tab[TAB_NAME].child_dialog == "dialog_tween" then
-			msg.post(UI.tab.dialog_tween.path, hash("hide"))
-		end
-		DIALOG.close_all(TAB_NAME)
-		msg.post("/model_viewer", hash("hide"))
-	elseif message_id == hash("show") then
-		msg.post("#", hash("enable"))
-		msg.post("#", hash("acquire_input_focus"))
-		update_lists()
-		msg.post("/model_viewer", hash("show"))
-		if not colour_set then
-			colour_set = true
-			COL.set_current_to_default()
-		end
-	elseif message_id == hash("reset") then
-		UI.update_list(TAB_NAME, model_list, 0)
-		UI.update_list(TAB_NAME, part_list, 0)
-		UI.scroll_to_item(TAB_NAME, model_list, 0)
-		UI.scroll_to_item(TAB_NAME, part_list, 0)
-		colour_set = false
-		update_materials()
-		msg.post("/model_viewer", hash("remove_model"))
-	elseif message_id == hash("open_colour_picker") then
-		open_dialog("dialog_colours")
-	elseif message_id == hash("dialog_closed") then
-		msg.post("#", hash("acquire_input_focus"))
-		msg.post("/model_viewer", hash("show"))
-		if message.dialog == "dialog_import" then
-			if message.import then
-				local models_added_count = import_models_finish()
-				if models_added_count < 1 then
-					msg.post("/navbar#navbar", hash("update_status"), {text = "No models added.", clear = true})
-				elseif models_added_count == 1 then
-					msg.post("/navbar#navbar", hash("update_status"), {text = "Imported one model.", clear = true})
-					update_lists()
-				else
-					msg.post("/navbar#navbar", hash("update_status"), {text = "Imported "..models_added_count.." models.", clear = true})
-					update_lists()
-				end
-			else
-				msg.post("/navbar#navbar", hash("update_status"), {text = "No models added.", clear = true})
-			end
-			MEM.art_data.models_for_import = nil
-			MEM.art_data.models_for_import_ignore = nil
-			MEM.art_data.import_string = nil
-		elseif message.dialog == "dialog_replace_model" then
-			if message.selected_model then
-				model_replace(message.model_to_replace, message.selected_model)
-			end
-		elseif message.dialog == "dialog_rename_model" then
-			if message.new_name then
-				rename_model(message.new_name, message.model_to_rename)
-				update_lists()
-			end
-		elseif message.dialog == "dialog_tween" then
-			if #MEM.art_data.model_list[message.model_index].tween.script < 1 then
-				MEM.art_data.model_list[message.model_index].tween = nil
-				set_model_as_dynamic(message.model_index, false)
-			else
-				set_model_as_dynamic(message.model_index, true)
-				MEM.art_data.model_list[message.model_index].tween.signal = message.signal
-			end
-			UI.update_list(TAB_NAME, model_list, #MEM.art_data.model_list)
-		elseif message.dialog == "dialog_colours" then
-			local selected_model = get_selected_model()
-			msg.post("/model_viewer", hash("show"), {model = selected_model})
-		end
-	elseif message_id == hash("tween_closed") then
-		if #MEM.art_data.model_list[message.model_index].tween.script < 1 then
-			MEM.art_data.model_list[message.model_index].tween = nil
-			set_model_as_dynamic(message.model_index, false)
-		else
-			set_model_as_dynamic(message.model_index, true)
-			MEM.art_data.model_list[message.model_index].tween.signal = message.signal
-		end
-		UI.update_list(TAB_NAME, model_list, #MEM.art_data.model_list)
-	elseif message_id == hash("update_labels") then
-		
-	end
-end
-
 
 local function sort_models()
 	local selected_model_name
@@ -549,31 +464,33 @@ local function sort_models()
 	msg.post("/navbar#navbar", hash("update_status"), {text = "Models sorted alphabetically", clear = true})
 end
 
-local function import_model_data()
-	local model_data, filename
-	local num, path = diags.open("zip,pw_art", SET.default_path_import_model_data)
-	if path then
-		local f = io.open(path, "rb")
-		if f then
-			if string.sub(path, -3) == "zip" then
-				local zip_data = f:read("*a")
-				local archive = zip.open(zip_data)
-				local file_index = zip.get_number_of_entries(archive) - 1
-				for i = 0, file_index do
-					local file = zip.extract_by_index(archive, i)
-					if string.sub(file.name, -6) == "pw_art" then
-						model_data = file.content
-						filename = file.name
-						break
+local function import_model_data(model_data)
+	local filename = "Art file"
+	if not model_data then
+		local num, path = diags.open("zip,pw_art", SET.default_path_import_model_data)
+		if path then
+			local f = io.open(path, "rb")
+			if f then
+				if string.sub(path, -3) == "zip" then
+					local zip_data = f:read("*a")
+					local archive = zip.open(zip_data)
+					local file_index = zip.get_number_of_entries(archive) - 1
+					for i = 0, file_index do
+						local file = zip.extract_by_index(archive, i)
+						if string.sub(file.name, -6) == "pw_art" then
+							model_data = file.content
+							filename = file.name
+							break
+						end
 					end
+				else
+					local htap = string.reverse(path)
+					filename = string.reverse(string.sub(htap, 1, string.find(htap, "\\") - 1))
+					model_data = f:read("*a")
 				end
-			else
-				local htap = string.reverse(path)
-				filename = string.reverse(string.sub(htap, 1, string.find(htap, "\\") - 1))
-				model_data = f:read("*a")
 			end
+			io.close(f)
 		end
-		io.close(f)
 	end
 	if model_data then
 		local data
@@ -620,21 +537,8 @@ local function import_model_data()
 						if MEM.art_data.model_list[key].parts[part_index] then
 							local old_material = MEM.art_data.model_list[key].parts[part_index]
 							MEM.art_data.model_list[key].parts[part_index] = val
-							local function find_substring(string, substring, count, index)
-								index = index or 1
-								repeat
-									local found = string.find(string, substring, index)
-									if found then
-										index = found + 1
-										count = count - 1
-									else
-										return nil
-									end
-								until count < 1
-								return index - 1
-							end
 							local model_table = MEM.art_data.model_list[key]
-							local str_start = find_substring(model_table.string, "(DoNotEdit)", part_index) - 2
+							local str_start = G.find_substring(model_table.string, "(DoNotEdit)", part_index) - 2
 							local str_end = str_start + #old_material + 1
 							model_table.string = string.sub(model_table.string, 1, str_start)..val..string.sub(model_table.string, str_end)
 							part_index = part_index + 1
@@ -707,7 +611,7 @@ local function import_model_data()
 									tween_val.part = key
 									part_found = true
 									break
-								elseif tween_root == tween_val.part then
+								elseif (not tween_root) or (tween_root == tween_val.part) then
 									tween_val.part = 0
 									part_found = true
 									break
@@ -721,6 +625,7 @@ local function import_model_data()
 					end
 					if not all_parts_found then
 						msg.post("/navbar#navbar", hash("update_status"), {text = "Action(s) in tween of model "..v.key.." defaulted to tweening the whole prop."})
+						os.exit()
 					end
 					if tween_replaced then
 						msg.post("/navbar#navbar", hash("update_status"), {text = "Model "..v.key.." had its existing tween replaced."})
@@ -733,16 +638,247 @@ local function import_model_data()
 	end
 end
 
+local function delete_model(model) -- breaks maps, do not use
+	local model_name = MEM.art_data.model_list[model].name
+	table.remove(MEM.art_data.model_list, model)
+	for key = #MEM.art_data.table_static_props, 1, -1 do
+		if MEM.art_data.table_static_props[key].name == model_name then
+			table.remove(MEM.art_data.table_static_props[key])
+		end
+	end
+	for key = #MEM.art_data.table_dynamic_props, 1, -1 do
+		if MEM.art_data.table_dynamic_props[key].name == model_name then
+			table.remove(MEM.art_data.table_dynamic_props[key])
+		end
+	end
+	for key = #MEM.art_data.table_culling_ranges, 1, -1 do
+		for k = #MEM.art_data.table_culling_ranges[key].members, 1, -1 do
+			if MEM.art_data.table_culling_ranges[key].members[k].name == model_name then
+				table.remove(MEM.art_data.table_culling_ranges[key].members, k)
+			end
+		end
+		if #MEM.art_data.table_culling_ranges[key].members < 1 then
+			table.remove(MEM.art_data.table_culling_ranges, key)
+		end
+	end
+	for key = #MEM.art_data.table_dynamic_culling_ranges, 1, -1 do
+		for k = #MEM.art_data.table_dynamic_culling_ranges[key].members, 1, -1 do
+			if MEM.art_data.table_dynamic_culling_ranges[key].members[k].name == model_name then
+				table.remove(MEM.art_data.table_dynamic_culling_ranges[key].members, k)
+			end
+		end
+		if #MEM.art_data.table_dynamic_culling_ranges[key].members < 1 then
+			table.remove(MEM.art_data.table_dynamic_culling_ranges, key)
+		end
+	end
+	MEM.art_data.part_names[model_name] = nil
+	MEM.art_data.dynamic_models[model_name] = nil
+	MEM.art_data.model_tree[model_name] = nil
+	MEM.art_data.mesh_list[model_name] = nil
+	update_lists()
+	G.update_navbar("All instances of "..model_name.." deleted.", true)
+end
+
+local function change_model_material(model_index, part_index, material, previous_material)
+	if not material_list[previous_material] then
+		for key, val in ipairs(material_list) do
+			if val == previous_material then
+				previous_material = key
+				break
+			end
+		end
+	end
+	local model_tab = MEM.art_data.model_list[model_index]
+	local str_start = G.find_substring(model_tab.string, "(DoNotEdit)", part_index) - 2
+	local str_end = str_start + #material_list[previous_material] + 1
+	model_tab.parts[part_index] = material
+	model_tab.string = string.sub(model_tab.string, 1, str_start)..material..string.sub(model_tab.string, str_end)
+end
+
+local function degeomance()
+	local tween_count, dynamic_count, material_count = 0, 0, 0
+	for key, val in ipairs(MEM.art_data.model_list) do
+		if val.tween then
+			tween_count = tween_count + 1
+			val.tween = nil
+		end
+		if MEM.art_data.dynamic_models[val.name] then
+			set_model_as_dynamic(key, false)
+			dynamic_count = dynamic_count + 1
+		end
+		local safe_mats = {["(DoNotEdit)LiveMat_Props"] = true, ["(DoNotEdit)LiveMat_LevelGeoSimple"] = true,
+		["(DoNotEdit)LiveMat_Glow"] = true, ["(DoNotEdit)LiveMat_GlowInvert"] = true}
+		for k, v in ipairs(val.parts) do
+			if not safe_mats[v] then
+				change_model_material(key, k, "(DoNotEdit)LiveMat_Props", v)
+				material_count = material_count + 1
+			end
+		end
+	end
+	local change = false
+	if tween_count > 1 then
+		G.update_navbar("Removed "..tween_count.." tweens")
+		change = true
+	elseif tween_count > 0 then
+		G.update_navbar("Removed one tween")
+		change = true
+	end
+	if dynamic_count > 1 then
+		G.update_navbar(dynamic_count.." models set as static")
+		change = true
+	elseif dynamic_count > 0 then
+		G.update_navbar("One model set as static")
+		change = true
+	end
+	if material_count > 1 then
+		G.update_navbar("Changed "..material_count.." materials")
+		change = true
+	elseif material_count > 0 then
+		G.update_navbar("Changed one material")
+		change = true
+	end
+	if not change then
+		G.update_navbar("No model changes necessary")
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		if UI.tab[TAB_NAME].child_dialog == "dialog_tween" then
+			msg.post(UI.tab.dialog_tween.path, hash("hide"))
+		end
+		DIALOG.close_all(TAB_NAME)
+		msg.post("/model_viewer", hash("hide"))
+	elseif message_id == hash("show") then
+		msg.post("#", hash("enable"))
+		msg.post("#", hash("acquire_input_focus"))
+		update_lists()
+		msg.post("/model_viewer", hash("show"))
+		if not colour_set then
+			colour_set = true
+			COL.set_current_to_default()
+		end
+	elseif message_id == hash("reset") then
+		UI.update_list(TAB_NAME, model_list, 0)
+		UI.update_list(TAB_NAME, part_list, 0)
+		UI.scroll_to_item(TAB_NAME, model_list, 0)
+		UI.scroll_to_item(TAB_NAME, part_list, 0)
+		colour_set = false
+		update_materials()
+		msg.post("/model_viewer", hash("remove_model"))
+	elseif message_id == hash("open_colour_picker") then
+		open_dialog("dialog_colours")
+	elseif message_id == hash("dialog_closed") then
+		msg.post("#", hash("acquire_input_focus"))
+		msg.post("/model_viewer", hash("show"))
+		if message.dialog == "dialog_import" then
+			if message.import then
+				local models_added_count = import_models_finish()
+				if models_added_count < 1 then
+					msg.post("/navbar#navbar", hash("update_status"), {text = "No models added.", clear = true})
+				elseif models_added_count == 1 then
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Imported one model.", clear = true})
+					update_lists()
+				else
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Imported "..models_added_count.." models.", clear = true})
+					update_lists()
+				end
+			else
+				msg.post("/navbar#navbar", hash("update_status"), {text = "No models added.", clear = true})
+			end
+			MEM.art_data.models_for_import = nil
+			MEM.art_data.models_for_import_ignore = nil
+			MEM.art_data.import_string = nil
+		elseif message.dialog == "dialog_replace_model" then
+			if message.selected_model then
+				model_replace(message.model_to_replace, message.selected_model)
+			end
+		elseif message.dialog == "dialog_rename_model" then
+			if message.new_name then
+				rename_model(message.new_name, message.model_to_rename)
+				update_lists()
+			end
+		elseif message.dialog == "dialog_tween" then
+			if #MEM.art_data.model_list[message.model_index].tween.script < 1 then
+				MEM.art_data.model_list[message.model_index].tween = nil
+				set_model_as_dynamic(message.model_index, false)
+			else
+				set_model_as_dynamic(message.model_index, true)
+				MEM.art_data.model_list[message.model_index].tween.signal = message.signal
+			end
+			UI.update_list(TAB_NAME, model_list, #MEM.art_data.model_list)
+		elseif message.dialog == "dialog_colours" then
+			local selected_model = get_selected_model()
+			msg.post("/model_viewer", hash("show"), {model = selected_model})
+		elseif message.dialog == "dialog_confirm" then
+			if message.button == 1 then	-- 1 is delete, 3 is cancel
+				delete_model(get_selected_model())
+			elseif message.button == 3 then
+				G.update_navbar("Model deletion canceled", true)
+			end
+		end
+	elseif message_id == hash("tween_closed") then
+		if #MEM.art_data.model_list[message.model_index].tween.script < 1 then
+			MEM.art_data.model_list[message.model_index].tween = nil
+			set_model_as_dynamic(message.model_index, false)
+		else
+			set_model_as_dynamic(message.model_index, true)
+			MEM.art_data.model_list[message.model_index].tween.signal = message.signal
+		end
+		UI.update_list(TAB_NAME, model_list, #MEM.art_data.model_list)
+	elseif message_id == hash("update_labels") then
+
+	elseif message_id == hash("import_changes") then
+		local model_count = import_model_data(MEM.art_data.temp)
+		if model_count then
+			if model_count < 1 then
+				G.update_navbar("No data models changed.")
+			else
+				G.update_navbar("Updated properties of "..model_count.." models.")
+			end
+		else
+			G.update_navbar("Error importing model data")
+		end
+		MEM.art_data.temp = nil
+	elseif message_id == hash("degeomance") then
+		degeomance()
+	end
+end
+
+local function count_model_instances(model_name)
+	local count = 0
+	for key, val in ipairs(MEM.art_data.table_static_props) do
+		if val.name == model_name then
+			count = count + 1
+		end
+	end
+	for key, val in ipairs(MEM.art_data.table_dynamic_props) do
+		if val.name == model_name then
+			count = count + 1
+		end
+	end
+	for key, val in ipairs(MEM.art_data.table_culling_ranges) do
+		for k, v in ipairs(val.members) do
+			if v.name == model_name then
+				count = count + 1
+			end
+		end
+	end
+	for key, val in ipairs(MEM.art_data.table_dynamic_culling_ranges) do
+		for k, v in ipairs(val.members) do
+			if v.name == model_name then
+				count = count + 1
+			end
+		end
+	end
+	return count
+end
+
 function evaluate_button(button, item)
 	if button == "sort" then
 		sort_models()
-	elseif button == "import_model_data" then
-		local model_count = import_model_data()
-		if model_count then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Updated properties of "..model_count.." models.", clear = true})
-		else
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Error loading model data.", clear = true})
-		end
 	elseif button == "import_models" then
 		import_models()
 	elseif button == "colour_guide" then
@@ -752,37 +888,38 @@ function evaluate_button(button, item)
 		if selected_model > 0 then
 			open_dialog("dialog_replace_model", {model_to_replace = selected_model})
 		else
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a model first", clear = true})
+			G.update_navbar("Select a model first", true)
 		end
 	elseif button == "button_rename" then
 		local selected_model = get_selected_model()
 		if selected_model > 0 then
 			open_dialog("dialog_rename_model", {model_to_rename = selected_model, model_name = MEM.art_data.model_list[selected_model].name})
 		else
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a model first", clear = true})
+			G.update_navbar("Select a model first", true)
+		end
+	elseif button == "button_delete" then
+		local selected_model = get_selected_model()
+		if selected_model > 0 then
+			local model_name = MEM.art_data.model_list[selected_model].name
+			local instance_count = count_model_instances(model_name)
+			local dialog_title
+			if instance_count < 1 then
+				dialog_title = "Delete model "..model_name.."?\nThere are no instances in the map."
+			elseif instance_count > 1 then
+				dialog_title = "Delete model "..model_name.."?\nThere are "..instance_count.." instances in the map."
+			else
+				dialog_title = "Delete model "..model_name.."?\nThere is one instance in the map."
+			end
+			DIALOG.open(TAB_NAME, "dialog_confirm", {title = dialog_title, button_1 = "Delete", button_3 = "Cancel", subject = "delete_model"})
+			msg.post("/model_viewer", hash("disable_input"))
+		else
+			G.update_navbar("Select a model to delete first", true)
 		end
 	elseif button == "materials" then
 		local selected_model = get_selected_model()
 		if selected_model > 0 then
 			local selected_part = get_selected_part()
-			local function find_substring(string, substring, count, index)
-				index = index or 1
-				repeat
-					local found = string.find(string, substring, index)
-					if found then
-						index = found + 1
-						count = count - 1
-					else
-						return nil
-					end
-				until count < 1
-				return index - 1
-			end
-			local model_tab = MEM.art_data.model_list[selected_model]
-			local str_start = find_substring(model_tab.string, "(DoNotEdit)", selected_part) - 2
-			local str_end = str_start + #material_list[current_material] + 1
-			model_tab.parts[selected_part] = material_list[item]
-			model_tab.string = string.sub(model_tab.string, 1, str_start)..material_list[item]..string.sub(model_tab.string, str_end)
+			change_model_material(selected_model, selected_part, material_list[item], current_material)
 			msg.post("/model_viewer", hash("change_material"), {part_index = selected_part, model_index = selected_model})
 			update_materials()
 		else

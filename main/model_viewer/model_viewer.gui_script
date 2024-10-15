@@ -38,6 +38,9 @@ function on_message(self, message_id, message, sender)
 		msg.post("@render:", SET_MODEL_VIEWPORT, {x = pos_1.x, y = pos_2.y, w = pos_2.x - pos_1.x, h = pos_1.y - pos_2.y})
 	elseif message_id == hash("show") then
 		set_button_colours()
+		msg.post("#", hash("acquire_input_focus"))
+	elseif message_id == hash("disable_input") then
+		msg.post("#", hash("release_input_focus"))
 	end
 end
 

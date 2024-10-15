@@ -269,7 +269,7 @@ nodes {
 }
 nodes {
   position {
-    x: -120.0
+    x: -140.0
     y: -42.0
   }
   type: TYPE_TEMPLATE
@@ -279,7 +279,7 @@ nodes {
 }
 nodes {
   size {
-    x: 240.0
+    x: 280.0
     y: 40.0
   }
   type: TYPE_BOX
@@ -289,9 +289,17 @@ nodes {
   template_node_child: true
 }
 nodes {
+  scale {
+    x: 0.9
+    y: 0.9
+    z: 0.9
+  }
   type: TYPE_TEXT
+  text: "12345678901234567890"
   id: "event_signal/text"
   parent: "event_signal/box"
+  overridden_fields: 3
+  overridden_fields: 8
   template_node_child: true
 }
 layers {

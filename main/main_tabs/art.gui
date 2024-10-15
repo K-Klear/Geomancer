@@ -4,10 +4,6 @@ fonts {
   font: "/assets/fonts/final/main_menu_button_small.font"
 }
 fonts {
-  name: "menu_title"
-  font: "/assets/fonts/final/menu_title.font"
-}
-fonts {
   name: "main_menu_button"
   font: "/assets/fonts/final/main_menu_button.font"
 }
@@ -515,44 +511,7 @@ nodes {
 }
 nodes {
   position {
-    x: 47.0
-    y: 76.0
-  }
-  type: TYPE_TEMPLATE
-  id: "import_model_data"
-  template: "/templates/button_white_small.gui"
-}
-nodes {
-  size {
-    x: 90.0
-    y: 44.0
-  }
-  type: TYPE_BOX
-  id: "import_model_data/button_white"
-  parent: "import_model_data"
-  overridden_fields: 1
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  scale {
-    x: 0.75
-    y: 0.75
-  }
-  type: TYPE_TEXT
-  text: "Values"
-  id: "import_model_data/text"
-  parent: "import_model_data/button_white"
-  overridden_fields: 3
-  overridden_fields: 8
-  overridden_fields: 18
-  overridden_fields: 47
-  template_node_child: true
-  material: "font-df"
-}
-nodes {
-  position {
-    x: 131.0
+    x: 48.0
     y: 76.0
   }
   type: TYPE_TEMPLATE
@@ -589,7 +548,7 @@ nodes {
 }
 nodes {
   position {
-    x: 215.0
+    x: 132.0
     y: 76.0
   }
   type: TYPE_TEMPLATE
@@ -626,7 +585,7 @@ nodes {
 }
 nodes {
   position {
-    x: 299.0
+    x: 216.0
     y: 76.0
   }
   type: TYPE_TEMPLATE
@@ -663,7 +622,7 @@ nodes {
 }
 nodes {
   position {
-    x: 383.0
+    x: 300.0
     y: 76.0
   }
   type: TYPE_TEMPLATE
@@ -850,6 +809,44 @@ nodes {
   overridden_fields: 20
   overridden_fields: 31
   overridden_fields: 32
+  overridden_fields: 47
+  template_node_child: true
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 384.0
+    y: 76.0
+  }
+  type: TYPE_TEMPLATE
+  id: "button_delete"
+  template: "/templates/button_white_small.gui"
+  enabled: false
+}
+nodes {
+  size {
+    x: 90.0
+    y: 44.0
+  }
+  type: TYPE_BOX
+  id: "button_delete/button_white"
+  parent: "button_delete"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  type: TYPE_TEXT
+  text: "Delete"
+  id: "button_delete/text"
+  parent: "button_delete/button_white"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 18
   overridden_fields: 47
   template_node_child: true
   material: "font-df"

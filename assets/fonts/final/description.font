@@ -1,6 +1,6 @@
-font: "/assets/fonts/console.ttf"
+font: "/assets/fonts/Barlow-BoldItalic.ttf"
 material: "/builtins/fonts/font-df.material"
-size: 16
+size: 15
 output_format: TYPE_DISTANCE_FIELD
 all_chars: true
 render_mode: MODE_MULTI_LAYER

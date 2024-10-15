@@ -19,7 +19,7 @@ local function evaluate_button(button)
 		if selected_type then
 			gui.set_color(gui.get_node("choice_"..selected_type.."/button_white"), vmath.vector4(1, 1, 1, 1))
 		end
-		current_type, selected_type = nil, nil
+		current_type = nil
 	elseif button == "choice_accept" then
 		if not selected_type then
 			msg.post("/navbar#navbar", hash("update_status"), {text = "You must select a new enemy type.", clear = true})
@@ -29,7 +29,7 @@ local function evaluate_button(button)
 			DIALOG.close(DIALOG_NAME, {new_type = selected_type})
 			gui.set_color(gui.get_node("choice_"..current_type.."/button_white"), vmath.vector4(1, 1, 1, 1))
 			gui.set_color(gui.get_node("choice_"..selected_type.."/button_white"), vmath.vector4(1, 1, 1, 1))
-			current_type, selected_type = nil, nil
+			current_type = nil
 		end
 	else
 		local underscore = string.find(button, "_")
@@ -49,9 +49,11 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		DIALOG.show(DIALOG_DATA, sender)
-		selected_type = nil
 		current_type = message.current_type or "dummy"
 		gui.set_color(gui.get_node("choice_"..current_type.."/button_white"), SET.colour_current_enemy_type)
+		if selected_type then
+			gui.set_color(gui.get_node("choice_"..selected_type.."/button_white"), SET.colour_selection_change_enemy_type)
+		end
 	end
 end
 

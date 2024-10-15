@@ -11,10 +11,6 @@ textures {
   name: "UI"
   texture: "/assets/gfx/UI.atlas"
 }
-textures {
-  name: "atlas"
-  texture: "/assets/gfx/atlas.atlas"
-}
 nodes {
   position {
     x: 335.0
@@ -77,7 +73,7 @@ nodes {
     y: 506.0
   }
   type: TYPE_BOX
-  texture: "atlas/path"
+  texture: "UI/path"
   id: "player_path"
   layer: "below"
   alpha: 0.55

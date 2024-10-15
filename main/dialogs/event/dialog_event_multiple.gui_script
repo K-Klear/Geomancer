@@ -19,35 +19,39 @@ function init(self)
 	DIALOG.setup(DIALOG_NAME)
 	DIALOG_DATA = UI.tab[DIALOG_NAME]
 	UI.load_template({"dialog_event_cancel", "dialog_event_accept"}, DIALOG_NAME)
-	local validation = {
+	local validation_sample = {
 		integer = true,
 		min = function() return 0 end,
 		max = function() return max_sample end,
 		default = function() return 0 end
 	}
-	UI.load_text_field("event_start_sample", 10, DIALOG_NAME, validation)
-	UI.load_text_field("event_offset_sample", 10, DIALOG_NAME, validation)
-	validation = {
+	local validation_seconds = {
 		number = true,
 		min = function() return 0 end,
 		max = function() return samples_to_seconds(max_sample) end,
 		default = function() return 0 end
 	}
-	UI.load_text_field("event_start_seconds", 10, DIALOG_NAME, validation)
-	UI.load_text_field("event_offset_seconds", 10, DIALOG_NAME, validation)
-	validation = {
+	local validation_signal = {
 		text = true,
 		json_safe = true,
 		not_empty = true,
 		default = function() return default_signal end
 	}
-	UI.load_text_field("event_signal", 15, DIALOG_NAME, validation)
-	validation = {
+	local validation_repeat = {
 		integer = true,
 		min = function() return 1 end,
 		default = function() return 2 end
 	}
-	UI.load_text_field("event_repeat", 3, DIALOG_NAME, validation)
+	UI.load_text_field("event_start_sample", 10, DIALOG_NAME, validation_sample)
+	UI.load_text_field("event_start_seconds", 10, DIALOG_NAME, validation_seconds)
+	UI.load_text_field("event_offset_sample", 10, DIALOG_NAME, validation_sample)
+
+
+	UI.load_text_field("event_offset_seconds", 10, DIALOG_NAME, validation_seconds)
+
+	UI.load_text_field("event_signal", 15, DIALOG_NAME, validation_signal)
+
+	UI.load_text_field("event_repeat", 3, DIALOG_NAME, validation_repeat)
 end
 
 local function evaluate_button(button)

@@ -65,7 +65,7 @@ function init(self)
 	DIALOG.setup(DIALOG_NAME)
 	DIALOG_DATA = UI.tab[DIALOG_NAME]
 	UI.load_template({"dialog_tween_close", "dialog_tween_add", "dialog_tween_copy", "dialog_tween_delete", "dialog_tween_save", "dialog_tween_load", "dialog_tween_event"}, DIALOG_NAME)
-	UI.load_text_field("tween_signal", 14, DIALOG_NAME, {text = true, json_safe = true, not_empty = true, default = function() return signal end})
+	UI.load_text_field("tween_signal", 20, DIALOG_NAME, {text = true, json_safe = true, not_empty = true, default = function() return signal end})
 	local function is_not_wait(i)
 		return not (tween_actions[i].type == "W" or tween_actions[i].type == "X")
 	end
@@ -250,7 +250,7 @@ function init(self)
 				return MEM.art_data.part_names[model_name][tween_actions[i].part] or "[whole prop]"
 			end,
 			template = "tween_part;",
-			enabled = is_not_wait
+			enabled = function() return false end--is_not_wait
 		},
 		{
 			type = hash("button"),
@@ -353,8 +353,12 @@ local function get_tween_defaults(action_type, current_action_index)
 		new_action_tab.time = action_to_copy_tab.time
 		new_action_tab.type = action_type
 		if action_type == "T" then
-			new_action_tab.start_state = {x = action_to_copy_tab.start_state.x, y = action_to_copy_tab.start_state.y, z = action_to_copy_tab.start_state.z}
-			new_action_tab.end_state = {x = action_to_copy_tab.end_state.x, y = action_to_copy_tab.end_state.y, z = action_to_copy_tab.end_state.z}
+			new_action_tab.start_state = {x = action_to_copy_tab.end_state.x, y = action_to_copy_tab.end_state.y, z = action_to_copy_tab.end_state.z}
+			new_action_tab.end_state = {
+				x = action_to_copy_tab.end_state.x + (action_to_copy_tab.end_state.x - action_to_copy_tab.start_state.x),
+				y = action_to_copy_tab.end_state.y + (action_to_copy_tab.end_state.y - action_to_copy_tab.start_state.y),
+				z = action_to_copy_tab.end_state.z + (action_to_copy_tab.end_state.z - action_to_copy_tab.start_state.z),
+			}
 		elseif action_type == "R" then
 			new_action_tab.start_state = {x = action_to_copy_tab.end_state.x, y = action_to_copy_tab.end_state.y, z = action_to_copy_tab.end_state.z}
 			new_action_tab.end_state = {

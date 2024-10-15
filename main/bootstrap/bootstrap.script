@@ -16,6 +16,17 @@ local default_settings_text = {
 	"default_path_import_models=;",
 	"default_path_import_model_data=;",
 	"default_path_save_tween=;",
+	"import_changes_from_zip=false;",
+	"create_folder_on_export=true;",
+	"",
+	"import_level_changes=true;",
+	"import_event_changes=true;",
+	"import_model_changes=true;",
+	"import_beat_changes=true;",
+	"",
+	"degeomance_sequence=Dance_03;		-- Only enter valid sequences",
+	"degeomance_glitched_enemy=Normal;	-- Valid enemy types are Normal, Tough, ChuckNorris, Mounted Enemy, Shield, Normal Turret, Minigun Turret",
+	"degeomance_skull=Normal Turret;	-- Anything else is likely to break things",
 	"",
 	"ignore_char_limit=false;		-- if true, all text fields will accept inputs of any lengths, even if it makes the text spill out",
 	"",
@@ -25,6 +36,7 @@ local default_settings_text = {
 	"add_opens_edit_box=true;		-- open the edit dialog when adding new events/nobeats/tempo sections",
 	"",
 	"background_colour=0.15,0.03,0.12;	-- All colours are r,g,b going from 0 to 1",
+	"colour_active_text_field=0.65,0.65,0.65;",
 	"colour_highlight_material=0.8,0.8,0.35;",
 	"colour_highlight_dynamic=0.6,0.75,1;",
 	"colour_highlight_tween=0.3,0.55,1;",
@@ -75,6 +87,7 @@ local settings_to_load = {
 	default_sample_rate = {type = "integer"},
 	new_event_sample_offset = {type = "integer"},
 	background_colour = {type = "colour"},
+	colour_active_text_field = {type = "colour"},
 	colour_highlight_material = {type = "colour"},
 	colour_highlight_dynamic = {type = "colour"},
 	colour_highlight_tween = {type = "colour"},
@@ -97,9 +110,20 @@ local settings_to_load = {
 	default_path_import_models = {type = "path"},
 	default_path_import_model_data = {type = "path"},
 	default_path_save_tween = {type = "path"},
+	import_changes_from_zip = {type = "boolean"},
+	create_folder_on_export = {type = "boolean"},
 	confirm_file_overwrite = {type = "boolean"},
 	ask_before_overwriting_tween_file = {type = "boolean"},
 	ignore_char_limit = {type = "boolean"},
+
+	import_level_changes = {type = "boolean"},
+	import_event_changes = {type = "boolean"},
+	import_model_changes = {type = "boolean"},
+	import_beat_changes = {type = "boolean"},
+
+	degeomance_sequence = {type = "string"},
+	degeomance_glitched_enemy = {type = "string"},
+	degeomance_skull = {type = "string"},
 
 	model_rotation_sensitivity = {type = "non_zero"},
 	model_move_sensitivity = {type = "non_zero"},
@@ -141,7 +165,6 @@ end
 
 function init(self)
 	msg.post("#main", hash("async_load"))
-
 	for key, val in pairs(settings_to_load) do
 		for k, v in ipairs(default_settings_text) do
 			if string.find(v, key) then
@@ -195,6 +218,7 @@ function init(self)
 			return math.max(-90, math.min(tonumber(str), 90))
 		end
 		function parse.one_two_three(str) return math.min(3, math.max(1, math.floor(tonumber(str)))) end
+		function parse.string(str) return str end
 			
 		local loaded_settings = {}
 		for line in io.lines("geomancer.cfg") do

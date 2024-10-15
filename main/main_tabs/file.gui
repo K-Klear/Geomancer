@@ -21,23 +21,33 @@ nodes {
   template: "/templates/button_white_small.gui"
 }
 nodes {
+  position {
+    y: 12.0
+  }
   type: TYPE_BOX
   id: "exit/button_white"
   parent: "exit"
+  overridden_fields: 1
   template_node_child: true
 }
 nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+    z: 2.0
+  }
   type: TYPE_TEXT
   text: "Exit"
   id: "exit/text"
   parent: "exit/button_white"
+  overridden_fields: 3
   overridden_fields: 8
   template_node_child: true
 }
 nodes {
   position {
     x: 640.0
-    y: 726.0
+    y: 739.0
   }
   size {
     x: 200.0
@@ -61,8 +71,8 @@ nodes {
 }
 nodes {
   position {
-    x: 880.0
-    y: 570.0
+    x: 380.0
+    y: 280.0
   }
   type: TYPE_TEMPLATE
   id: "unload_all"
@@ -84,31 +94,8 @@ nodes {
 }
 nodes {
   position {
-    x: 400.0
-    y: 330.0
-  }
-  type: TYPE_TEMPLATE
-  id: "load_file"
-  template: "/templates/button_white_small.gui"
-}
-nodes {
-  type: TYPE_BOX
-  id: "load_file/button_white"
-  parent: "load_file"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_TEXT
-  text: "Load file"
-  id: "load_file/text"
-  parent: "load_file/button_white"
-  overridden_fields: 8
-  template_node_child: true
-}
-nodes {
-  position {
-    x: 400.0
-    y: 450.0
+    x: 380.0
+    y: 524.0
   }
   type: TYPE_TEMPLATE
   id: "load_zip"
@@ -122,39 +109,83 @@ nodes {
 }
 nodes {
   type: TYPE_TEXT
-  text: "Load zip"
+  text: "Open map"
   id: "load_zip/text"
   parent: "load_zip/button_white"
+  overridden_fields: 3
   overridden_fields: 8
   template_node_child: true
 }
 nodes {
   position {
-    x: 400.0
-    y: 570.0
+    x: 380.0
+    y: 449.0
   }
   type: TYPE_TEMPLATE
   id: "load_dir"
   template: "/templates/button_white_small.gui"
 }
 nodes {
+  size {
+    x: 192.0
+    y: 48.0
+  }
   type: TYPE_BOX
   id: "load_dir/button_white"
   parent: "load_dir"
+  overridden_fields: 4
   template_node_child: true
 }
 nodes {
+  size {
+    x: 192.0
+    y: 48.0
+  }
   type: TYPE_TEXT
-  text: "Load directory"
+  text: "Load folder"
   id: "load_dir/text"
   parent: "load_dir/button_white"
+  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
 }
 nodes {
   position {
-    x: 755.0
-    y: 330.0
+    x: 380.0
+    y: 398.0
+  }
+  type: TYPE_TEMPLATE
+  id: "load_file"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 192.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "load_file/button_white"
+  parent: "load_file"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 192.0
+    y: 48.0
+  }
+  type: TYPE_TEXT
+  text: "Load file"
+  id: "load_file/text"
+  parent: "load_file/button_white"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 900.0
+    y: 413.0
   }
   type: TYPE_TEMPLATE
   id: "export_all"
@@ -168,7 +199,7 @@ nodes {
 }
 nodes {
   type: TYPE_TEXT
-  text: "Export"
+  text: "Export changes"
   id: "export_all/text"
   parent: "export_all/button_white"
   overridden_fields: 8
@@ -176,26 +207,63 @@ nodes {
 }
 nodes {
   position {
-    x: 1005.0
-    y: 330.0
+    x: 828.0
+    y: 343.0
   }
   type: TYPE_TEMPLATE
-  id: "export_overwrite"
+  id: "export_folder_checkbox"
   template: "/templates/button_white_small.gui"
 }
 nodes {
+  size {
+    x: 48.0
+    y: 48.0
+  }
   type: TYPE_BOX
-  id: "export_overwrite/button_white"
-  parent: "export_overwrite"
+  id: "export_folder_checkbox/button_white"
+  parent: "export_folder_checkbox"
+  overridden_fields: 4
   template_node_child: true
 }
 nodes {
+  size {
+    x: 48.0
+    y: 48.0
+  }
   type: TYPE_TEXT
-  text: "Export and overwrite"
-  id: "export_overwrite/text"
-  parent: "export_overwrite/button_white"
+  text: "X"
+  id: "export_folder_checkbox/text"
+  parent: "export_folder_checkbox/button_white"
+  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
+}
+nodes {
+  position {
+    x: 863.0
+    y: 343.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Create a folder"
+  font: "main_menu_button_small"
+  id: "label_folder"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  layer: "text"
+  material: "font-df"
 }
 nodes {
   position {
@@ -233,7 +301,7 @@ nodes {
 nodes {
   position {
     x: 815.0
-    y: 671.0
+    y: 659.0
   }
   size {
     x: 200.0
@@ -266,6 +334,383 @@ nodes {
   id: "box"
   inherit_alpha: true
   size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 900.0
+    y: 555.0
+  }
+  type: TYPE_TEMPLATE
+  id: "import_changes"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "import_changes/button_white"
+  parent: "import_changes"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Import changes"
+  id: "import_changes/text"
+  parent: "import_changes/button_white"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 828.0
+    y: 485.0
+  }
+  type: TYPE_TEMPLATE
+  id: "import_checkbox"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 48.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "import_checkbox/button_white"
+  parent: "import_checkbox"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 48.0
+    y: 48.0
+  }
+  type: TYPE_TEXT
+  id: "import_checkbox/text"
+  parent: "import_checkbox/button_white"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 863.0
+    y: 485.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Import from zip"
+  font: "main_menu_button_small"
+  id: "label_changes"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 900.0
+    y: 270.0
+  }
+  type: TYPE_TEMPLATE
+  id: "degeomance"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "degeomance/button_white"
+  parent: "degeomance"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "De-geomance map"
+  id: "degeomance/text"
+  parent: "degeomance/button_white"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1018.0
+    y: 586.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  type: TYPE_TEMPLATE
+  id: "import_level"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 40.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "import_level/button_white"
+  parent: "import_level"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 48.0
+    y: 48.0
+  }
+  type: TYPE_TEXT
+  id: "import_level/text"
+  parent: "import_level/button_white"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1035.0
+    y: 586.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Level info"
+  font: "main_menu_button_small"
+  id: "label_level"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 1018.0
+    y: 556.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  type: TYPE_TEMPLATE
+  id: "import_events"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 40.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "import_events/button_white"
+  parent: "import_events"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 48.0
+    y: 48.0
+  }
+  type: TYPE_TEXT
+  id: "import_events/text"
+  parent: "import_events/button_white"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1035.0
+    y: 556.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Events"
+  font: "main_menu_button_small"
+  id: "label_events"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 1130.0
+    y: 556.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  type: TYPE_TEMPLATE
+  id: "import_models"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 40.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "import_models/button_white"
+  parent: "import_models"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 48.0
+    y: 48.0
+  }
+  type: TYPE_TEXT
+  id: "import_models/text"
+  parent: "import_models/button_white"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1147.0
+    y: 556.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Models"
+  font: "main_menu_button_small"
+  id: "label_models"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 1018.0
+    y: 526.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  type: TYPE_TEMPLATE
+  id: "import_beat"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 40.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "import_beat/button_white"
+  parent: "import_beat"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 48.0
+    y: 48.0
+  }
+  type: TYPE_TEXT
+  id: "import_beat/text"
+  parent: "import_beat/button_white"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1036.0
+    y: 526.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Enemies/Obstacles"
+  font: "main_menu_button_small"
+  id: "label_beat"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  layer: "text"
+  material: "font-df"
 }
 layers {
   name: "below"

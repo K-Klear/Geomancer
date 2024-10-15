@@ -38,6 +38,7 @@ function load.pw(data)
 	MEM.level_data.art_file = tab.sharedLevelArt
 	local my_name = {Klear = true, Klear_ = true, kingklear = true}
 	MEM.level_data.my_map = my_name[tab.mapper]
+	MEM.level_data.description = tab.description
 	UI.tab.tab_level.state = true
 	return true
 end
@@ -59,6 +60,20 @@ function load.pw_meta(data)
 	tab = G.safe_decode(string.sub(MEM.meta_data.string, s_index + 9, e_index), "do_not_ship.pw_meta")
 	if not tab then return end
 	MEM.meta_data.volume_table = tab
+	local expected_group_index = 1
+	local fix_applied = false
+	for key, val in ipairs(tab) do
+		if val.groupIndex and (tonumber(val.groupIndex) > expected_group_index) then
+			local index = G.find_substring(MEM.meta_data.string, "groupIndex", key, s_index) + 12
+			MEM.meta_data.string = string.sub(MEM.meta_data.string, 1, index)..expected_group_index..string.sub(MEM.meta_data.string, index + 1 + #val.groupIndex)
+			val.groupIndex = expected_group_index
+			fix_applied = true
+		end
+		expected_group_index = expected_group_index + 1
+	end
+	if fix_applied then
+		G.update_navbar("Volume index information corruption detected and fixed.")
+	end
 	if #MEM.meta_data.volume_table < 1 then
 		MEM.meta_data.free_group_index = 1
 	elseif not MEM.meta_data.volume_table[#MEM.meta_data.volume_table].groupIndex then

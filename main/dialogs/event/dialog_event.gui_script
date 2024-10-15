@@ -39,7 +39,7 @@ function init(self)
 		not_empty = true,
 		default = function() return default_signal end
 	}
-	UI.load_text_field("event_signal", 15, DIALOG_NAME, validation)
+	UI.load_text_field("event_signal", 20, DIALOG_NAME, validation)
 end
 
 local function evaluate_button(button)
