@@ -64,7 +64,7 @@ local action_types = {T = "Move", R = "Rotate", S = "Scale", W = "Wait", X = "Re
 function init(self)
 	DIALOG.setup(DIALOG_NAME)
 	DIALOG_DATA = UI.tab[DIALOG_NAME]
-	UI.load_template({"dialog_tween_close", "dialog_tween_add", "dialog_tween_copy", "dialog_tween_delete", "dialog_tween_save", "dialog_tween_load", "dialog_tween_event"}, DIALOG_NAME)
+	UI.load_template({"dialog_tween_close", "dialog_tween_add", "dialog_tween_copy", "dialog_tween_delete", "dialog_tween_save", "dialog_tween_load", "dialog_tween_event", "dialog_tween_preview"}, DIALOG_NAME)
 	UI.load_text_field("tween_signal", 20, DIALOG_NAME, {text = true, json_safe = true, not_empty = true, default = function() return signal end})
 	local function is_not_wait(i)
 		return not (tween_actions[i].type == "W" or tween_actions[i].type == "X")
@@ -495,6 +495,13 @@ function evaluate_button(button, item)
 	elseif button == "dialog_tween_event" then
 		if MEM.event_data.table then
 			DIALOG.open(DIALOG_NAME, "dialog_event", {data = {startSample = 0, payload = signal}})
+		end
+	elseif button == "dialog_tween_preview" and #tween_actions > 0 then
+		for key, val in ipairs(tween_actions) do
+			if not (val.type == "X") then
+				msg.post("/art#tab_art", hash("tween_preview"), {model_index = model_index})
+				break
+			end
 		end
 	elseif button == "dialog_tween_save" then
 		local _, path

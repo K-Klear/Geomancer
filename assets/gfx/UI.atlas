@@ -79,6 +79,21 @@ images {
 images {
   image: "/assets/gfx/path.png"
 }
+images {
+  image: "/assets/gfx/playback_icons/play.png"
+}
+images {
+  image: "/assets/gfx/playback_icons/move_end.png"
+}
+images {
+  image: "/assets/gfx/playback_icons/move_start.png"
+}
+images {
+  image: "/assets/gfx/playback_icons/pause.png"
+}
+images {
+  image: "/assets/gfx/playback_icons/stop.png"
+}
 animations {
   id: "button_white_down"
   images {

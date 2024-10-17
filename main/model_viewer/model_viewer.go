@@ -18,23 +18,3 @@ embedded_components {
   data: "prototype: \"/main/model_viewer/transform.go\"\n"
   ""
 }
-embedded_components {
-  id: "background"
-  type: "sprite"
-  data: "default_animation: \"white_pixel\"\n"
-  "material: \"/builtins/materials/sprite.material\"\n"
-  "size {\n"
-  "  x: 400.0\n"
-  "  y: 507.0\n"
-  "}\n"
-  "size_mode: SIZE_MODE_MANUAL\n"
-  "textures {\n"
-  "  sampler: \"texture_sampler\"\n"
-  "  texture: \"/assets/gfx/UI.atlas\"\n"
-  "}\n"
-  ""
-  position {
-    x: 634.0
-    y: 293.5
-  }
-}

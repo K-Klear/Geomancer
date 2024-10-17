@@ -28,14 +28,17 @@ local buffer_resources = {}
 
 local show_fog = true
 
+local CAMERA_POSITION = vmath.vector3(0, 0, 0)
+
 local function reset_view()
 	MOD.is_dragged = false
 	MOD.camera_is_dragged = false
-	MOD.target_x = SET.default_rotation
-	MOD.target_y = SET.default_pitch
-	MOD.cam_target_x = SET.default_cam_position_x
-	MOD.cam_target_y = SET.default_cam_position_y
-	MOD.cam_target_z = SET.default_cam_position_z
+	MOD.target_x = SET.default_camera_rotation
+	MOD.target_y = -SET.default_camera_pitch
+	MOD.cam_target_x = 0
+	MOD.cam_target_y = 0
+	MOD.cam_target_z = SET.default_camera_zoom
+	CAMERA_POSITION = vmath.vector3(0, 0, 0)
 end
 
 local function show_grid(self)
@@ -58,21 +61,92 @@ end
 
 function init(self)
 	msg.post(".", hash("disable"))
-	go.set("#background", "tint", COL.get_current("fog"))
+	go.set("/model_camera#background", "tint", COL.get_current("fog"))
+	msg.post("/model_camera#background", hash("disable"))
+	msg.post("/grid#grid", hash("disable"))
 	reset_view()
-	show_grid(self)
+	--show_grid(self)
 end
 
 function update(self, dt)
 	if MOD.viewer_active then
 		local pitch = vmath.quat_rotation_x(math.rad(MOD.target_y))
 		local yaw = vmath.quat_rotation_y(math.rad(MOD.target_x))
-		go.set_rotation(yaw, "/model_yaw")
-		go.set_rotation(pitch, "/model_pitch")
-		local pos = vmath.vector3(MOD.cam_target_x, MOD.cam_target_y, MOD.cam_target_z)
+		local rot = yaw * pitch
+		go.set_rotation(rot, "/model_camera")
+		local move_vector = vmath.vector3(MOD.cam_target_x, MOD.cam_target_y, 0)
+		CAMERA_POSITION = CAMERA_POSITION + vmath.rotate(rot, move_vector)
+		go.set_position(CAMERA_POSITION, "/camera_target")
+		MOD.cam_target_x, MOD.cam_target_y = 0, 0
+		local pos = vmath.rotate(rot, vmath.vector3(0, 0, MOD.cam_target_z))
 		go.set_position(pos, "/model_camera")
+		if MOD.tween_preview then
+			local current_time = MOD.total_time * MOD.scrubber_progress
+			local action_end_time = 0
+			local position = vmath.vector3(0, 0, 0)
+			local euler = vmath.vector3(0, 0, 0)
+			local scale = vmath.vector3(1, 1, 1)
+			for key, val in ipairs(MOD.tween_table) do
+				action_end_time = action_end_time + val.time
+				if current_time >= action_end_time then
+					if val.type == "T" then
+						position.x = val.end_state.x
+						position.y = val.end_state.y
+						position.z = val.end_state.z
+					elseif val.type == "R" then
+						euler.x = val.end_state.x
+						euler.y = val.end_state.y
+						euler.z = val.end_state.z
+					elseif val.type == "S" then
+						scale.x = val.end_state.x
+						scale.y = val.end_state.y
+						scale.z = val.end_state.z
+					end
+				else
+					local action_start = action_end_time - val.time
+					local action_progress = (current_time - action_start) / val.time
+					if not (action_progress == action_progress) then
+						action_progress = 0		-- this shouldn't be necessary, but keeping it to be safe
+					end
+					local function get_state()
+						local x = val.start_state.x + (val.end_state.x - val.start_state.x) * action_progress
+						local y = val.start_state.y + (val.end_state.y - val.start_state.y) * action_progress
+						local z = val.start_state.z + (val.end_state.z - val.start_state.z) * action_progress
+						return vmath.vector3(x, y, z)
+					end
+					if val.type == "T" then
+						position = get_state()
+					elseif val.type == "R" then
+						local function adjust_rotation(axis)
+							if val.start_state[axis] - val.end_state[axis] > 180 then
+								val.start_state[axis] = val.start_state[axis] - 360
+							elseif val.end_state[axis] - val.start_state[axis] > 180 then
+								val.end_state[axis] = val.end_state[axis] - 360
+							end
+						end
+						adjust_rotation("x")
+						adjust_rotation("y")
+						adjust_rotation("z")
+						euler = get_state()
+
+					elseif val.type == "S" then
+						scale = get_state()
+					end
+					break
+				end
+			end
+			position.z = -position.z
+			scale.z = -scale.z
+			go.set_position(position, "/base_transform")
+			go.set("/base_transform", "scale", scale)
+			local qx = vmath.quat_rotation_x(math.rad(-euler.x))
+			local qy = vmath.quat_rotation_y(math.rad(-euler.y))
+			local qz = vmath.quat_rotation_z(math.rad(euler.z))
+			go.set_rotation(qx * qy * qz, "/base_transform")
+		end
 	end
 end
+
 
 local tex_glow = hash("glow")
 local tex_prop = hash("prop")
@@ -83,9 +157,12 @@ local tex_ped = hash("ped")
 local tex_shield = hash("shield")
 local tex_funky = hash("funky")
 
-local function set_material(self, part_index, model_index)
+local function set_material(self, part_index, model_index, inverted)
 	local model_url = msg.url(nil, created_meshes[part_index].mesh, "mesh")
 	local invert = created_meshes[part_index].invert
+	if inverted then
+		invert = not invert
+	end
 	local mat = MEM.art_data.model_list[model_index].parts[part_index]
 	local mat_list = {[true] = {glow = self.glow_inv, prop = self.prop_inv, nl = self.no_light_inv}, [false] = {glow = self.glow_material, prop = self.prop_material, nl = self.no_light_material}}
 	if not COL.materials[mat] then
@@ -114,6 +191,12 @@ local function set_material(self, part_index, model_index)
 		go.set(model_url, "tint", COL.materials[mat].tint())
 	else
 		go.set(model_url, "tint", vmath.vector4(1, 0, 1, 1))
+	end
+end
+
+local function invert_model(self)
+	for i = 1, #created_meshes do
+		set_material(self, i, MOD.model_index, true)
 	end
 end
 
@@ -250,7 +333,7 @@ local function show_model(self, model)
 end
 
 function on_message(self, message_id, message, sender)
-	if message_id == hash("show") then
+	if message_id == hash("show") or message_id == hash("tween_preview") then
 		msg.post(".", hash("enable"))
 		MOD.viewer_active = true
 		if not message.model then
@@ -265,6 +348,12 @@ function on_message(self, message_id, message, sender)
 		msg.post(".", hash("acquire_input_focus"))
 		--msg.post("/grid#grid", hash("enable"))
 		show_grid(self)
+		if message_id == hash("show") then
+			go.set_position(vmath.vector3(0, 0, 0), "/base_transform")
+			go.set("/base_transform", "scale", vmath.vector3(1, 1, -1))
+			go.set_rotation(vmath.quat(0, 0, 0, 1), "/base_transform")
+		end
+		msg.post("/model_camera#background", hash("enable"))
 	elseif message_id == hash("hide") then
 		MOD.viewer_active = false
 		MOD.is_dragged = false
@@ -275,11 +364,12 @@ function on_message(self, message_id, message, sender)
 		for key, val in ipairs(created_meshes) do
 			msg.post(val.mesh, hash("disable"))
 		end
+		msg.post("/model_camera#background", hash("disable"))
 	elseif message_id == hash("remove_model") then
 		delete_model()
 	elseif message_id == hash("colours_changed") then
 		if show_fog then
-			go.set("#background", "tint", COL.get_current("fog"))
+			go.set("/model_camera#background", "tint", COL.get_current("fog"))
 		end
 		if SET.model_show_grid == 1 then
 			go.set("/grid#grid", "tint", COL.get_current("main"))
@@ -289,9 +379,9 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("switch_background") then
 		show_fog = not show_fog
 		if show_fog then
-			go.set("#background", "tint", COL.get_current("fog"))
+			go.set("/model_camera#background", "tint", COL.get_current("fog"))
 		else
-			go.set("#background", "tint", vmath.vector4(0))
+			go.set("/model_camera#background", "tint", vmath.vector4(0))
 		end
 	elseif message_id == hash("reset_view") then
 		reset_view()

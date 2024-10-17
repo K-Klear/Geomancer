@@ -293,41 +293,7 @@ local function export_art(path)
 			local str = ",{\"type\":\"ScriptedTween\",\"Script\":\""
 			local deletion_count = 0
 			
-			for key = #tween_data.script, 1, -1 do
-				local val = tween_data.script[key]
-				local ignore_repeat = false
-				if val.type == "X" then
-					local number_of_repetitions = val.number_of_repetitions
-					local actions_to_repeat = val.actions_to_repeat
-					table.remove(tween_data.script, key)
-					for action_index = key - val.actions_to_repeat, key - 1 do
-						if action_index < 1 or tween_data.script[action_index].type == "X" then
-						--(tween_data.script[action_index].easing and tween_data.script[action_index].easing.vertex_count > 2) then
-							deletion_count = deletion_count + 1
-							ignore_repeat = true
-							break
-						end
-					end
-					if not ignore_repeat then
-						for i = 1, number_of_repetitions do
-							for action_index = key - 1, key - actions_to_repeat, -1 do
-								local tab = tween_data.script[action_index]
-								local new_tab = {type = tab.type, part = tab.part, time = tab.time}
-								if tab.start_state then
-									new_tab.start_state = {x = tab.start_state.x, y = tab.start_state.y, z = tab.start_state.z}
-								end
-								if tab.end_state then
-									new_tab.end_state = {x = tab.end_state.x, y = tab.end_state.y, z = tab.end_state.z}
-								end
-								if tab.easing then
-									new_tab.easing = tab.easing
-								end
-								table.insert(tween_data.script, key, new_tab)
-							end
-						end
-					end
-				end
-			end
+			tween_data.script, deletion_count = G.expand_repeat_actions(tween_data.script)
 
 			if deletion_count == 1 then
 				msg.post("/navbar#navbar", hash("update_status"), {text = "An invalid repeat action has been removed from tween of "..model_name})

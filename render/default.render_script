@@ -145,7 +145,7 @@ local function create_state()
 end
 
 function init(self)
-    self.predicates = create_predicates("tile", "gui", "preview", "text", "particle", "model", "model_inv")
+    self.predicates = create_predicates("tile", "gui", "preview", "text", "particle", "model", "model_inv", "model_background")
 
     self.invert_preview = render.constant_buffer()
     self.invert_preview.invert = vmath.vector4(0, 0, 0, 0)
@@ -197,7 +197,6 @@ function update(self)
     -- set states used for all the world predicates
     render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
     render.enable_state(render.STATE_BLEND)
-    render.enable_state(render.STATE_DEPTH_TEST)
 
     -- render `model` predicate for default 3D material
     --
@@ -205,9 +204,11 @@ function update(self)
     render.enable_state(render.STATE_CULL_FACE)
     render.set_cull_face(render.FACE_FRONT)
     render.set_blend_func(render.BLEND_ONE, render.BLEND_ONE_MINUS_SRC_ALPHA)
-    render.draw(predicates.model, camera_world.frustum)
+    render.draw(predicates.model_background)--, camera_world.frustum)
+    render.enable_state(render.STATE_DEPTH_TEST)
+    render.draw(predicates.model)--, camera_world.frustum)
     render.set_cull_face(render.FACE_BACK)
-    render.draw(predicates.model_inv, camera_world.frustum)
+    render.draw(predicates.model_inv)--, camera_world.frustum)
     render.set_depth_mask(false)
     render.disable_state(render.STATE_CULL_FACE)
     render.set_camera()

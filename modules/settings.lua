@@ -52,6 +52,11 @@ SET.colour_selection_change_enemy_type = vmath.vector4(0.1, 0.7, 0.1, 1)
 SET.colour_current_enemy_type = vmath.vector4(0.1, 0.1, 0.1, 1)
 SET.colour_signal_filter_selection = vmath.vector4(0.5, 0.5, 0.7, 1)
 
+SET.colour_tween_move = vmath.vector4(0, 0, 0.5, 1)
+SET.colour_tween_rotate = vmath.vector4(0, 0.5, 0, 1)
+SET.colour_tween_scale = vmath.vector4(0.5, 0.5, 0, 1)
+SET.colour_tween_wait = vmath.vector4(0.3, 0.3, 0.3, 1)
+
 -- model
 SET.restrict_rotations_to_360 = true
 
@@ -59,6 +64,9 @@ SET.restrict_rotations_to_360 = true
 SET.model_rotation_sensitivity = 0.5
 SET.model_move_sensitivity = 0.01
 SET.model_zoom_sensitivity = 1
+SET.default_camera_zoom = 8
+SET.default_camera_pitch = 25
+SET.default_camera_rotation = 0
 
 SET.default_colour_set = 1
 SET.custom_colour_main = "471537"
@@ -69,9 +77,6 @@ SET.custom_colour_enemy = "000000"
 SET.model_show_grid = 1
 SET.model_grid_dots = false
 
-SET.default_cam_position_x = 0
-SET.default_cam_position_y = 0.5
-SET.default_cam_position_z = 5.5
 SET.default_rotation = 0
 SET.default_pitch = 25
 

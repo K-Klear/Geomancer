@@ -76,4 +76,49 @@ function G.check_version(str, filename)
 	end
 end
 
+function G.expand_repeat_actions(tween_script)
+	local new_script = {}
+	local deletion_count = 0
+	local function copy_action(action_table)
+		local new_tab = {type = action_table.type, part = action_table.part, time = action_table.time}
+		if action_table.start_state then
+			new_tab.start_state = {x = action_table.start_state.x, y = action_table.start_state.y, z = action_table.start_state.z}
+		end
+		if action_table.end_state then
+			new_tab.end_state = {x = action_table.end_state.x, y = action_table.end_state.y, z = action_table.end_state.z}
+		end
+		if action_table.easing then
+			new_tab.easing = action_table.easing
+		end
+		return new_tab
+	end
+	
+	for key = #tween_script, 1, -1 do
+		local val = tween_script[key]
+		local ignore_repeat = false
+		if val.type == "X" then
+			local number_of_repetitions = val.number_of_repetitions
+			local actions_to_repeat = val.actions_to_repeat
+			for action_index = key - val.actions_to_repeat, key - 1 do
+				if action_index < 1 or tween_script[action_index].type == "X" then
+					--(tween_script[action_index].easing and tween_script[action_index].easing.vertex_count > 2) then
+					deletion_count = deletion_count + 1
+					ignore_repeat = true
+					break
+				end
+			end
+			if not ignore_repeat then
+				for i = 1, number_of_repetitions do
+					for action_index = key - 1, key - actions_to_repeat, -1 do
+						table.insert(new_script, 1, copy_action(tween_script[action_index]))
+					end
+				end
+			end
+		else
+			table.insert(new_script, 1, copy_action(val))
+		end
+	end
+	return new_script, deletion_count
+end
+
 return G

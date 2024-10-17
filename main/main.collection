@@ -2,9 +2,10 @@ name: "main"
 instances {
   id: "model_viewer"
   prototype: "/main/model_viewer/model_viewer.go"
+  children: "base_transform"
+  children: "camera_target"
   children: "colours"
-  children: "model_camera"
-  children: "model_pitch"
+  children: "grid"
 }
 scale_along_z: 0
 embedded_instances {
@@ -237,31 +238,8 @@ embedded_instances {
   ""
 }
 embedded_instances {
-  id: "model_camera"
-  data: "embedded_components {\n"
-  "  id: \"camera\"\n"
-  "  type: \"camera\"\n"
-  "  data: \"aspect_ratio: 0.701754\\n"
-  "fov: 0.7854\\n"
-  "near_z: 0.001\\n"
-  "far_z: 150.0\\n"
-  "\"\n"
-  "}\n"
-  ""
-  position {
-    y: 0.5
-    z: 3.5
-  }
-}
-embedded_instances {
-  id: "model_pitch"
-  children: "model_yaw"
-  data: ""
-}
-embedded_instances {
-  id: "model_yaw"
-  children: "base_transform"
-  children: "grid"
+  id: "camera_target"
+  children: "model_camera"
   data: ""
 }
 embedded_instances {
@@ -271,33 +249,6 @@ embedded_instances {
   "  component: \"/main/model_viewer/dialog_colour.gui\"\n"
   "}\n"
   ""
-}
-embedded_instances {
-  id: "grid"
-  data: "embedded_components {\n"
-  "  id: \"grid\"\n"
-  "  type: \"model\"\n"
-  "  data: \"mesh: \\\"/builtins/assets/meshes/quad_2x2.dae\\\"\\n"
-  "name: \\\"{{NAME}}\\\"\\n"
-  "materials {\\n"
-  "  name: \\\"default\\\"\\n"
-  "  material: \\\"/render/no_light_inv.material\\\"\\n"
-  "  textures {\\n"
-  "    sampler: \\\"tex0\\\"\\n"
-  "    texture: \\\"/assets/gfx/textures/default_floor.png\\\"\\n"
-  "  }\\n"
-  "}\\n"
-  "\"\n"
-  "  rotation {\n"
-  "    x: 0.70710677\n"
-  "    w: -0.70710677\n"
-  "  }\n"
-  "}\n"
-  ""
-  scale3 {
-    x: 32.0
-    z: 32.0
-  }
 }
 embedded_instances {
   id: "sequence_bulk"
@@ -324,9 +275,72 @@ embedded_instances {
   ""
 }
 embedded_instances {
+  id: "grid"
+  data: "embedded_components {\n"
+  "  id: \"grid\"\n"
+  "  type: \"model\"\n"
+  "  data: \"mesh: \\\"/builtins/assets/meshes/quad_2x2.dae\\\"\\n"
+  "name: \\\"{{NAME}}\\\"\\n"
+  "materials {\\n"
+  "  name: \\\"default\\\"\\n"
+  "  material: \\\"/render/no_light_inv.material\\\"\\n"
+  "  textures {\\n"
+  "    sampler: \\\"tex0\\\"\\n"
+  "    texture: \\\"/assets/gfx/textures/default_floor.png\\\"\\n"
+  "  }\\n"
+  "}\\n"
+  "\"\n"
+  "  rotation {\n"
+  "    x: 0.70710677\n"
+  "    w: -0.70710677\n"
+  "  }\n"
+  "}\n"
+  ""
+  rotation {
+    y: 0.70710677
+    w: 0.70710677
+  }
+  scale3 {
+    x: 32.0
+    z: 32.0
+  }
+}
+embedded_instances {
   id: "base_transform"
   data: ""
   scale3 {
     z: -1.0
   }
+}
+embedded_instances {
+  id: "model_camera"
+  data: "embedded_components {\n"
+  "  id: \"background\"\n"
+  "  type: \"sprite\"\n"
+  "  data: \"default_animation: \\\"white_pixel\\\"\\n"
+  "material: \\\"/render/sprite_viewer.material\\\"\\n"
+  "size {\\n"
+  "  x: 400.0\\n"
+  "  y: 507.0\\n"
+  "}\\n"
+  "size_mode: SIZE_MODE_MANUAL\\n"
+  "textures {\\n"
+  "  sampler: \\\"texture_sampler\\\"\\n"
+  "  texture: \\\"/assets/gfx/UI.atlas\\\"\\n"
+  "}\\n"
+  "\"\n"
+  "  position {\n"
+  "    z: -10.0\n"
+  "  }\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"camera\"\n"
+  "  type: \"camera\"\n"
+  "  data: \"aspect_ratio: 0.701754\\n"
+  "fov: 0.7854\\n"
+  "near_z: 0.001\\n"
+  "far_z: 300.0\\n"
+  "\"\n"
+  "}\n"
+  ""
 }

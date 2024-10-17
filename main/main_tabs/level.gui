@@ -223,8 +223,8 @@ nodes {
 }
 nodes {
   position {
-    x: 579.0
-    y: 594.0
+    x: 580.0
+    y: 590.0
   }
   size {
     x: 517.0
@@ -329,6 +329,28 @@ nodes {
     z: 1.0
   }
   layer: "text"
+}
+nodes {
+  position {
+    x: 580.0
+    y: 590.0
+  }
+  size {
+    x: 517.0
+    y: 80.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_BOX
+  id: "box"
+  pivot: PIVOT_NW
+  layer: "below"
+  inherit_alpha: true
+  alpha: 0.5
+  size_mode: SIZE_MODE_AUTO
 }
 layers {
   name: "below"

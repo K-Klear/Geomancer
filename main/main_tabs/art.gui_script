@@ -3,6 +3,7 @@ local UI = require "modules.ui"
 local G = require "modules.global"
 local SET = require "modules.settings"
 local COL = require "modules.colours"
+local MOD = require "main.model_viewer.model"
 local DIALOG = UI.DIALOG
 local TAB_NAME = "tab_art"
 
@@ -233,7 +234,7 @@ end
 
 local function open_dialog(dialog, message_tab)
 	DIALOG.open(TAB_NAME, dialog, message_tab)
-	msg.post("/model_viewer", hash("hide"))
+	msg.post("/model_viewer", hash("disable_input"))
 end
 
 local function import_models()
@@ -760,6 +761,29 @@ function on_message(self, message_id, message, sender)
 			colour_set = true
 			COL.set_current_to_default()
 		end
+	elseif message_id == hash("tween_preview") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		if UI.tab[TAB_NAME].child_dialog == "dialog_tween" then
+			msg.post(UI.tab.dialog_tween.path, hash("hide"))
+		end
+		DIALOG.close_all(TAB_NAME)
+		MOD.model_index = message.model_index
+		msg.post("/model_viewer", hash("tween_preview"), {model = message.model_index})
+	elseif message_id == hash("tween_preview_closed") then
+		msg.post("#", hash("enable"))
+		msg.post("#", hash("acquire_input_focus"))
+		update_lists()
+		msg.post("/model_viewer", hash("show"))
+		if not colour_set then
+			colour_set = true
+			COL.set_current_to_default()
+		end
+		local model_data = MEM.art_data.model_list[message.model_index]
+		if not model_data.tween then
+			model_data.tween = {signal = "tween", script = {}}
+		end
+		open_dialog("dialog_tween", {model_index = message.model_index})
 	elseif message_id == hash("reset") then
 		UI.update_list(TAB_NAME, model_list, 0)
 		UI.update_list(TAB_NAME, part_list, 0)

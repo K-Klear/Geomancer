@@ -22,24 +22,45 @@ To do:
 - Auto-rotate for model viewer
 - Reorganise cfgs - look into the guide
 - Add more easing types
-- Tween preview
 - Text fields in slices tab in wrong order
 
 Bugs:
 
 - Volumes generate wrong on the edge of the pictures
 - Geomancer gets rekt by whitespace =/
-- The colour guide button acts weird, probably because it's parented to the list background.
-- Model viewer background doesn't stay put when resizing window
-- Moving camera leaves the centre of rotation in place
 
 Done:
 
+New:
+
+
 Features:
-- General:
-	- Geomancer checks for volume index corruption on load and fixes it automatically
-	- Active text fields are now highlighted
-	- You can now navigate between text fields using tab/shift tab
+- Tween preview accessible from the tween dialog.
+	- Controls are mostly the same as model preview. Press space to start/pause playback. Additional playback controls are in the bottom left corner.
+	- Preview camera now correctly rotates around its focus
+	- default_cam_position configs are not longer in use. Use default_camera_zoom, default_camerta_rotation and default_camera_pitch instead.
+
+Bugs:
+- Model viewer background no longer moves when resizing Geomancer window
+- Corrected aspect ratio for model viewer
+
+New configs:
+	colour_tween_move (colour)
+	colour_tween_rotate (colour)
+	colour_tween_scale (colour)
+	colour_tween_wait (colour)
+
+default_cam_position_x
+default_cam_position_y
+default_cam_position_z REMOVED!
+
+Old:
+
+Features:
+
+- Geomancer checks for volume index corruption on load and fixes it automatically
+- Active text fields are now highlighted
+- You can now navigate between text fields using tab/shift tab
 - Reorganised the Import/Export screen:
 	- Exporting without making a folder is now a checkbox rather than its own button
 	- Added an "Import changes" button to easily redo all changes from a previously geomanced version of a map
