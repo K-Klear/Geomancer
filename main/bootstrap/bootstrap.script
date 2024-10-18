@@ -62,7 +62,7 @@ local default_settings_text = {
 	"model_move_sensitivity=0.01;",
 	"model_zoom_sensitivity=2.5;",
 	"default_camera_zoom=8;			-- Should be between 0.5 and 100",
-	"default_camerta_rotation=0;	-- Euler angle.",
+	"default_camera_rotation=0;	-- Euler angle.",
 	"default_camera_pitch=25		-- Euler angle ranging from -90 to 90",
 	"",
 	"easing_node_scale=0.5;",
@@ -137,7 +137,7 @@ local settings_to_load = {
 	model_move_sensitivity = {type = "non_zero"},
 	model_zoom_sensitivity = {type = "non_zero"},
 	default_camera_zoom = {type = "number"},
-	default_camerta_rotation = {type = "number"},
+	default_camera_rotation = {type = "number"},
 	default_camera_pitch = {type = "angle_pitch"},
 
 	default_colour_set = {type = "integer"},

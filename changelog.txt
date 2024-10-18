@@ -31,75 +31,14 @@ Bugs:
 
 Done:
 
-New:
-
-
 Features:
-- Tween preview accessible from the tween dialog.
-	- Controls are mostly the same as model preview. Press space to start/pause playback. Additional playback controls are in the bottom left corner.
-	- Preview camera now correctly rotates around its focus
-	- default_cam_position configs are not longer in use. Use default_camera_zoom, default_camerta_rotation and default_camera_pitch instead.
-
-Bugs:
-- Model viewer background no longer moves when resizing Geomancer window
-- Corrected aspect ratio for model viewer
-
-New configs:
-	colour_tween_move (colour)
-	colour_tween_rotate (colour)
-	colour_tween_scale (colour)
-	colour_tween_wait (colour)
-
-default_cam_position_x
-default_cam_position_y
-default_cam_position_z REMOVED!
-
-Old:
-
-Features:
-
-- Geomancer checks for volume index corruption on load and fixes it automatically
-- Active text fields are now highlighted
-- You can now navigate between text fields using tab/shift tab
-- Reorganised the Import/Export screen:
-	- Exporting without making a folder is now a checkbox rather than its own button
-	- Added an "Import changes" button to easily redo all changes from a previously geomanced version of a map
-		- Use checkboxes if you want to prevent this from making changes to one of the four affected files
-		- For level information, all settings available in geomancer will be changed, everything else is kept (map name, author, description etc).
-		- For events this will import all no-beat sections, event triggers and all but the first tempo sections.
-			- PillarDrop and RisePillar events will be kept for maps with AirDrop or Spooky obstacle sets respectively and in case there's fewer of these than there are obstacles, additional events are created at the beginning of the map. In case obstacle set is unknown, both kinds of events are kept to be on the safe side.
-		- For models this will update all materials and add tweens and dynamic status where possible, overwriting existing tweens. It will not remove tweens or dynamic status.
-		- For enemies and obstacles this will take all with a type and/or sequence not available in Pistol Mix and try to match them with enemies/obstacles in the original file based on time, position and a few other values. If there's a match, the enemy will be updated. It will not attempt to change types/sequences which are present in Pistol Mix.
-		- Removed redundant buttons previously used for this functionality on their respective tabs
-	- Added De-geomance button which will remove all changes to the map which might conflict with Pistol Mix
-		- Enemy, obstacle and material sets are kept, move mode and preview time is reset
-		- All no-beats, event triggers and tempo sections except for the first one are removed
-		- All tweens are removed and dynamic models are made static. All non-basic materials are set to "prop"
-		- Wall and tunnels are changed to sidesteps and limbos, glitched enemies and flying skulls and all non-standard sequences are changed according to the config file. By default Normal, Normal Turret and Dance_03 respectively.
-		- Geo information is kept as is
-- Level tab:
-	- Added map name
-	- Added description. It gets cut off roughly in the same way the in-game description does, so if there's a part missing, it will probably be cut off in the game too. Note that the description defined in the map file is not actually used currently. Pistol Whip displays the description from mod.io instead.
-	- Added enemy count and hit total. Includes unreachable enemies but not destructible props. Shield guys count as four hits, glitched enemies as one hit. Overshield adds four hits. This is only available if the pw_beat file is loaded.
-- Model tab:
-	- Temporarily removed the part selection button from the tween editor as that functionality might be currently broken. I will either fix it or remove it completely depending on further research.
 
 Fixes:
-- Enemy type selection dialog now remembers previous choice
-- Tempo section start sample field no longer has a minimum value
-- Maximum length of signals increased to 20 characters
-- Status window gets cleared before export, preventing it from growing too large
 
 Bugs:
 
 New configs:
-	import_changes_from_zip=false
-	create_folder_on_export=true
-	import_level_changes=true
-	import_event_changes=true
-	import_model_changes=true
-	import_beat_changes=true
-	degeomance_sequence=Dance_03
-	degeomance_glitched_enemy=Normal
-	degeomance_skull=Normal Turret
-	colour_active_text_field
+
+
+
+
