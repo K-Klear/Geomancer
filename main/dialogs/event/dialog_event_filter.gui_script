@@ -67,7 +67,7 @@ function evaluate_button(button, item)
 		end
 		UI.update_list(DIALOG_NAME, filter_list, 0)
 		DIALOG.close(DIALOG_NAME, {filter = true})
-	elseif button == "filter_cancel" then
+	elseif button == "filter_cancel" or button == "escape" then
 		UI.update_list(DIALOG_NAME, filter_list, 0)
 		DIALOG.close(DIALOG_NAME)
 	elseif button == "filter_hide_all" then

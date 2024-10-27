@@ -12,7 +12,7 @@ function init(self)
 end
 
 local function evaluate_button(button)
-	if button == "tween_action_cancel" then
+	if button == "tween_action_cancel" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)
 	elseif button == "tween_action_move" then
 		DIALOG.close(DIALOG_NAME, {action = "T", item = item})

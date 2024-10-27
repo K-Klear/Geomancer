@@ -1,5 +1,5 @@
 images {
-  image: "/assets/gfx/button_white.png"
+  image: "/assets/gfx/buttons/button_white.png"
 }
 images {
   image: "/assets/gfx/text_field.png"
@@ -8,7 +8,7 @@ images {
   image: "/assets/gfx/empty_pixel.png"
 }
 images {
-  image: "/assets/gfx/button_white_hover.png"
+  image: "/assets/gfx/buttons/button_white_hover.png"
 }
 images {
   image: "/assets/gfx/panel_green.png"
@@ -29,40 +29,40 @@ images {
   image: "/assets/gfx/made_with_defold.png"
 }
 images {
-  image: "/assets/gfx/scrollbar.png"
+  image: "/assets/gfx/scrollbar/scrollbar.png"
 }
 images {
-  image: "/assets/gfx/scrollbar_button.png"
+  image: "/assets/gfx/scrollbar/scrollbar_button.png"
 }
 images {
-  image: "/assets/gfx/button_exclusive.png"
+  image: "/assets/gfx/buttons/button_exclusive.png"
 }
 images {
-  image: "/assets/gfx/button_exclusive_press_5.png"
+  image: "/assets/gfx/buttons/button_exclusive_press_5.png"
 }
 images {
-  image: "/assets/gfx/button_down_wide.png"
+  image: "/assets/gfx/buttons/button_down_wide.png"
 }
 images {
-  image: "/assets/gfx/button_up_wide.png"
+  image: "/assets/gfx/buttons/button_up_wide.png"
 }
 images {
   image: "/assets/gfx/model_viewer_border.png"
 }
 images {
-  image: "/assets/gfx/button_colour_segment.png"
+  image: "/assets/gfx/model_viewer/button_colour_segment.png"
 }
 images {
   image: "/assets/gfx/white_pixel.png"
 }
 images {
-  image: "/assets/gfx/button_show_background.png"
+  image: "/assets/gfx/model_viewer/button_show_background.png"
 }
 images {
-  image: "/assets/gfx/button_show_grid.png"
+  image: "/assets/gfx/model_viewer/button_show_grid.png"
 }
 images {
-  image: "/assets/gfx/button_reset_view.png"
+  image: "/assets/gfx/model_viewer/button_reset_view.png"
 }
 images {
   image: "/assets/gfx/easing_line.png"
@@ -80,58 +80,67 @@ images {
   image: "/assets/gfx/path.png"
 }
 images {
-  image: "/assets/gfx/playback_icons/play.png"
+  image: "/assets/gfx/model_viewer/playback_icons/play.png"
 }
 images {
-  image: "/assets/gfx/playback_icons/move_end.png"
+  image: "/assets/gfx/model_viewer/playback_icons/move_end.png"
 }
 images {
-  image: "/assets/gfx/playback_icons/move_start.png"
+  image: "/assets/gfx/model_viewer/playback_icons/move_start.png"
 }
 images {
-  image: "/assets/gfx/playback_icons/pause.png"
+  image: "/assets/gfx/model_viewer/playback_icons/pause.png"
 }
 images {
-  image: "/assets/gfx/playback_icons/stop.png"
+  image: "/assets/gfx/model_viewer/playback_icons/stop.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/find_prop.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/move_ground.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/pov_cam.png"
 }
 animations {
   id: "button_white_down"
   images {
-    image: "/assets/gfx/button_white_press_1.png"
+    image: "/assets/gfx/buttons/button_white_press_1.png"
   }
   images {
-    image: "/assets/gfx/button_white_press_2.png"
+    image: "/assets/gfx/buttons/button_white_press_2.png"
   }
   images {
-    image: "/assets/gfx/button_white_press_3.png"
+    image: "/assets/gfx/buttons/button_white_press_3.png"
   }
   images {
-    image: "/assets/gfx/button_white_press_4.png"
+    image: "/assets/gfx/buttons/button_white_press_4.png"
   }
   images {
-    image: "/assets/gfx/button_white_press_5.png"
+    image: "/assets/gfx/buttons/button_white_press_5.png"
   }
   fps: 100
 }
 animations {
   id: "button_white_up"
   images {
-    image: "/assets/gfx/button_white_hover.png"
+    image: "/assets/gfx/buttons/button_white_hover.png"
   }
   images {
-    image: "/assets/gfx/button_white_press_1.png"
+    image: "/assets/gfx/buttons/button_white_press_1.png"
   }
   images {
-    image: "/assets/gfx/button_white_press_2.png"
+    image: "/assets/gfx/buttons/button_white_press_2.png"
   }
   images {
-    image: "/assets/gfx/button_white_press_3.png"
+    image: "/assets/gfx/buttons/button_white_press_3.png"
   }
   images {
-    image: "/assets/gfx/button_white_press_4.png"
+    image: "/assets/gfx/buttons/button_white_press_4.png"
   }
   images {
-    image: "/assets/gfx/button_white_press_5.png"
+    image: "/assets/gfx/buttons/button_white_press_5.png"
   }
   playback: PLAYBACK_ONCE_BACKWARD
   fps: 120
@@ -139,22 +148,22 @@ animations {
 animations {
   id: "scrollbar_button_press"
   images {
-    image: "/assets/gfx/scrollbar_button.png"
+    image: "/assets/gfx/scrollbar/scrollbar_button.png"
   }
   images {
-    image: "/assets/gfx/scrollbar_button_press_1.png"
+    image: "/assets/gfx/scrollbar/scrollbar_button_press_1.png"
   }
   images {
-    image: "/assets/gfx/scrollbar_button_press_2.png"
+    image: "/assets/gfx/scrollbar/scrollbar_button_press_2.png"
   }
   images {
-    image: "/assets/gfx/scrollbar_button_press_3.png"
+    image: "/assets/gfx/scrollbar/scrollbar_button_press_3.png"
   }
   images {
-    image: "/assets/gfx/scrollbar_button_press_4.png"
+    image: "/assets/gfx/scrollbar/scrollbar_button_press_4.png"
   }
   images {
-    image: "/assets/gfx/scrollbar_button_press_5.png"
+    image: "/assets/gfx/scrollbar/scrollbar_button_press_5.png"
   }
   playback: PLAYBACK_ONCE_PINGPONG
   fps: 60
@@ -162,38 +171,38 @@ animations {
 animations {
   id: "button_exclusive_press"
   images {
-    image: "/assets/gfx/button_exclusive_press_1.png"
+    image: "/assets/gfx/buttons/button_exclusive_press_1.png"
   }
   images {
-    image: "/assets/gfx/button_exclusive_press_2.png"
+    image: "/assets/gfx/buttons/button_exclusive_press_2.png"
   }
   images {
-    image: "/assets/gfx/button_exclusive_press_3.png"
+    image: "/assets/gfx/buttons/button_exclusive_press_3.png"
   }
   images {
-    image: "/assets/gfx/button_exclusive_press_4.png"
+    image: "/assets/gfx/buttons/button_exclusive_press_4.png"
   }
   images {
-    image: "/assets/gfx/button_exclusive_press_5.png"
+    image: "/assets/gfx/buttons/button_exclusive_press_5.png"
   }
   fps: 45
 }
 animations {
   id: "button_exclusive_unpress"
   images {
-    image: "/assets/gfx/button_exclusive_press_4.png"
+    image: "/assets/gfx/buttons/button_exclusive_press_4.png"
   }
   images {
-    image: "/assets/gfx/button_exclusive_press_3.png"
+    image: "/assets/gfx/buttons/button_exclusive_press_3.png"
   }
   images {
-    image: "/assets/gfx/button_exclusive_press_2.png"
+    image: "/assets/gfx/buttons/button_exclusive_press_2.png"
   }
   images {
-    image: "/assets/gfx/button_exclusive_press_1.png"
+    image: "/assets/gfx/buttons/button_exclusive_press_1.png"
   }
   images {
-    image: "/assets/gfx/button_exclusive.png"
+    image: "/assets/gfx/buttons/button_exclusive.png"
   }
   fps: 45
 }

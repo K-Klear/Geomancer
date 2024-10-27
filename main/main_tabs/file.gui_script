@@ -980,7 +980,7 @@ local function import_changes()
 			end
 			local str
 			if obstacle_count + enemy_count < 1 then
-				str = "No changes made"
+				str = "No changes to obstacles and enemies"
 			else
 				str = "Updated "
 				if enemy_count > 1 then

@@ -2,10 +2,10 @@ name: "main"
 instances {
   id: "model_viewer"
   prototype: "/main/model_viewer/model_viewer.go"
-  children: "base_transform"
   children: "camera_target"
   children: "colours"
-  children: "grid"
+  children: "ground"
+  children: "pick_prop"
 }
 scale_along_z: 0
 embedded_instances {
@@ -275,6 +275,52 @@ embedded_instances {
   ""
 }
 embedded_instances {
+  id: "model_camera"
+  data: "embedded_components {\n"
+  "  id: \"background\"\n"
+  "  type: \"sprite\"\n"
+  "  data: \"default_animation: \\\"white_pixel\\\"\\n"
+  "material: \\\"/render/sprite_viewer.material\\\"\\n"
+  "size {\\n"
+  "  x: 400.0\\n"
+  "  y: 507.0\\n"
+  "}\\n"
+  "size_mode: SIZE_MODE_MANUAL\\n"
+  "textures {\\n"
+  "  sampler: \\\"texture_sampler\\\"\\n"
+  "  texture: \\\"/assets/gfx/UI.atlas\\\"\\n"
+  "}\\n"
+  "\"\n"
+  "  position {\n"
+  "    z: -10.0\n"
+  "  }\n"
+  "}\n"
+  "embedded_components {\n"
+  "  id: \"camera\"\n"
+  "  type: \"camera\"\n"
+  "  data: \"aspect_ratio: 0.701754\\n"
+  "fov: 0.7854\\n"
+  "near_z: 0.001\\n"
+  "far_z: 300.0\\n"
+  "\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "pick_prop"
+  data: "components {\n"
+  "  id: \"dialog_props\"\n"
+  "  component: \"/main/model_viewer/dialog_props.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "ground"
+  children: "grid"
+  children: "prop_offset"
+  data: ""
+}
+embedded_instances {
   id: "grid"
   data: "embedded_components {\n"
   "  id: \"grid\"\n"
@@ -306,41 +352,14 @@ embedded_instances {
   }
 }
 embedded_instances {
+  id: "prop_offset"
+  children: "base_transform"
+  data: ""
+}
+embedded_instances {
   id: "base_transform"
   data: ""
   scale3 {
     z: -1.0
   }
-}
-embedded_instances {
-  id: "model_camera"
-  data: "embedded_components {\n"
-  "  id: \"background\"\n"
-  "  type: \"sprite\"\n"
-  "  data: \"default_animation: \\\"white_pixel\\\"\\n"
-  "material: \\\"/render/sprite_viewer.material\\\"\\n"
-  "size {\\n"
-  "  x: 400.0\\n"
-  "  y: 507.0\\n"
-  "}\\n"
-  "size_mode: SIZE_MODE_MANUAL\\n"
-  "textures {\\n"
-  "  sampler: \\\"texture_sampler\\\"\\n"
-  "  texture: \\\"/assets/gfx/UI.atlas\\\"\\n"
-  "}\\n"
-  "\"\n"
-  "  position {\n"
-  "    z: -10.0\n"
-  "  }\n"
-  "}\n"
-  "embedded_components {\n"
-  "  id: \"camera\"\n"
-  "  type: \"camera\"\n"
-  "  data: \"aspect_ratio: 0.701754\\n"
-  "fov: 0.7854\\n"
-  "near_z: 0.001\\n"
-  "far_z: 300.0\\n"
-  "\"\n"
-  "}\n"
-  ""
 }

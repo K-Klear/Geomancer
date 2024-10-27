@@ -4,6 +4,12 @@ local G = require "modules.global"
 local MOD = require "main.model_viewer.model"
 local COL = require "modules.colours"
 
+local MODEL_CAMERA = "/model_camera"
+local CAMERA_TARGET = "/camera_target"
+local BASE_TRANSFORM = "/base_transform"
+local PROP_OFFSET = "/prop_offset"
+local GROUND_GO = "/ground"
+
 go.property("prop_material", resource.material("/render/model.material"))
 go.property("glow_material", resource.material("/render/glow.material"))
 go.property("no_light_material", resource.material("/render/no_light.material"))
@@ -70,16 +76,30 @@ end
 
 function update(self, dt)
 	if MOD.viewer_active then
+		go.set_position(MOD.offset_position, PROP_OFFSET)
+		go.set(PROP_OFFSET, "scale", MOD.offset_scale)
+		go.set_rotation(MOD.offset_rotation, PROP_OFFSET)
 		local pitch = vmath.quat_rotation_x(math.rad(MOD.target_y))
 		local yaw = vmath.quat_rotation_y(math.rad(MOD.target_x))
 		local rot = yaw * pitch
-		go.set_rotation(rot, "/model_camera")
-		local move_vector = vmath.vector3(MOD.cam_target_x, MOD.cam_target_y, 0)
-		CAMERA_POSITION = CAMERA_POSITION + vmath.rotate(rot, move_vector)
-		go.set_position(CAMERA_POSITION, "/camera_target")
+		go.set_rotation(rot, MODEL_CAMERA)
+		if MOD.pov_lock then
+			go.set_position(vmath.vector3(0, 0, 0), CAMERA_TARGET)
+			go.set_position(vmath.vector3(0, 1.75, 0), MODEL_CAMERA)
+		else
+			if MOD.find_prop then
+				MOD.find_prop = false
+				CAMERA_POSITION = go.get_world_position(BASE_TRANSFORM)
+			else
+				local move_vector = vmath.vector3(MOD.cam_target_x, MOD.cam_target_y, 0)
+				CAMERA_POSITION = CAMERA_POSITION + vmath.rotate(rot, move_vector)
+			end
+			go.set_position(CAMERA_POSITION, CAMERA_TARGET)
+			local pos = vmath.rotate(rot, vmath.vector3(0, 0, MOD.cam_target_z))
+			go.set_position(pos, MODEL_CAMERA)
+		end
 		MOD.cam_target_x, MOD.cam_target_y = 0, 0
-		local pos = vmath.rotate(rot, vmath.vector3(0, 0, MOD.cam_target_z))
-		go.set_position(pos, "/model_camera")
+
 		if MOD.tween_preview then
 			local current_time = MOD.total_time * MOD.scrubber_progress
 			local action_end_time = 0
@@ -137,12 +157,17 @@ function update(self, dt)
 			end
 			position.z = -position.z
 			scale.z = -scale.z
-			go.set_position(position, "/base_transform")
-			go.set("/base_transform", "scale", scale)
+			go.set_position(position, BASE_TRANSFORM)
+			if MOD.move_terrain then
+				go.set(GROUND_GO, "position.z", current_time * 3)
+			else
+				go.set(GROUND_GO, "position.z", 0)
+			end
+			go.set(BASE_TRANSFORM, "scale", scale)
 			local qx = vmath.quat_rotation_x(math.rad(-euler.x))
 			local qy = vmath.quat_rotation_y(math.rad(-euler.y))
 			local qz = vmath.quat_rotation_z(math.rad(euler.z))
-			go.set_rotation(qx * qy * qz, "/base_transform")
+			go.set_rotation(qx * qy * qz, BASE_TRANSFORM)
 		end
 	end
 end
@@ -310,7 +335,7 @@ local function show_model(self, model)
 		if tab.transform then
 			local new_transform = factory.create("#create_transform")
 			go.set_parent(new_transform, parent)
-			if not (parent == "/base_transform") then
+			if not (parent == BASE_TRANSFORM) then
 				local pos, rot, sc
 				pos, rot, sc, invert = parse_transform(tab.transform, invert)
 				go.set_position(pos, new_transform)
@@ -329,7 +354,7 @@ local function show_model(self, model)
 			create_transforms(val, parent, invert)
 		end
 	end
-	create_transforms(MEM.art_data.model_tree[model_name], "/base_transform", false)
+	create_transforms(MEM.art_data.model_tree[model_name], BASE_TRANSFORM, false)
 end
 
 function on_message(self, message_id, message, sender)
@@ -349,9 +374,9 @@ function on_message(self, message_id, message, sender)
 		--msg.post("/grid#grid", hash("enable"))
 		show_grid(self)
 		if message_id == hash("show") then
-			go.set_position(vmath.vector3(0, 0, 0), "/base_transform")
-			go.set("/base_transform", "scale", vmath.vector3(1, 1, -1))
-			go.set_rotation(vmath.quat(0, 0, 0, 1), "/base_transform")
+			go.set_position(vmath.vector3(0, 0, 0), BASE_TRANSFORM)
+			go.set(BASE_TRANSFORM, "scale", vmath.vector3(1, 1, -1))
+			go.set_rotation(vmath.quat(0, 0, 0, 1), BASE_TRANSFORM)
 		end
 		msg.post("/model_camera#background", hash("enable"))
 	elseif message_id == hash("hide") then

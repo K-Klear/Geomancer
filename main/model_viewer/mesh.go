@@ -3,7 +3,7 @@ embedded_components {
   type: "mesh"
   data: "material: \"/render/model.material\"\n"
   "vertices: \"/main/model_viewer/model_verts.buffer\"\n"
-  "textures: \"/assets/gfx/button_colour_segment.png\"\n"
+  "textures: \"/assets/gfx/model_viewer/button_colour_segment.png\"\n"
   "position_stream: \"position\"\n"
   "normal_stream: \"normal\"\n"
   ""

@@ -72,7 +72,7 @@ function init(self)
 end
 
 local function evaluate_button(button, item)
-	if button == "choice_cancel" then
+	if button == "choice_cancel" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)
 		remove_selection()
 	elseif button == "choice_accept" then

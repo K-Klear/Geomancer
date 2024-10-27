@@ -755,8 +755,14 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("show") then
 		msg.post("#", hash("enable"))
 		msg.post("#", hash("acquire_input_focus"))
+		local model_for_viewer
 		update_lists()
-		msg.post("/model_viewer", hash("show"))
+		if get_selected_model() < 1 and #MEM.art_data.model_list > 0 then
+			UI.select_exclusive_button(TAB_NAME, model_list, 1, true)
+			model_for_viewer = 1
+			update_lists()
+		end
+		msg.post("/model_viewer", hash("show"), {model = model_for_viewer})
 		if not colour_set then
 			colour_set = true
 			COL.set_current_to_default()
@@ -969,6 +975,9 @@ function evaluate_button(button, item)
 			if not model_data.tween then
 				model_data.tween = {signal = "tween", script = {}}
 			end
+			UI.select_exclusive_button(TAB_NAME, model_list, item, true)
+			update_lists()
+			msg.post("/model_viewer", hash("show"), {model = item})
 			open_dialog("dialog_tween", {model_index = item})
 		end
 	end

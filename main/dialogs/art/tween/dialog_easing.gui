@@ -66,8 +66,8 @@ nodes {
 }
 nodes {
   position {
-    x: -200.0
-    y: -192.0
+    x: 56.0
+    y: -194.0
   }
   size {
     x: 400.0
@@ -302,8 +302,8 @@ nodes {
 }
 nodes {
   position {
-    x: -212.0
-    y: 208.0
+    x: 455.0
+    y: 282.0
   }
   size {
     x: 200.0
@@ -333,156 +333,1243 @@ nodes {
 }
 nodes {
   position {
-    x: 216.0
-    y: 287.0
-  }
-  size {
-    x: 282.0
-    y: 480.0
-  }
-  type: TYPE_BOX
-  texture: "UI/empty_pixel"
-  id: "easing_list"
-  pivot: PIVOT_NW
-  parent: "edit_box"
-  clipping_mode: CLIPPING_MODE_STENCIL
-  clipping_visible: false
-}
-nodes {
-  position {
-    x: 313.0
-    y: -428.0
-  }
-  type: TYPE_BOX
-  texture: "UI/scrollbar_button"
-  id: "easing_scroll_up"
-  parent: "easing_list"
-  layer: "below"
-  size_mode: SIZE_MODE_AUTO
-}
-nodes {
-  position {
-    x: 313.0
-    y: -569.0
-  }
-  rotation {
-    z: 180.0
-  }
-  type: TYPE_BOX
-  texture: "UI/scrollbar_button"
-  id: "easing_scroll_down"
-  parent: "easing_list"
-  layer: "below"
-  size_mode: SIZE_MODE_AUTO
-}
-nodes {
-  position {
-    x: 313.0
-    y: -466.0
-  }
-  size {
-    x: 32.0
-    y: 34.0
-  }
-  color {
-    x: 0.502
-    y: 0.502
-    z: 0.502
-  }
-  type: TYPE_BOX
-  texture: "UI/scrollbar"
-  id: "easing_scroll_background"
-  pivot: PIVOT_N
-  parent: "easing_list"
-  layer: "below"
-  slice9 {
-    x: 6.0
-    y: 6.0
-    z: 6.0
-    w: 6.0
-  }
-}
-nodes {
-  position {
-    x: 313.0
-    y: -466.0
-  }
-  size {
-    x: 24.0
-    y: 34.0
-  }
-  type: TYPE_BOX
-  texture: "UI/scrollbar"
-  id: "easing_scroll_grip"
-  pivot: PIVOT_N
-  parent: "easing_list"
-  layer: "below"
-  slice9 {
-    x: 6.0
-    y: 6.0
-    z: 6.0
-    w: 6.0
-  }
-}
-nodes {
-  position {
-    y: -20.0
+    x: -290.0
+    y: 228.0
   }
   type: TYPE_TEMPLATE
-  id: "easing_exclusive"
-  parent: "easing_list"
+  id: "linear"
+  parent: "edit_box"
   template: "/templates/button_white_small.gui"
 }
 nodes {
   size {
-    x: 250.0
+    x: 140.0
     y: 40.0
   }
   type: TYPE_BOX
-  texture: "UI/button_exclusive"
-  id: "easing_exclusive/button_white"
-  pivot: PIVOT_W
-  parent: "easing_exclusive"
+  id: "linear/button_white"
+  parent: "linear"
   layer: "below"
-  slice9 {
-    x: 6.0
-    y: 6.0
-    z: 6.0
-    w: 6.0
-  }
   overridden_fields: 1
   overridden_fields: 4
-  overridden_fields: 9
-  overridden_fields: 14
   overridden_fields: 20
-  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "Linear"
+  id: "linear/text"
+  parent: "linear/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
   template_node_child: true
 }
 nodes {
   position {
-    x: 5.0
+    x: -430.0
+    y: 188.0
   }
+  type: TYPE_TEMPLATE
+  id: "insine"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
   size {
-    x: 160.0
-    y: 30.0
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "insine/button_white"
+  parent: "insine"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InSine"
+  id: "insine/text"
+  parent: "insine/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -290.0
+    y: 188.0
+  }
+  type: TYPE_TEMPLATE
+  id: "outsine"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "outsine/button_white"
+  parent: "outsine"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "OutSine"
+  id: "outsine/text"
+  parent: "outsine/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -150.0
+    y: 188.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inoutsine"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inoutsine/button_white"
+  parent: "inoutsine"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InOutSine"
+  id: "inoutsine/text"
+  parent: "inoutsine/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -430.0
+    y: 148.0
+  }
+  type: TYPE_TEMPLATE
+  id: "incubic"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "incubic/button_white"
+  parent: "incubic"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InCubic"
+  id: "incubic/text"
+  parent: "incubic/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -290.0
+    y: 148.0
+  }
+  type: TYPE_TEMPLATE
+  id: "outcubic"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "outcubic/button_white"
+  parent: "outcubic"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "OutCubic"
+  id: "outcubic/text"
+  parent: "outcubic/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -150.0
+    y: 148.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inoutcubic"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inoutcubic/button_white"
+  parent: "inoutcubic"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InOutCubic"
+  id: "inoutcubic/text"
+  parent: "inoutcubic/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -430.0
+    y: 108.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inquint"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inquint/button_white"
+  parent: "inquint"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InQuint"
+  id: "inquint/text"
+  parent: "inquint/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -290.0
+    y: 108.0
+  }
+  type: TYPE_TEMPLATE
+  id: "outquint"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "outquint/button_white"
+  parent: "outquint"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "OutQuint"
+  id: "outquint/text"
+  parent: "outquint/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -150.0
+    y: 108.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inoutquint"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inoutquint/button_white"
+  parent: "inoutquint"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InOutQuint"
+  id: "inoutquint/text"
+  parent: "inoutquint/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -430.0
+    y: 68.0
+  }
+  type: TYPE_TEMPLATE
+  id: "incirc"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "incirc/button_white"
+  parent: "incirc"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InCirc"
+  id: "incirc/text"
+  parent: "incirc/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -290.0
+    y: 68.0
+  }
+  type: TYPE_TEMPLATE
+  id: "outcirc"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "outcirc/button_white"
+  parent: "outcirc"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "OutCirc"
+  id: "outcirc/text"
+  parent: "outcirc/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -150.0
+    y: 68.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inoutcirc"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inoutcirc/button_white"
+  parent: "inoutcirc"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InOutCirc"
+  id: "inoutcirc/text"
+  parent: "inoutcirc/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -430.0
+    y: 28.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inelastic"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inelastic/button_white"
+  parent: "inelastic"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InElastic"
+  id: "inelastic/text"
+  parent: "inelastic/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -290.0
+    y: 28.0
+  }
+  type: TYPE_TEMPLATE
+  id: "outelastic"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "outelastic/button_white"
+  parent: "outelastic"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "OutElastic"
+  id: "outelastic/text"
+  parent: "outelastic/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -150.0
+    y: 28.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inoutelastic"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inoutelastic/button_white"
+  parent: "inoutelastic"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InOutElastic"
+  id: "inoutelastic/text"
+  parent: "inoutelastic/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -430.0
+    y: -12.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inquad"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inquad/button_white"
+  parent: "inquad"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InQuad"
+  id: "inquad/text"
+  parent: "inquad/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -290.0
+    y: -12.0
+  }
+  type: TYPE_TEMPLATE
+  id: "outquad"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "outquad/button_white"
+  parent: "outquad"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "OutQuad"
+  id: "outquad/text"
+  parent: "outquad/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -150.0
+    y: -12.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inoutquad"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inoutquad/button_white"
+  parent: "inoutquad"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InOutQuad"
+  id: "inoutquad/text"
+  parent: "inoutquad/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -430.0
+    y: -52.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inquart"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inquart/button_white"
+  parent: "inquart"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InQuart"
+  id: "inquart/text"
+  parent: "inquart/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -290.0
+    y: -52.0
+  }
+  type: TYPE_TEMPLATE
+  id: "outquart"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "outquart/button_white"
+  parent: "outquart"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "OutQuart"
+  id: "outquart/text"
+  parent: "outquart/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -150.0
+    y: -52.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inoutquart"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inoutquart/button_white"
+  parent: "inoutquart"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InOutQuart"
+  id: "inoutquart/text"
+  parent: "inoutquart/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -430.0
+    y: -92.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inexpo"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inexpo/button_white"
+  parent: "inexpo"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InExpo"
+  id: "inexpo/text"
+  parent: "inexpo/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -290.0
+    y: -92.0
+  }
+  type: TYPE_TEMPLATE
+  id: "outexpo"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "outexpo/button_white"
+  parent: "outexpo"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "OutExpo"
+  id: "outexpo/text"
+  parent: "outexpo/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -150.0
+    y: -92.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inoutexpo"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inoutexpo/button_white"
+  parent: "inoutexpo"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InOutExpo"
+  id: "inoutexpo/text"
+  parent: "inoutexpo/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -430.0
+    y: -132.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inback"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inback/button_white"
+  parent: "inback"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InBack"
+  id: "inback/text"
+  parent: "inback/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -290.0
+    y: -132.0
+  }
+  type: TYPE_TEMPLATE
+  id: "outback"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "outback/button_white"
+  parent: "outback"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "OutBack"
+  id: "outback/text"
+  parent: "outback/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -150.0
+    y: -132.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inoutback"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inoutback/button_white"
+  parent: "inoutback"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InOutBack"
+  id: "inoutback/text"
+  parent: "inoutback/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -430.0
+    y: -172.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inbounce"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inbounce/button_white"
+  parent: "inbounce"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "InBounce"
+  id: "inbounce/text"
+  parent: "inbounce/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -290.0
+    y: -172.0
+  }
+  type: TYPE_TEMPLATE
+  id: "outbounce"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "outbounce/button_white"
+  parent: "outbounce"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  type: TYPE_TEXT
+  text: "OutBounce"
+  id: "outbounce/text"
+  parent: "outbounce/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -150.0
+    y: -172.0
+  }
+  type: TYPE_TEMPLATE
+  id: "inoutbounce"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "inoutbounce/button_white"
+  parent: "inoutbounce"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
   }
   type: TYPE_TEXT
   text: "InOutBounce"
-  font: "main_menu_button_small"
-  id: "easing_exclusive/text"
-  pivot: PIVOT_W
-  parent: "easing_exclusive/button_white"
+  id: "inoutbounce/text"
+  parent: "inoutbounce/button_white"
   layer: "text"
-  overridden_fields: 1
-  overridden_fields: 4
+  overridden_fields: 3
   overridden_fields: 8
-  overridden_fields: 10
-  overridden_fields: 14
-  overridden_fields: 18
   overridden_fields: 20
-  overridden_fields: 47
   template_node_child: true
-  material: "font-df"
 }
 layers {
   name: "list_background"

@@ -206,7 +206,7 @@ function evaluate_button(button, item)
 		else
 			DIALOG.close(DIALOG_NAME, {sequence = selected_sequence, existing_sequence = selected_existing_sequence})
 		end
-	elseif button == "bulk_sequence_cancel" then
+	elseif button == "bulk_sequence_cancel" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)
 	elseif button == sequence_list then
 		selected_sequence = sequences[item]

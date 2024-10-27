@@ -56,7 +56,8 @@ local function display_total_time()
 			time = time + val.time
 		end
 	end
-	gui.set_text(gui.get_node("lbl_tween_duration"), "Total duration:\n"..time.." seconds.")
+	time = G.round(time, 7)
+	gui.set_text(gui.get_node("lbl_tween_duration"), "Total duration:\n"..time.."\nseconds.")
 end
 
 local action_types = {T = "Move", R = "Rotate", S = "Scale", W = "Wait", X = "Repeat"}
@@ -483,7 +484,7 @@ local function save_tween_data(path)
 end
 
 function evaluate_button(button, item)
-	if button == "dialog_tween_close" then
+	if button == "dialog_tween_close" or button == "escape" then
 		DIALOG.close(DIALOG_NAME, {model_index = model_index, signal = signal})
 		UI.update_list(DIALOG_NAME, action_list, 0)
 	elseif button == "dialog_tween_add" then

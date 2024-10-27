@@ -42,7 +42,7 @@ function evaluate_button(button, item)
 		else
 			DIALOG.close(DIALOG_NAME, {selected_model = selected_model, model_to_replace = model_to_replace})
 		end
-	elseif button == "dialog_replace_cancel" then
+	elseif button == "dialog_replace_cancel" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)
 	elseif button == replace_model_list then
 		if selected_model == model_to_replace then

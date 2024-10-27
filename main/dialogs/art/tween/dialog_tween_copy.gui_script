@@ -32,7 +32,7 @@ function evaluate_button(button, item)
 		model_list = {}
 		selected_model = nil
 		UI.update_list(DIALOG_NAME, list, 0)
-	elseif button == "tween_copy_cancel" then
+	elseif button == "tween_copy_cancel" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)
 		model_list = {}
 		selected_model = nil

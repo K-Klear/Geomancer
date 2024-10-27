@@ -33,7 +33,7 @@ local function evaluate_button(button)
 			end
 			DIALOG.close(DIALOG_NAME, {new_name = model_name, model_to_rename = model_to_rename})
 		end
-	elseif button == "dialog_rename_model_cancel" then
+	elseif button == "dialog_rename_model_cancel" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)
 	end
 end

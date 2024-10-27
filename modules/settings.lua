@@ -68,6 +68,8 @@ SET.default_camera_zoom = 8
 SET.default_camera_pitch = 25
 SET.default_camera_rotation = 0
 
+SET.default_model_z_position = 8
+
 SET.default_colour_set = 1
 SET.custom_colour_main = "471537"
 SET.custom_colour_fog = "C9C3C1"

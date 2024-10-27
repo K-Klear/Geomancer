@@ -4,10 +4,13 @@ local SET = require "modules.settings"
 local UI = require "modules.ui"
 local COL = require "modules.colours"
 local G = require "modules.global"
+local DIALOG = UI.DIALOG
 
 local bounding_node, bounding_node_preview, aux_node, button_box, playback_box, close_button, timeline, scrubber, time_display
 
 local playback = false
+
+local move_scrubber
 
 local TAB_NAME = "model_viewer"
 
@@ -16,10 +19,17 @@ local GET_MODEL_VIEWPORT = hash("get_model_viewport")
 
 local POSITION_MIN = 10
 local POSITION_MAX = 1180
-local BUTTON_BOX_POSITION = vmath.vector3(620, 56, 0)
-local BUTTON_BOX_POSITION_PREVIEW = vmath.vector3(1024, 128, 0)
+local BUTTON_BOX_POSITION = vmath.vector3(850, 56, 0)
+local BUTTON_BOX_POSITION_PREVIEW = vmath.vector3(1280.0, 128, 0)
+local BUTTON_BOX_SIZE = vmath.vector3(225.0, 100, 0)
+local BUTTON_BOX_SIZE_PREVIEW = vmath.vector3(300, 322, 0)
 
 local AUX_NODE_POS
+
+MOD.offset_position = vmath.vector3(0, 0, 0)
+MOD.offset_rotation = vmath.quat(0, 0, 0, 1)
+MOD.offset_scale = vmath.vector3(1, 1, 1)
+MOD.offset_euler = vmath.vector3(0, 0, 0)
 
 local function set_button_colours()
 	gui.set_color(gui.get_node("button_colour/main"), COL.get_current("main"))
@@ -28,13 +38,79 @@ local function set_button_colours()
 	gui.set_color(gui.get_node("button_colour/enemy"), COL.get_current("enemy"))
 end
 
+local function euler_to_quat(euler)
+	local qx, qy, qz
+	qx = vmath.quat_rotation_x(math.rad(-euler.x))
+	qy = vmath.quat_rotation_y(math.rad(-euler.y))
+	qz = vmath.quat_rotation_z(math.rad(euler.z))
+	return qy * qx * qz
+end
+
+local two_pi = 2 * math.pi
+local half_pi = math.pi * 0.5
+local negative_flip = -0.0001
+local positive_flip = two_pi - 0.0001
+
+local function sanitise_euler(euler)
+	if euler.x < negative_flip then
+		euler.x = euler.x + two_pi
+	elseif euler.x > positive_flip then
+		euler.x = euler.x - two_pi
+	end
+	if euler.y < negative_flip then
+		euler.y = euler.y + two_pi
+	elseif euler.y > positive_flip then
+		euler.y = euler.y - two_pi
+	end
+	if euler.z < negative_flip then
+		euler.z = euler.z + two_pi
+	elseif euler.z > positive_flip then
+		euler.z = euler.z + two_pi
+	end
+	return euler
+end
+
+local function quat_to_euler(q)
+	local x = q.x
+	local y = q.y
+	local z = q.z
+	local w = q.w
+	local check = 2 * (y * z - w * x)
+	if check < 0.999 then
+		if check > -0.999 then
+			local v = vmath.vector3(-math.asin(check),
+			math.atan2(2 * (x * z + w * y), 1 - 2 * (x * x + y * y)),
+			math.atan2(2 * (x * y + w * z), 1 - 2 * (x * x + z * z)))
+			return math.deg(v)
+		else
+			local v = vmath.vector3(half_pi, math.atan2(2 * (x * y - w * z), 1 - 2 * (y * y + z * z)), 0)
+			return math.deg(v)
+		end
+	else
+		local v = vmath.vector3(-half_pi, math.atan2(-2 * (x * y - w * z), 1 - 2 * (y * y + z * z)), 0)
+		return math.deg(v)
+	end
+end
+
+local function update_offset_fields()
+	local xyz = {"x", "y", "z"}
+	for key, val in pairs(xyz) do
+		gui.set_text(gui.get_node("position_"..val.."/text"), G.round(MOD.offset_position[val], 1))
+		gui.set_text(gui.get_node("rotation_"..val.."/text"), G.round(MOD.offset_euler[val], 1))
+		gui.set_text(gui.get_node("scale_"..val.."/text"), G.round(MOD.offset_scale[val], 2))
+	end
+	gui.set_text(gui.get_node("position_z/text"), G.round(-MOD.offset_position.z, 1))
+end
+
 function init(self)
+	update_offset_fields()
 	bounding_node = gui.get_node("model_viewer")
 	bounding_node_preview = gui.get_node("model_viewer_preview")
 	button_box = gui.get_node("button_box")
 	playback_box = gui.get_node("playback_box")
 	close_button = gui.get_node("close_preview/button_white")
 	gui.set_position(button_box, BUTTON_BOX_POSITION)
+	gui.set_size(button_box, BUTTON_BOX_SIZE_PREVIEW)
 	timeline = gui.get_node("timeline")
 	scrubber = gui.get_node("scrubber")
 	time_display = gui.get_node("label_time")
@@ -43,6 +119,7 @@ function init(self)
 	gui.set_enabled(gui.get_node("playback_box"), false)
 	gui.set_enabled(gui.get_node("close_preview/button_white"), false)
 	gui.set_enabled(time_display, false)
+	gui.set_enabled(gui.get_node("offset_box"), false)
 	local pos = gui.get_position(bounding_node)
 	local size = gui.get_size(bounding_node) * gui.get(bounding_node, "scale.x")
 	pos.x = pos.x + size.x
@@ -120,9 +197,12 @@ local function create_tween_sections()
 	end
 end
 
-local function stop_playback()
+local function stop_playback(go_to_end)
 	playback = false
 	gui.cancel_animation(scrubber, "position.x")
+	if go_to_end then
+		move_scrubber(1)
+	end
 	gui.play_flipbook(gui.get_node("playback_play/text"), "play")
 end
 
@@ -133,13 +213,25 @@ local function start_playback()
 	gui.animate(scrubber, "position.x", POSITION_MAX + POSITION_MIN, gui.EASING_LINEAR, duration, 0, stop_playback)
 end
 
+local function disable_pov_lock()
+	msg.post(".", hash("reset_view"))
+	MOD.pov_lock = false
+	gui.set_color(gui.get_node("lock_cam/button_white"), vmath.vector4(1, 1, 1, 1))
+end
+
 local function close_preview()
+	MOD.offset_position = vmath.vector3(0, 0, 0)
+	MOD.offset_rotation = vmath.quat(0, 0, 0, 1)
+	MOD.offset_scale = vmath.vector3(1, 1, 1)
+	MOD.offset_euler = vmath.vector3(0, 0, 0)
 	stop_playback()
 	MOD.tween_preview = false
 	set_button_colours()
 	msg.post("#", hash("release_input_focus"))
 	gui.set_enabled(bounding_node_preview, false)
 	gui.set_enabled(bounding_node, true)
+	gui.set_enabled(gui.get_node("offset_box"), false)
+	disable_pov_lock()
 	local pos = gui.get_position(bounding_node)
 	local size = gui.get_size(bounding_node) * gui.get(bounding_node, "scale.x")
 	pos.x = pos.x + size.x
@@ -154,6 +246,7 @@ local function close_preview()
 	gui.set_enabled(time_display, false)
 	gui.set_enabled(gui.get_node("label_model"), false)
 	gui.set_position(button_box, BUTTON_BOX_POSITION)
+	gui.set_size(button_box, BUTTON_BOX_SIZE_PREVIEW)
 	MOD.tween_table = nil
 	MOD.model_index = nil
 end
@@ -168,11 +261,20 @@ local function update_view(update_scubber)
 	gui.set_text(time_display, math.floor(MOD.total_time * MOD.scrubber_progress * 1000) / 1000)
 end
 
-local function move_scrubber(progress)
+function move_scrubber(progress)
 	MOD.scrubber_progress = progress
 	local pos = POSITION_MAX * MOD.scrubber_progress + POSITION_MIN
 	gui.set(scrubber, "position.x", pos)
 	update_view()
+end
+
+local function handle_euler()
+	MOD.offset_euler = math.deg(sanitise_euler(math.rad(MOD.offset_euler)))
+	MOD.offset_rotation = euler_to_quat(MOD.offset_euler)
+	MOD.offset_euler = quat_to_euler(MOD.offset_rotation)
+	MOD.offset_euler.x = -MOD.offset_euler.x
+	MOD.offset_euler.y = -MOD.offset_euler.y
+	MOD.offset_euler = math.deg(sanitise_euler(math.rad(MOD.offset_euler)))
 end
 
 function on_message(self, message_id, message, sender)
@@ -186,21 +288,65 @@ function on_message(self, message_id, message, sender)
 		close_preview()
 	elseif message_id == hash("disable_input") then
 		msg.post("#", hash("release_input_focus"))
+	elseif message_id == hash("dialog_closed") then
+		msg.post("#", hash("acquire_input_focus"))
+		if message.dialog == "dialog_props" then
+			if message.position then
+				MOD.offset_position.x = message.position.x
+				MOD.offset_position.y = message.position.y
+				if MEM.level_data.move_mode and MEM.level_data.move_mode == "Stationary" then
+					MOD.offset_position.z = -message.position.z
+				else
+					MOD.offset_position.z = -SET.default_model_z_position
+				end
+				MOD.offset_euler.x = message.rotation.x
+				MOD.offset_euler.y = message.rotation.y
+				MOD.offset_euler.z = message.rotation.z
+				MOD.offset_scale.x = message.scale.x
+				MOD.offset_scale.y = message.scale.y
+				MOD.offset_scale.z = message.scale.z
+				handle_euler()
+				update_offset_fields()
+			end
+		end
 	elseif message_id == hash("tween_preview") then
 		MOD.total_time = 0
 		move_scrubber(0)
 		MOD.tween_preview = true
 		gui.set_position(button_box, BUTTON_BOX_POSITION_PREVIEW)
+		gui.set_size(button_box, BUTTON_BOX_SIZE_PREVIEW)
 		msg.post("#", hash("acquire_input_focus"))
 		gui.set_enabled(bounding_node_preview, true)
 		gui.set_enabled(bounding_node, false)
+		gui.set_enabled(gui.get_node("offset_box"), true)
+		MOD.offset_position.z = -SET.default_model_z_position
+		gui.set_text(gui.get_node("position_z/text"), SET.default_model_z_position)
 		local pos = gui.get_position(bounding_node_preview)
 		local size = gui.get_size(bounding_node_preview) * gui.get(bounding_node_preview, "scale.x")
 		pos.x = pos.x + size.x
 		pos.y = pos.y - size.y
 		gui.set_position(aux_node, pos)
 		get_viewport()
-		UI.load_template({"playback_back", "playback_forward", "playback_play", "playback_stop", "close_preview"}, TAB_NAME)
+		UI.load_template({"playback_back", "playback_forward", "playback_play", "playback_stop", "close_preview", "pick_model",
+		"lock_cam", "find_prop", "move_terrain"}, TAB_NAME)
+
+		local validation = {
+			number = true,
+			min = function() return -999 end,
+			max = function() return 999 end,
+			default = function() return 0 end
+		}
+		UI.load_text_field("position_x", 5, TAB_NAME, validation)
+		UI.load_text_field("position_y", 5, TAB_NAME, validation)
+		UI.load_text_field("position_z", 5, TAB_NAME, validation)
+		UI.load_text_field("rotation_x", 5, TAB_NAME, validation)
+		UI.load_text_field("rotation_y", 5, TAB_NAME, validation)
+		UI.load_text_field("rotation_z", 5, TAB_NAME, validation)
+		UI.load_text_field("scale_x", 5, TAB_NAME, validation)
+		UI.load_text_field("scale_y", 5, TAB_NAME, validation)
+		UI.load_text_field("scale_z", 5, TAB_NAME, validation)
+		
+		
 		gui.set_enabled(gui.get_node("playback_box"), true)
 		gui.set_enabled(gui.get_node("timeline"), true)
 		gui.set_enabled(gui.get_node("close_preview/button_white"), true)
@@ -280,12 +426,33 @@ local function evaluate_button(button)
 		msg.post("#", hash("release_input_focus"))
 		MOD.is_dragged = false
 		MOD.camera_is_dragged = false
+	elseif button == "pick_model" then
+		DIALOG.open(TAB_NAME, "dialog_props", {model = MEM.art_data.model_list[MOD.model_index].name})
 	elseif button == "show_background" then
 		msg.post(".", hash("switch_background"))
 	elseif button == "reset_view" then
-		msg.post(".", hash("reset_view"))
+		disable_pov_lock()
 	elseif button == "show_grid" then
 		msg.post(".", hash("show_grid"))
+	elseif button == "lock_cam" then
+		MOD.pov_lock = not MOD.pov_lock
+		if MOD.pov_lock then
+			gui.set_color(gui.get_node("lock_cam/button_white"), vmath.vector4(1, 1, 0.5, 1))
+			MOD.target_x = 0
+			MOD.target_y = 0
+		else
+			disable_pov_lock()
+		end
+	elseif button == "move_terrain" then
+		MOD.move_terrain = not MOD.move_terrain
+		if MOD.move_terrain then
+			gui.set_color(gui.get_node("move_terrain/button_white"), vmath.vector4(1, 1, 0.5, 1))
+		else
+			gui.set_color(gui.get_node("move_terrain/button_white"), vmath.vector4(1, 1, 1, 1))
+		end
+	elseif button == "find_prop" then
+		disable_pov_lock()
+		MOD.find_prop = true
 	elseif button == "playback_back" then
 		local continue_playback = playback
 		stop_playback()
@@ -334,10 +501,40 @@ local function evaluate_button(button)
 	elseif button == "playback_stop" then
 		stop_playback()
 		move_scrubber(0)
-	elseif button == "close_preview" then
+	elseif MOD.tween_preview and (button == "close_preview" or button == "escape") then
 		msg.post("/art#tab_art", hash("tween_preview_closed"), {model_index = MOD.model_index})
 		close_preview()
 	end
+end
+
+
+
+
+
+local function evaluate_input(field, text)
+	if field == "position_x" then
+		MOD.offset_position.x = text
+	elseif field == "position_y" then
+		MOD.offset_position.y = text
+	elseif field == "position_z" then
+		MOD.offset_position.z = -text
+	elseif field == "rotation_x" then
+		MOD.offset_euler.x = text
+		handle_euler()
+	elseif field == "rotation_y" then
+		MOD.offset_euler.y = text
+		handle_euler()
+	elseif field == "rotation_z" then
+		MOD.offset_euler.z = text
+		handle_euler()
+	elseif field == "scale_x" then
+		MOD.offset_scale.x = text
+	elseif field == "scale_y" then
+		MOD.offset_scale.y = text
+	elseif field == "scale_z" then
+		MOD.offset_scale.z = text
+	end
+	update_offset_fields()
 end
 
 function update()
@@ -373,6 +570,7 @@ function on_input(self, action_id, action)
 			end
 			start_playback()
 		end
+		return
 	elseif action.released and MOD.camera_is_dragged and action_id == hash("r_click") then
 		MOD.camera_is_dragged = false
 		return
@@ -388,7 +586,6 @@ function on_input(self, action_id, action)
 				local max_x = gui.get_screen_position(gui.get_node("max")).x
 				pos.x = math.min(math.max(action.screen_x, min_x), max_x)
 				move_scrubber((pos.x - min_x) / (max_x - min_x))
-				return
 			end
 		elseif not (gui.pick_node(button_box, action.x, action.y) or gui.pick_node(playback_box, action.x, action.y) or (gui.pick_node(close_button, action.x, action.y) and MOD.tween_preview)) then
 			if action_id == hash("touch") and action.pressed then
@@ -400,9 +597,7 @@ function on_input(self, action_id, action)
 			elseif action_id == hash("scroll_down") and action.value > 0 then
 				MOD.cam_target_z = math.min(MOD.cam_target_z + SET.model_zoom_sensitivity, 100)
 			end
-			return
-		else
-			UI.on_input(TAB_NAME, action_id, action, evaluate_button)
 		end
 	end
+	UI.on_input(TAB_NAME, action_id, action, evaluate_button, evaluate_input)
 end

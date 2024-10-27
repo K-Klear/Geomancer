@@ -1,0 +1,178 @@
+local MEM = require "modules.memory"
+local UI = require "modules.ui"
+local G = require "modules.global"
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "dialog_props"
+local DIALOG_DATA
+
+local prop_scroll_list, evaluate_button
+local prop_list = {}
+local selected_prop
+
+local function get_button_string(item)
+	local str = "Position: "..prop_list[item].position.x.."/"..prop_list[item].position.y.."/"..prop_list[item].position.z
+	str = str.." Rotation: "..prop_list[item].rotation.x.."/"..prop_list[item].rotation.y.."/"..prop_list[item].rotation.z
+	str = str.." Scale: "..prop_list[item].scale.x.."/"..prop_list[item].scale.y.."/"..prop_list[item].scale.z
+	return str
+end
+
+function init(self)
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+	UI.load_template({"prop_cancel", "prop_accept"}, DIALOG_NAME)
+	local props = {
+		{
+			type = hash("exclusive_button"),
+			node = gui.get_node("prop_exclusive/button_white"),
+			text_node = gui.get_node("prop_exclusive/text"),
+			value_fn = get_button_string,
+			template = "prop_exclusive;",
+			fn = evaluate_button
+		},
+		item_count = 0,
+		scroll_prefix = "prop_"
+	}
+	prop_scroll_list = UI.create_list(DIALOG_NAME, gui.get_node("prop_list"), props)
+end
+
+function evaluate_button(button, item)
+	if button == "prop_cancel" then
+		DIALOG.close(DIALOG_NAME)
+	elseif button == "prop_accept" then
+		local prop_data = prop_list[selected_prop]
+		DIALOG.close(DIALOG_NAME, prop_data)
+	elseif button == prop_scroll_list then
+		selected_prop = item
+	end
+end
+
+local two_pi = 2 * math.pi
+local half_pi = math.pi * 0.5
+local negative_flip = -0.0001
+local positive_flip = two_pi - 0.0001
+
+local function sanitise_euler(euler)
+	if euler.x < negative_flip then
+		euler.x = euler.x + two_pi
+	elseif euler.x > positive_flip then
+		euler.x = euler.x - two_pi
+	end
+	if euler.y < negative_flip then
+		euler.y = euler.y + two_pi
+	elseif euler.y > positive_flip then
+		euler.y = euler.y - two_pi
+	end
+	if euler.z < negative_flip then
+		euler.z = euler.z + two_pi
+	elseif euler.z > positive_flip then
+		euler.z = euler.z + two_pi
+	end
+	return euler
+end
+
+local function quat_to_euler(q)
+	local x = q.x
+	local y = q.y
+	local z = q.z
+	local w = q.w
+	local check = 2 * (y * z - w * x)
+	if check < 0.999 then
+		if check > -0.999 then
+			local v = vmath.vector3(-math.asin(check),
+			math.atan2(2 * (x * z + w * y), 1 - 2 * (x * x + y * y)),
+			math.atan2(2 * (x * y + w * z), 1 - 2 * (x * x + z * z)))
+			return v
+		else
+			local v = vmath.vector3(half_pi, math.atan2(2 * (x * y - w * z), 1 - 2 * (y * y + z * z)), 0)
+			return v
+		end
+	else
+		local v = vmath.vector3(-half_pi, math.atan2(-2 * (x * y - w * z), 1 - 2 * (y * y + z * z)), 0)
+		return v
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		DIALOG.show(DIALOG_DATA, sender)
+		prop_list = {}
+		local function get_model_data(model_table)
+			if model_table.name == message.model then
+				local pos = {}
+				local rot = vmath.quat()
+				local scale = {}
+				local comma_1, comma_2, comma_3, comma_4, comma_5, comma_6
+				comma_1 = string.find(model_table.scale, ",")
+				comma_2 = string.find(model_table.scale, ",", comma_1 + 1)
+				scale.x = tonumber(string.sub(model_table.scale, 1, comma_1 - 1))
+				scale.y = tonumber(string.sub(model_table.scale, comma_1 + 1, comma_2 - 1))
+				scale.z = tonumber(string.sub(model_table.scale, comma_2 + 1))
+				comma_1 = string.find(model_table.point, ",")
+				comma_2 = string.find(model_table.point, ",", comma_1 + 1)
+				comma_3 = string.find(model_table.point, ",", comma_2 + 1)
+				comma_4 = string.find(model_table.point, ",", comma_3 + 1)
+				comma_5 = string.find(model_table.point, ",", comma_4 + 1)
+				comma_6 = string.find(model_table.point, ",", comma_5 + 1)
+				pos.x = tonumber(string.sub(model_table.point, 1, comma_1 - 1))
+				pos.y = tonumber(string.sub(model_table.point, comma_1 + 1, comma_2 - 1))
+				pos.z = tonumber(string.sub(model_table.point, comma_2 + 1, comma_3 - 1))
+				rot.x = tonumber(string.sub(model_table.point, comma_3 + 1, comma_4 - 1))
+				rot.y = tonumber(string.sub(model_table.point, comma_4 + 1, comma_5 - 1))
+				rot.z = tonumber(string.sub(model_table.point, comma_5 + 1, comma_6 - 1))
+				rot.w = tonumber(string.sub(model_table.point, comma_6 + 1))
+				scale.x = G.round(scale.x, 2)
+				scale.y = G.round(scale.y, 2)
+				scale.z = G.round(scale.z, 2)
+				pos.x = G.round(pos.x, 2)
+				pos.y = G.round(pos.y, 2)
+				pos.z = G.round(pos.z, 2)
+
+				local v = quat_to_euler(rot)
+				--v.x = -v.x; v.y = -v.y
+				local euler = math.deg(sanitise_euler(v))
+				rot = {x = euler.x, y = euler.y, z = euler.z}
+				rot.x = G.round(rot.x, 1)
+				rot.y = G.round(rot.y, 1)
+				rot.z = G.round(rot.z, 1)
+				table.insert(prop_list, {position = pos, rotation = rot, scale = scale})
+			end
+		end
+
+		for key, val in ipairs(MEM.art_data.table_static_props) do
+			get_model_data(val)
+		end
+		for key, val in ipairs(MEM.art_data.table_dynamic_props) do
+			get_model_data(val)
+		end
+		for key, val in ipairs(MEM.art_data.table_culling_ranges) do
+			for k, v in ipairs(val.members) do
+				get_model_data(v)
+			end
+		end
+		for key, val in ipairs(MEM.art_data.table_dynamic_culling_ranges) do
+			for k, v in ipairs(val.members) do
+				get_model_data(v)
+			end
+		end
+		table.sort(prop_list, function(a, b) return a.position.z < b.position.z end)
+		UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
+		if not selected_prop or selected_prop < 1 or selected_prop > #prop_list then
+			UI.select_exclusive_button(DIALOG_NAME, prop_scroll_list, 1, true)
+			selected_prop = 1
+		else
+			UI.select_exclusive_button(DIALOG_NAME, prop_scroll_list, selected_prop, true)
+		end
+	end
+end
+
+function update()
+	if DIALOG_DATA.dialog_open then
+		for list_index in pairs(UI.tab[DIALOG_NAME].scrolling) do
+			UI.move_list_root(DIALOG_NAME, list_index, true)
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button)
+end

@@ -2,6 +2,11 @@ local G = {}
 
 local current_version = 0.4
 
+function G.round(num, decimals)
+	local divisor = 0.1 ^ decimals
+	return math.floor((num + 0.5 * divisor) * 10 ^ decimals) * divisor
+end
+
 function G.update_navbar(text, clear)
 	msg.post("/navbar#navbar", hash("update_status"), {text = text, clear = clear})
 end

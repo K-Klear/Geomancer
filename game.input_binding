@@ -42,6 +42,14 @@ key_trigger {
   input: KEY_SPACE
   action: "space"
 }
+key_trigger {
+  input: KEY_DEL
+  action: "delete"
+}
+key_trigger {
+  input: KEY_ESC
+  action: "escape"
+}
 mouse_trigger {
   input: MOUSE_BUTTON_1
   action: "touch"

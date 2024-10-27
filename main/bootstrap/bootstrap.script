@@ -64,6 +64,7 @@ local default_settings_text = {
 	"default_camera_zoom=8;			-- Should be between 0.5 and 100",
 	"default_camera_rotation=0;	-- Euler angle.",
 	"default_camera_pitch=25		-- Euler angle ranging from -90 to 90",
+	"default_model_z_position=8;",
 	"",
 	"easing_node_scale=0.5;",
 	"easing_curve_thickness=3;",
@@ -139,6 +140,7 @@ local settings_to_load = {
 	default_camera_zoom = {type = "number"},
 	default_camera_rotation = {type = "number"},
 	default_camera_pitch = {type = "angle_pitch"},
+	default_model_z_position = {type = "number"},
 
 	default_colour_set = {type = "integer"},
 	custom_colour_main = {type = "hex_colour"},

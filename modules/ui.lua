@@ -1,6 +1,7 @@
 local UI = {active = {}, text_fields = {}}
 local SET = require "modules.settings"
 local MOD = require "main.model_viewer.model"
+local G = require "modules.global"
 
 UI.COLOUR_DEFAULT = vmath.vector4(0.35, 0.75, 0.15, 1)
 UI.COLOUR_DISABLED = vmath.vector4(0.1, 0.1, 0.1, 1)
@@ -25,7 +26,7 @@ UI.tab = {
 	tab_meta = {path = "/meta#tab_meta", state = false, render_order = 1, buttons = {}, fields = {}},
 	tab_sequence = {path = "/sequence#tab_sequence", state = false, render_order = 1, buttons = {}, fields = {}},
 	tab_art = {path = "/art#tab_art", state = false, render_order = 1, buttons = {}, fields = {}},
-	model_viewer = {buttons = {}, fields = {}},
+	model_viewer = {path = "/model_viewer#model_viewer1", render_order = 2, buttons = {}, fields = {}},
 }
 
 local mouse_held, r_ctr_held, l_ctr_held, l_shift_held, r_shift_held
@@ -129,6 +130,10 @@ local function text_field_input(action_id, action)
 			gui.set_text(active_text_field.text, text_field_text)
 			reset_cursor_timer()
 		end
+	elseif action_id == hash("delete") and (action.pressed) then
+		text_field_text = ""
+		gui.set_text(active_text_field.text, text_field_text)
+		reset_cursor_timer()
 	elseif action_id == hash("text") then
 		if #text_field_text + #action.text > active_text_field.char_limit and not SET.ignore_char_limit then
 			return
@@ -180,6 +185,18 @@ local function template_clicked(tab, button, fn, no_anim)
 	end
 	fn(button_data.template, button_data.item)
 	--SND.play("#beep")
+end
+
+local function shorten_number(num, char_limit)
+	local length = #tostring(num)
+	local diff = length - char_limit
+	if diff > 0 then
+		local decimal_length = length - #tostring(math.floor(num))
+		if decimal_length > 0 then
+			return G.round(num, math.max(decimal_length - diff - 1, 0))
+		end
+	end
+	return num
 end
 
 local function create_list_item(tab, list_index, item)
@@ -245,7 +262,11 @@ local function create_list_item(tab, list_index, item)
 			local new = gui.clone_tree(val.node)
 			gui.set_parent(new[val.node_id], list_tab.root_node)
 			gui.set(new[val.node_id], "position.y", gui.get(new[val.node_id], "position.y") - height_adjust)
-			gui.set_text(new[val.text_id], val.value_fn(item))
+			if val.validation.number and val.char_limit then
+				gui.set_text(new[val.text_id], shorten_number(val.value_fn(item), val.char_limit))
+			else
+				gui.set_text(new[val.text_id], val.value_fn(item))
+			end
 			gui.set_enabled(new[val.node_id], true)
 			val.list[item] = new
 			table.insert(UI.tab[tab].fields, {
@@ -551,6 +572,10 @@ function UI.scroll_to_item(tab, list_index, item, fast)
 end
 
 function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
+	if action_id == hash("escape") and action.pressed then
+		button_fn("escape")
+		return
+	end
 	mouse_held = action.pressed or (mouse_held and not action.released)
 	if action_id == hash("lctrl") then
 		l_ctr_held = not action.released
@@ -586,6 +611,7 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
 			cursor_visible = false
 			gui.set_color(active_text_field.node, vmath.vector4(1, 1, 1, 1))
 			local valid = active_text_field.validation
+			local rounded_text
 			if valid then
 				if valid.number or valid.integer then
 					local f = loadstring("return "..text_field_text)
@@ -614,6 +640,9 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
 					else
 						text_field_text = valid.default(active_text_field.item)
 					end
+					if active_text_field.char_limit then	-- auto-rounding
+						rounded_text = shorten_number(text_field_text, active_text_field.char_limit)
+					end
 				elseif valid.text then
 					if valid.not_empty then
 						if text_field_text == "" then
@@ -625,7 +654,7 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
 					end
 				end
 			end
-			gui.set_text(active_text_field.text, text_field_text)
+			gui.set_text(active_text_field.text, rounded_text or text_field_text)
 			text_field_fn(active_text_field.template, text_field_text, active_text_field.item)
 			if action_id == hash("tab") then
 				local field_index

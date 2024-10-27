@@ -3,6 +3,10 @@ fonts {
   name: "logo_welcome"
   font: "/assets/fonts/final/logo_welcome.font"
 }
+fonts {
+  name: "preview_label"
+  font: "/assets/fonts/final/preview_label.font"
+}
 textures {
   name: "UI"
   texture: "/assets/gfx/UI.atlas"
@@ -60,24 +64,23 @@ nodes {
 }
 nodes {
   position {
-    x: 1024.0
-    y: 127.0
+    x: 1280.0
+    y: 128.0
   }
   size {
-    x: 200.0
-    y: 50.0
+    x: 225.0
+    y: 100.0
   }
   type: TYPE_BOX
   id: "button_box"
-  pivot: PIVOT_SW
+  pivot: PIVOT_SE
   layer: "below"
   inherit_alpha: true
-  size_mode: SIZE_MODE_AUTO
   visible: false
 }
 nodes {
   position {
-    x: 25.0
+    x: -203.0
     y: 25.0
   }
   type: TYPE_TEMPLATE
@@ -108,7 +111,7 @@ nodes {
 }
 nodes {
   position {
-    x: 75.0
+    x: -153.0
     y: 25.0
   }
   type: TYPE_TEMPLATE
@@ -139,7 +142,7 @@ nodes {
 }
 nodes {
   position {
-    x: 125.0
+    x: -103.0
     y: 25.0
   }
   type: TYPE_TEMPLATE
@@ -170,7 +173,7 @@ nodes {
 }
 nodes {
   position {
-    x: 175.0
+    x: -53.0
     y: 25.0
   }
   type: TYPE_TEMPLATE
@@ -217,8 +220,8 @@ nodes {
 }
 nodes {
   position {
-    x: 100.0
-    y: 74.0
+    x: -289.0
+    y: 25.0
   }
   type: TYPE_TEMPLATE
   id: "close_preview"
@@ -252,6 +255,499 @@ nodes {
   overridden_fields: 4
   overridden_fields: 8
   overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  id: "offset_box"
+  parent: "button_box"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: -160.0
+    y: 329.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Position"
+  font: "preview_label"
+  id: "label_position"
+  parent: "offset_box"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: -297.0
+    y: 299.0
+  }
+  type: TYPE_TEMPLATE
+  id: "position_x"
+  parent: "offset_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 90.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "position_x/box"
+  parent: "position_x"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "180"
+  id: "position_x/text"
+  parent: "position_x/box"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -199.0
+    y: 299.0
+  }
+  type: TYPE_TEMPLATE
+  id: "position_y"
+  parent: "offset_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 90.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "position_y/box"
+  parent: "position_y"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "180"
+  id: "position_y/text"
+  parent: "position_y/box"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -101.0
+    y: 299.0
+  }
+  type: TYPE_TEMPLATE
+  id: "position_z"
+  parent: "offset_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 90.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "position_z/box"
+  parent: "position_z"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "180"
+  id: "position_z/text"
+  parent: "position_z/box"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -160.0
+    y: 270.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Rotation"
+  font: "preview_label"
+  id: "label_rotation"
+  parent: "offset_box"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: -297.0
+    y: 240.0
+  }
+  type: TYPE_TEMPLATE
+  id: "rotation_x"
+  parent: "offset_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 90.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "rotation_x/box"
+  parent: "rotation_x"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "180"
+  id: "rotation_x/text"
+  parent: "rotation_x/box"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -199.0
+    y: 240.0
+  }
+  type: TYPE_TEMPLATE
+  id: "rotation_y"
+  parent: "offset_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 90.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "rotation_y/box"
+  parent: "rotation_y"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "180"
+  id: "rotation_y/text"
+  parent: "rotation_y/box"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -101.0
+    y: 240.0
+  }
+  type: TYPE_TEMPLATE
+  id: "rotation_z"
+  parent: "offset_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 90.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "rotation_z/box"
+  parent: "rotation_z"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "180"
+  id: "rotation_z/text"
+  parent: "rotation_z/box"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -160.0
+    y: 211.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Scale"
+  font: "preview_label"
+  id: "label_scale"
+  parent: "offset_box"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: -297.0
+    y: 181.0
+  }
+  type: TYPE_TEMPLATE
+  id: "scale_x"
+  parent: "offset_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 90.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "scale_x/box"
+  parent: "scale_x"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "180"
+  id: "scale_x/text"
+  parent: "scale_x/box"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -199.0
+    y: 181.0
+  }
+  type: TYPE_TEMPLATE
+  id: "scale_y"
+  parent: "offset_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 90.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "scale_y/box"
+  parent: "scale_y"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "180"
+  id: "scale_y/text"
+  parent: "scale_y/box"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -101.0
+    y: 181.0
+  }
+  type: TYPE_TEMPLATE
+  id: "scale_z"
+  parent: "offset_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 90.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "scale_z/box"
+  parent: "scale_z"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 25.0
+  }
+  type: TYPE_TEXT
+  text: "180"
+  id: "scale_z/text"
+  parent: "scale_z/box"
+  overridden_fields: 1
+  overridden_fields: 8
+  overridden_fields: 14
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -160.0
+    y: 132.0
+  }
+  type: TYPE_TEMPLATE
+  id: "pick_model"
+  parent: "offset_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 260.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "pick_model/button_white"
+  parent: "pick_model"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 300.0
+    y: 70.0
+  }
+  type: TYPE_TEXT
+  text: "Choose from map"
+  id: "pick_model/text"
+  parent: "pick_model/button_white"
+  layer: "text"
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -203.0
+    y: 75.0
+  }
+  type: TYPE_TEMPLATE
+  id: "lock_cam"
+  parent: "offset_box"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 50.0
+    y: 50.0
+  }
+  type: TYPE_BOX
+  id: "lock_cam/button_white"
+  parent: "lock_cam"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/pov_cam"
+  id: "lock_cam/text"
+  parent: "lock_cam/button_white"
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -153.0
+    y: 75.0
+  }
+  type: TYPE_TEMPLATE
+  id: "find_prop"
+  parent: "offset_box"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 50.0
+    y: 50.0
+  }
+  type: TYPE_BOX
+  id: "find_prop/button_white"
+  parent: "find_prop"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/find_prop"
+  id: "find_prop/text"
+  parent: "find_prop/button_white"
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -103.0
+    y: 75.0
+  }
+  type: TYPE_TEMPLATE
+  id: "reset_offsets"
+  parent: "offset_box"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 50.0
+    y: 50.0
+  }
+  type: TYPE_BOX
+  id: "reset_offsets/button_white"
+  parent: "reset_offsets"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 45
+  overridden_fields: 46
+  template_node_child: true
+  enabled: false
+  visible: false
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/button_show_grid"
+  id: "reset_offsets/text"
+  parent: "reset_offsets/button_white"
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -53.0
+    y: 75.0
+  }
+  type: TYPE_TEMPLATE
+  id: "move_terrain"
+  parent: "offset_box"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 50.0
+    y: 50.0
+  }
+  type: TYPE_BOX
+  id: "move_terrain/button_white"
+  parent: "move_terrain"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/move_ground"
+  id: "move_terrain/text"
+  parent: "move_terrain/button_white"
+  overridden_fields: 9
   template_node_child: true
 }
 nodes {
@@ -568,7 +1064,7 @@ nodes {
 }
 nodes {
   position {
-    x: 1019.0
+    x: 930.0
     y: 150.0
   }
   scale {

@@ -31,7 +31,7 @@ function init(self)
 end
 
 function evaluate_button(button, item)
-	if button == "dialog_obstacles_cancel" then
+	if button == "dialog_obstacles_cancel" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)
 	elseif button == "obstacle_guide" then
 		sys.open_url("https://mod.io/g/pistol-whip/r/materials-and-obstacles")

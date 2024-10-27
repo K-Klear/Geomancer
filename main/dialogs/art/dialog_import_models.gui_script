@@ -56,7 +56,7 @@ function evaluate_button(button, item)
 		else
 			msg.post("/navbar#navbar", hash("update_status"), {text = "No models selected.", clear = true})
 		end
-	elseif button == "dialog_import_cancel" then
+	elseif button == "dialog_import_cancel" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)
 		MEM.art_data.models_for_import = nil
 		MEM.art_data.models_for_import_ignore = nil

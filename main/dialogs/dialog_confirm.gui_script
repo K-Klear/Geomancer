@@ -17,7 +17,7 @@ local function evaluate_button(button)
 		data.button = 1
 	elseif button == "dialog_confirm_button_2" then
 		data.button = 2
-	elseif button == "dialog_confirm_button_3" then
+	elseif button == "dialog_confirm_button_3" or button == "escape" then
 		data.button = 3
 	end
 	DIALOG.close(DIALOG_NAME, data)
