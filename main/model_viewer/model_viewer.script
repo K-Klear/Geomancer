@@ -74,6 +74,52 @@ function init(self)
 	--show_grid(self)
 end
 
+local tex_glow = hash("glow")
+local tex_prop = hash("prop")
+local tex_shaded = hash("shaded")
+local tex_cont_1 = hash("cont_1")
+local tex_cont_2 = hash("cont_2")
+local tex_ped = hash("ped")
+local tex_shield = hash("shield")
+local tex_funky = hash("funky")
+
+local function set_material(self, part_index, model_index)
+	local model_url = msg.url(nil, created_meshes[part_index].mesh, "mesh")
+	local invert = created_meshes[part_index].invert
+	if MOD.inverted then
+		invert = not invert
+	end
+	local mat = MEM.art_data.model_list[model_index].parts[part_index]
+	local mat_list = {[true] = {glow = self.glow_inv, prop = self.prop_inv, nl = self.no_light_inv}, [false] = {glow = self.glow_material, prop = self.prop_material, nl = self.no_light_material}}
+	if not COL.materials[mat] then
+		go.set(model_url, "texture0", self.glow_tex)
+		go.set(model_url, "material", mat_list[invert].glow)
+	elseif COL.materials[mat].texture == tex_glow then
+		go.set(model_url, "texture0", self.glow_tex)
+		go.set(model_url, "material", mat_list[invert].glow)
+	elseif COL.materials[mat].texture == tex_shield then
+		go.set(model_url, "texture0", self.shield_tex)
+		go.set(model_url, "material", mat_list[invert].nl)
+	elseif COL.materials[mat].texture == tex_cont_1 then
+		go.set(model_url, "texture0", self.cont_1_tex)
+		go.set(model_url, "material", mat_list[invert].prop)
+	elseif COL.materials[mat].texture == tex_cont_2 then
+		go.set(model_url, "texture0", self.cont_2_tex)
+		go.set(model_url, "material", mat_list[invert].prop)
+	elseif COL.materials[mat].texture == tex_shaded then
+		go.set(model_url, "texture0", self.glow_tex)
+		go.set(model_url, "material", mat_list[invert].prop)
+	else
+		go.set(model_url, "texture0", self.prop_tex)
+		go.set(model_url, "material", mat_list[invert].prop)
+	end
+	if COL.materials[mat] then
+		go.set(model_url, "tint", COL.materials[mat].tint())
+	else
+		go.set(model_url, "tint", vmath.vector4(1, 0, 1, 1))
+	end
+end
+
 function update(self, dt)
 	if MOD.viewer_active then
 		go.set_position(MOD.offset_position, PROP_OFFSET)
@@ -101,6 +147,15 @@ function update(self, dt)
 		MOD.cam_target_x, MOD.cam_target_y = 0, 0
 
 		if MOD.tween_preview then
+			local scale = go.get_scale(BASE_TRANSFORM)
+			local scale_2 = go.get_scale(PROP_OFFSET)
+			local inverted = scale_2.x * scale_2.y * scale_2.z * scale.x * scale.y * scale.z > 0
+			if not (inverted == MOD.inverted) then
+				MOD.inverted = inverted
+				for i = 1, #created_meshes do
+					set_material(self, i, MOD.model_index)
+				end
+			end
 			local current_time = MOD.total_time * MOD.scrubber_progress
 			local action_end_time = 0
 			local position = vmath.vector3(0, 0, 0)
@@ -172,58 +227,6 @@ function update(self, dt)
 	end
 end
 
-
-local tex_glow = hash("glow")
-local tex_prop = hash("prop")
-local tex_shaded = hash("shaded")
-local tex_cont_1 = hash("cont_1")
-local tex_cont_2 = hash("cont_2")
-local tex_ped = hash("ped")
-local tex_shield = hash("shield")
-local tex_funky = hash("funky")
-
-local function set_material(self, part_index, model_index, inverted)
-	local model_url = msg.url(nil, created_meshes[part_index].mesh, "mesh")
-	local invert = created_meshes[part_index].invert
-	if inverted then
-		invert = not invert
-	end
-	local mat = MEM.art_data.model_list[model_index].parts[part_index]
-	local mat_list = {[true] = {glow = self.glow_inv, prop = self.prop_inv, nl = self.no_light_inv}, [false] = {glow = self.glow_material, prop = self.prop_material, nl = self.no_light_material}}
-	if not COL.materials[mat] then
-		go.set(model_url, "texture0", self.glow_tex)
-		go.set(model_url, "material", mat_list[invert].glow)
-	elseif COL.materials[mat].texture == tex_glow then
-		go.set(model_url, "texture0", self.glow_tex)
-		go.set(model_url, "material", mat_list[invert].glow)
-	elseif COL.materials[mat].texture == tex_shield then
-		go.set(model_url, "texture0", self.shield_tex)
-		go.set(model_url, "material", mat_list[invert].nl)
-	elseif COL.materials[mat].texture == tex_cont_1 then
-		go.set(model_url, "texture0", self.cont_1_tex)
-		go.set(model_url, "material", mat_list[invert].prop)
-	elseif COL.materials[mat].texture == tex_cont_2 then
-		go.set(model_url, "texture0", self.cont_2_tex)
-		go.set(model_url, "material", mat_list[invert].prop)
-	elseif COL.materials[mat].texture == tex_shaded then
-		go.set(model_url, "texture0", self.glow_tex)
-		go.set(model_url, "material", mat_list[invert].prop)
-	else
-		go.set(model_url, "texture0", self.prop_tex)
-		go.set(model_url, "material", mat_list[invert].prop)
-	end
-	if COL.materials[mat] then
-		go.set(model_url, "tint", COL.materials[mat].tint())
-	else
-		go.set(model_url, "tint", vmath.vector4(1, 0, 1, 1))
-	end
-end
-
-local function invert_model(self)
-	for i = 1, #created_meshes do
-		set_material(self, i, MOD.model_index, true)
-	end
-end
 
 local function delete_model()
 	for key, val in ipairs(created_meshes) do

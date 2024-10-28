@@ -34,26 +34,13 @@ Bugs:
 Done:
 
 Features:
-- Implemented all common easing functions
-- You can set a model's position, rotation and scale on the tween preview screen
-	- The values can be read directly from any instance of this prop present in the map
-- Additional camera controls for tween previews:
-	- Lock camera to roughly the player's view. The camera can only be rotated while this is active.
-	- Move the camera to the origin of the model 
-- Pressing delete will clear currently selected text field
-- Pressing escape closes current dialog
 
 Fixes:
-- Tween preview playback now correctly stops at the end
-- The first model is now selected when opening the model tab. Opening the tween dialog also selects the relevant model.
-- Text fields within scrollable lists should display rounded values without bleeding out. The actual precise values are still used internally.
-- Better message when importing beat data doesn't make any changes
 
 Bugs:
 
 New configs:
 
-default_model_z_position (number)
 
 
 

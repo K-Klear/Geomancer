@@ -21,7 +21,7 @@ local POSITION_MIN = 10
 local POSITION_MAX = 1180
 local BUTTON_BOX_POSITION = vmath.vector3(850, 56, 0)
 local BUTTON_BOX_POSITION_PREVIEW = vmath.vector3(1280.0, 128, 0)
-local BUTTON_BOX_SIZE = vmath.vector3(225.0, 100, 0)
+local BUTTON_BOX_SIZE = vmath.vector3(225.0, 50, 0)
 local BUTTON_BOX_SIZE_PREVIEW = vmath.vector3(300, 322, 0)
 
 local AUX_NODE_POS
@@ -110,7 +110,7 @@ function init(self)
 	playback_box = gui.get_node("playback_box")
 	close_button = gui.get_node("close_preview/button_white")
 	gui.set_position(button_box, BUTTON_BOX_POSITION)
-	gui.set_size(button_box, BUTTON_BOX_SIZE_PREVIEW)
+	gui.set_size(button_box, BUTTON_BOX_SIZE)
 	timeline = gui.get_node("timeline")
 	scrubber = gui.get_node("scrubber")
 	time_display = gui.get_node("label_time")
@@ -246,7 +246,7 @@ local function close_preview()
 	gui.set_enabled(time_display, false)
 	gui.set_enabled(gui.get_node("label_model"), false)
 	gui.set_position(button_box, BUTTON_BOX_POSITION)
-	gui.set_size(button_box, BUTTON_BOX_SIZE_PREVIEW)
+	gui.set_size(button_box, BUTTON_BOX_SIZE)
 	MOD.tween_table = nil
 	MOD.model_index = nil
 end

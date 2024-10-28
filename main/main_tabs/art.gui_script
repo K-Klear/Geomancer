@@ -455,6 +455,7 @@ local function sort_models()
 		for key, val in ipairs(MEM.art_data.model_names) do
 			if val == selected_model_name then
 				selected_model = key
+				UI.update_list(TAB_NAME, model_list)
 				UI.select_exclusive_button(TAB_NAME, model_list, selected_model)
 			end
 		end
