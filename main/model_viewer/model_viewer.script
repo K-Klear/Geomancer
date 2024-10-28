@@ -212,7 +212,9 @@ function update(self, dt)
 			end
 			position.z = -position.z
 			scale.z = -scale.z
-			go.set_position(position, BASE_TRANSFORM)
+			local pos = vmath.vector3(position.x * MOD.offset_scale.x, position.y * MOD.offset_scale.y, position.z * MOD.offset_scale.z)
+			go.set_position(pos, BASE_TRANSFORM)
+			--go.set(BASE_TRANSFORM, "position", pos)
 			if MOD.move_terrain then
 				go.set(GROUND_GO, "position.z", current_time * 3)
 			else

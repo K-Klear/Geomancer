@@ -38,6 +38,10 @@ Features:
 Fixes:
 
 Bugs:
+- Scale affects move tweens correctly
+- Transform settings are displayed correctly after closing and reopening tween preview
+- BPM gets recalculated after sample rate is autodetected
+
 
 New configs:
 

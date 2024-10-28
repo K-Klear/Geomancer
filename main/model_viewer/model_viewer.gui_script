@@ -224,6 +224,7 @@ local function close_preview()
 	MOD.offset_rotation = vmath.quat(0, 0, 0, 1)
 	MOD.offset_scale = vmath.vector3(1, 1, 1)
 	MOD.offset_euler = vmath.vector3(0, 0, 0)
+	update_offset_fields()
 	stop_playback()
 	MOD.tween_preview = false
 	set_button_colours()

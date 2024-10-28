@@ -571,16 +571,11 @@ nodes {
   template_node_child: true
 }
 nodes {
-  position {
-    x: 25.0
-  }
   type: TYPE_TEXT
   text: "180"
   id: "scale_z/text"
   parent: "scale_z/box"
-  overridden_fields: 1
   overridden_fields: 8
-  overridden_fields: 14
   template_node_child: true
 }
 nodes {

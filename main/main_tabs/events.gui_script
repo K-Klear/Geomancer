@@ -240,6 +240,7 @@ function on_message(self, message_id, message, sender)
 			else
 				SET.sample_rate = SET.default_sample_rate
 			end
+			UI.update_list(TAB_NAME, tempo_list)
 			gui.set_text(gui.get_node("sample_rate_field/text"), SET.sample_rate)
 		end
 	elseif message_id == hash("dialog_closed") then
