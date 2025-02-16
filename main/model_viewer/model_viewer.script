@@ -13,6 +13,8 @@ local GROUND_GO = "/ground"
 go.property("prop_material", resource.material("/render/model.material"))
 go.property("glow_material", resource.material("/render/glow.material"))
 go.property("no_light_material", resource.material("/render/no_light.material"))
+go.property("flash_material", resource.material("/render/flash.material"))
+go.property("flash_inv", resource.material("/render/flash_inv.material"))
 
 go.property("prop_inv", resource.material("/render/model_inv.material"))
 go.property("glow_inv", resource.material("/render/glow_inv.material"))
@@ -83,40 +85,127 @@ local tex_ped = hash("ped")
 local tex_shield = hash("shield")
 local tex_funky = hash("funky")
 
+local flash_timer, flash_old_tex, flash_old_mat, flash_old_tint, flash_on, flash_off, flash_model_url, flash_tint, flash_mat, flash_tex, flash_list
+function flash_off()
+	if SET.mesh_flash_frequency > 0 then
+		go.set(flash_model_url, "tint", flash_old_tint)
+		go.set(flash_model_url, "texture0", flash_old_tex)
+		go.set(flash_model_url, "material", flash_old_mat)
+		if flash_timer then
+			timer.cancel(flash_timer)
+		end
+		flash_timer = timer.delay(SET.mesh_flash_frequency, false, flash_on)
+	end
+end
+
+function flash_on()
+	if flash_timer then
+		timer.cancel(flash_timer)
+	end
+	go.set(flash_model_url, "tint", flash_tint)
+	go.set(flash_model_url, "texture0", flash_tex)
+	go.set(flash_model_url, "material", flash_mat)
+	flash_timer = timer.delay(SET.mesh_flash_time, false, flash_off)
+end
+
+local function stop_flashing()
+	if flash_timer then
+		go.set(flash_model_url, "tint", flash_old_tint)
+		go.set(flash_model_url, "texture0", flash_old_tex)
+		go.set(flash_model_url, "material", flash_old_mat)
+		timer.cancel(flash_timer)
+		flash_timer = nil
+	end
+end
+
+local function stop_flashing_multiple()
+	if flash_list then
+		for key, val in ipairs(flash_list) do
+			go.set(val.url, "tint", val.tint)
+			go.set(val.url, "texture0", val.tex)
+			go.set(val.url, "material", val.mat)
+		end
+	end
+	flash_list = {}
+end
+
+local function flash_multiple(self, part_tab)
+	stop_flashing_multiple()
+	for key, val in ipairs(part_tab) do
+		local model_url = msg.url(nil, created_meshes[val].mesh, "mesh")
+		local tint = go.get(model_url, "tint")
+		local tex = go.get(model_url, "texture0")
+		local mat = go.get(model_url, "material")
+		go.set(model_url, "tint", SET.mesh_flash_colour)
+		go.set(model_url, "texture0", flash_tex)
+		go.set(model_url, "material", flash_mat)
+		table.insert(flash_list, {url = model_url, tint = tint, tex = tex, mat = mat})
+	end
+end
+
+local function flash_part(self, part_index)
+	stop_flashing()
+	if part_index then
+		flash_model_url = msg.url(nil, created_meshes[part_index].mesh, "mesh")
+		flash_old_tint = go.get(flash_model_url, "tint")
+		flash_old_tex = go.get(flash_model_url, "texture0")
+		flash_old_mat = go.get(flash_model_url, "material")
+		--local flash_tint = vmath.vector4(1 - old_tint.x, 1 - old_tint.y, 1 - old_tint.z, 1)
+		flash_tint = SET.mesh_flash_colour
+		if created_meshes[part_index].invert then
+			flash_mat = self.flash_inv
+		else
+			flash_mat = self.flash_material
+		end
+		flash_tex = self.glow_tex
+		go.set(flash_model_url, "tint", flash_tint)
+		go.set(flash_model_url, "texture0", flash_tex)
+		go.set(flash_model_url, "material", flash_mat)
+		flash_on()
+	end
+end
+
 local function set_material(self, part_index, model_index)
 	local model_url = msg.url(nil, created_meshes[part_index].mesh, "mesh")
 	local invert = created_meshes[part_index].invert
 	if MOD.inverted then
 		invert = not invert
 	end
-	local mat = MEM.art_data.model_list[model_index].parts[part_index]
+	local part_tab = MEM.art_data.table.propsDictionary[model_index].model_data.parts[part_index]
+	local mat = part_tab.tab[part_tab.index]
 	local mat_list = {[true] = {glow = self.glow_inv, prop = self.prop_inv, nl = self.no_light_inv}, [false] = {glow = self.glow_material, prop = self.prop_material, nl = self.no_light_material}}
+
 	if not COL.materials[mat] then
-		go.set(model_url, "texture0", self.glow_tex)
-		go.set(model_url, "material", mat_list[invert].glow)
+		flash_old_mat = mat_list[invert].glow
+		flash_old_tex = self.glow_tex
 	elseif COL.materials[mat].texture == tex_glow then
-		go.set(model_url, "texture0", self.glow_tex)
-		go.set(model_url, "material", mat_list[invert].glow)
+		flash_old_mat = mat_list[invert].glow
+		flash_old_tex = self.glow_tex
 	elseif COL.materials[mat].texture == tex_shield then
-		go.set(model_url, "texture0", self.shield_tex)
-		go.set(model_url, "material", mat_list[invert].nl)
+		flash_old_mat = mat_list[invert].nl
+		flash_old_tex = self.shield_tex
 	elseif COL.materials[mat].texture == tex_cont_1 then
-		go.set(model_url, "texture0", self.cont_1_tex)
-		go.set(model_url, "material", mat_list[invert].prop)
+		flash_old_mat = mat_list[invert].prop
+		flash_old_tex = self.cont_1_tex
 	elseif COL.materials[mat].texture == tex_cont_2 then
-		go.set(model_url, "texture0", self.cont_2_tex)
-		go.set(model_url, "material", mat_list[invert].prop)
+		flash_old_mat = mat_list[invert].prop
+		flash_old_tex = self.cont_2_tex
 	elseif COL.materials[mat].texture == tex_shaded then
-		go.set(model_url, "texture0", self.glow_tex)
-		go.set(model_url, "material", mat_list[invert].prop)
+		flash_old_mat = mat_list[invert].prop
+		flash_old_tex = self.glow_tex
 	else
-		go.set(model_url, "texture0", self.prop_tex)
-		go.set(model_url, "material", mat_list[invert].prop)
+		flash_old_mat = mat_list[invert].prop
+		flash_old_tex = self.prop_tex
 	end
 	if COL.materials[mat] then
-		go.set(model_url, "tint", COL.materials[mat].tint())
+		flash_old_tint = COL.materials[mat].tint()
 	else
-		go.set(model_url, "tint", vmath.vector4(1, 0, 1, 1))
+		flash_old_tint = vmath.vector4(1, 0, 1, 1)
+	end
+	if not (flash_timer and go.get(flash_model_url, "material") == flash_mat) then
+		go.set(model_url, "tint", flash_old_tint)
+		go.set(model_url, "texture0", flash_old_tex)
+		go.set(model_url, "material", flash_old_mat)
 	end
 end
 
@@ -160,7 +249,7 @@ function update(self, dt)
 			local action_end_time = 0
 			local position = vmath.vector3(0, 0, 0)
 			local euler = vmath.vector3(0, 0, 0)
-			local scale = vmath.vector3(1, 1, 1)
+			scale = vmath.vector3(1, 1, 1)
 			for key, val in ipairs(MOD.tween_table) do
 				action_end_time = action_end_time + val.time
 				if current_time >= action_end_time then
@@ -214,7 +303,6 @@ function update(self, dt)
 			scale.z = -scale.z
 			local pos = vmath.vector3(position.x * MOD.offset_scale.x, position.y * MOD.offset_scale.y, position.z * MOD.offset_scale.z)
 			go.set_position(pos, BASE_TRANSFORM)
-			--go.set(BASE_TRANSFORM, "position", pos)
 			if MOD.move_terrain then
 				go.set(GROUND_GO, "position.z", current_time * 3)
 			else
@@ -240,8 +328,7 @@ local function delete_model()
 	created_meshes, created_transforms = {}, {}
 end
 
-local function show_model(self, model)
-	local model_name = MEM.art_data.model_list[model].name
+local function show_model(self, model_index)
 	delete_model()
 	local function parse_vertex_data(str)
 		local comma_1 = string.find(str, ",")
@@ -277,8 +364,9 @@ local function show_model(self, model)
 		return pos, rot, sc, inverted
 	end
 
-	local function create_mesh(mesh_tab, parent, key, invert)
+	local function create_mesh(mesh_tab, parent, part_index, invert)
 		local new_mesh = factory.create("#create_mesh")
+		msg.post(new_mesh, hash("disable"))
 		go.set_parent(new_mesh, parent)
 		if not mesh_tab.triangles then
 			mesh_tab.triangles = {}
@@ -323,19 +411,19 @@ local function show_model(self, model)
 			end
 		end
 
-		if not buffer_resources[key] then
-			local resource_name = "/buffer"..key..".bufferc"
-			buffer_resources[key] = resource.create_buffer(resource_name, {buffer = buf})
+		if not buffer_resources[part_index] then
+			local resource_name = "/buffer"..part_index..".bufferc"
+			buffer_resources[part_index] = resource.create_buffer(resource_name, {buffer = buf})
 		end
 
 		local _url = msg.url(nil, new_mesh, "mesh")
-		go.set(_url, "vertices", buffer_resources[key])
+		go.set(_url, "vertices", buffer_resources[part_index])
 		local res = go.get(_url, "vertices")
 		resource.set_buffer(res, buf)
 		table.insert(created_meshes, {mesh = new_mesh, invert = invert})
-		set_material(self, key, model)
+		set_material(self, part_index, model_index)
 	end
-
+	local mesh_count = 0
 	local function create_transforms(tab, parent, invert)
 		if tab.transform then
 			local new_transform = factory.create("#create_transform")
@@ -352,14 +440,18 @@ local function show_model(self, model)
 		end
 		if tab.meshes then
 			for key, val in ipairs(tab.meshes) do
-				create_mesh(MEM.art_data.mesh_list[model_name][val], parent, val, invert)
+				mesh_count = mesh_count + 1
+				create_mesh(val, parent, mesh_count, invert)
 			end
 		end
 		for key, val in ipairs(tab) do
 			create_transforms(val, parent, invert)
 		end
 	end
-	create_transforms(MEM.art_data.model_tree[model_name], BASE_TRANSFORM, false)
+	create_transforms(MEM.art_data.table.propsDictionary[model_index].model_data.model_tree, BASE_TRANSFORM, false)
+	for key, val in ipairs(created_meshes) do
+		msg.post(val.mesh, hash("enable"))
+	end
 end
 
 function on_message(self, message_id, message, sender)
@@ -370,8 +462,13 @@ function on_message(self, message_id, message, sender)
 			for key, val in ipairs(created_meshes) do
 				msg.post(val.mesh, hash("enable"))
 			end
+			flash_part(self, message.selected_part)
 		elseif message.model > 0 then
+			stop_flashing()
 			show_model(self, message.model)
+			if created_meshes[message.selected_part] then
+				flash_part(self, message.selected_part)
+			end
 		elseif message.model == 0 then
 			delete_model()
 		end
@@ -384,6 +481,16 @@ function on_message(self, message_id, message, sender)
 			go.set_rotation(vmath.quat(0, 0, 0, 1), BASE_TRANSFORM)
 		end
 		msg.post("/model_camera#background", hash("enable"))
+	elseif message_id == hash("update_model") then
+		show_model(self, message.model)
+		flash_part(self, 1)
+	elseif message_id == hash("show_part") then
+		flash_part(self, message.selected_part)
+	elseif message_id == hash("flash_multiple") then
+		flash_multiple(self, MEM.art_data.temp_part_list)
+		MEM.art_data.temp_part_list = nil
+	elseif message_id == hash("stop_flashing_multiple") then
+		stop_flashing_multiple()
 	elseif message_id == hash("hide") then
 		MOD.viewer_active = false
 		MOD.is_dragged = false
@@ -394,6 +501,7 @@ function on_message(self, message_id, message, sender)
 		for key, val in ipairs(created_meshes) do
 			msg.post(val.mesh, hash("disable"))
 		end
+		stop_flashing()
 		msg.post("/model_camera#background", hash("disable"))
 	elseif message_id == hash("remove_model") then
 		delete_model()

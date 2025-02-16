@@ -176,18 +176,8 @@ local function sort_f(a, b)
 	return tonumber(a.startSample) < tonumber(b.startSample)
 end
 
-local function reset()
-	for key, val in ipairs(MEM.event_data.table.eventsData) do
-		if val.track == "NoBeat" then
-			MEM.event_data.nobeat_track_index = key
-		elseif val.track == "Event" then
-			MEM.event_data.event_track_index = key
-		end
-	end
-end
-
 local function add_event(start_sample, signal)
-	local t = {startSample = start_sample, endSample = start_sample, payload = signal}
+	local t = {startSample = start_sample, endSample = start_sample, payload = signal, _key_sort = {"startSample", "endSample", "payload"}}
 	table.insert(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, t)
 end
 
@@ -202,7 +192,6 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("show") then
 		msg.post("#", hash("enable"))
 		msg.post("#", hash("acquire_input_focus"))
-		reset()
 		UI.update_list(TAB_NAME, nobeat_list, #MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events)
 		update_event_list()
 		UI.update_list(TAB_NAME, tempo_list, #MEM.event_data.table.tempoSections)
@@ -223,18 +212,18 @@ function on_message(self, message_id, message, sender)
 						end
 					end
 					if not sample_rate_guess then
-						msg.post("/navbar#navbar", hash("update_status"), {text = "Failed to detect sample rate. Using the default value"})
+						G.update_navbar("Failed to detect sample rate. Using the default value")
 						SET.sample_rate = SET.default_sample_rate
 					elseif sample_rate_guess == 48000 or sample_rate_guess == 44100 then
-						msg.post("/navbar#navbar", hash("update_status"), {text = "Sample rate set to "..sample_rate_guess})
+						G.update_navbar("Sample rate set to "..sample_rate_guess)
 						SET.sample_rate = sample_rate_guess
 					else
-						msg.post("/navbar#navbar", hash("update_status"), {text = "Sample rate set to "..sample_rate_guess.."\nThis is a non-standard value and might be an error"})
+						G.update_navbar("Sample rate set to "..sample_rate_guess.."\nThis is a non-standard value and might be an error")
 						SET.sample_rate = sample_rate_guess
 					end
 					MEM.event_data.sample_rate_set = true
 				else
-					msg.post("/navbar#navbar", hash("update_status"), {text = "Beat data not loaded. Using the default sample rate"})
+					G.update_navbar("Beat data not loaded. Using the default sample rate")
 					SET.sample_rate = SET.default_sample_rate
 				end
 			else
@@ -255,6 +244,8 @@ function on_message(self, message_id, message, sender)
 				end
 				MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events[item].startSample = message.start_sample
 				MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events[item].endSample = message.end_sample
+				MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events[item].payload = ""
+				MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events[item]._key_sort = {"startSample", "endSample", "payload"}
 			end
 			table.sort(MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events, sort_f)
 			UI.update_list(TAB_NAME, nobeat_list, #MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events)
@@ -269,6 +260,7 @@ function on_message(self, message_id, message, sender)
 				MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[item].startSample = message.start_sample
 				MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[item].endSample = message.start_sample
 				MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[item].payload = message.signal
+				MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events[item]._key_sort = {"startSample", "endSample", "payload"}
 				previous_signal = message.signal
 			end
 			table.sort(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, sort_f)
@@ -282,7 +274,7 @@ function on_message(self, message_id, message, sender)
 				table.sort(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, sort_f)
 				update_event_list()
 				update_filter_text()
-				msg.post("/navbar#navbar", hash("update_status"), {text = message.repeats.." events have been created.", clear = true})
+				G.update_navbar(message.repeats.." events have been created.", true)
 			end
 		elseif message.dialog == "dialog_tempo" then
 			if message.item then
@@ -295,6 +287,7 @@ function on_message(self, message_id, message, sender)
 				MEM.event_data.table.tempoSections[item].startSample = message.start_sample
 				MEM.event_data.table.tempoSections[item].samplesPerBeat = message.spb
 				MEM.event_data.table.tempoSections[item].beatsPerMeasure = message.signature
+				MEM.event_data.table.tempoSections[item]._key_sort = {"startSample", "samplesPerBeat", "beatsPerMeasure"}
 			end
 			table.sort(MEM.event_data.table.tempoSections, sort_f)
 			UI.update_list(TAB_NAME, tempo_list, #MEM.event_data.table.tempoSections)
@@ -303,10 +296,7 @@ function on_message(self, message_id, message, sender)
 			update_filter_text()
 		end
 	elseif message_id == hash("update") then
-		reset()
 		MEM.event_data.sample_rate_set = false
-	elseif message_id == hash("reset") then
-		MEM.event_data.nobeat_track_index, MEM.event_data.event_track_index = nil, nil
 	elseif message_id == hash("add_event") then
 		add_event(message.start_sample, message.signal)
 		table.sort(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, sort_f)
@@ -334,7 +324,7 @@ local function evaluate_button(button, item)
 		if #nobeats > 0 then
 			previous_time = nobeats[#nobeats].endSample
 		end
-		local t = {startSample = previous_time, endSample = previous_time, payload = ""}
+		local t = {startSample = previous_time, endSample = previous_time, payload = "", _key_sort = {"startSample", "endSample", "payload"}}
 		if SET.add_opens_edit_box then
 			DIALOG.open(TAB_NAME, "dialog_nobeat", {data = t})
 		else
@@ -403,7 +393,7 @@ local function evaluate_button(button, item)
 				table.remove(MEM.event_data.table.tempoSections, item)
 				UI.update_list(TAB_NAME, tempo_list, #MEM.event_data.table.tempoSections)
 			else
-				msg.post("/navbar#navbar", hash("update_status"), {text = "There must always be at least one tempo section!", clear = true})
+				G.update_navbar("There must always be at least one tempo section!", true)
 			end
 		elseif str == "tempo_edit;" then
 			DIALOG.open(TAB_NAME, "dialog_tempo", {item = item, data = MEM.event_data.table.tempoSections[item]})

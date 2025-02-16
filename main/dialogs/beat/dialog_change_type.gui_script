@@ -4,7 +4,7 @@ local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_change_enemy_type"
 local DIALOG_DATA
 
-local parent_tab, current_type, selected_type
+local current_type, selected_type
 
 function init(self)
 	DIALOG.setup(DIALOG_NAME)

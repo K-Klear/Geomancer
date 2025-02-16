@@ -73,8 +73,8 @@ function on_input(self, action_id, action)
 				gui.play_flipbook(gui.get_node(UI.current_tab), "tab_normal")
 				gui.play_flipbook(gui.get_node(key), "tab_active")
 				UI.current_tab = key
-				if MEM.level_data.scene_name then
-					status_update("Loaded scene: "..MEM.level_data.scene_name, true)
+				if MEM.level_data.sceneDisplayName then
+					status_update("Loaded scene: "..MEM.level_data.sceneDisplayName, true)
 				else
 					status_update("Unknown scene name", true)
 				end

@@ -225,9 +225,10 @@ function on_message(self, message_id, message, sender)
 		local existing = {}
 		existing_sequences = {}
 		for key, val in ipairs(MEM.beat_data.enemy_list) do
-			if not existing[val.sequence] then
-				existing[val.sequence] = true
-				table.insert(existing_sequences, val.sequence)
+			local sequence = MEM.beat_data.table.beatData[val.beat_data_key].targets[val.enemies_key].enemySequence
+			if not existing[sequence] then
+				existing[sequence] = true
+				table.insert(existing_sequences, sequence)
 			end
 		end
 		if SET.bulk_sequence_sort then

@@ -16,7 +16,7 @@ function init(self)
 			type = hash("exclusive_button"),
 			node = gui.get_node("copy_tween_exclusive/button_white"),
 			text_node = gui.get_node("copy_tween_exclusive/text"),
-			value_fn = function(i) return model_list[i].name end,
+			value_fn = function(i) return model_list[i].name.."/"..model_list[i].transform end,
 			template = "copy_tween_exclusive;",
 			fn = evaluate_button
 		},
@@ -28,7 +28,7 @@ end
 
 function evaluate_button(button, item)
 	if button == "tween_copy_accept" then
-		DIALOG.close(DIALOG_NAME, {selected_model = selected_model})
+		DIALOG.close(DIALOG_NAME, {selected_model = model_list[selected_model].key, transform_index = model_list[selected_model].transform_index})
 		model_list = {}
 		selected_model = nil
 		UI.update_list(DIALOG_NAME, list, 0)
@@ -38,16 +38,27 @@ function evaluate_button(button, item)
 		selected_model = nil
 		UI.update_list(DIALOG_NAME, list, 0)
 	elseif button == list then
-		selected_model = model_list[item].key
+		selected_model = item
 	end
 end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		DIALOG.show(DIALOG_DATA, sender)
-		for key, val in ipairs(MEM.art_data.model_list) do
-			if val.tween and not (key == message.model) then
-				table.insert(model_list, {name = val.name, key = key})
+		model_list = {}
+		for key, val in ipairs(MEM.art_data.table.propsDictionary) do
+			if val.tween and val.tween > 0 and not (key == message.model) then
+				local transform_index = 1
+				local function find_tweens(tab)
+					if tab.tween then
+						table.insert(model_list, {name = val.key, transform = tab.name or "[no name]", key = key, transform_index = transform_index})
+					end
+					transform_index = transform_index + 1
+					for k, v in ipairs(tab) do
+						find_tweens(v)
+					end
+				end
+				find_tweens(val.model_data.model_tree)
 			end
 		end
 		gui.set_enabled(gui.get_node("dialog_tween_copy_warning"), #model_list < 1)

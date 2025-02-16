@@ -82,6 +82,10 @@ SET.model_grid_dots = false
 SET.default_rotation = 0
 SET.default_pitch = 25
 
+SET.mesh_flash_time = 0.3
+SET.mesh_flash_frequency = 1
+SET.mesh_flash_colour = vmath.vector4(1, 0, 0, 0.4)
+
 -- tween
 SET.tween_action_type_dialog = true
 SET.tween_part_dialog = true

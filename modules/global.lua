@@ -58,26 +58,20 @@ function G.safe_output(path)
 	end
 end
 
-function G.check_version(str, filename)
+function G.check_version(tab, filename)
+	local version = tonumber(tab.version)
 	filename = filename or "file"
-	local pos = string.find(str, "\"version\":")
-	if not pos then
-		msg.post("/navbar#navbar", hash("update_status"), {text = "Unknown format of "..filename.."."})
+	if not version then
+		G.update_navbar("Error reading version information of "..filename..". File not loaded.")
 		return
+	elseif version < current_version then
+		G.update_navbar("Version of "..filename.." is lower than "..current_version..". Resave it with the current Pistol Mix version.")
+		return
+	elseif version > current_version then
+		G.update_navbar("Version of "..filename.." is higher than "..current_version..". This may cause unknown issues. Be careful.")
+		return true
 	else
-		local ver = tonumber(string.sub(str, pos + 11, pos + 13))
-		if not ver then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Error reading version information of "..filename..". File not loaded."})
-			return
-		elseif ver < current_version then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Version of "..filename.." is lower than "..current_version..". Resave it with the current Pistol Mix version."})
-			return
-		elseif ver > current_version then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Version of "..filename.." is higher than "..current_version..". This may cause unknown issues. Be careful."})
-			return true
-		else
-			return true
-		end
+		return true
 	end
 end
 

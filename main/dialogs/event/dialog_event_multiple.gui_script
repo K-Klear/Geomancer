@@ -97,8 +97,8 @@ function on_message(self, message_id, message, sender)
 		default_signal = signal
 		offset = 0
 		repeats = 2
-		if MEM.level_data.song_length then
-			max_sample = MEM.level_data.song_length * SET.sample_rate
+		if MEM.level_data.songLength then
+			max_sample = tonumber(MEM.level_data.songLength) * SET.sample_rate
 		else
 			max_sample = 1/0
 		end

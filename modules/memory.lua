@@ -23,29 +23,245 @@ local function read_file(path)
 	end
 end
 
-function load.pw(data)
-	local tab
-	tab, data = G.safe_decode(data, "level.pw")
-	if not (tab and G.check_version(data, "level.pw")) then return end
-	MEM.level_data.string = G.sanitise_json(data)
-	MEM.level_data.enemy_set = tab.enemySet
-	MEM.level_data.obstacle_set = tab.obstacleSet
-	MEM.level_data.material_set = tab.materialPropertiesSet
-	MEM.level_data.preview_time = tab.previewTime
-	MEM.level_data.move_mode = tab.moveMode
-	MEM.level_data.song_length = tonumber(tab.songLength)
-	MEM.level_data.scene_name = tab.sceneDisplayName
-	MEM.level_data.art_file = tab.sharedLevelArt
-	local my_name = {Klear = true, Klear_ = true, kingklear = true}
-	MEM.level_data.my_map = my_name[tab.mapper]
-	MEM.level_data.description = tab.description
-	UI.tab.tab_level.state = true
+local QUOTE = "\""
+local QUOTE_2 = QUOTE..":"..QUOTE
+local QUOTE_3 = QUOTE..":{"
+local QUOTE_4 = QUOTE..":["
+local QUOTE_5 = QUOTE..","
+local QUOTE_6 = QUOTE..":"
+local TABLE = "table"
+local STRING = "string"
+
+function MEM.export_json(json_tab)
+	local final_str = "{"
+	local string_tab = {}
+	local function export_table(tab)
+		if #final_str > 100000 then
+			table.insert(string_tab, final_str)
+			final_str = ""
+		end
+		local s
+		if tab._key_sort then
+			local key_count = #tab._key_sort
+			for key, val in ipairs(tab._key_sort) do
+				local val_type = type(tab[val])
+				if val_type == TABLE then
+					if tab[val]._key_sort then
+						s = QUOTE..val..QUOTE_3
+						final_str = final_str..s
+						export_table(tab[val])
+						final_str = final_str.."}"
+					elseif tab[val]._pure_array then
+						s = QUOTE..val..QUOTE_6..tab[val]._pure_array
+						final_str = final_str..s
+					else
+						s = QUOTE..val..QUOTE_4
+						final_str = final_str..s
+						export_table(tab[val])
+						final_str = final_str.."]"
+					end
+					if key_count > 1 then
+						final_str = final_str..","
+					end
+				elseif val_type == STRING then
+					if key_count > 1 then
+						s = QUOTE..val..QUOTE_2..tab[val]..QUOTE_5
+						final_str = final_str..s
+					else
+						s = QUOTE..val..QUOTE_2..tab[val]..QUOTE
+						final_str = final_str..s
+					end
+				elseif val_type then
+					if key_count > 1 then
+						s = QUOTE..val..QUOTE_6..tab[val]..","
+						final_str = final_str..s
+					else
+						s = QUOTE..val..QUOTE_6..tab[val]
+						final_str = final_str..s
+					end
+				end
+				key_count = key_count - 1
+			end
+		else
+			local key_count = #tab
+			for key, val in ipairs(tab) do
+				local val_type = type(val)
+				if val_type == TABLE then
+					if val._key_sort then
+						final_str = final_str.."{"
+						export_table(val)
+						final_str = final_str.."}"
+					elseif val._pure_array then
+						final_str = final_str..tab[val]._pure_array
+					else
+						final_str = final_str.."["
+						export_table(val)
+						final_str = final_str.."]"
+					end
+					if key_count > 1 then
+						final_str = final_str..","
+					end
+				elseif val_type == STRING then
+					if key_count > 1 then
+						s = QUOTE..val..QUOTE_5
+						final_str = final_str..s
+					else
+						s = QUOTE..val..QUOTE
+						final_str = final_str..s
+					end
+				else
+					if key_count > 1 then
+						s = val..","
+						final_str = final_str..s
+					else
+						final_str = final_str..val
+					end
+				end
+				key_count = key_count - 1
+			end
+		end
+	end
+	export_table(json_tab)
+	for i = #string_tab, 1, -1 do
+		final_str = string_tab[i]..final_str
+	end
+	return final_str.."}"
+end
+
+function MEM.parse_json(json_str)
+	local tab = {}
+	local char
+	local char_pos = 0
+	local json_lenght = #json_str - 1
+	local key
+	local tab_list = {tab}
+	local value_start
+	local pure_array
+	local to_boolean = {["true"] = true, ["false"] = false}
+
+	local function get_value()
+		if not value_start then return end
+		local value = string.sub(json_str, value_start, char_pos - 1)
+		value_start = nil
+		value = to_boolean[value] or tonumber(value) or value
+		if key then
+			table.insert(tab_list[#tab_list]._key_sort, key)
+			tab_list[#tab_list][key] = value
+			key = nil
+		else
+			table.insert(tab_list[#tab_list], value)
+		end
+		-- FIGURE OUT THE VALUE TYPE HERE
+	end
+
+	local handle_char = {}
+	handle_char["{"] = function()
+		pure_array = false
+		local new_tab = {_key_sort = {}}
+		if key then
+			table.insert(tab_list[#tab_list]._key_sort, key)
+			tab_list[#tab_list][key] = new_tab
+			key = nil
+		else
+			table.insert(tab_list[#tab_list], new_tab)
+		end
+		table.insert(tab_list, new_tab)
+	end
+	handle_char["["] = function()
+		pure_array = char_pos
+		local new_tab = {}
+		if key then
+			table.insert(tab_list[#tab_list]._key_sort, key)
+			tab_list[#tab_list][key] = new_tab
+			key = nil
+		else
+			table.insert(tab_list[#tab_list], new_tab)
+		end
+		table.insert(tab_list, new_tab)
+	end
+	handle_char["}"] = function()
+		get_value()
+		tab_list[#tab_list] = nil
+	end
+	handle_char["]"] = function()
+		if pure_array and (char_pos - pure_array > 1) then
+			tab_list[#tab_list]._pure_array = string.sub(json_str, pure_array, char_pos)
+		end
+		pure_array = false
+		get_value()
+		tab_list[#tab_list] = nil
+	end
+	handle_char[QUOTE] = function()
+		local end_quote = string.find(json_str, QUOTE, char_pos + 1)
+		if not end_quote then
+			print("ERROR! Missing end quote")
+		else
+			local key_or_value = string.sub(json_str, char_pos + 1, end_quote - 1)
+			if key then
+				tab_list[#tab_list][key] = key_or_value
+				table.insert(tab_list[#tab_list]._key_sort, key)
+				key = nil
+				char_pos = end_quote
+			else
+				if tab_list[#tab_list]._key_sort then
+					key = key_or_value
+					char_pos = string.find(json_str, ":", end_quote) or end_quote
+				else
+					table.insert(tab_list[#tab_list], key_or_value)
+					char_pos = end_quote
+				end
+			end
+		end
+	end
+	handle_char[":"] = function() return end
+	handle_char[" "] = function() return end
+	handle_char[","] = get_value
+		
+	repeat
+		char_pos = char_pos + 1
+		char = string.sub(json_str, char_pos, char_pos)
+		if handle_char[char] then
+			handle_char[char]()
+		elseif not value_start then
+			value_start = char_pos
+		end
+	until char_pos > json_lenght
+	return tab[1]
+end
+
+function MEM.check(tab, file_type, filename)
+	filename = filename or "file"
+	if not (tab and G.check_version(tab, filename)) then return end
+	local expected_values = {}
+	expected_values.pw = {"enemySet", "obstacleSet", "materialPropertiesSet", "previewTime", "moveMode", "songLength", "sceneDisplayName", "sharedLevelArt", "mapper", "description"}
+	expected_values.pw_beat = {"beatData"}
+	expected_values.pw_event = {"eventsData", "tempoSections"}
+	expected_values.pw_art = {"colors", "propsDictionary"}
+	expected_values.pw_geo = {"chunkData", "chunkSlices"}
+	for key, val in pairs(expected_values[file_type]) do
+		if not tab[val] then
+			G.update_navbar(filename.." is missing the "..val.." entry.")
+			return
+		end
+	end
 	return true
 end
 
+function load.pw(data)
+	local tab = MEM.parse_json(data)
+	if MEM.check(tab, "pw", "level.pw") then
+		UI.tab.tab_level.state = true
+		MEM.level_data = tab
+		return true
+	else
+		MEM.level_data = {}
+		UI.tab.tab_level.state = false
+	end
+end
+
 function load.pw_meta(data)
-	local tab
-	tab, data = G.safe_decode(data, "do_not_ship.pw_meta")
+	if true then return end
+	local tab = MEM.parse_json(data)
 	if not tab then return end
 	MEM.meta_data.string = data
 	
@@ -91,90 +307,65 @@ function load.pw_meta(data)
 end
 
 function load.pw_beat(data, filename)
-	local tab
-	tab, data = G.safe_decode(data, filename)
-	if not (tab and G.check_version(data, filename)) then return end
-	MEM.beat_data.obstacle_list = {}
-	MEM.beat_data.enemy_list = {}
-	for key, val in ipairs(tab.beatData) do
-		for k, v in ipairs(val.obstacles) do
-			table.insert(MEM.beat_data.obstacle_list, {time = val.time, placement = v.placement, type = v.type, beat_data_key = key, obstacles_key = k})
+	local tab = MEM.parse_json(data)
+	if MEM.check(tab, "pw_beat", filename) then
+		UI.tab.tab_beat.state = true
+		local obstacle_list = {}
+		local enemy_list = {}
+		local enemy_types = {}
+		local types = {Normal = "normal", Tough = "tough", ChuckNorris = "chuck", Shield = "shield", ["Mounted Enemy"] = "horse", ["Normal Turret"] = "turret",
+		["Minigun Turret"] = "minigun", FlyingBomb = "skull", ["Trap Enemy"] = "trap"}
+		
+		for key, val in ipairs(tab.beatData) do
+			for k, v in ipairs(val.obstacles) do
+				table.insert(obstacle_list, {beat_data_key = key, obstacles_key = k})
+			end
+			for k, v in ipairs(val.targets) do
+				table.insert(enemy_list, {beat_data_key = key, enemies_key = k})
+				enemy_types[types[v.enemyType]] = true
+			end
 		end
-		for k, v in ipairs(val.targets) do
-			local comma = string.find(v.placement, ",")
-			local placement_x = string.sub(v.placement, 1, comma - 1)
-			local placement_y = string.sub(v.placement, comma + 1)
-			table.insert(MEM.beat_data.enemy_list, {
-				time = val.time, type = v.enemyType, distance = v.distance, placement = v.placement, placement_x = placement_x, placement_y = placement_y, 
-				offset = v.enemyOffset, sequence = v.enemySequence, bonus = v.bonusEnemy, shielded = v.shielded, no_ground = v.noGround, no_carve = v.noCarve,
-				beat_data_key = key, enemies_key = k
-			})
-		end
+		MEM.beat_data = {table = tab, obstacle_list = obstacle_list, enemy_list = enemy_list, enemy_types = enemy_types, filename = filename}
+		return true
+	else
+		MEM.beat_data = {}
+		UI.tab.tab_beat.state = false
 	end
-
-	MEM.beat_data.changed_obstacles = {}
-	MEM.beat_data.changed_enemies = {}
-
-	MEM.beat_data.table = tab.beatData
-	MEM.beat_data.string = data
-	MEM.beat_data.filename = filename
-	MEM.beat_data.enemy_types = {}
-	MEM.beat_data.enemy_types.normal = not not string.find(data, "Normal")
-	MEM.beat_data.enemy_types.tough = not not string.find(data, "Tough")
-	MEM.beat_data.enemy_types.chuck = not not string.find(data, "ChuckNorris")
-	MEM.beat_data.enemy_types.shield = not not string.find(data, "Shield")
-	MEM.beat_data.enemy_types.horse = not not string.find(data, "Mounted Enemy")
-	MEM.beat_data.enemy_types.turret = not not string.find(data, "Normal Turret")
-	MEM.beat_data.enemy_types.minigun = not not string.find(data, "Minigun Turret")
-	MEM.beat_data.enemy_types.skull = not not string.find(data, "FlyingBomb")
-	MEM.beat_data.enemy_types.trap = not not string.find(data, "Trap Enemy")
-
 	UI.tab.tab_beat.state = true
 	MEM.beat_reloaded = true
 	return true
 end
 
 function load.pw_event(data, filename)
-	local tab
-	tab, data = G.safe_decode(data, filename)
-	if not (tab and G.check_version(data, filename)) then	return end
-	MEM.event_data.table = tab
-	MEM.event_data.string = data
-	MEM.event_data.filename = filename
-	MEM.event_data.filter = {}
-	UI.tab.tab_event.state = true
-	MEM.event_reloaded = true
-	return true
-end
-
-function MEM.load_geo(data, filename)
-	data = G.sanitise_json(data)
-	if not G.check_version(data, filename) then
-		return
+	local tab = MEM.parse_json(data)
+	if MEM.check(tab, "pw_event", filename) then
+		UI.tab.tab_event.state = true
+		MEM.event_data = {table = tab, filename = filename, filter = {}}
+		for key, val in ipairs(tab.eventsData) do
+			if val.track == "NoBeat" then
+				MEM.event_data.nobeat_track_index = key
+			elseif val.track == "Event" then
+				MEM.event_data.event_track_index = key
+			end
+		end
+		MEM.event_reloaded = true
+		return true
+	else
+		MEM.event_data = {}
+		UI.tab.tab_event.state = false
 	end
-	local chunk = string.find(data, "chunkData")
-	local slices = string.find(data, "chunkSlices")
-	if not (chunk and slices) then
-		return
-	end
-	local start = string.sub(data, 1, chunk - 2)
-	local chunk = string.sub(data, chunk - 1, slices - 2)
-	local slices = string.sub(data, slices - 1)
-	return start, chunk, slices
 end
 
 function load.pw_geo(data, filename)
-	local start, chunk, slices = MEM.load_geo(data, filename)
-	if not (start and chunk and slices) then
-		msg.post("/navbar#navbar", hash("update_status"), {text = "Error loading geo data from "..filename})
-		return
+	local tab = MEM.parse_json(data)
+	if MEM.check(tab, "pw_geo", filename) then
+		MEM.geo_data = {table = tab, filename = filename}
+		UI.tab.tab_geo.state = true
+		return true
+	else
+		MEM.geo_data = {}
+		UI.tab.tab_geo.state = false
 	end
-	MEM.geo_data.start = start
-	MEM.geo_data.chunk = chunk
-	MEM.geo_data.slices = slices
-	MEM.geo_data.filename = filename
-	UI.tab.tab_geo.state = true
-	return true
 end
 
 function load.pw_seq(data, filename)
@@ -184,36 +375,14 @@ function load.pw_seq(data, filename)
 	--return true
 end
 
-function MEM.get_root_transform(model_tab)
-	if type(model_tab) == "string" then
-		model_tab = G.safe_decode(model_tab, "tween information")
-	end
-	if not model_tab then
-		return
-	end
-	local found_name
-	for key, val in ipairs(model_tab.object.children) do
-		if #val.components > 2 then
-			return false
-		elseif #val.children > 0 then
-			if not found_name then
-				found_name = val.name
-			else
-				return false
-			end
-		end
-	end
-	return found_name
-end
-
-function MEM.parse_tween(script)
+local function parse_tween_action(script)
 	local action = {}
 	local str_start, str_end, x, y, z
 	action.type = string.sub(script, 1, 1)
 	if action.type == "W" then
 		str_end = string.find(script, ";")
 		action.time = string.sub(script, 2, str_end - 1)
-		return action, str_end + 1
+		return action, string.sub(script, str_end + 1)
 	elseif action.type == "T" or action.type == "R" or action.type == "S" then
 		str_start = string.find(script, ";")
 		action.part = string.sub(script, 2, str_start - 1)
@@ -239,232 +408,143 @@ function MEM.parse_tween(script)
 		action.end_state = {x = x, y = y, z = z}
 		str_end = string.find(script, ";", str_start + 1)
 		action.time = string.sub(script, str_start + 1, str_end - 1)
-		return action, str_end + 1
+		return action, string.sub(script, str_end + 1)
 	else
 		return
 	end
 end
 
-function MEM.load_props_dictionary(model_table, ignored_models)
-	ignored_models = ignored_models or {}
-	local current_name = ""
-	
-	local function find_section_old(tab, model_index, name, tree_section)
-		if type(tab) == "table" then
-			current_name = tab.name or current_name
-			if tab.materials then
-				for key, val in ipairs(tab.materials) do
-					table.insert(MEM.art_data.model_list[model_index].parts, val)
-					table.insert(MEM.art_data.part_names[name], current_name)
+function MEM.parse_tween(tween_script)
+	local tween_table = {}
+	local safety = #tween_script / 3
+	local tween_working, tween_action
+	repeat
+		tween_working, tween_action, tween_script = pcall(parse_tween_action, tween_script)
+		safety = safety - 1
+		if safety < 0 or (not tween_working) then
+			G.update_navbar("Malformed tween script has not been loaded.")
+			return
+		else
+			table.insert(tween_table, tween_action)
+		end
+	until #tween_script < 1
+	if tween_working then
+		return tween_table
+	end
+end
+
+local tween_count
+
+local function explore_model_tree(source_tab, result_tab, part_name, tree_section)
+	if source_tab.name == "Colliders" then
+		tree_section.name = source_tab.name
+		return
+	end -- Catch colliders here so they appear on the model preview somehow
+	part_name = source_tab.name or part_name
+	if source_tab.components then
+		for k, v in ipairs(source_tab.components) do
+			if v.type == "Transform" then
+				tree_section.transform = v.values
+				tree_section.name = source_tab.name
+				tree_section.tab = source_tab
+			elseif v.type == "ScriptedTween" then
+				local tween_script = MEM.parse_tween(v.Script)
+				if tween_script then
+					tree_section.tween = tween_script
+					tween_count = tween_count + 1
 				end
-			elseif tab.subMeshes then
+			elseif v.type == "LevelEventReceiver" then
+				if tree_section.tween then
+					tree_section.tween.signal = v.EventId
+				end
+			elseif v.type == "MeshFilter" then
 				local mesh_tab = {}
-				if tab.subMeshes then
-					for key, val in ipairs(tab.subMeshes) do
-						mesh_tab[key] = {IndexStart = val.IndexStart + 1, IndexEnd = val.IndexCount + val.IndexStart, verts = tab.verts, tris = tab.tris, normals = tab.normals}
-					end
-					for key, val in ipairs(mesh_tab) do
-						table.insert(MEM.art_data.mesh_list[name], val)
-					end
+				for key, val in ipairs(v.subMeshes) do
+					mesh_tab[key] = {IndexStart = val.IndexStart + 1, IndexEnd = val.IndexCount + val.IndexStart, verts = v.verts, tris = v.tris, normals = v.normals}
 				end
-			else
-				for key, val in pairs(tab) do
-					find_section(val, model_index, name)
+				tree_section.meshes = {}
+				for key, val in ipairs(mesh_tab) do
+					tree_section.meshes[key] = val
 				end
-			end
-		end
-	end
-	local function find_section(tab, model_index, name, tree_section)
-		if type(tab) == "table" then
-			current_name = tab.name or current_name
-			if tab.components then
-				for key, val in ipairs(tab.components) do
-					if val.type == "Transform" then
-						tree_section.transform = val.values
-					elseif val.materials then
-						for k, v in ipairs(val.materials) do
-							table.insert(MEM.art_data.model_list[model_index].parts, v)
-							table.insert(MEM.art_data.part_names[name], current_name)
-						end
-					elseif val.subMeshes then
-						local mesh_tab = {}
-						for k, v in ipairs(val.subMeshes) do
-							mesh_tab[k] = {IndexStart = v.IndexStart + 1, IndexEnd = v.IndexCount + v.IndexStart, verts = val.verts, tris = val.tris, normals = val.normals}
-						end
-						tree_section.meshes = {}
-						for k, v in ipairs(mesh_tab) do
-							table.insert(MEM.art_data.mesh_list[name], v)
-							tree_section.meshes[k] = #MEM.art_data.mesh_list[name]
-						end
-					end
-				end
-			end
-			if tab.children then
-				for key, val in ipairs(tab.children) do
-					if not (val.name == "Colliders") then
-						table.insert(tree_section, {})
-						find_section(val, model_index, name, tree_section[#tree_section])
-					end
-				end
-			end
-			if not (tab.children or tab.components) then
-				for key, val in pairs(tab) do
-					find_section(val, model_index, name, tree_section)
+			elseif v.type == "MeshRenderer" then
+				for key, val in ipairs(v.materials) do
+					table.insert(result_tab.parts, {name = part_name, tab = v.materials, index = key})
 				end
 			end
 		end
 	end
-	for k, v in ipairs(model_table) do
-		if k > 1 and v.key and not (ignored_models[v.key]) then
-			local tween
-			if #v.object.components > 1 then
-				tween = {}
-				local tween_working, tween_script = true
-				for key, val in ipairs(v.object.components) do
-					if val.type == "LevelEventReceiver" then
-						tween.signal = val.EventId
-					elseif val.type == "ScriptedTween" then
-						tween.script = {}
-						local script_str = val.Script
-						local safety = #script_str / 3
-						repeat
-							local str_end
-							tween_working, tween_script, str_end = pcall(MEM.parse_tween, script_str)
-							safety = safety - 1
-							if safety < 0 or (not tween_working) then
-								tween_working = false
-								msg.post("/navbar#navbar", hash("update_status"), {text = "Malformed tween script in model "..v.key..". Skipping."})
-								tween = {}
-								break
-							else
-								script_str = string.sub(script_str, str_end)
-								table.insert(tween.script, tween_script)
-							end
-						until #script_str < 1
-						if not tween_working then
-							break
-						end
-					end
-				end
-				if tween.script and #tween.script > 0 then
-					MEM.art_data.dynamic_models[v.key] = true
-				else
-					tween = nil
-				end
-			end
-			table.insert(MEM.art_data.model_names, v.key)
-			table.insert(MEM.art_data.model_list, {name = v.key, parts = {}, dynamic = MEM.art_data.dynamic_models[v.key], tween = tween})
-			MEM.art_data.part_names[v.key] = {}
-			MEM.art_data.mesh_list[v.key] = {}
-			MEM.art_data.model_tree[v.key] = {}
-			find_section(v, #MEM.art_data.model_list, v.key, MEM.art_data.model_tree[v.key])
-			if tween then
-				local tween_root = MEM.get_root_transform(v)
-				local all_parts_found = true
-				for tween_key, tween_val in ipairs(tween.script) do
-					if tween_val.part then
-						local part_found = false
-						for key, val in ipairs(MEM.art_data.model_list[#MEM.art_data.model_list].parts) do
-							if MEM.art_data.part_names[v.key][key] == tween_val.part then
-								tween_val.part = key
-								part_found = true
-								break
-							elseif tween_root == tween_val.part then
-								tween_val.part = 0
-								part_found = true
-								break
-							end
-						end
-						if not part_found then
-							all_parts_found = false
-							tween_val.part = 0
-						end
-					end
-				end
-				if not all_parts_found then
-					msg.post("/navbar#navbar", hash("update_status"), {text = "Tween of model "..v.key.." refers to a wrong part. Defaulting to tweening the whole model."})
-				end
-			end
+	if source_tab.children and source_tab.children[1] then
+		for k, v in ipairs(source_tab.children) do
+			table.insert(tree_section, {})
+			explore_model_tree(v, result_tab, part_name, tree_section[#tree_section])
 		end
 	end
 end
 
+function MEM.add_metadata(model_tab)
+	local t = {parts = {}, model_tree = {}}
+	tween_count = 0
+	explore_model_tree(model_tab.object, t, 0, t.model_tree)
+	model_tab.tween = tween_count
+	model_tab.model_data = t
+end
+
 function load.pw_art(data, filename)
-	local model_table, data = G.safe_decode(data, filename)
-	if not (model_table and G.check_version(data, filename)) then return end
-
-	MEM.art_data.table_static_props = model_table.staticProps or {}
-	MEM.art_data.table_dynamic_props = model_table.dynamicProps or {}
-	MEM.art_data.table_culling_ranges = model_table.staticCullingRanges or {}
-	MEM.art_data.table_dynamic_culling_ranges = model_table.dynamicCullingRanges or {}
-
-	MEM.art_data.dynamic_models = {}
-	for key, val in ipairs(MEM.art_data.table_dynamic_props) do
-		MEM.art_data.dynamic_models[val.name] = true
-	end
-	for key, val in ipairs(MEM.art_data.table_dynamic_culling_ranges) do
-		for k, v in ipairs(val.members) do
-			MEM.art_data.dynamic_models[v.name] = true
-		end
-	end
-	
-	MEM.art_data.model_list = {}
-	MEM.art_data.model_names = {}
-	MEM.art_data.part_names = {[false] = {}}
-	MEM.art_data.mesh_list = {}
-	MEM.art_data.model_tree = {}
-	MEM.art_data.colours = {}
-	local colour_check = {}
-	for key, val in ipairs(model_table.colors) do
-		local all_colours = val.mainColor..val.fogColor..val.glowColor..val.enemyColor
-		local add_this_colour = true
-		for k, v in ipairs(colour_check) do
-			if v == all_colours then
-				add_this_colour = false
-				break
+	local tab = MEM.parse_json(data)
+	if MEM.check(tab, "pw_art", filename) then
+		MEM.art_data = {table = tab, filename = filename}
+		local dynamic_models = {}
+		if tab.dynamicProps then
+			for key, val in ipairs(tab.dynamicProps) do
+				dynamic_models[val.name] = true
 			end
 		end
-		if add_this_colour then
-			local t = {main = val.mainColor, fog = val.fogColor, glow = val.glowColor, enemy = val.enemyColor}
-			table.insert(MEM.art_data.colours, t)
-			table.insert(colour_check, all_colours)
+		if tab.dynamicCullingRanges then
+			for key, val in ipairs(tab.dynamicCullingRanges) do
+				for k, v in ipairs(val.members) do
+					dynamic_models[v.name] = true
+				end
+			end
 		end
-	end
-	local t = {main = SET.custom_colour_main, fog = SET.custom_colour_fog, glow = SET.custom_colour_glow, enemy = SET.custom_colour_enemy}
-	table.insert(MEM.art_data.colours, t)
 
-	MEM.load_props_dictionary(model_table.propsDictionary)
-
-	local colours_end = string.find(data, "]") + 1
-	local dictionary_start = string.find(data, "propsDictionary")
-		
-	MEM.art_data.string_colours = string.sub(data, 1, colours_end)
-	local string_props_dictionary = string.sub(data, dictionary_start - 1)
-
-	local start_index = 1018
-	local search_string = "{\"key"
-
-	local key_indices = {}
-	repeat
-		local next_key_index = string.find(string_props_dictionary, search_string, start_index)
-		if next_key_index then
-			table.insert(key_indices, next_key_index)
-			start_index = next_key_index + 5
+		if tab.propsDictionary[1] and tab.propsDictionary[1].object.name == "Placeholder" then
+			MEM.art_data.placeholder = table.remove(tab.propsDictionary, 1)
 		end
-	until not next_key_index
-	for i = 1, #key_indices - 1 do
-		MEM.art_data.model_list[i].string = string.sub(string_props_dictionary, key_indices[i], key_indices[i + 1] - 2)
-	end
-	if #key_indices > 0 then
-		MEM.art_data.string_dictionary = string.sub(string_props_dictionary, 1, key_indices[1] - 1)
-		MEM.art_data.model_list[#key_indices].string = string.sub(string_props_dictionary, key_indices[#key_indices], -3)
+
+		for key, val in ipairs(tab.propsDictionary) do
+			if dynamic_models[val.key] then
+				val.dynamic = true
+			end
+			MEM.add_metadata(val)
+		end
+
+		MEM.art_data.colours = {}
+		local colour_check = {}
+		for key, val in ipairs(tab.colors) do
+			local all_colours = val.mainColor..val.fogColor..val.glowColor..val.enemyColor
+			local add_this_colour = true
+			for k, v in ipairs(colour_check) do
+				if v == all_colours then
+					add_this_colour = false
+					break
+				end
+			end
+			if add_this_colour then
+				local t = {main = val.mainColor, fog = val.fogColor, glow = val.glowColor, enemy = val.enemyColor}
+				table.insert(MEM.art_data.colours, t)
+				table.insert(colour_check, all_colours)
+			end
+		end
+		local t = {main = SET.custom_colour_main, fog = SET.custom_colour_fog, glow = SET.custom_colour_glow, enemy = SET.custom_colour_enemy}
+		table.insert(MEM.art_data.colours, t)
+
+		UI.tab.tab_art.state = true
+		MEM.art_reloaded = true
+		return true
 	else
-		MEM.art_data.string_dictionary = string.sub(string_props_dictionary, 1, -2)
+		MEM.art_data = {}
+		UI.tab.tab_art.state = false
 	end
-	UI.tab.tab_art.state = true
-	MEM.art_data.filename = filename
-	MEM.art_reloaded = true
-	return true
 end
 
 function MEM.load_file(path, filename, extension, data)

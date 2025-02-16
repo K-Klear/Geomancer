@@ -79,6 +79,7 @@ embedded_instances {
   children: "import"
   children: "rename"
   children: "replace"
+  children: "transform"
   children: "tween"
   data: "components {\n"
   "  id: \"tab_art\"\n"
@@ -362,4 +363,12 @@ embedded_instances {
   scale3 {
     z: -1.0
   }
+}
+embedded_instances {
+  id: "transform"
+  data: "components {\n"
+  "  id: \"dialog_transform\"\n"
+  "  component: \"/main/dialogs/art/tween/dialog_transform.gui\"\n"
+  "}\n"
+  ""
 }

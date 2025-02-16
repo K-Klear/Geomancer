@@ -1,5 +1,6 @@
 local UI = require "modules.ui"
 local MEM = require "modules.memory"
+local G = require "modules.global"
 local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_rename_model"
 local DIALOG_DATA
@@ -21,13 +22,13 @@ end
 
 local function evaluate_button(button)
 	if button == "dialog_rename_model_accept" then
-		if model_name == MEM.art_data.model_list[model_to_rename].name then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Enter a different name.", clear = true})
+		if model_name == MEM.art_data.table.propsDictionary[model_to_rename].key then
+			G.update_navbar("Enter a different name.", true)
 			return
 		else
-			for key, val in ipairs(MEM.art_data.model_list) do
-				if val.name == model_name then
-					msg.post("/navbar#navbar", hash("update_status"), {text = "Model with that name already exists.", clear = true})
+			for key, val in ipairs(MEM.art_data.table.propsDictionary) do
+				if val.key == model_name then
+					G.update_navbar("Model with that name already exists.", true)
 					return
 				end
 			end
@@ -48,7 +49,7 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		DIALOG.show(DIALOG_DATA, sender)
 		model_to_rename = message.model_to_rename
-		model_name = message.model_name
+		model_name = MEM.art_data.table.propsDictionary[model_to_rename].key
 		gui.set_text(gui.get_node("field_rename_model/text"), model_name)
 	end
 end

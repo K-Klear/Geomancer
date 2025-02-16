@@ -295,7 +295,7 @@ function on_message(self, message_id, message, sender)
 			if message.position then
 				MOD.offset_position.x = message.position.x
 				MOD.offset_position.y = message.position.y
-				if MEM.level_data.move_mode and MEM.level_data.move_mode == "Stationary" then
+				if MEM.level_data.moveMode and MEM.level_data.moveMode == "Stationary" then
 					MOD.offset_position.z = -message.position.z
 				else
 					MOD.offset_position.z = -SET.default_model_z_position

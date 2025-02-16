@@ -1,6 +1,8 @@
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
+local G = require "modules.global"
 local TAB_NAME = "tab_geo"
+
 
 function init(self)
 	gui.set_render_order(1)
@@ -48,24 +50,20 @@ local function evaluate_button(button)
 	if button == "geo_visual" then
 		local geo_data = load_geo_data()
 		if geo_data then
-			local start, chunk, slices = MEM.load_geo(geo_data, "selected file")
-			if slices then
-				MEM.geo_data.slices = slices
-				msg.post("/navbar#navbar", hash("update_status"), {text = "Visual data replaced.", clear = true})
+			local tab = MEM.parse_json(geo_data)
+			if MEM.check(tab, "pw_geo", "Selected pw_geo file") then
+				MEM.geo_data.table.chunkSlices = tab.chunkSlices
 			end
-		else
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Error loading geo data.", clear = true})
+			G.update_status("Visual data replaced.", true)
 		end
 	elseif button == "geo_collision" then
 		local geo_data = load_geo_data()
 		if geo_data then
-			local start, chunk, slices = MEM.load_geo(geo_data, "selected file")
-			if chunk then
-				MEM.geo_data.chunk = chunk
-				msg.post("/navbar#navbar", hash("update_status"), {text = "Collision data replaced.", clear = true})
+			local tab = MEM.parse_json(geo_data)
+			if MEM.check(tab, "pw_geo", "Selected pw_geo file") then
+				MEM.geo_data.table.chunkData = tab.chunkData
 			end
-		else
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Error loading geo data.", clear = true})
+			G.update_status("Collision data replaced.", true)
 		end
 	end
 end

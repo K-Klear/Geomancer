@@ -5,7 +5,7 @@ local DIALOG_NAME = "dialog_tween_part"
 local DIALOG_DATA
 
 local evaluate_button, selected_part, model_index, action_index, list
-local part_list = {}
+local transform_name_list = {}
 
 function init(self)
 	DIALOG.setup(DIALOG_NAME)
@@ -16,7 +16,7 @@ function init(self)
 			type = hash("exclusive_button"),
 			node = gui.get_node("tween_part_exclusive/button_white"),
 			text_node = gui.get_node("tween_part_exclusive/text"),
-			value_fn = function(i) return part_list[i] end,
+			value_fn = function(i) return transform_name_list[i] end,
 			template = "tween_part_exclusive;",
 			fn = evaluate_button
 		},
@@ -29,14 +29,14 @@ end
 function evaluate_button(button, item)
 	if button == "tween_part_accept" then
 		DIALOG.close(DIALOG_NAME, {
-			dialog = hash(DIALOG_NAME), selected_part = selected_part - 1, model_index = model_index, action_index = action_index
+			dialog = hash(DIALOG_NAME), selected_part = selected_part, model_index = model_index, action_index = action_index
 		})
-		part_list = {}
+		transform_name_list = {}
 		selected_part, model_index = nil, nil
 		UI.update_list(DIALOG_NAME, list, 0)
 	elseif button == "tween_part_cancel" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)
-		part_list = {}
+		transform_name_list = {}
 		selected_part, model_index = nil, nil
 		UI.update_list(DIALOG_NAME, list, 0)
 	elseif button == list then
@@ -47,14 +47,26 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		DIALOG.show(DIALOG_DATA, sender)
-		selected_part = message.part_index + 1
-		model_index = message.model
-		action_index = message.action_index
-		table.insert(part_list, "[whole prop]")
-		for key, val in ipairs(MEM.art_data.part_names[message.model_name]) do
-			table.insert(part_list, val)
+		transform_name_list = {}
+		local name_list_temp = {}
+		local function find_transform(tab)
+			if not (tab.name and (tab.name == "Colliders")) then
+				if tab.name then
+					if not name_list_temp[tab.name] then
+						table.insert(transform_name_list, tab.name)
+						name_list_temp[tab.name] = true
+					end
+				end
+				for key, val in ipairs(tab) do
+					find_transform(val)
+				end
+			end
 		end
-		UI.update_list(DIALOG_NAME, list, #part_list)
+		find_transform(MEM.art_data.table.propsDictionary[message.model].model_data.model_tree)
+		model_index = message.model
+		selected_part = message.part_index or 1
+		action_index = message.action_index
+		UI.update_list(DIALOG_NAME, list, #transform_name_list)
 		UI.select_exclusive_button(DIALOG_NAME, list, selected_part, true)
 	end
 end

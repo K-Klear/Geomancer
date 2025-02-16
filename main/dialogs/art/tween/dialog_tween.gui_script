@@ -6,7 +6,7 @@ local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_tween"
 local DIALOG_DATA
 
-local action_list, model_index, model_name, tween_actions, signal, evaluate_button
+local action_list, model_index, transform_tab, model_name, tween_actions, signal, evaluate_button, transform_name_list
 local path_to_tween
 
 local function calculate_tween_speed(action_index)
@@ -65,7 +65,8 @@ local action_types = {T = "Move", R = "Rotate", S = "Scale", W = "Wait", X = "Re
 function init(self)
 	DIALOG.setup(DIALOG_NAME)
 	DIALOG_DATA = UI.tab[DIALOG_NAME]
-	UI.load_template({"dialog_tween_close", "dialog_tween_add", "dialog_tween_copy", "dialog_tween_delete", "dialog_tween_save", "dialog_tween_load", "dialog_tween_event", "dialog_tween_preview"}, DIALOG_NAME)
+	UI.load_template({"dialog_tween_close", "dialog_tween_add", "dialog_tween_copy", "dialog_tween_delete",
+		"dialog_tween_save", "dialog_tween_load", "dialog_tween_event", "dialog_tween_preview", "dialog_tween_transform"}, DIALOG_NAME)
 	UI.load_text_field("tween_signal", 20, DIALOG_NAME, {text = true, json_safe = true, not_empty = true, default = function() return signal end})
 	local function is_not_wait(i)
 		return not (tween_actions[i].type == "W" or tween_actions[i].type == "X")
@@ -248,10 +249,10 @@ function init(self)
 			node = gui.get_node("tween_part/button_white"),
 			text_node = gui.get_node("tween_part/text"),
 			value_fn = function(i)
-				return MEM.art_data.part_names[model_name][tween_actions[i].part] or "[whole prop]"
+				return tween_actions[i].part
 			end,
 			template = "tween_part;",
-			enabled = function() return false end--is_not_wait
+			enabled = is_not_wait
 		},
 		{
 			type = hash("button"),
@@ -381,11 +382,13 @@ local function get_tween_defaults(action_type, current_action_index)
 		end
 	else
 		local current = tween_actions[current_action_index]
+		local part
 		if current then
+			part = current.part or transform_name_list[2] or transform_name_list[1]
 			if action_type == "T" then
-				new_action_tab = {part = 0, type = action_type, start_state = {x = 0, y = 0, z = 0}, end_state = {x = 0, y = 0, z = 0}, time = 1}
+				new_action_tab = {part = part, type = action_type, start_state = {x = 0, y = 0, z = 0}, end_state = {x = 0, y = 0, z = 0}, time = 1}
 			elseif action_type == "R" then
-				new_action_tab = {part = current.part, type = action_type, start_state = current.start_state or {x = 0, y = 0, z = 0},
+				new_action_tab = {part = part, type = action_type, start_state = current.start_state or {x = 0, y = 0, z = 0},
 				end_state = current.end_state or {x = 0, y = 0, z = 0}, time = current.time or 1}
 				if SET.restrict_rotations_to_360 then
 					for key, val in pairs(new_action_tab.start_state) do
@@ -396,7 +399,7 @@ local function get_tween_defaults(action_type, current_action_index)
 					end
 				end
 			elseif action_type == "S" then
-				new_action_tab = {part = current.part, type = action_type, start_state = current.start_state or {x = 1, y = 1, z = 1},
+				new_action_tab = {part = part, type = action_type, start_state = current.start_state or {x = 1, y = 1, z = 1},
 				end_state = current.end_state or {x = 1, y = 1, z = 1}, time = current.time or 1}
 			elseif action_type == "W" then
 				new_action_tab = {time = current.time or 1, type = action_type}
@@ -404,10 +407,11 @@ local function get_tween_defaults(action_type, current_action_index)
 				new_action_tab = {type = action_type, actions_to_repeat = 1, number_of_repetitions = 2}
 			end
 		else
+			part = transform_name_list[2] or transform_name_list[1]
 			if action_type == "T" or action_type == "R" then
-				new_action_tab = {part = 0, type = action_type, start_state = {x = 0, y = 0, z = 0}, end_state = {x = 0, y = 0, z = 0}, time = 1}
+				new_action_tab = {part = part, type = action_type, start_state = {x = 0, y = 0, z = 0}, end_state = {x = 0, y = 0, z = 0}, time = 1}
 			elseif action_type == "S" then
-				new_action_tab = {part = 0, type = action_type, start_state = {x = 1, y = 1, z = 1}, end_state = {x = 1, y = 1, z = 1}, time = 1}
+				new_action_tab = {part = part, type = action_type, start_state = {x = 1, y = 1, z = 1}, end_state = {x = 1, y = 1, z = 1}, time = 1}
 			elseif action_type == "W" then
 				new_action_tab = {time = 1, type = action_type}
 			elseif action_type == "X" then
@@ -476,16 +480,23 @@ end
 local function save_tween_data(path)
 	local works, f = pcall(io.output, path)
 	if works then
+		tween_actions.signal = nil
 		io.write(json.encode(tween_actions))
 		io.close(f)
+		tween_actions.signal = signal
 	else
-		msg.post("/navbar#navbar", hash("update_status"), {text = "Error saving tween data.", clear = true})
+		G.update_navbar("Error saving tween data.", true)
 	end
 end
 
 function evaluate_button(button, item)
 	if button == "dialog_tween_close" or button == "escape" then
-		DIALOG.close(DIALOG_NAME, {model_index = model_index, signal = signal})
+		if transform_tab.tween and #tween_actions < 1 then
+			transform_tab.tween = nil
+			transform_tab.signal = nil
+		end
+		tween_actions, signal = nil, nil
+		DIALOG.close(DIALOG_NAME)
 		UI.update_list(DIALOG_NAME, action_list, 0)
 	elseif button == "dialog_tween_add" then
 		table.insert(tween_actions, get_tween_defaults())
@@ -504,6 +515,8 @@ function evaluate_button(button, item)
 				break
 			end
 		end
+	elseif button == "dialog_tween_transform" and #tween_actions > 0 then
+		DIALOG.open(DIALOG_NAME, "dialog_tween_part", {model = model_index})
 	elseif button == "dialog_tween_save" then
 		local _, path
 		if sys.exists(SET.default_path_save_tween) then
@@ -530,15 +543,9 @@ function evaluate_button(button, item)
 			if f then
 				local tween_data = G.safe_decode(f:read("*a"), "saved tween")
 				if tween_data then
-					for i = 1, #tween_actions do
-						tween_actions[i] = nil
-					end
-					for key, val in ipairs(tween_data) do
-						tween_actions[key] = val
-						if val.part and val.part > #MEM.art_data.part_names[model_name] then
-							tween_actions[key].part = 0
-						end
-					end
+					transform_tab.tween = tween_data
+					tween_actions = transform_tab.tween
+					signal = tween_data.signal
 				end
 			end
 		end
@@ -584,15 +591,21 @@ function evaluate_button(button, item)
 			UI.update_list(DIALOG_NAME, action_list, #tween_actions)
 			display_total_time()
 		elseif str == "tween_part;" then
-			if SET.tween_part_dialog then
-				DIALOG.open(DIALOG_NAME, "dialog_tween_part", {
-					part_index = tween_actions[item].part, action_index = item, model = model_index, model_name = MEM.art_data.model_list[model_index].name
-				})
-			else
-				tween_actions[item].part = tween_actions[item].part + 1
-				if tween_actions[item].part > #MEM.art_data.part_names[model_name] then
-					tween_actions[item].part = 0
+			local current_index = 1
+			for key, val in ipairs(transform_name_list) do
+				if val == tween_actions[item].part then
+					current_index = key
+					break
 				end
+			end
+			if SET.tween_part_dialog then
+				DIALOG.open(DIALOG_NAME, "dialog_tween_part", {part_index = current_index, action_index = item, model = model_index})
+			else
+				current_index = current_index + 1
+				if current_index > #transform_name_list then
+					current_index = 1
+				end
+				tween_actions[item].part = transform_name_list[current_index]
 				UI.update_list(DIALOG_NAME, action_list)
 			end
 		elseif str == "tween_add;" then
@@ -600,16 +613,29 @@ function evaluate_button(button, item)
 			UI.update_list(DIALOG_NAME, action_list, #tween_actions)
 			display_total_time()
 		elseif str == "tween_easing;" then
-			DIALOG.open(DIALOG_NAME, "dialog_easing", {model_index = model_index, action_index = item})
+			MEM.art_data.transform_tab_temp = transform_tab.tween[item]
+			DIALOG.open(DIALOG_NAME, "dialog_easing", {action_index = item})
 		end
 	end
 end
 
-local function copy_tween(source_index, target_index)
-	local source_tween = MEM.art_data.model_list[source_index].tween
-	local target_tween = {}
-	signal = source_tween.signal
-	for key, val in ipairs(source_tween.script) do
+local function copy_tween(source_index, target_index, transform_index)
+	local ti = 1
+	local source_tween
+	local function find_transform(tab)
+		if transform_index == ti then
+			source_tween = tab.tween
+			ti = ti + 1
+			return
+		end
+		ti = ti + 1
+		for key, val in ipairs(tab) do
+			find_transform(val)
+		end
+	end
+	find_transform(MEM.art_data.table.propsDictionary[source_index].model_data.model_tree)
+	local target_tween = {signal = source_tween.signal}
+	for key, val in ipairs(source_tween) do
 		local start_state, end_state
 		local easing
 		if val.start_state then
@@ -622,20 +648,12 @@ local function copy_tween(source_index, target_index)
 				table.insert(easing.nodes, {time = v.time, comp = v.comp})
 			end
 		end
-		local source_name = MEM.art_data.model_list[source_index].name
-		local target_name = MEM.art_data.model_list[target_index].name
-		local part
-		if MEM.art_data.part_names[target_name][val.part] and MEM.art_data.part_names[target_name][val.part] == MEM.art_data.part_names[source_name][val.part] then
-			part = val.part
-		else
-			part = 0
-		end
-		target_tween[key] = {type = val.type, part = part, time = val.time, start_state = start_state, end_state = end_state,
+		target_tween[key] = {type = val.type, part = val.part, time = val.time, start_state = start_state, end_state = end_state,
 		actions_to_repeat = val.actions_to_repeat, number_of_repetitions = val.number_of_repetitions, easing = easing}
 	end
-	tween_actions = target_tween
-	MEM.art_data.model_list[target_index].tween.signal = signal
-	MEM.art_data.model_list[target_index].tween.script = tween_actions
+	transform_tab.tween = target_tween
+	tween_actions = transform_tab.tween
+	signal = transform_tab.tween.signal
 	gui.set_text(gui.get_node("tween_signal/text"), signal)
 	display_total_time()
 end
@@ -644,17 +662,45 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		DIALOG.show(DIALOG_DATA, sender)
 		model_index = message.model_index
-		model_name = MEM.art_data.model_list[model_index].name
-		gui.set_text(gui.get_node("title_tween"), "Tween editor ("..model_name..")")
-		tween_actions = MEM.art_data.model_list[model_index].tween.script
-		signal = MEM.art_data.model_list[model_index].tween.signal
+		model_name = MEM.art_data.table.propsDictionary[model_index].key
+		local current_index = 1
+		transform_tab = {}
+		transform_name_list = {}
+		local name_list_temp = {}
+		local found = false
+		local function find_transform(tab)
+			if not (tab.name and (tab.name == "Colliders")) then
+				if tab.name then
+					if not name_list_temp[tab.name] then
+						table.insert(transform_name_list, tab.name)
+						name_list_temp[tab.name] = true
+					end
+				end
+				if (not found) and (current_index == message.transform_index) then
+					found = true
+					transform_tab = tab
+				end
+				current_index = current_index + 1
+				for key, val in ipairs(tab) do
+					find_transform(val)
+				end
+			end
+		end
+		find_transform(MEM.art_data.table.propsDictionary[model_index].model_data.model_tree)
+		transform_tab.tween = transform_tab.tween or {signal = "tween"}
+		tween_actions = transform_tab.tween
+		gui.set_text(gui.get_node("title_tween"), model_name.." ("..transform_tab.name..")")
+		signal = transform_tab.tween.signal
 		gui.set_text(gui.get_node("tween_signal/text"), signal)
 		UI.update_list(DIALOG_NAME, action_list, #tween_actions)
 		display_total_time()
 	elseif message_id == hash("hide") then
-		msg.post(DIALOG_DATA.parent_tab, hash("tween_closed"), {model_index = model_index, signal = signal})
-		tween_actions = nil
-		signal = nil
+		if transform_tab and transform_tab.tween and (tween_actions and #tween_actions < 1) then
+			transform_tab.tween = nil
+			transform_tab.signal = nil
+		end
+		tween_actions, signal = nil, nil
+		msg.post(UI.tab.dialog_transform.path, hash("hide"))
 	elseif message_id == hash("dialog_closed") then
 		msg.post("#", hash("acquire_input_focus"))
 		if message.dialog == "dialog_tween_action" then
@@ -666,13 +712,19 @@ function on_message(self, message_id, message, sender)
 			end
 		elseif message.dialog == "dialog_tween_copy" then
 			if message.selected_model then
-				copy_tween(message.selected_model, model_index)
+				copy_tween(message.selected_model, model_index, message.transform_index)
 				UI.update_list(DIALOG_NAME, action_list, #tween_actions)
 				display_total_time()
 			end
 		elseif message.dialog == "dialog_tween_part" then
 			if message.selected_part then
-				tween_actions[message.action_index].part = message.selected_part
+				if message.action_index then
+					tween_actions[message.action_index].part = transform_name_list[message.selected_part]
+				else
+					for key, val in ipairs(tween_actions) do
+						val.part =transform_name_list[message.selected_part]
+					end
+				end
 				UI.update_list(DIALOG_NAME, action_list)
 			end
 		elseif message.dialog == "dialog_easing" then
@@ -696,7 +748,7 @@ function on_message(self, message_id, message, sender)
 					if i > 999999 then break end
 				until not (sys.exists(new_path))
 				if i > 999999 then
-					msg.post("/navbar#navbar", hash("update_status"), {text = "Error finding a new filename. Tween not saved", clear = true})
+					G.update_navbar("Error finding a new filename. Tween not saved", true)
 				end
 				save_tween_data(new_path)
 			elseif message.button == 3 then

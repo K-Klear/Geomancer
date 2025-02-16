@@ -1,6 +1,7 @@
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
 local SET = require "modules.settings"
+local G = require "modules.global"
 local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_import"
 local DIALOG_DATA
@@ -54,13 +55,12 @@ function evaluate_button(button, item)
 			DIALOG.close(DIALOG_NAME, {import = true})
 			UI.update_list(DIALOG_NAME, import_model_list, 0)
 		else
-			msg.post("/navbar#navbar", hash("update_status"), {text = "No models selected.", clear = true})
+			G.update_navbar("No models selected.", true)
 		end
 	elseif button == "dialog_import_cancel" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)
 		MEM.art_data.models_for_import = nil
 		MEM.art_data.models_for_import_ignore = nil
-		MEM.art_data.import_string = nil
 		UI.update_list(DIALOG_NAME, import_model_list, 0)
 	elseif button == "dialog_import_none" then
 		selection_list = {}
@@ -88,27 +88,29 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		DIALOG.show(DIALOG_DATA, sender)
 		MEM.art_data.models_for_import_ignore = {}
-		for key, val in ipairs(MEM.art_data.model_list) do
-			MEM.art_data.models_for_import_ignore[val.name] = true
+		for key, val in ipairs(MEM.art_data.table.propsDictionary) do
+			MEM.art_data.models_for_import_ignore[val.key] = true
 		end
 		local ignore_count = 0
 		import_list = {}
 		selection_list = {}
-		for key, val in ipairs(MEM.art_data.models_for_import.propsDictionary) do
-			if key > 1 and val.key then
-				if MEM.art_data.models_for_import_ignore[val.key] then
-					ignore_count = ignore_count + 1
-				else
-					table.insert(import_list, val.key)
-				end
+		for key, val in ipairs(MEM.art_data.models_for_import) do
+			if MEM.art_data.models_for_import_ignore[val.key] then
+				ignore_count = ignore_count + 1
+			else
+				table.insert(import_list, val.key)
 			end
 		end
 		if #import_list == 0 then
 			DIALOG.close(DIALOG_NAME)
-			msg.post("/navbar#navbar", hash("update_status"), {text = "No new models found. Import aborted."})
+			G.update_navbar("No new models found. Import aborted.")
 		else
 			if ignore_count > 0 then
-				msg.post("/navbar#navbar", hash("update_status"), {text = ignore_count.." models already present in the map have been skipped."})
+				if ignore_count == 1 then
+					G.update_navbar("One model already present in the map have been skipped.")
+				else
+					G.update_navbar(ignore_count.." models already present in the map have been skipped.")
+				end
 			end
 			UI.update_list(DIALOG_NAME, import_model_list, #import_list)
 			update_label()

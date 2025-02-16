@@ -109,7 +109,7 @@ function init(self)
 			node = gui.get_node("model_dynamic/button_white"),
 			text_node = gui.get_node("model_dynamic/text"),
 			value_fn = function(i)
-				if MEM.art_data.model_list[i].dynamic then
+				if MEM.art_data.table.propsDictionary[i].dynamic then
 					return "Dynamic"
 				else
 					return "Static"
@@ -117,9 +117,9 @@ function init(self)
 			end,
 			template = "model_dynamic;",
 			tint = function(i)
-				if MEM.art_data.model_list[i].tween then
+				if (MEM.art_data.table.propsDictionary[i].tween or 0) > 0 then
 					return SET.colour_highlight_tween
-				elseif MEM.art_data.model_list[i].dynamic then
+				elseif MEM.art_data.table.propsDictionary[i].dynamic then
 					return SET.colour_highlight_dynamic
 				else
 					return vmath.vector4(1, 1, 1, 1)
@@ -131,15 +131,17 @@ function init(self)
 			node = gui.get_node("model_tween/button_white"),
 			text_node = gui.get_node("model_tween/text"),
 			value_fn = function(i)
-				if MEM.art_data.model_list[i].tween then
-					return "Tween"
+				if MEM.art_data.table.propsDictionary[i].tween == 1 then
+					return "1 tween"
+				elseif (MEM.art_data.table.propsDictionary[i].tween or 0) > 1 then
+					return MEM.art_data.table.propsDictionary[i].tween.." tweens"
 				else
 					return "No tween"
 				end
 			end,
 			template = "model_tween;",
 			tint = function(i)
-				if MEM.art_data.model_list[i].tween then
+				if (MEM.art_data.table.propsDictionary[i].tween or 0) > 0 then
 					return SET.colour_highlight_tween
 				else
 					return vmath.vector4(1, 1, 1, 1)
@@ -150,13 +152,13 @@ function init(self)
 			type = hash("exclusive_button"),
 			node = gui.get_node("model_exclusive/button_white"),
 			text_node = gui.get_node("model_exclusive/text"),
-			value_fn = function(i) return MEM.art_data.model_list[i].name end,
+			value_fn = function(i) return MEM.art_data.table.propsDictionary[i].key end,
 			template = "model_exclusive;",
 			fn = evaluate_button,
 			tint = function(i)
-				if MEM.art_data.model_list[i].tween then
+				if (MEM.art_data.table.propsDictionary[i].tween or 0) > 0 then
 					return SET.colour_highlight_tween
-				elseif MEM.art_data.model_list[i].dynamic then
+				elseif MEM.art_data.table.propsDictionary[i].dynamic then
 					return SET.colour_highlight_dynamic
 				else
 					return vmath.vector4(1, 1, 1, 1)
@@ -174,8 +176,7 @@ function init(self)
 			text_node = gui.get_node("part_exclusive/text"),
 			value_fn = function(i)
 				if get_selected_model() > 0 then
-					local model_name = MEM.art_data.model_list[get_selected_model()].name
-					return MEM.art_data.part_names[model_name][i]
+					return MEM.art_data.table.propsDictionary[get_selected_model()].model_data.parts[i].name
 				end
 			end,
 			template = "part_exclusive;",
@@ -195,7 +196,12 @@ local function update_materials()
 			UI.select_exclusive_button(TAB_NAME, part_list, 1)
 			selected_part = 1
 		end
-		local part_material = MEM.art_data.model_list[selected_model].parts[selected_part]
+		local part_tab = MEM.art_data.table.propsDictionary[selected_model].model_data.parts[selected_part]
+		if not part_tab then
+			G.update_navbar("Cannot render model "..MEM.art_data.table.propsDictionary[selected_model].key)
+			return
+		end
+		local part_material = part_tab.tab[part_tab.index]
 		local material_index
 		for key, val in ipairs(material_list) do
 			if val == part_material then
@@ -213,7 +219,7 @@ local function update_materials()
 			gui.animate(material_buttons[material_index], "color", SET.colour_highlight_material, gui.EASING_LINEAR, 0.1)
 			current_material = material_index
 		else
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Unknown material on currently seletcted model part"})
+			G.update_navbar("Unknown material on currently seletcted model part")
 			current_material = nil
 		end
 	elseif current_material then
@@ -224,10 +230,10 @@ local function update_materials()
 end
 
 local function update_lists()
-	UI.update_list(TAB_NAME, model_list, #MEM.art_data.model_list)
+	UI.update_list(TAB_NAME, model_list, #MEM.art_data.table.propsDictionary)
 	if get_selected_model() > 0 then
-		local model_name = MEM.art_data.model_list[get_selected_model()].name
-		UI.update_list(TAB_NAME, part_list, #MEM.art_data.part_names[model_name])
+		local part_table = MEM.art_data.table.propsDictionary[get_selected_model()].model_data.parts
+		UI.update_list(TAB_NAME, part_list, #part_table)
 		update_materials()
 	end
 end
@@ -261,118 +267,73 @@ local function import_models()
 		io.close(f)
 	end
 	if model_data then
-		local data
-		model_data, data = G.safe_decode(model_data, "Selected pw_art file")
-		if not (model_data and G.check_version(data, "Selected pw_art file")) then return end
-		MEM.art_data.models_for_import = model_data
-		MEM.art_data.import_string = data
-		open_dialog("dialog_import")
-	else
-		msg.post("/navbar#navbar", hash("update_status"), {text = "Error reading model data.", clear = true})
-	end
-end
-
-local function import_models_finish()
-	local model_count = 0
-	local data = MEM.art_data.import_string
-	local model_data = MEM.art_data.models_for_import
-	local existing_model_count = #MEM.art_data.model_list
-	local ignore_list = MEM.art_data.models_for_import_ignore
-	MEM.load_props_dictionary(model_data.propsDictionary, ignore_list)
-	local dictionary_start = string.find(data, "propsDictionary")
-	local string_props_dictionary = string.sub(data, dictionary_start - 1)
-	local start_index = 1018
-	local search_string = "{\"key"
-	local key_indices = {}
-	local skipped = 0
-	repeat
-		local next_key_index = string.find(string_props_dictionary, search_string, start_index)
-		if next_key_index then
-			if ignore_list[model_data.propsDictionary[#key_indices + 2 + skipped].key] then
-				skipped = skipped + 1
-			else
-				table.insert(key_indices, next_key_index)
-				model_count = model_count + 1
+		model_data = MEM.parse_json(model_data)
+		if MEM.check(model_data, "pw_art", "Selected pw_art file") then
+			model_data = model_data.propsDictionary
+			if model_data[1] and model_data[1].object.name == "Placeholder" then
+				table.remove(model_data, 1)
 			end
-			start_index = next_key_index + 5
-		end
-	until not next_key_index
-	for i = 1, #key_indices - 1 do
-		MEM.art_data.model_list[existing_model_count + i].string = string.sub(string_props_dictionary, key_indices[i], key_indices[i + 1] - 2)
-	end
-	if #key_indices > 0 then
-		local next_key_index = string.find(string_props_dictionary, search_string, key_indices[#key_indices] + 5)
-		if next_key_index then
-			MEM.art_data.model_list[existing_model_count + #key_indices].string = string.sub(string_props_dictionary, key_indices[#key_indices], next_key_index - 2)
+			if #model_data < 1 then
+				G.update_navbar("No models found.")
+			else
+				MEM.art_data.models_for_import = model_data
+				open_dialog("dialog_import")
+			end
 		else
-			MEM.art_data.model_list[existing_model_count + #key_indices].string = string.sub(string_props_dictionary, key_indices[#key_indices], -3)
+			G.update_navbar("Error reading model data.", true)
 		end
+	else
+		G.update_navbar("Error reading model data.", true)
 	end
-	if existing_model_count < 1 and model_count > 0 then
-		MEM.art_data.string_dictionary = string.sub(MEM.art_data.string_dictionary, 1, -2)..","
-	end
-	return model_count
 end
 
 local function model_replace(selected_model_index, replace_model_index)
-	local selected_model = MEM.art_data.model_list[selected_model_index].name
-	local replace_model = MEM.art_data.model_list[replace_model_index].name
-	for key, val in ipairs(MEM.art_data.model_list[replace_model_index].parts) do
-		if MEM.art_data.model_list[selected_model_index].parts[key] then
-			MEM.art_data.model_list[replace_model_index].parts[key] = MEM.art_data.model_list[selected_model_index].parts[key]
-		else
-			break
+	local old_name = MEM.art_data.table.propsDictionary[selected_model_index].key
+	local new_name = MEM.art_data.table.propsDictionary[replace_model_index].key
+	for key, val in ipairs(MEM.art_data.table.staticProps) do
+		if val.name == new_name then
+			val.name = old_name
 		end
 	end
-	MEM.art_data.model_list[replace_model_index].dynamic = MEM.art_data.model_list[selected_model_index].dynamic
-	if MEM.art_data.model_list[selected_model_index].tween then
-		local new_model_part_count = #MEM.art_data.model_list[replace_model_index].parts
-		for key, val in ipairs(MEM.art_data.model_list[selected_model_index].tween.script) do
-			if val.part > new_model_part_count then
-				val.part = 0
-			end
+	for key, val in ipairs(MEM.art_data.table.dynamicProps) do
+		if val.name == new_name then
+			val.name = old_name
 		end
 	end
-	MEM.art_data.model_list[replace_model_index].tween = MEM.art_data.model_list[selected_model_index].tween
-	MEM.art_data.model_list[selected_model_index] = MEM.art_data.model_list[replace_model_index]
-	MEM.art_data.model_list[selected_model_index].name = selected_model
-	MEM.art_data.model_list[selected_model_index].string = string.gsub(MEM.art_data.model_list[selected_model_index].string, replace_model, selected_model, 2)
-	for key, val in ipairs(MEM.art_data.table_static_props) do
-		if val.name == replace_model then
-			val.name = selected_model
-		end
-	end
-	for key, val in ipairs(MEM.art_data.table_dynamic_props) do
-		if val.name == replace_model then
-			val.name = selected_model
-		end
-	end
-	for key, val in ipairs(MEM.art_data.table_culling_ranges) do
+	for key, val in ipairs(MEM.art_data.table.staticCullingRanges) do
 		for k, v in ipairs(val.members) do
-			if v.name == replace_model then
-				v.name = selected_model
+			if v.name == new_name then
+				v.name = old_name
 			end
 		end
 	end
-	for key, val in ipairs(MEM.art_data.table_dynamic_culling_ranges) do
+	for key, val in ipairs(MEM.art_data.table.dynamicCullingRanges) do
 		for k, v in ipairs(val.members) do
-			if v.name == replace_model then
-				v.name = selected_model
+			if v.name == new_name then
+				v.name = old_name
 			end
 		end
 	end
-	MEM.art_data.part_names[selected_model] = MEM.art_data.part_names[replace_model]
-	MEM.art_data.part_names[replace_model] = nil
-	MEM.art_data.model_tree[selected_model] = MEM.art_data.model_tree[replace_model]
-	MEM.art_data.model_tree[replace_model] = nil
-	MEM.art_data.mesh_list[selected_model] = MEM.art_data.mesh_list[replace_model]
-	MEM.art_data.mesh_list[replace_model] = nil
-	MEM.art_data.dynamic_models[replace_model] = nil
-	msg.post("/navbar#navbar", hash("update_status"), {text = "All instances of "..selected_model.." have been replaced by "..replace_model.." keeping the original model name and properties.", clear = true})
-	table.remove(MEM.art_data.model_list, replace_model_index)
+	for key, val in ipairs(MEM.art_data.table.propsDictionary[selected_model_index].model_data.parts) do
+		local new_model_part_tab = MEM.art_data.table.propsDictionary[replace_model_index].model_data.parts[key]
+		if new_model_part_tab and new_model_part_tab.name == val.name then
+			new_model_part_tab.tab = val.tab
+			new_model_part_tab.index = val.index
+		end
+	end
+	MEM.art_data.table.propsDictionary[replace_model_index].key = MEM.art_data.table.propsDictionary[selected_model_index].key
+	MEM.art_data.table.propsDictionary[replace_model_index].object.name = MEM.art_data.table.propsDictionary[selected_model_index].object.name
+	MEM.art_data.table.propsDictionary[replace_model_index].dynamic = MEM.art_data.table.propsDictionary[selected_model_index].dynamic
+	-- something about tweens too
+	
+	MEM.art_data.table.propsDictionary[selected_model_index] = MEM.art_data.table.propsDictionary[replace_model_index]
+	table.remove(MEM.art_data.table.propsDictionary, replace_model_index)
+
+	G.update_navbar("All instances of "..old_name.." have been replaced by "..new_name.." keeping the original model name and properties.", true)
 	update_lists()
-	for key, val in ipairs(MEM.art_data.model_list) do
-		if val.name == selected_model then
+	for key, val in ipairs(MEM.art_data.table.propsDictionary) do
+		if val.key == old_name then
+			msg.post("/model_viewer", hash("update_model"), {model = key})
 			timer.delay(0, false, function()
 				UI.select_exclusive_button(TAB_NAME, model_list, key)
 			end)
@@ -382,265 +343,70 @@ local function model_replace(selected_model_index, replace_model_index)
 end
 
 local function rename_model(new_name, model_to_rename)
-	local old_name = MEM.art_data.model_list[model_to_rename].name
-	local model_string = MEM.art_data.model_list[model_to_rename].string
-	local object = string.find(model_string, "\"object\":")
-	if object then
-		local name_length = #old_name
-		MEM.art_data.model_list[model_to_rename].string = string.sub(model_string, 1, 8)..new_name..string.sub(model_string, 9 + name_length, 28 + name_length)..new_name..string.sub(model_string, 2 * name_length + 29)
-	else
-		msg.post("/navbar#navbar", hash("update_status"), {text = "Problem when renaming model. Aborted."})
-		return
-	end
-	MEM.art_data.model_list[model_to_rename].name = new_name
-	for key, val in ipairs(MEM.art_data.table_static_props) do
+	local old_name = MEM.art_data.table.propsDictionary[model_to_rename].key
+	MEM.art_data.table.propsDictionary[model_to_rename].key = new_name
+	MEM.art_data.table.propsDictionary[model_to_rename].object.name = new_name
+	
+	for key, val in ipairs(MEM.art_data.table.staticProps) do
 		if val.name == old_name then
 			val.name = new_name
 		end
 	end
-	for key, val in ipairs(MEM.art_data.table_dynamic_props) do
+	for key, val in ipairs(MEM.art_data.table.dynamicProps) do
 		if val.name == old_name then
 			val.name = new_name
 		end
 	end
-	for key, val in ipairs(MEM.art_data.table_culling_ranges) do
+	for key, val in ipairs(MEM.art_data.table.staticCullingRanges) do
 		for k, v in ipairs(val.members) do
 			if v.name == old_name then
 				v.name = new_name
 			end
 		end
 	end
-	for key, val in ipairs(MEM.art_data.table_dynamic_culling_ranges) do
+	for key, val in ipairs(MEM.art_data.table.dynamicCullingRanges) do
 		for k, v in ipairs(val.members) do
 			if v.name == old_name then
 				v.name = new_name
 			end
 		end
 	end
-	MEM.art_data.part_names[new_name] = MEM.art_data.part_names[old_name]
-	MEM.art_data.part_names[old_name] = nil
-	if MEM.art_data.dynamic_models[old_name] then
-		MEM.art_data.dynamic_models[old_name] = nil
-		MEM.art_data.dynamic_models[new_name] = true
-	end
-	MEM.art_data.model_tree[new_name] = MEM.art_data.model_tree[old_name]
-	MEM.art_data.model_tree[old_name] = nil
-	MEM.art_data.mesh_list[new_name] = MEM.art_data.mesh_list[old_name]
-	MEM.art_data.mesh_list[old_name] = nil
-	msg.post("/navbar#navbar", hash("update_status"), {text = old_name.." renamed to "..new_name, clear = true})
+	G.update_navbar(old_name.." renamed to "..new_name, true)
 end
 
 local function set_model_as_dynamic(key, value)
-	local model_name = MEM.art_data.model_list[key].name
-	if MEM.art_data.model_list[key].tween then
+	local model_tab = MEM.art_data.table.propsDictionary[key]
+	if (model_tab.tween or 0) > 0 then
 		value = true
 	elseif value == nil then
-		value = not MEM.art_data.dynamic_models[model_name]
+		value = not model_tab.dynamic
 	end
-	MEM.art_data.model_list[key].dynamic = value
-	MEM.art_data.dynamic_models[model_name] = value
+	model_tab.dynamic = value
 	return value
 end
-
 
 local function sort_models()
 	local selected_model_name
 	local selected_model = get_selected_model()
 	if selected_model > 0 then
-		selected_model_name = MEM.art_data.model_list[selected_model].name
+		selected_model_name = MEM.art_data.table.propsDictionary[selected_model].key
 	end
-	table.sort(MEM.art_data.model_names, function(a, b) return string.lower(a) < string.lower(b) end)
-	table.sort(MEM.art_data.model_list, function(a, b) return string.lower(a.name) < string.lower(b.name) end)
+	table.sort(MEM.art_data.table.propsDictionary, function(a, b) return string.lower(a.key) < string.lower(b.key) end)
 	if selected_model_name then
-		for key, val in ipairs(MEM.art_data.model_names) do
-			if val == selected_model_name then
+		for key, val in ipairs(MEM.art_data.table.propsDictionary) do
+			if val.key == selected_model_name then
 				selected_model = key
 				UI.update_list(TAB_NAME, model_list)
 				UI.select_exclusive_button(TAB_NAME, model_list, selected_model)
 			end
 		end
-		--UI.update_list(TAB_NAME, part_list, #MEM.art_data.part_names[selected_model_name])
 	else
 		UI.update_list(TAB_NAME, model_list)
 	end
-	msg.post("/navbar#navbar", hash("update_status"), {text = "Models sorted alphabetically", clear = true})
+	G.update_navbar("Models sorted alphabetically", true)
 end
 
-local function import_model_data(model_data)
-	local filename = "Art file"
-	if not model_data then
-		local num, path = diags.open("zip,pw_art", SET.default_path_import_model_data)
-		if path then
-			local f = io.open(path, "rb")
-			if f then
-				if string.sub(path, -3) == "zip" then
-					local zip_data = f:read("*a")
-					local archive = zip.open(zip_data)
-					local file_index = zip.get_number_of_entries(archive) - 1
-					for i = 0, file_index do
-						local file = zip.extract_by_index(archive, i)
-						if string.sub(file.name, -6) == "pw_art" then
-							model_data = file.content
-							filename = file.name
-							break
-						end
-					end
-				else
-					local htap = string.reverse(path)
-					filename = string.reverse(string.sub(htap, 1, string.find(htap, "\\") - 1))
-					model_data = f:read("*a")
-				end
-			end
-			io.close(f)
-		end
-	end
-	if model_data then
-		local data
-		model_data, data = G.safe_decode(model_data, filename)
-		if not (model_data and G.check_version(data, filename)) then return end
-		local model_tab = {}
-		for key, val in ipairs(MEM.art_data.model_list) do
-			model_tab[val.name] = key
-		end
-		local checked_models = {}
-		for key, val in ipairs(model_data.staticProps or {}) do
-			if (not checked_models[val.name]) and model_tab[val.name] then
-				set_model_as_dynamic(model_tab[val.name], false)
-				checked_models[val.name] = true
-			end
-		end
-		for key, val in ipairs(model_data.dynamicProps or {}) do
-			if (not checked_models[val.name]) and model_tab[val.name] then
-				set_model_as_dynamic(model_tab[val.name], true)
-				checked_models[val.name] = true
-			end
-		end
-		for _key, _val in ipairs(model_data.staticCullingRanges or {}) do
-			for key, val in ipairs(_val.members) do
-				if (not checked_models[val.name]) and model_tab[val.name] then
-					set_model_as_dynamic(model_tab[val.name], false)
-					checked_models[val.name] = true
-				end
-			end
-		end
-		for _key, _val in ipairs(model_data.dynamicCullingRanges or {}) do
-			for key, val in ipairs(_val.members) do
-				if (not checked_models[val.name]) and model_tab[val.name] then
-					set_model_as_dynamic(model_tab[val.name], true)
-					checked_models[val.name] = true
-				end
-			end
-		end
-		local part_index
-		local function set_materials(tab, key)
-			if type(tab) == "table" then
-				if tab.materials then
-					for k, val in ipairs(tab.materials) do
-						if MEM.art_data.model_list[key].parts[part_index] then
-							local old_material = MEM.art_data.model_list[key].parts[part_index]
-							MEM.art_data.model_list[key].parts[part_index] = val
-							local model_table = MEM.art_data.model_list[key]
-							local str_start = G.find_substring(model_table.string, "(DoNotEdit)", part_index) - 2
-							local str_end = str_start + #old_material + 1
-							model_table.string = string.sub(model_table.string, 1, str_start)..val..string.sub(model_table.string, str_end)
-							part_index = part_index + 1
-						else
-							msg.post("/navbar#navbar", hash("update_status"), {text = "Model "..MEM.art_data.model_list[key].name.." has too few parts. Skipping the rest."})
-							break
-						end
-					end
-				else
-					for k, val in pairs(tab) do
-						set_materials(val, key)
-					end
-				end
-			end
-		end
-		local model_count = 0
-		for k, v in ipairs(model_data.propsDictionary) do
-			if k > 1 and v.key and model_tab[v.key] then
-				part_index = 1
-				set_materials(v, model_tab[v.key])
-				model_count = model_count + 1
-				local tween
-				if #v.object.components > 1 then
-					tween = {}
-					local tween_working = true
-					local tween_script
-					for key, val in ipairs(v.object.components) do
-						if val.type == "LevelEventReceiver" then
-							tween.signal = val.EventId
-						elseif val.type == "ScriptedTween" then
-							tween.script = {}
-							local script_str = val.Script
-							local safety = #script_str / 3
-							repeat
-								local str_end
-								tween_working, tween_script, str_end = pcall(MEM.parse_tween, script_str)
-								safety = safety - 1
-								if safety < 0 or (not tween_working) then
-									tween_working = false
-									msg.post("/navbar#navbar", hash("update_status"), {text = "Malformed tween script in model "..v.key..". Skipping."})
-									tween = {}
-									break
-								else
-									script_str = string.sub(script_str, str_end)
-									table.insert(tween.script, tween_script)
-								end
-							until #script_str < 1
-							if not tween_working then
-								break
-							end
-						end
-					end
-					if tween.script and #tween.script > 0 then
-						set_model_as_dynamic(model_tab[v.key], true)
-					else
-						tween = nil
-					end
-				end
-				local model_table = MEM.art_data.model_list[model_tab[v.key]]
-				if tween then
-					local tween_root = MEM.get_root_transform(MEM.art_data.model_list[model_tab[v.key]].string)
-					local tween_replaced = not not model_table.tween
-					model_table.tween = tween
-					local all_parts_found = true
-					for tween_key, tween_val in ipairs(tween.script) do
-						if tween_val.part then
-							local part_found = false
-							for key, val in ipairs(model_table.parts) do
-								if MEM.art_data.part_names[v.key][key] == tween_val.part then
-									tween_val.part = key
-									part_found = true
-									break
-								elseif (not tween_root) or (tween_root == tween_val.part) then
-									tween_val.part = 0
-									part_found = true
-									break
-								end
-							end
-							if not part_found then
-								all_parts_found = false
-								tween_val.part = 0
-							end
-						end
-					end
-					if not all_parts_found then
-						msg.post("/navbar#navbar", hash("update_status"), {text = "Action(s) in tween of model "..v.key.." defaulted to tweening the whole prop."})
-						os.exit()
-					end
-					if tween_replaced then
-						msg.post("/navbar#navbar", hash("update_status"), {text = "Model "..v.key.." had its existing tween replaced."})
-					end
-				end
-			end
-		end
-		update_lists()
-		return model_count
-	end
-end
-
-local function delete_model(model) -- breaks maps, do not use
+local function delete_model(model) -- breaks maps, do not use without modifying pw_meta as well
 	local model_name = MEM.art_data.model_list[model].name
 	table.remove(MEM.art_data.model_list, model)
 	for key = #MEM.art_data.table_static_props, 1, -1 do
@@ -674,45 +440,55 @@ local function delete_model(model) -- breaks maps, do not use
 		end
 	end
 	MEM.art_data.part_names[model_name] = nil
-	MEM.art_data.dynamic_models[model_name] = nil
 	MEM.art_data.model_tree[model_name] = nil
 	MEM.art_data.mesh_list[model_name] = nil
 	update_lists()
 	G.update_navbar("All instances of "..model_name.." deleted.", true)
 end
 
-local function change_model_material(model_index, part_index, material, previous_material)
-	if not material_list[previous_material] then
-		for key, val in ipairs(material_list) do
-			if val == previous_material then
-				previous_material = key
-				break
-			end
-		end
-	end
-	local model_tab = MEM.art_data.model_list[model_index]
-	local str_start = G.find_substring(model_tab.string, "(DoNotEdit)", part_index) - 2
-	local str_end = str_start + #material_list[previous_material] + 1
-	model_tab.parts[part_index] = material
-	model_tab.string = string.sub(model_tab.string, 1, str_start)..material..string.sub(model_tab.string, str_end)
+local function change_model_material(model_index, part_index, material)
+	local part_tab = MEM.art_data.table.propsDictionary[model_index].model_data.parts[part_index]
+	part_tab.tab[part_tab.index] = material
+	part_tab.tab._pure_array = nil
 end
 
 local function degeomance()
 	local tween_count, dynamic_count, material_count = 0, 0, 0
-	for key, val in ipairs(MEM.art_data.model_list) do
+	for key, val in ipairs(MEM.art_data.table.propsDictionary) do
 		if val.tween then
-			tween_count = tween_count + 1
-			val.tween = nil
+			local function remove_tweens(tab)
+				for i = #tab.components, 1, -1 do
+					if tab.components[i].type == "LevelEventReceiver" or tab.components[i].type == "ScriptedTween" then
+						table.remove(tab.components, i)
+					end
+				end
+				for k, v in ipairs(tab.children) do
+					remove_tweens(v)
+				end
+			end
+			remove_tweens(val.object)
+			local function remove_tweens_meta(tab)
+				if tab.tween then
+					tab.tween = nil
+				end
+				for _key, _val in ipairs(tab) do
+					remove_tweens_meta(_val)
+				end
+			end
+			remove_tweens_meta(val.model_data.model_tree)
+			tween_count = tween_count + val.tween
+			val.tween = 0
 		end
-		if MEM.art_data.dynamic_models[val.name] then
+		if val.dynamic then
 			set_model_as_dynamic(key, false)
 			dynamic_count = dynamic_count + 1
 		end
 		local safe_mats = {["(DoNotEdit)LiveMat_Props"] = true, ["(DoNotEdit)LiveMat_LevelGeoSimple"] = true,
 		["(DoNotEdit)LiveMat_Glow"] = true, ["(DoNotEdit)LiveMat_GlowInvert"] = true}
-		for k, v in ipairs(val.parts) do
-			if not safe_mats[v] then
-				change_model_material(key, k, "(DoNotEdit)LiveMat_Props", v)
+
+		for k, v in ipairs(val.model_data.parts) do
+			if not safe_mats[v.tab[v.index]] then
+				change_model_material(key, k, "(DoNotEdit)LiveMat_Props")
 				material_count = material_count + 1
 			end
 		end
@@ -744,26 +520,48 @@ local function degeomance()
 	end
 end
 
+local function check_tweens()
+	local selected_model = get_selected_model()
+	if selected_model then
+		local model_tab = MEM.art_data.table.propsDictionary[selected_model]
+		local tween_count = 0
+		local function count_tweens(tab)
+			if tab.tween then
+				tween_count = tween_count + 1
+			end
+			for key, val in ipairs(tab) do
+				count_tweens(val)
+			end
+		end
+		count_tweens(model_tab.model_data.model_tree)
+		model_tab.tween = tween_count
+		if tween_count > 0 then
+			set_model_as_dynamic(selected_model, true)
+		else
+			set_model_as_dynamic(selected_model, false)
+		end
+		UI.update_list(TAB_NAME, model_list, #MEM.art_data.table.propsDictionary)
+	end
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == hash("hide") then
 		msg.post("#", hash("disable"))
 		msg.post("#", hash("release_input_focus"))
-		if UI.tab[TAB_NAME].child_dialog == "dialog_tween" then
-			msg.post(UI.tab.dialog_tween.path, hash("hide"))
-		end
 		DIALOG.close_all(TAB_NAME)
+		msg.post(UI.tab.dialog_tween.path, hash("hide"))
 		msg.post("/model_viewer", hash("hide"))
 	elseif message_id == hash("show") then
 		msg.post("#", hash("enable"))
 		msg.post("#", hash("acquire_input_focus"))
 		local model_for_viewer
 		update_lists()
-		if get_selected_model() < 1 and #MEM.art_data.model_list > 0 then
+		if get_selected_model() < 1 and #MEM.art_data.table.propsDictionary > 0 then
 			UI.select_exclusive_button(TAB_NAME, model_list, 1, true)
 			model_for_viewer = 1
 			update_lists()
 		end
-		msg.post("/model_viewer", hash("show"), {model = model_for_viewer})
+		msg.post("/model_viewer", hash("show"), {model = model_for_viewer or get_selected_model(), selected_part = get_selected_part()})
 		if not colour_set then
 			colour_set = true
 			COL.set_current_to_default()
@@ -799,6 +597,8 @@ function on_message(self, message_id, message, sender)
 		colour_set = false
 		update_materials()
 		msg.post("/model_viewer", hash("remove_model"))
+	elseif message_id == hash("check_tweens") then
+		check_tweens()
 	elseif message_id == hash("open_colour_picker") then
 		open_dialog("dialog_colours")
 	elseif message_id == hash("dialog_closed") then
@@ -806,22 +606,28 @@ function on_message(self, message_id, message, sender)
 		msg.post("/model_viewer", hash("show"))
 		if message.dialog == "dialog_import" then
 			if message.import then
-				local models_added_count = import_models_finish()
-				if models_added_count < 1 then
-					msg.post("/navbar#navbar", hash("update_status"), {text = "No models added.", clear = true})
-				elseif models_added_count == 1 then
-					msg.post("/navbar#navbar", hash("update_status"), {text = "Imported one model.", clear = true})
+				local model_count = 0
+				for key, val in ipairs(MEM.art_data.models_for_import) do
+					if not MEM.art_data.models_for_import_ignore[val.key] then
+						MEM.add_metadata(val)
+						table.insert(MEM.art_data.table.propsDictionary, val)
+						model_count = model_count + 1
+					end
+				end
+				if model_count < 1 then
+					G.update_navbar("No models added.", true)
+				elseif model_count == 1 then
+					G.update_navbar("Imported one model.", true)
 					update_lists()
 				else
-					msg.post("/navbar#navbar", hash("update_status"), {text = "Imported "..models_added_count.." models.", clear = true})
+					G.update_navbar("Imported "..model_count.." models.", true)
 					update_lists()
 				end
 			else
-				msg.post("/navbar#navbar", hash("update_status"), {text = "No models added.", clear = true})
+				G.update_navbar("No models added.", true)
 			end
 			MEM.art_data.models_for_import = nil
 			MEM.art_data.models_for_import_ignore = nil
-			MEM.art_data.import_string = nil
 		elseif message.dialog == "dialog_replace_model" then
 			if message.selected_model then
 				model_replace(message.model_to_replace, message.selected_model)
@@ -831,18 +637,11 @@ function on_message(self, message_id, message, sender)
 				rename_model(message.new_name, message.model_to_rename)
 				update_lists()
 			end
-		elseif message.dialog == "dialog_tween" then
-			if #MEM.art_data.model_list[message.model_index].tween.script < 1 then
-				MEM.art_data.model_list[message.model_index].tween = nil
-				set_model_as_dynamic(message.model_index, false)
-			else
-				set_model_as_dynamic(message.model_index, true)
-				MEM.art_data.model_list[message.model_index].tween.signal = message.signal
-			end
-			UI.update_list(TAB_NAME, model_list, #MEM.art_data.model_list)
+		elseif message.dialog == "dialog_transform" then
+			check_tweens()
 		elseif message.dialog == "dialog_colours" then
 			local selected_model = get_selected_model()
-			msg.post("/model_viewer", hash("show"), {model = selected_model})
+			msg.post("/model_viewer", hash("show"), {model = selected_model, selected_part = get_selected_part()})
 		elseif message.dialog == "dialog_confirm" then
 			if message.button == 1 then	-- 1 is delete, 3 is cancel
 				delete_model(get_selected_model())
@@ -850,29 +649,8 @@ function on_message(self, message_id, message, sender)
 				G.update_navbar("Model deletion canceled", true)
 			end
 		end
-	elseif message_id == hash("tween_closed") then
-		if #MEM.art_data.model_list[message.model_index].tween.script < 1 then
-			MEM.art_data.model_list[message.model_index].tween = nil
-			set_model_as_dynamic(message.model_index, false)
-		else
-			set_model_as_dynamic(message.model_index, true)
-			MEM.art_data.model_list[message.model_index].tween.signal = message.signal
-		end
-		UI.update_list(TAB_NAME, model_list, #MEM.art_data.model_list)
 	elseif message_id == hash("update_labels") then
 
-	elseif message_id == hash("import_changes") then
-		local model_count = import_model_data(MEM.art_data.temp)
-		if model_count then
-			if model_count < 1 then
-				G.update_navbar("No data models changed.")
-			else
-				G.update_navbar("Updated properties of "..model_count.." models.")
-			end
-		else
-			G.update_navbar("Error importing model data")
-		end
-		MEM.art_data.temp = nil
 	elseif message_id == hash("degeomance") then
 		degeomance()
 	end
@@ -880,24 +658,24 @@ end
 
 local function count_model_instances(model_name)
 	local count = 0
-	for key, val in ipairs(MEM.art_data.table_static_props) do
+	for key, val in ipairs(MEM.art_data.table.staticProps) do
 		if val.name == model_name then
 			count = count + 1
 		end
 	end
-	for key, val in ipairs(MEM.art_data.table_dynamic_props) do
+	for key, val in ipairs(MEM.art_data.table.dynamicProps) do
 		if val.name == model_name then
 			count = count + 1
 		end
 	end
-	for key, val in ipairs(MEM.art_data.table_culling_ranges) do
+	for key, val in ipairs(MEM.art_data.table.staticCullingRanges) do
 		for k, v in ipairs(val.members) do
 			if v.name == model_name then
 				count = count + 1
 			end
 		end
 	end
-	for key, val in ipairs(MEM.art_data.table_dynamic_culling_ranges) do
+	for key, val in ipairs(MEM.art_data.table.dynamicCullingRanges) do
 		for k, v in ipairs(val.members) do
 			if v.name == model_name then
 				count = count + 1
@@ -924,7 +702,7 @@ function evaluate_button(button, item)
 	elseif button == "button_rename" then
 		local selected_model = get_selected_model()
 		if selected_model > 0 then
-			open_dialog("dialog_rename_model", {model_to_rename = selected_model, model_name = MEM.art_data.model_list[selected_model].name})
+			open_dialog("dialog_rename_model", {model_to_rename = selected_model})
 		else
 			G.update_navbar("Select a model first", true)
 		end
@@ -950,20 +728,20 @@ function evaluate_button(button, item)
 		local selected_model = get_selected_model()
 		if selected_model > 0 then
 			local selected_part = get_selected_part()
-			change_model_material(selected_model, selected_part, material_list[item], current_material)
+			change_model_material(selected_model, selected_part, material_list[item])
 			msg.post("/model_viewer", hash("change_material"), {part_index = selected_part, model_index = selected_model})
 			update_materials()
 		else
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a model and one of its parts first.", clear = true})
+			G.update_navbar("Select a model and one of its parts first.", true)
 		end
 	elseif button == model_list then
 		local selected_model = get_selected_model()
-		local model_name = MEM.art_data.model_list[selected_model].name
-		UI.update_list(TAB_NAME, part_list, #MEM.art_data.part_names[model_name])
+		UI.update_list(TAB_NAME, part_list, #MEM.art_data.table.propsDictionary[selected_model].model_data.parts)
 		UI.select_exclusive_button(TAB_NAME, part_list, 1)
 		update_materials()
-		msg.post("/model_viewer", hash("show"), {model = selected_model})
+		msg.post("/model_viewer", hash("show"), {model = selected_model, selected_part = 1})
 	elseif button == part_list then
+		msg.post("/model_viewer", hash("show_part"), {selected_part = item or 1})
 		update_materials()
 	else
 		local div = string.find(button, ";")
@@ -972,14 +750,10 @@ function evaluate_button(button, item)
 			set_model_as_dynamic(item)
 			UI.update_list(TAB_NAME, model_list)
 		elseif str == "model_tween;" then
-			local model_data = MEM.art_data.model_list[item]
-			if not model_data.tween then
-				model_data.tween = {signal = "tween", script = {}}
-			end
 			UI.select_exclusive_button(TAB_NAME, model_list, item, true)
 			update_lists()
 			msg.post("/model_viewer", hash("show"), {model = item})
-			open_dialog("dialog_tween", {model_index = item})
+			DIALOG.open(TAB_NAME, "dialog_transform", {model_index = item})
 		end
 	end
 end

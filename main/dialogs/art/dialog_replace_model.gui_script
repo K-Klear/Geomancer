@@ -1,6 +1,7 @@
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
 local SET = require "modules.settings"
+local G = require "modules.global"
 local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_replace_model"
 local DIALOG_DATA
@@ -16,7 +17,7 @@ function init(self)
 			type = hash("exclusive_button"),
 			node = gui.get_node("replace_model_exclusive/button_white"),
 			text_node = gui.get_node("replace_model_exclusive/text"),
-			value_fn = function(i) return MEM.art_data.model_list[i].name end,
+			value_fn = function(i) return MEM.art_data.table.propsDictionary[i].key end,
 			template = "replace_model_exclusive;",
 			fn = evaluate_button,
 			tint = function(i)
@@ -36,9 +37,9 @@ end
 function evaluate_button(button, item)
 	if button == "dialog_replace_accept" then
 		if not selected_model then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "You must select a model first", clear = true})
+			G.update_navbar("You must select a model first", true)
 		elseif selected_model == model_to_replace then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Cannot replace a model with itself", clear = true})
+			G.update_navbar("Cannot replace a model with itself", true)
 		else
 			DIALOG.close(DIALOG_NAME, {selected_model = selected_model, model_to_replace = model_to_replace})
 		end
@@ -46,7 +47,7 @@ function evaluate_button(button, item)
 		DIALOG.close(DIALOG_NAME)
 	elseif button == replace_model_list then
 		if selected_model == model_to_replace then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a different model", clear = true})
+			G.update_navbar("Select a different model", true)
 		end
 		selected_model = item
 	end
@@ -56,9 +57,9 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		DIALOG.show(DIALOG_DATA, sender)
 		model_to_replace = message.model_to_replace
-		gui.set_text(gui.get_node("title_replace_model"), "Choose a model to replace\n"..MEM.art_data.model_list[model_to_replace].name)
+		gui.set_text(gui.get_node("title_replace_model"), "Choose a model to replace\n"..MEM.art_data.table.propsDictionary[model_to_replace].key)
 		selected_model = nil
-		UI.update_list(DIALOG_NAME, replace_model_list, #MEM.art_data.model_list)
+		UI.update_list(DIALOG_NAME, replace_model_list, #MEM.art_data.table.propsDictionary)
 	end
 end
 

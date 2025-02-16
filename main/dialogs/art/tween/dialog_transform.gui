@@ -1,0 +1,473 @@
+script: "/main/dialogs/art/tween/dialog_transform.gui_script"
+fonts {
+  name: "main_menu_button"
+  font: "/assets/fonts/final/main_menu_button.font"
+}
+fonts {
+  name: "status_text"
+  font: "/assets/fonts/final/status_text.font"
+}
+fonts {
+  name: "tab_caption"
+  font: "/assets/fonts/final/tab_caption.font"
+}
+textures {
+  name: "UI"
+  texture: "/assets/gfx/UI.atlas"
+}
+nodes {
+  position {
+    x: 1055.0
+    y: 524.0
+  }
+  size {
+    x: 480.0
+    y: 660.0
+  }
+  type: TYPE_BOX
+  texture: "UI/panel_green"
+  id: "edit_box"
+  layer: "list_background"
+  slice9 {
+    x: 40.0
+    y: 40.0
+    z: 40.0
+    w: 40.0
+  }
+  alpha: 0.9
+}
+nodes {
+  position {
+    x: -208.0
+    y: 287.0
+  }
+  size {
+    x: 400.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "Transform name"
+  font: "tab_caption"
+  id: "lbl_transform_name"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  line_break: true
+  parent: "edit_box"
+  layer: "text"
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+}
+nodes {
+  position {
+    x: 152.0
+    y: 287.0
+  }
+  size {
+    x: 50.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "Submesh count"
+  font: "tab_caption"
+  id: "lbl_submesh_count"
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  line_break: true
+  parent: "edit_box"
+  layer: "text"
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+  text_leading: 0.7
+}
+nodes {
+  position {
+    x: -164.0
+    y: -277.0
+  }
+  type: TYPE_TEMPLATE
+  id: "transform_close"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 90.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "transform_close/button_white"
+  parent: "transform_close"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Close"
+  id: "transform_close/text"
+  parent: "transform_close/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -210.0
+    y: 266.0
+  }
+  size {
+    x: 416.0
+    y: 458.0
+  }
+  type: TYPE_BOX
+  texture: "UI/empty_pixel"
+  id: "transform_list"
+  pivot: PIVOT_NW
+  parent: "edit_box"
+  clipping_mode: CLIPPING_MODE_STENCIL
+  clipping_visible: false
+}
+nodes {
+  position {
+    x: 313.0
+    y: -428.0
+  }
+  type: TYPE_BOX
+  texture: "UI/scrollbar_button"
+  id: "transform_list_scroll_up"
+  parent: "transform_list"
+  layer: "below"
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 313.0
+    y: -569.0
+  }
+  rotation {
+    z: 180.0
+  }
+  type: TYPE_BOX
+  texture: "UI/scrollbar_button"
+  id: "transform_list_scroll_down"
+  parent: "transform_list"
+  layer: "below"
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 313.0
+    y: -466.0
+  }
+  size {
+    x: 32.0
+    y: 34.0
+  }
+  color {
+    x: 0.502
+    y: 0.502
+    z: 0.502
+  }
+  type: TYPE_BOX
+  texture: "UI/scrollbar"
+  id: "transform_list_scroll_background"
+  pivot: PIVOT_N
+  parent: "transform_list"
+  layer: "below"
+  slice9 {
+    x: 6.0
+    y: 6.0
+    z: 6.0
+    w: 6.0
+  }
+}
+nodes {
+  position {
+    x: 313.0
+    y: -466.0
+  }
+  size {
+    x: 24.0
+    y: 34.0
+  }
+  type: TYPE_BOX
+  texture: "UI/scrollbar"
+  id: "transform_list_scroll_grip"
+  pivot: PIVOT_N
+  parent: "transform_list"
+  layer: "below"
+  slice9 {
+    x: 6.0
+    y: 6.0
+    z: 6.0
+    w: 6.0
+  }
+}
+nodes {
+  position {
+    y: -16.0
+  }
+  type: TYPE_TEMPLATE
+  id: "transform_exclusive"
+  parent: "transform_list"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 340.0
+    y: 32.0
+  }
+  type: TYPE_BOX
+  texture: "UI/button_exclusive"
+  id: "transform_exclusive/button_white"
+  pivot: PIVOT_W
+  parent: "transform_exclusive"
+  layer: "below"
+  slice9 {
+    x: 6.0
+    y: 6.0
+    z: 6.0
+    w: 6.0
+  }
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 9
+  overridden_fields: 14
+  overridden_fields: 20
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 5.0
+  }
+  size {
+    x: 160.0
+    y: 30.0
+  }
+  type: TYPE_TEXT
+  text: "123456789012345678901234567890123456789"
+  font: "status_text"
+  id: "transform_exclusive/text"
+  pivot: PIVOT_W
+  parent: "transform_exclusive/button_white"
+  layer: "text"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 14
+  overridden_fields: 18
+  overridden_fields: 20
+  overridden_fields: 47
+  template_node_child: true
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 350.0
+    y: -16.0
+  }
+  size {
+    x: 40.0
+    y: 32.0
+  }
+  type: TYPE_TEXT
+  text: "50"
+  font: "tab_caption"
+  id: "lbl_submesh"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  parent: "transform_list"
+  layer: "text"
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+}
+nodes {
+  position {
+    x: 153.0
+    y: -229.0
+  }
+  type: TYPE_TEMPLATE
+  id: "transform_rename"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "transform_rename/button_white"
+  parent: "transform_rename"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Rename"
+  id: "transform_rename/text"
+  parent: "transform_rename/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 153.0
+    y: -277.0
+  }
+  type: TYPE_TEMPLATE
+  id: "transform_tween"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "transform_tween/button_white"
+  parent: "transform_tween"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Tween"
+  id: "transform_tween/text"
+  parent: "transform_tween/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 33.0
+    y: -229.0
+  }
+  type: TYPE_TEMPLATE
+  id: "transform_parent"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "transform_parent/button_white"
+  parent: "transform_parent"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  type: TYPE_TEXT
+  text: "Add parent"
+  id: "transform_parent/text"
+  parent: "transform_parent/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 33.0
+    y: -277.0
+  }
+  type: TYPE_TEMPLATE
+  id: "transform_delete"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "transform_delete/button_white"
+  parent: "transform_delete"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Delete"
+  id: "transform_delete/text"
+  parent: "transform_delete/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+layers {
+  name: "list_background"
+}
+layers {
+  name: "below"
+}
+layers {
+  name: "text"
+}
+layers {
+  name: "dialog"
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT
+materials {
+  name: "font-df"
+  material: "/builtins/fonts/font-df.material"
+}

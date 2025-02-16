@@ -17,7 +17,7 @@ nodes {
     y: 457.0
   }
   size {
-    x: 500.0
+    x: 700.0
     y: 570.0
   }
   type: TYPE_BOX
@@ -130,11 +130,11 @@ nodes {
 }
 nodes {
   position {
-    x: -176.0
+    x: -276.0
     y: 159.0
   }
   size {
-    x: 352.0
+    x: 552.0
     y: 330.0
   }
   type: TYPE_BOX
@@ -232,7 +232,7 @@ nodes {
 }
 nodes {
   size {
-    x: 320.0
+    x: 520.0
     y: 32.0
   }
   type: TYPE_BOX

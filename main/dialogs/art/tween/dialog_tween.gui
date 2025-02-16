@@ -91,7 +91,7 @@ nodes {
     y: 60.0
   }
   type: TYPE_TEXT
-  text: "Action      Time          Start state (X/Y/Z)              End state (X/Y/Z)            Speed      Model part             Easing"
+  text: "Action      Time          Start state (X/Y/Z)              End state (X/Y/Z)          Speed                                        Easing"
   font: "tab_caption"
   id: "lbl_tween_legend"
   pivot: PIVOT_W
@@ -704,6 +704,10 @@ nodes {
   template_node_child: true
 }
 nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+  }
   size {
     x: 160.0
     y: 40.0
@@ -714,6 +718,7 @@ nodes {
   id: "tween_part/text"
   parent: "tween_part/button_white"
   layer: "text"
+  overridden_fields: 3
   overridden_fields: 4
   overridden_fields: 8
   overridden_fields: 10
@@ -1383,6 +1388,55 @@ nodes {
   layer: "text"
   overridden_fields: 4
   overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 321.0
+    y: 325.0
+  }
+  type: TYPE_TEMPLATE
+  id: "dialog_tween_transform"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  position {
+    x: -3.0
+    y: -1.0
+  }
+  size {
+    x: 180.0
+    y: 38.0
+  }
+  type: TYPE_BOX
+  id: "dialog_tween_transform/button_white"
+  parent: "dialog_tween_transform"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  size {
+    x: 160.0
+    y: 70.0
+  }
+  type: TYPE_TEXT
+  text: "Target transform"
+  id: "dialog_tween_transform/text"
+  parent: "dialog_tween_transform/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 18
   overridden_fields: 20
   template_node_child: true
 }

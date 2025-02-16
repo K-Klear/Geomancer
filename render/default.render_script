@@ -145,7 +145,7 @@ local function create_state()
 end
 
 function init(self)
-    self.predicates = create_predicates("tile", "gui", "preview", "text", "particle", "model", "model_inv", "model_background")
+    self.predicates = create_predicates("tile", "gui", "preview", "text", "particle", "model", "model_inv", "model_background", "model_flash", "model_flash_inv")
 
     self.invert_preview = render.constant_buffer()
     self.invert_preview.invert = vmath.vector4(0, 0, 0, 0)
@@ -210,13 +210,18 @@ function update(self)
     render.set_cull_face(render.FACE_BACK)
     render.draw(predicates.model_inv)--, camera_world.frustum)
     render.set_depth_mask(false)
+    render.disable_state(render.STATE_DEPTH_TEST)
+    render.draw(predicates.model_flash_inv)--, camera_world.frustum)
+    render.set_cull_face(render.FACE_FRONT)
+    render.draw(predicates.model_flash)--, camera_world.frustum)
+    
     render.disable_state(render.STATE_CULL_FACE)
     render.set_camera()
     render.set_viewport(0, 0, state.window_width, state.window_height)
 
     -- render the other components: sprites, tilemaps, particles etc
     --
-    render.disable_state(render.STATE_DEPTH_TEST)
+
 
     render.draw_debug3d()
 

@@ -7,8 +7,6 @@ local G = require "modules.global"
 
 local obstacle_list, selected_obstacle, selected_enemy, enemy_list, evaluate_button
 
-MEM.beat_data.changed_obstacles = {}
-
 local obstacle_types = {}
 obstacle_types.Normal = {Sidestep = true, LimboTall = true, LimboShort = true}
 obstacle_types.Pipes = {Sidestep = true, LimboTall = true, LimboShort = true, Wall = true, TunnelTall = true, TunnelShort = true}
@@ -34,8 +32,7 @@ local enemy_names = {
 	turret = "Normal Turret",
 	minigun = "Minigun Turret",
 	skull = "Flying Skull",
-	trap = "Glitched Enemy",
-	temp = "temp"
+	trap = "Glitched Enemy"
 }
 local internal_names = {
 	normal = "Normal",
@@ -46,8 +43,7 @@ local internal_names = {
 	turret = "Normal Turret",
 	minigun = "Minigun Turret",
 	skull = "FlyingBomb",
-	trap = "Trap Enemy",
-	temp = "temp"
+	trap = "Trap Enemy"
 }
 
 local internal_to_display = {}
@@ -67,24 +63,35 @@ local function seconds_to_minutes(time)
 	return math.floor(time / 60)..":"..math.floor(time % 60)
 end
 
-local function update_obstacle(obstacle_index)
-	local obst = MEM.beat_data.obstacle_list[obstacle_index]
+local function get_obstacle_data(obstacle_index)
+	local obstacle = MEM.beat_data.obstacle_list[obstacle_index]
+	local time = MEM.beat_data.table.beatData[obstacle.beat_data_key].time
+	return MEM.beat_data.table.beatData[obstacle.beat_data_key].obstacles[obstacle.obstacles_key], time
+end
+
+local function get_enemy_data(enemy_index)
+	local enemy = MEM.beat_data.enemy_list[enemy_index]
+	local time = MEM.beat_data.table.beatData[enemy.beat_data_key].time
+	return MEM.beat_data.table.beatData[enemy.beat_data_key].targets[enemy.enemies_key], time
+end
+
+local function update_obstacle(obstacle, time)
 	local node = gui.get_node("obstacle_props")
 	gui.set_enabled(node, true)
-	gui.set_text(node, "Time: "..obst.time.." ("..seconds_to_minutes(obst.time)..")\nType: "..obst.type.."\nPosition: "..obst.placement)
+	gui.set_text(node, "Time: "..time.." ("..seconds_to_minutes(time)..")\nType: "..obstacle.type.."\nPosition: "..obstacle.placement)
 end
 
 local function update_enemy(enemy_index)
 	if not enemy_index then return end
-	local enemy_data = MEM.beat_data.enemy_list[enemy_index]
+	local enemy_data, time = get_enemy_data(enemy_index)
 	gui.set_enabled(gui.get_node("selected_enemy_type/button_white"), true)
 	gui.set_enabled(gui.get_node("selected_enemy_sequence/button_white"), true)
 	gui.set_enabled(gui.get_node("selected_enemy_label"), true)
 	UI.load_template({"selected_enemy_sequence", "selected_enemy_type"}, TAB_NAME)
-	gui.set_text(gui.get_node("selected_enemy_label"), "Time: "..enemy_data.time.." ("..seconds_to_minutes(enemy_data.time)..")\nType: "..internal_to_display[enemy_data.type].."\nPosition: "..enemy_data.placement_x.."/"..enemy_data.placement_y)
-	gui.set_text(gui.get_node("selected_enemy_sequence/text"), enemy_data.sequence)
+	gui.set_text(gui.get_node("selected_enemy_label"), "Time: "..time.." ("..seconds_to_minutes(time)..")\nType: "..internal_to_display[enemy_data.enemyType].."\nPosition: "..enemy_data.placement)
+	gui.set_text(gui.get_node("selected_enemy_sequence/text"), enemy_data.enemySequence)
 	for key, val in pairs(internal_names) do
-		if enemy_data.type == val then
+		if enemy_data.enemyType == val then
 			if key == "normal" then
 				gui.play_flipbook(gui.get_node("selected_enemy_type/text"), "Henchman")
 			else
@@ -108,8 +115,8 @@ function init(self)
 			node = gui.get_node("obstacle_exclusive/button_white"),
 			text_node = gui.get_node("obstacle_exclusive/text"),
 			value_fn = function(i)
-				local obst = MEM.beat_data.obstacle_list[i]
-				return obst.type.." ("..obst.time..")"
+				local obst, time = get_obstacle_data(i)
+				return obst.type.." ("..time..")"
 			end,
 			template = "obstacle_exclusive;",
 			fn = evaluate_button
@@ -125,8 +132,8 @@ function init(self)
 			node = gui.get_node("enemy_exclusive/button_white"),
 			text_node = gui.get_node("enemy_exclusive/text"),
 			value_fn = function(i)
-				local enemy = MEM.beat_data.enemy_list[i]
-				return internal_to_display[enemy.type].." ("..enemy.time..")"
+				local enemy, time = get_enemy_data(i)
+				return internal_to_display[enemy.enemyType].." ("..time..")"
 			end,
 			template = "enemy_exclusive;",
 			fn = evaluate_button
@@ -139,22 +146,6 @@ function init(self)
 	UI.load_template({"sidestep", "limbo_short", "limbo_tall", "wall", "tunnel_short", "tunnel_tall", "button_replace_bulk", "button_sequence_bulk"}, TAB_NAME)
 end
 
-local function replace(new_type, old_type)
-	local pos = string.find(MEM.beat_data.string, internal_names[old_type])
-	if pos then
-		local string_start = string.sub(MEM.beat_data.string, 1, pos - 1)
-		local string_end = string.sub(MEM.beat_data.string, pos + #internal_names[old_type])
-		MEM.beat_data.string = string_start..internal_names[new_type]..string_end
-		return replace(new_type, old_type)
-	else
-		for key, val in ipairs(MEM.beat_data.enemy_list) do
-			if val.type == internal_names[old_type] then
-				MEM.beat_data.enemy_list[key].type = internal_names[new_type]
-			end
-		end
-	end
-end
-
 function on_message(self, message_id, message, sender)
 	if message_id == hash("hide") then
 		msg.post("#", hash("disable"))
@@ -165,9 +156,9 @@ function on_message(self, message_id, message, sender)
 		msg.post("#", hash("acquire_input_focus"))
 		UI.update_list(TAB_NAME, obstacle_list, #MEM.beat_data.obstacle_list)
 		UI.update_list(TAB_NAME, enemy_list, #MEM.beat_data.enemy_list)
-		if MEM.level_data.obstacle_set then
+		if MEM.level_data.obstacleSet then
 			for internal, geomancer in pairs(obstacle_names) do
-				if not obstacle_types[MEM.level_data.obstacle_set][internal] then
+				if not obstacle_types[MEM.level_data.obstacleSet][internal] then
 					gui.set_color(gui.get_node(geomancer.."/text"), SET.colour_unsupported_obstacle)
 				else
 					gui.set_color(gui.get_node(geomancer.."/text"), vmath.vector4(1, 1, 1, 1))
@@ -187,12 +178,14 @@ function on_message(self, message_id, message, sender)
 		UI.update_list(TAB_NAME, enemy_list, 0)
 	elseif message_id == hash("dialog_closed") then
 		if message.dialog == "dialog_replace_enemy" and message.enemy_to_replace then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Replacing "..enemy_names[message.enemy_to_replace].." with "..enemy_names[message.new_type]..".", clear = true})
-			if message.new_type == "turret" and message.enemy_to_replace == "normal" then
-				replace("temp", message.enemy_to_replace)
-				replace(message.new_type, "temp")
-			else
-				replace(message.new_type, message.enemy_to_replace)
+			G.update_navbar("Replacing "..enemy_names[message.enemy_to_replace].." with "..enemy_names[message.new_type]..".", true)
+			local internal_old = internal_names[message.enemy_to_replace]
+			local internal_new = internal_names[message.new_type]
+			for key, val in ipairs(MEM.beat_data.enemy_list) do
+				local enemy_data = MEM.beat_data.table.beatData[val.beat_data_key].targets[val.enemies_key]
+				if enemy_data.enemyType == internal_old then
+					enemy_data.enemyType = internal_new
+				end 
 			end
 			MEM.beat_data.enemy_types[message.new_type] = true
 			MEM.beat_data.enemy_types[message.enemy_to_replace] = false
@@ -200,38 +193,39 @@ function on_message(self, message_id, message, sender)
 			update_enemy(selected_enemy)
 		elseif message.dialog == "dialog_change_sequence" then
 			if message.sequence then
-				msg.post("/navbar#navbar", hash("update_status"), {text = "Sequence changed to "..message.sequence, clear = true})
-				MEM.beat_data.enemy_list[selected_enemy].sequence = message.sequence
+				G.update_navbar("Sequence changed to "..message.sequence, true)
+				local enemy_data = get_enemy_data(selected_enemy)
+				enemy_data.enemySequence = message.sequence
 				UI.update_list(TAB_NAME, enemy_list)
 				gui.set_text(gui.get_node("selected_enemy_sequence/text"), message.sequence)
-				MEM.beat_data.changed_enemies[selected_enemy] = true
 			end
 		elseif message.dialog == "dialog_bulk_sequence" then
 			if message.sequence and message.existing_sequence then
-				msg.post("/navbar#navbar", hash("update_status"), {text = "Replacing all instances of "..message.existing_sequence.." with "..message.sequence, clear = true})
+				G.update_navbar("Replacing all instances of "..message.existing_sequence.." with "..message.sequence, true)
 				for key, val in ipairs(MEM.beat_data.enemy_list) do
-					if val.sequence == message.existing_sequence then
-						MEM.beat_data.enemy_list[key].sequence = message.sequence
-						MEM.beat_data.changed_enemies[key] = true
-					end
+					local enemy_data = MEM.beat_data.table.beatData[val.beat_data_key].targets[val.enemies_key]
+					if enemy_data.enemySequence ==  message.existing_sequence then
+						enemy_data.enemySequence = message.sequence
+					end 
 				end
 				UI.update_list(TAB_NAME, enemy_list)
 				if selected_enemy then
-					gui.set_text(gui.get_node("selected_enemy_sequence/text"), MEM.beat_data.enemy_list[selected_enemy].sequence)
+					gui.set_text(gui.get_node("selected_enemy_sequence/text"), get_enemy_data(selected_enemy).enemySequence)
 				end
 			end
 		elseif message.dialog == "dialog_change_enemy_type" then
 			if message.new_type then
-				msg.post("/navbar#navbar", hash("update_status"), {text = "Enemy type changed to "..enemy_names[message.new_type], clear = true})
+				G.update_navbar("Enemy type changed to "..enemy_names[message.new_type], true)
+				local enemy_data = get_enemy_data(selected_enemy)
+				local previous_type_internal = enemy_data.enemyType
 				local previous_type
-				local previous_type_internal = MEM.beat_data.enemy_list[selected_enemy].type
 				for key, val in pairs(internal_names) do
 					if val == previous_type_internal then
 						previous_type = key
 						break
 					end
 				end
-				MEM.beat_data.enemy_list[selected_enemy].type = internal_names[message.new_type]
+				enemy_data.enemyType = internal_names[message.new_type]
 				MEM.beat_data.enemy_types[message.new_type] = true
 				local type_found
 				for key, val in ipairs(MEM.beat_data.enemy_list) do
@@ -243,7 +237,6 @@ function on_message(self, message_id, message, sender)
 				MEM.beat_data.enemy_types[previous_type] = type_found
 				UI.update_list(TAB_NAME, enemy_list)
 				update_enemy(selected_enemy)
-				MEM.beat_data.changed_enemies[selected_enemy] = true
 			end
 		end
 		msg.post("#", hash("acquire_input_focus"))
@@ -255,14 +248,12 @@ local function set_new_type(obst_type)
 		G.update_navbar("Select an obstacle first", true)
 		return
 	end
-	local obst = MEM.beat_data.obstacle_list[selected_obstacle]
+	local obst, time = get_obstacle_data(selected_obstacle)
 	obst.type = obst_type
-	update_obstacle(selected_obstacle)
-	MEM.beat_data.changed_obstacles[obst.beat_data_key] = true
-	MEM.beat_data.table[obst.beat_data_key].obstacles[obst.obstacles_key].type = obst.type
-	if MEM.level_data.obstacle_set then
-		if not obstacle_types[MEM.level_data.obstacle_set][obst_type] then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Obstacle type "..obst_type.." may not be compatible with the loaded obstacle set ("..MEM.level_data.obstacle_set..")", clear = true})
+	update_obstacle(obst, time)
+	if MEM.level_data.obstacleSet then
+		if not obstacle_types[MEM.level_data.obstacleSet][obst_type] then
+			G.update_navbar("Obstacle type "..obst_type.." may not be compatible with the loaded obstacle set ("..MEM.level_data.obstacleSet..")", true)
 		end
 	end
 	UI.update_list(TAB_NAME, obstacle_list)
@@ -286,22 +277,24 @@ function evaluate_button(button, item)
 	elseif button == "tunnel_short" then
 		set_new_type("TunnelShort")
 	elseif button == "selected_enemy_sequence" then
-		DIALOG.open(TAB_NAME, "dialog_change_sequence", {current_sequence = MEM.beat_data.enemy_list[selected_enemy].sequence})
+		DIALOG.open(TAB_NAME, "dialog_change_sequence", {current_sequence = get_enemy_data(selected_enemy).enemySequence})
 	elseif button == "selected_enemy_type" then
 		local geomancer_type
+		local selected_enemy_type = get_enemy_data(selected_enemy).enemyType
 		for key, val in pairs(internal_names) do
-			if val == MEM.beat_data.enemy_list[selected_enemy].type then
+			if val == selected_enemy_type then
 				geomancer_type = key
 				break
 			end
 		end
 		if not geomancer_type then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Unknown enemy type.", clear = true})
+			G.update_navbar("Unknown enemy type.", true)
 		end
 		DIALOG.open(TAB_NAME, "dialog_change_enemy_type", {current_type = geomancer_type})
 	elseif button == obstacle_list then
 		selected_obstacle = item
-		update_obstacle(item)
+		local obst, time = get_obstacle_data(selected_obstacle)
+		update_obstacle(obst, time)
 	elseif button == enemy_list then
 		selected_enemy = item
 		update_enemy(item)

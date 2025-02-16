@@ -29,23 +29,30 @@ Bugs:
 
 - Volumes generate wrong on the edge of the pictures
 - Geomancer gets rekt by whitespace =/
+- Adding events from tween menu can use wrong samplerate
 
 
 Done:
 
 Features:
+- Selected mesh is flashing in the model preview window
+- Disabled geo generator for now
 
 Fixes:
 
 Bugs:
-- Scale affects move tweens correctly
-- Transform settings are displayed correctly after closing and reopening tween preview
-- BPM gets recalculated after sample rate is autodetected
-
+- Fixed a crash when trying to bulk change type of enemies in a map without enemies
+- Fixed error when attempting to render models with unknown format (Giant Walking)
 
 New configs:
+SET.mesh_flash_frequency (not implemented)
+SET.mesh_flash_time (not implemented)
 
-
-
-
+Notes:
+- See if "MEM.event_reloaded" and similar are necessary. Currently load error unloads previous data - is that a bad thing?
+- Check if importing a new enemy type doesn't mess up the bulk replace dialog
+- See if G.find_substring is still in use after I'm done with this
+- Check if I should sort prop lists by position
+- Figure out a better way to save/load tween parts
+- Cannot copy a tween from another transform in the same model
 

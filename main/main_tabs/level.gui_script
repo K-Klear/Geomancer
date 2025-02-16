@@ -84,8 +84,8 @@ function init(self)
 	local validation = {
 		integer = true,
 		min = function() return 0 end,
-		max = function() return math.floor(MEM.level_data.song_length) or (1/0) end,
-		default = function() return MEM.level_data.preview_time end
+		max = function() return math.floor(tonumber(MEM.level_data.songLength) or (1/0)) end,
+		default = function() return MEM.level_data.previewTime end
 	}
 	UI.load_text_field("preview_time", 3, TAB_NAME, validation)
 	msg.post("#", hash("disable"))
@@ -101,12 +101,12 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("show") then
 		msg.post("#", hash("enable"))
 		msg.post("#", hash("acquire_input_focus"))
-		gui.set_text(gui.get_node("btn_enemies/text"), enemy_set_names[MEM.level_data.enemy_set])
-		gui.set_text(gui.get_node("btn_obstacles/text"), MEM.level_data.obstacle_set)
-		gui.set_text(gui.get_node("btn_materials/text"), MEM.level_data.material_set)
-		gui.set_text(gui.get_node("btn_movement/text"), MEM.level_data.move_mode)
-		gui.set_text(gui.get_node("preview_time/text"), MEM.level_data.preview_time)
-		gui.set_text(gui.get_node("label_name"), "Map name:\n"..MEM.level_data.scene_name)
+		gui.set_text(gui.get_node("btn_enemies/text"), enemy_set_names[MEM.level_data.enemySet])
+		gui.set_text(gui.get_node("btn_obstacles/text"), MEM.level_data.obstacleSet)
+		gui.set_text(gui.get_node("btn_materials/text"), MEM.level_data.materialPropertiesSet)
+		gui.set_text(gui.get_node("btn_movement/text"), MEM.level_data.moveMode)
+		gui.set_text(gui.get_node("preview_time/text"), MEM.level_data.previewTime)
+		gui.set_text(gui.get_node("label_name"), "Map name:\n"..MEM.level_data.sceneDisplayName)
 		display_description(MEM.level_data.description)
 		if not MEM.beat_data.enemy_list then
 			gui.set_text(gui.get_node("label_enemy_count"), "Enemy count:\nUnknown")
@@ -126,13 +126,11 @@ function on_message(self, message_id, message, sender)
 			}
 			
 			for key, val in ipairs(MEM.beat_data.enemy_list) do
-				local temp = 0
+				local enemy_data = MEM.beat_data.table.beatData[val.beat_data_key].targets[val.enemies_key]
 				enemy_count = enemy_count + 1
-				hit_count = hit_count + hits[val.type]
-				temp = hits[val.type]
-				if val.shielded == "True" then
+				hit_count = hit_count + hits[enemy_data.enemyType]
+				if enemy_data.shielded == "True" then
 					hit_count = hit_count + 4
-					temp = temp + 4
 				end
 			end
 			gui.set_text(gui.get_node("label_enemy_count"), "Enemy count:\n"..enemy_count.." ("..hit_count.." hits total)")
@@ -140,22 +138,22 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("dialog_closed") then
 		if message.dialog == "obstacles" then
 			if message.obstacle then
-				MEM.level_data.obstacle_set = message.obstacle
-				gui.set_text(gui.get_node("btn_obstacles/text"), MEM.level_data.obstacle_set)
+				MEM.level_data.obstacleSet = message.obstacle
+				gui.set_text(gui.get_node("btn_obstacles/text"), MEM.level_data.obstacleSet)
 			else
 				msg.post("#", hash("acquire_input_focus"))
 			end
 		elseif message.dialog == "material" then
 			if message.material then
-				MEM.level_data.material_set = message.material
-				gui.set_text(gui.get_node("btn_materials/text"), MEM.level_data.material_set)
+				MEM.level_data.materialPropertiesSet = message.material
+				gui.set_text(gui.get_node("btn_materials/text"), MEM.level_data.materialPropertiesSet)
 			else
 				msg.post("#", hash("acquire_input_focus"))
 			end
 		elseif message.dialog == "enemy_set" then
 			if message.enemy_set then
-				MEM.level_data.enemy_set = message.enemy_set
-				gui.set_text(gui.get_node("btn_enemies/text"), enemy_set_names[MEM.level_data.enemy_set])
+				MEM.level_data.enemySet = message.enemy_set
+				gui.set_text(gui.get_node("btn_enemies/text"), enemy_set_names[MEM.level_data.enemySet])
 			end
 			msg.post("#", hash("acquire_input_focus"))
 		end
@@ -164,25 +162,25 @@ end
 
 local function evaluate_button(button)
 	if button == "btn_enemies" then
-		DIALOG.open(TAB_NAME, "enemy_set", {enemy_set = MEM.level_data.enemy_set})
+		DIALOG.open(TAB_NAME, "enemy_set", {enemy_set = MEM.level_data.enemySet})
 	elseif button == "btn_obstacles" then
-		DIALOG.open(TAB_NAME, "obstacles", {current_set = MEM.level_data.obstacle_set})
+		DIALOG.open(TAB_NAME, "obstacles", {current_set = MEM.level_data.obstacleSet})
 	elseif button == "btn_materials" then
-		DIALOG.open(TAB_NAME, "material", {current_set = MEM.level_data.material_set})
+		DIALOG.open(TAB_NAME, "material", {current_set = MEM.level_data.materialPropertiesSet})
 	elseif button == "btn_movement" then
-		if MEM.level_data.move_mode == "Moving" then
-			MEM.level_data.move_mode = "Stationary"
+		if MEM.level_data.moveMode == "Moving" then
+			MEM.level_data.moveMode = "Stationary"
 		else
-			MEM.level_data.move_mode = "Moving"
+			MEM.level_data.moveMode = "Moving"
 		end
-		gui.set_text(gui.get_node("btn_movement/text"), MEM.level_data.move_mode)
+		gui.set_text(gui.get_node("btn_movement/text"), MEM.level_data.moveMode)
 	end
 end
 
 local function evaluate_input(field, text)
 	if field == "preview_time" then
-		MEM.level_data.preview_time = text
-		gui.set_text(gui.get_node("preview_time/text"), MEM.level_data.preview_time)
+		MEM.level_data.previewTime = text
+		gui.set_text(gui.get_node("preview_time/text"), MEM.level_data.previewTime)
 	end
 end
 

@@ -41,7 +41,7 @@ nodes {
     y: 60.0
   }
   type: TYPE_TEXT
-  text: "Select a model part"
+  text: "Select target transform"
   font: "main_menu_button"
   id: "dialog_part_title"
   outline {
@@ -54,7 +54,6 @@ nodes {
     y: 1.0
     z: 1.0
   }
-  line_break: true
   parent: "edit_box"
   layer: "text"
   outline_alpha: 0.0

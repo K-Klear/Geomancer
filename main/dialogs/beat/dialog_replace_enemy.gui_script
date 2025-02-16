@@ -1,6 +1,7 @@
 local UI = require "modules.ui"
 local MEM = require "modules.memory"
 local SET = require "modules.settings"
+local G = require "modules.global"
 local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_replace_enemy"
 local DIALOG_DATA
@@ -47,10 +48,8 @@ local function show_enemy_buttons()
 			gui.set(gui.get_node(val.."/button_white"), "position.x", get_button_pos(#button_list, key))
 		end
 	else
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		msg.post(parent_tab, hash("dialog_closed"), {dialog = hash("replace_enemy")})
-		msg.post("/navbar#navbar", hash("update_status"), {text = "Map has no enemies", clear = true})
+		G.update_navbar("Map has no enemies", true)
+		DIALOG.close(DIALOG_NAME)
 	end
 end
 
@@ -77,11 +76,11 @@ local function evaluate_button(button, item)
 		remove_selection()
 	elseif button == "choice_accept" then
 		if not enemy_to_replace then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "You must select an enemy type to replace.", clear = true})
+			G.update_navbar("You must select an enemy type to replace.", true)
 		elseif not new_type then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "You must select a new enemy type.", clear = true})
+			G.update_navbar("You must select a new enemy type.", true)
 		elseif enemy_to_replace == new_type then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a different enemy type.", clear = true})
+			G.update_navbar("Select a different enemy type.", true)
 		else
 			DIALOG.close(DIALOG_NAME, {enemy_to_replace = enemy_to_replace, new_type = new_type})
 			remove_selection()
