@@ -37,8 +37,8 @@ local function get_fixed_projection(camera, state)
     camera.zoom = camera.zoom or DEFAULT_ZOOM
     local projected_width = state.window_width / camera.zoom
     local projected_height = state.window_height / camera.zoom
-    local left = -(projected_width - state.width) / 2
-    local bottom = -(projected_height - state.height) / 2
+    local left = -(projected_width - state.width) * 0.5
+    local bottom = -(projected_height - state.height) * 0.5
     local right = left + projected_width
     local top = bottom + projected_height
     return vmath.matrix4_orthographic(left, right, bottom, top, camera.near, camera.far)

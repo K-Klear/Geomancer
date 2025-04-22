@@ -6,7 +6,10 @@ local COL = require "modules.colours"
 local G = require "modules.global"
 local DIALOG = UI.DIALOG
 
-local bounding_node, bounding_node_preview, aux_node, button_box, playback_box, close_button, timeline, scrubber, time_display
+local bounding_node, bounding_node_preview, bounding_node_transform, aux_node, button_box, playback_box
+local close_button, timeline, scrubber, time_display, selected_timeline
+local current_bounding_node
+local colour_unselected_timeline = vmath.vector4(0.6, 0.6, 0.6, 1)
 
 local playback = false
 
@@ -20,11 +23,9 @@ local GET_MODEL_VIEWPORT = hash("get_model_viewport")
 local POSITION_MIN = 10
 local POSITION_MAX = 1180
 local BUTTON_BOX_POSITION = vmath.vector3(850, 56, 0)
-local BUTTON_BOX_POSITION_PREVIEW = vmath.vector3(1280.0, 128, 0)
+local BUTTON_BOX_POSITION_PREVIEW = vmath.vector3(1280.0, 53, 0)
 local BUTTON_BOX_SIZE = vmath.vector3(225.0, 50, 0)
 local BUTTON_BOX_SIZE_PREVIEW = vmath.vector3(300, 322, 0)
-
-local AUX_NODE_POS
 
 MOD.offset_position = vmath.vector3(0, 0, 0)
 MOD.offset_rotation = vmath.quat(0, 0, 0, 1)
@@ -38,59 +39,6 @@ local function set_button_colours()
 	gui.set_color(gui.get_node("button_colour/enemy"), COL.get_current("enemy"))
 end
 
-local function euler_to_quat(euler)
-	local qx, qy, qz
-	qx = vmath.quat_rotation_x(math.rad(-euler.x))
-	qy = vmath.quat_rotation_y(math.rad(-euler.y))
-	qz = vmath.quat_rotation_z(math.rad(euler.z))
-	return qy * qx * qz
-end
-
-local two_pi = 2 * math.pi
-local half_pi = math.pi * 0.5
-local negative_flip = -0.0001
-local positive_flip = two_pi - 0.0001
-
-local function sanitise_euler(euler)
-	if euler.x < negative_flip then
-		euler.x = euler.x + two_pi
-	elseif euler.x > positive_flip then
-		euler.x = euler.x - two_pi
-	end
-	if euler.y < negative_flip then
-		euler.y = euler.y + two_pi
-	elseif euler.y > positive_flip then
-		euler.y = euler.y - two_pi
-	end
-	if euler.z < negative_flip then
-		euler.z = euler.z + two_pi
-	elseif euler.z > positive_flip then
-		euler.z = euler.z + two_pi
-	end
-	return euler
-end
-
-local function quat_to_euler(q)
-	local x = q.x
-	local y = q.y
-	local z = q.z
-	local w = q.w
-	local check = 2 * (y * z - w * x)
-	if check < 0.999 then
-		if check > -0.999 then
-			local v = vmath.vector3(-math.asin(check),
-			math.atan2(2 * (x * z + w * y), 1 - 2 * (x * x + y * y)),
-			math.atan2(2 * (x * y + w * z), 1 - 2 * (x * x + z * z)))
-			return math.deg(v)
-		else
-			local v = vmath.vector3(half_pi, math.atan2(2 * (x * y - w * z), 1 - 2 * (y * y + z * z)), 0)
-			return math.deg(v)
-		end
-	else
-		local v = vmath.vector3(-half_pi, math.atan2(-2 * (x * y - w * z), 1 - 2 * (y * y + z * z)), 0)
-		return math.deg(v)
-	end
-end
 
 local function update_offset_fields()
 	local xyz = {"x", "y", "z"}
@@ -99,48 +47,18 @@ local function update_offset_fields()
 		gui.set_text(gui.get_node("rotation_"..val.."/text"), G.round(MOD.offset_euler[val], 1))
 		gui.set_text(gui.get_node("scale_"..val.."/text"), G.round(MOD.offset_scale[val], 2))
 	end
-	gui.set_text(gui.get_node("position_z/text"), G.round(-MOD.offset_position.z, 1))
+	msg.post(".", hash("offsets_changed"))
 end
 
-function init(self)
-	update_offset_fields()
-	bounding_node = gui.get_node("model_viewer")
-	bounding_node_preview = gui.get_node("model_viewer_preview")
-	button_box = gui.get_node("button_box")
-	playback_box = gui.get_node("playback_box")
-	close_button = gui.get_node("close_preview/button_white")
-	gui.set_position(button_box, BUTTON_BOX_POSITION)
-	gui.set_size(button_box, BUTTON_BOX_SIZE)
-	timeline = gui.get_node("timeline")
-	scrubber = gui.get_node("scrubber")
-	time_display = gui.get_node("label_time")
-	gui.set_enabled(bounding_node_preview, false)
-	gui.set_enabled(timeline, false)
-	gui.set_enabled(gui.get_node("playback_box"), false)
-	gui.set_enabled(gui.get_node("close_preview/button_white"), false)
-	gui.set_enabled(time_display, false)
-	gui.set_enabled(gui.get_node("offset_box"), false)
-	local pos = gui.get_position(bounding_node)
-	local size = gui.get_size(bounding_node) * gui.get(bounding_node, "scale.x")
-	pos.x = pos.x + size.x
-	pos.y = pos.y - size.y
-	aux_node = gui.new_box_node(pos, vmath.vector3(1))
-	AUX_NODE_POS = gui.get_position(aux_node)
-	gui.set_pivot(aux_node, gui.PIVOT_NW)
-	gui.set_visible(aux_node, false)
-	gui.set_render_order(1)
-	UI.load_template({"button_colour", "reset_view", "show_grid", "show_background"}, TAB_NAME)
-	set_button_colours()
-	--msg.post("#", hash("disable"))
+local function disable_pov_lock()
+	msg.post(".", hash("reset_view"))
+	MOD.pov_lock = false
+	gui.set_color(gui.get_node("lock_cam/button_white"), vmath.vector4(1, 1, 1, 1))
 end
 
 local function get_viewport()
 	local pos_1, pos_2
-	if MOD.tween_preview then
-		pos_1 = gui.get_screen_position(bounding_node_preview)
-	else
-		pos_1 = gui.get_screen_position(bounding_node)
-	end
+	pos_1 = gui.get_screen_position(current_bounding_node)
 	pos_2 = gui.get_screen_position(aux_node)
 	local w = pos_2.x - pos_1.x
 	local h = pos_1.y - pos_2.y
@@ -149,51 +67,135 @@ local function get_viewport()
 	msg.post("@render:", SET_MODEL_VIEWPORT, {x = pos_1.x, y = pos_2.y, w = w, h = h})
 end
 
-local action_bars = {}
+local function change_bounds(node)
+	gui.set_enabled(bounding_node, bounding_node == node)
+	gui.set_enabled(bounding_node_preview, bounding_node_preview == node)
+	gui.set_enabled(bounding_node_transform, bounding_node_transform == node)
+	current_bounding_node = node
+	local pos = gui.get_position(node)
+	local size = gui.get_size(node) * gui.get(node, "scale.x")
+	pos.x = pos.x + size.x; pos.y = pos.y - size.y
+	gui.set_position(aux_node, pos)
+	get_viewport()
+end
+
+function init(self)
+	update_offset_fields()
+	bounding_node = gui.get_node("model_viewer")
+	bounding_node_preview = gui.get_node("model_viewer_preview")
+	bounding_node_transform = gui.get_node("model_viewer_transform")
+	aux_node = gui.new_box_node(vmath.vector3(0), vmath.vector3(1))
+	gui.set_pivot(aux_node, gui.PIVOT_NW)
+	gui.set_visible(aux_node, false)
+	change_bounds(bounding_node)
+	button_box = gui.get_node("button_box")
+	playback_box = gui.get_node("playback_box")
+	close_button = gui.get_node("close_preview/button_white")
+	gui.set_position(button_box, BUTTON_BOX_POSITION)
+	gui.set_size(button_box, BUTTON_BOX_SIZE)
+	timeline = gui.get_node("timeline_box")
+	scrubber = gui.get_node("scrubber")
+	time_display = gui.get_node("label_time")
+	gui.set_enabled(timeline, false)
+	gui.set_visible(timeline, false)
+	gui.set_enabled(playback_box, false)
+	gui.set_enabled(close_button, false)
+	gui.set_enabled(time_display, false)
+	gui.set_enabled(gui.get_node("offset_box"), false)
+	gui.set_render_order(1)
+	UI.load_template({"button_colour", "reset_view", "show_grid", "show_background"}, TAB_NAME)
+	set_button_colours()
+	--msg.post("#", hash("disable"))
+end
+
+local action_bars, timelines = {}, {}
 
 local function percent_to_position(percent)
 	return (percent * POSITION_MAX) + POSITION_MIN
 end
 
-local function create_tween_sections()
-	for key, val in ipairs(action_bars) do
-		gui.delete_node(val.bar)
-		gui.delete_node(val.ending)
+local function delete_timeline()
+	for key, val in ipairs(timelines) do
+		gui.delete_node(val)
 	end
-	action_bars = {}
-	MOD.total_time = 0
-	
-	for key, val in ipairs(MOD.tween_table) do
-		if val.type == "X" then
-
-		else
-			local new_bar = gui.clone(gui.get_node("action_bar"))
-			local new_bar_end = gui.clone(gui.get_node("action_end"))
-			gui.set_enabled(new_bar, true)
-			if val.type == "T" then
-				gui.set_color(new_bar, SET.colour_tween_move)
-			elseif val.type == "R" then
-				gui.set_color(new_bar, SET.colour_tween_rotate)
-			elseif val.type == "S" then
-				gui.set_color(new_bar, SET.colour_tween_scale)
-			elseif val.type == "W" then
-				gui.set_color(new_bar, SET.colour_tween_wait)
-			else
-				gui.set_color(new_bar, vmath.vector4(0.5, 0, 0, 1))
-			end
-			table.insert(action_bars, {bar = new_bar, ending = new_bar_end, time = val.time})
-			MOD.total_time = MOD.total_time + val.time
+	timelines = {}
+	for key, val in ipairs(action_bars) do
+		for k, v in ipairs(val) do
+			gui.delete_node(v.bar)
+			gui.delete_node(v.ending)
 		end
 	end
-	local time = 0
-	for key, val in ipairs(action_bars) do
-		local start_pos = percent_to_position(time / MOD.total_time)
-		local length = (val.time / MOD.total_time) * POSITION_MAX
-		local end_pos = start_pos + length
-		gui.set(val.bar, "position.x", start_pos)
-		gui.set(val.bar, "size.x", length)
-		gui.set(val.ending, "position.x", end_pos)
-		time = time + val.time
+	action_bars = {}
+end
+
+local function select_timeline(selection)
+	if not (selection == selected_timeline) then
+		gui.set_color(timelines[selected_timeline], colour_unselected_timeline)
+		gui.set_color(timelines[selection], vmath.vector4(1, 1, 1, 1))
+		selected_timeline = selection
+	end
+end
+
+local function create_tween_sections()
+	MOD.total_time = 0
+	delete_timeline()
+	for tween_index, tween_table in ipairs(MOD.tween_table) do
+		action_bars[tween_index] = {}
+		local new_timeline = gui.clone(gui.get_node("timeline"))
+		gui.set(new_timeline, "position.y", SET.tween_timeline_bar_height * (tween_index - 0.5))
+		gui.set(new_timeline, "size.y", SET.tween_timeline_bar_height)
+		gui.set_enabled(new_timeline, true)
+		table.insert(timelines, new_timeline)
+		if not (tween_index == selected_timeline) then
+			gui.set_color(new_timeline, colour_unselected_timeline)
+		end
+		
+		local tween_time = 0
+		
+		for key, val in ipairs(tween_table) do
+			if val.type == "X" then
+
+			else
+				local new_bar = gui.clone(gui.get_node("action_bar"))
+				local new_bar_end = gui.clone(gui.get_node("action_end"))
+				gui.set_parent(new_bar, new_timeline)
+				gui.set_parent(new_bar_end, new_timeline)
+				gui.set_enabled(new_bar, true)
+				gui.set_enabled(new_bar_end, true)
+				if val.type == "T" then
+					gui.set_color(new_bar, SET.colour_tween_move)
+				elseif val.type == "R" then
+					gui.set_color(new_bar, SET.colour_tween_rotate)
+				elseif val.type == "S" then
+					gui.set_color(new_bar, SET.colour_tween_scale)
+				elseif val.type == "W" then
+					gui.set_color(new_bar, SET.colour_tween_wait)
+				else
+					gui.set_color(new_bar, vmath.vector4(0.5, 0, 0, 1))
+				end
+				table.insert(action_bars[tween_index], {bar = new_bar, ending = new_bar_end, time = val.time})
+				tween_time = tween_time + val.time
+			end
+		end
+		MOD.total_time = math.max(MOD.total_time, tween_time)
+	end
+	local box_y = 10 + (#MOD.tween_table * SET.tween_timeline_bar_height)
+	gui.set_size(gui.get_node("timeline_box"), vmath.vector3(1200, box_y, 0))
+	gui.set(gui.get_node("controls"), "position.y", box_y)
+	gui.set(gui.get_node("scrubber"), "scale.y", #MOD.tween_table * SET.tween_timeline_bar_height)
+	for tween_index, action_bar in ipairs(action_bars) do
+		local time = 0
+		for key, val in ipairs(action_bar) do
+			local start_pos = percent_to_position(time / MOD.total_time)
+			local length = (val.time / MOD.total_time) * POSITION_MAX
+			local end_pos = start_pos + length
+			gui.set(val.bar, "position.x", start_pos)
+			gui.set_size(val.bar, vmath.vector3(length, SET.tween_timeline_bar_height * 0.5, 0))
+			--gui.set(val.bar, "size.x", length)
+			gui.set(val.ending, "position.x", end_pos)
+			gui.set(val.ending, "size.y", SET.tween_timeline_bar_height)
+			time = time + val.time
+		end
 	end
 end
 
@@ -213,12 +215,6 @@ local function start_playback()
 	gui.animate(scrubber, "position.x", POSITION_MAX + POSITION_MIN, gui.EASING_LINEAR, duration, 0, stop_playback)
 end
 
-local function disable_pov_lock()
-	msg.post(".", hash("reset_view"))
-	MOD.pov_lock = false
-	gui.set_color(gui.get_node("lock_cam/button_white"), vmath.vector4(1, 1, 1, 1))
-end
-
 local function close_preview()
 	MOD.offset_position = vmath.vector3(0, 0, 0)
 	MOD.offset_rotation = vmath.quat(0, 0, 0, 1)
@@ -229,27 +225,21 @@ local function close_preview()
 	MOD.tween_preview = false
 	set_button_colours()
 	msg.post("#", hash("release_input_focus"))
-	gui.set_enabled(bounding_node_preview, false)
-	gui.set_enabled(bounding_node, true)
+	msg.post(".", hash("reset_tween"))
+	change_bounds(bounding_node_transform)
 	gui.set_enabled(gui.get_node("offset_box"), false)
-	disable_pov_lock()
-	local pos = gui.get_position(bounding_node)
-	local size = gui.get_size(bounding_node) * gui.get(bounding_node, "scale.x")
-	pos.x = pos.x + size.x
-	pos.y = pos.y - size.y
-	gui.set_position(aux_node, AUX_NODE_POS)
-	get_viewport()
+	gui.set(gui.get_node("controls"), "position.y", 0)
 	UI.unload_template(TAB_NAME)
 	UI.load_template({"button_colour", "reset_view", "show_grid", "show_background"}, TAB_NAME)
 	gui.set_enabled(gui.get_node("playback_box"), false)
-	gui.set_enabled(gui.get_node("timeline"), false)
+	delete_timeline()
 	gui.set_enabled(gui.get_node("close_preview/button_white"), false)
 	gui.set_enabled(time_display, false)
+	gui.set_enabled(scrubber, false)
 	gui.set_enabled(gui.get_node("label_model"), false)
 	gui.set_position(button_box, BUTTON_BOX_POSITION)
 	gui.set_size(button_box, BUTTON_BOX_SIZE)
 	MOD.tween_table = nil
-	MOD.model_index = nil
 end
 
 local function update_view(update_scubber)
@@ -270,12 +260,39 @@ function move_scrubber(progress)
 end
 
 local function handle_euler()
-	MOD.offset_euler = math.deg(sanitise_euler(math.rad(MOD.offset_euler)))
-	MOD.offset_rotation = euler_to_quat(MOD.offset_euler)
-	MOD.offset_euler = quat_to_euler(MOD.offset_rotation)
+	local euler_rad = math.rad(vmath.vector3(-MOD.offset_euler.x, -MOD.offset_euler.y, MOD.offset_euler.z))
+	MOD.offset_euler = math.deg(G.sanitise_euler(euler_rad))
+	MOD.offset_rotation = G.euler_to_quat(MOD.offset_euler)
+	MOD.offset_euler = G.quat_to_euler(MOD.offset_rotation)
 	MOD.offset_euler.x = -MOD.offset_euler.x
 	MOD.offset_euler.y = -MOD.offset_euler.y
-	MOD.offset_euler = math.deg(sanitise_euler(math.rad(MOD.offset_euler)))
+	MOD.offset_euler = math.deg(G.sanitise_euler(math.rad(MOD.offset_euler)))
+end
+
+local function apply_prop_transform()
+	MOD.offset_position.x = MOD.prop_data.position.x
+	MOD.offset_position.y = MOD.prop_data.position.y
+	if MEM.level_data.moveMode and MEM.level_data.moveMode == "Stationary" then
+		MOD.offset_position.z = MOD.prop_data.position.z
+	else
+		local _, z
+		if MOD.prop_data.signal_z then
+			_, z = next(MOD.prop_data.signal_z)
+		end
+		if z then
+			MOD.offset_position.z = MOD.prop_data.position.z - z
+		else
+			MOD.offset_position.z = SET.default_model_z_position
+		end
+	end
+	MOD.offset_euler.x = MOD.prop_data.rotation.x
+	MOD.offset_euler.y = MOD.prop_data.rotation.y
+	MOD.offset_euler.z = MOD.prop_data.rotation.z
+	MOD.offset_scale.x = MOD.prop_data.scale.x
+	MOD.offset_scale.y = MOD.prop_data.scale.y
+	MOD.offset_scale.z = MOD.prop_data.scale.z
+	handle_euler()
+	update_offset_fields()
 end
 
 function on_message(self, message_id, message, sender)
@@ -292,45 +309,33 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("dialog_closed") then
 		msg.post("#", hash("acquire_input_focus"))
 		if message.dialog == "dialog_props" then
-			if message.position then
-				MOD.offset_position.x = message.position.x
-				MOD.offset_position.y = message.position.y
-				if MEM.level_data.moveMode and MEM.level_data.moveMode == "Stationary" then
-					MOD.offset_position.z = -message.position.z
-				else
-					MOD.offset_position.z = -SET.default_model_z_position
-				end
-				MOD.offset_euler.x = message.rotation.x
-				MOD.offset_euler.y = message.rotation.y
-				MOD.offset_euler.z = message.rotation.z
-				MOD.offset_scale.x = message.scale.x
-				MOD.offset_scale.y = message.scale.y
-				MOD.offset_scale.z = message.scale.z
-				handle_euler()
-				update_offset_fields()
+			if message.prop_changed then
+				apply_prop_transform()
 			end
 		end
+	elseif message_id == hash("resize_base") then
+		change_bounds(bounding_node)
+	elseif message_id == hash("resize_transform") then
+		change_bounds(bounding_node_transform)
 	elseif message_id == hash("tween_preview") then
+		MOD.tween_preview = true
 		MOD.total_time = 0
 		move_scrubber(0)
-		MOD.tween_preview = true
 		gui.set_position(button_box, BUTTON_BOX_POSITION_PREVIEW)
 		gui.set_size(button_box, BUTTON_BOX_SIZE_PREVIEW)
 		msg.post("#", hash("acquire_input_focus"))
-		gui.set_enabled(bounding_node_preview, true)
-		gui.set_enabled(bounding_node, false)
+		change_bounds(bounding_node_preview)
 		gui.set_enabled(gui.get_node("offset_box"), true)
-		MOD.offset_position.z = -SET.default_model_z_position
-		gui.set_text(gui.get_node("position_z/text"), SET.default_model_z_position)
-		local pos = gui.get_position(bounding_node_preview)
-		local size = gui.get_size(bounding_node_preview) * gui.get(bounding_node_preview, "scale.x")
-		pos.x = pos.x + size.x
-		pos.y = pos.y - size.y
-		gui.set_position(aux_node, pos)
-		get_viewport()
+		gui.set_enabled(scrubber, true)
+		if MOD.prop_data then
+			apply_prop_transform()
+		else
+			MOD.offset_position.z = SET.default_model_z_position
+		end
+		update_offset_fields()
+		gui.set_text(gui.get_node("position_z/text"), MOD.offset_position.z)
 		UI.load_template({"playback_back", "playback_forward", "playback_play", "playback_stop", "close_preview", "pick_model",
 		"lock_cam", "find_prop", "move_terrain"}, TAB_NAME)
-
 		local validation = {
 			number = true,
 			min = function() return -999 end,
@@ -347,88 +352,139 @@ function on_message(self, message_id, message, sender)
 		UI.load_text_field("scale_y", 5, TAB_NAME, validation)
 		UI.load_text_field("scale_z", 5, TAB_NAME, validation)
 		
-		
 		gui.set_enabled(gui.get_node("playback_box"), true)
-		gui.set_enabled(gui.get_node("timeline"), true)
+		gui.set_enabled(timeline, true)
 		gui.set_enabled(gui.get_node("close_preview/button_white"), true)
 		gui.set_enabled(time_display, true)
 		gui.set_enabled(gui.get_node("label_model"), true)
-		gui.set_text(gui.get_node("label_model"), MEM.art_data.model_list[message.model].name)
+		gui.set_text(gui.get_node("label_model"), MEM.art_data.table.propsDictionary[message.model].key)
+		
 		MOD.model_index = message.model
-
-		MOD.tween_table = G.expand_repeat_actions(MEM.art_data.model_list[MOD.model_index].tween.script)
-		for key = #MOD.tween_table, 1, -1 do
-			local val = MOD.tween_table[key]
-			if val.time then
-				val.time = tonumber(val.time)
+		MOD.tween_table = {}
+		selected_timeline = 0
+		for i = 1, message.selected_transform do
+			if MEM.art_data.table.propsDictionary[message.model].model_data.transform_list[i].tween then
+				selected_timeline = selected_timeline + 1
 			end
-			if val.easing then
-				local easing_tab = {}
-				local x_diff = val.end_state.x - val.start_state.x
-				local y_diff = val.end_state.y - val.start_state.y
-				local z_diff = val.end_state.z - val.start_state.z
-				if val.type == "R" then
-					if x_diff > 180 then
-						x_diff = x_diff - 360
-					elseif x_diff < -180 then
-						x_diff = x_diff + 360
-					end
-					if y_diff > 180 then
-						y_diff = y_diff - 360
-					elseif y_diff < -180 then
-						y_diff = y_diff + 360
-					end
-					if z_diff > 180 then
-						z_diff = z_diff - 360
-					elseif z_diff < -180 then
-						z_diff = z_diff + 360
-					end
+		end
+		MOD.active_signals = {}
+		MOD.prop_list_generated = false
+
+		for key, val in ipairs(MEM.art_data.table.propsDictionary[MOD.model_index].model_data.transform_list) do
+			if val.tween then
+				table.insert(MOD.tween_table, val.tween)
+				MOD.active_signals[val.tween.signal] = {}
+			end
+		end
+
+
+		local signal_found
+		if MEM.event_data.table then
+			for key, val in ipairs(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events) do
+				if MOD.active_signals[val.payload] then
+					local signal_time = tonumber(val.startSample) / SET.sample_rate
+					table.insert(MOD.active_signals[val.payload], signal_time)
+					signal_found = true
 				end
-				local node_tab = val.easing.nodes
-				for i = 1, #node_tab - 1 do
-					local s_x = val.start_state.x + (node_tab[i].comp * x_diff)
-					local s_y = val.start_state.y + (node_tab[i].comp * y_diff)
-					local s_z = val.start_state.z + (node_tab[i].comp * z_diff)
-					local e_x = val.start_state.x + (node_tab[i + 1].comp * x_diff)
-					local e_y = val.start_state.y + (node_tab[i + 1].comp * y_diff)
-					local e_z = val.start_state.z + (node_tab[i + 1].comp * z_diff)
-					local t = val.time * (node_tab[i + 1].time - node_tab[i].time)
-					table.insert(easing_tab, {time = t, type = val.type, part = val.part, start_state = {x = s_x, y = s_y, z = s_z}, end_state = {x = e_x, y = e_y, z = e_z}})
+			end
+		end
+
+		if not signal_found then
+			MOD.active_signals = nil
+		end
+		
+		
+		for k, v in ipairs(MOD.tween_table) do
+			MOD.tween_table[k] = G.expand_repeat_actions(v)
+			local tween_table = MOD.tween_table[k]
+			for key = #tween_table, 1, -1 do
+				local val = tween_table[key]
+				if val.time then
+					val.time = tonumber(val.time)
 				end
-				table.remove(MOD.tween_table, key)
-				for i = #easing_tab, 1, -1 do
-					table.insert(MOD.tween_table, key, easing_tab[i])
+				if val.easing then
+					local easing_tab = {}
+					local x_diff = val.end_state.x - val.start_state.x
+					local y_diff = val.end_state.y - val.start_state.y
+					local z_diff = val.end_state.z - val.start_state.z
+					if val.type == "R" then
+						if x_diff > 180 then
+							x_diff = x_diff - 360
+						elseif x_diff < -180 then
+							x_diff = x_diff + 360
+						end
+						if y_diff > 180 then
+							y_diff = y_diff - 360
+						elseif y_diff < -180 then
+							y_diff = y_diff + 360
+						end
+						if z_diff > 180 then
+							z_diff = z_diff - 360
+						elseif z_diff < -180 then
+							z_diff = z_diff + 360
+						end
+					end
+					local node_tab = val.easing.nodes
+					for i = 1, #node_tab - 1 do
+						local s_x = val.start_state.x + (node_tab[i].comp * x_diff)
+						local s_y = val.start_state.y + (node_tab[i].comp * y_diff)
+						local s_z = val.start_state.z + (node_tab[i].comp * z_diff)
+						local e_x = val.start_state.x + (node_tab[i + 1].comp * x_diff)
+						local e_y = val.start_state.y + (node_tab[i + 1].comp * y_diff)
+						local e_z = val.start_state.z + (node_tab[i + 1].comp * z_diff)
+						local t = val.time * (node_tab[i + 1].time - node_tab[i].time)
+						table.insert(easing_tab, {time = t, type = val.type, part = val.part, start_state = {x = s_x, y = s_y, z = s_z}, end_state = {x = e_x, y = e_y, z = e_z}})
+					end
+					table.remove(tween_table, key)
+					for i = #easing_tab, 1, -1 do
+						table.insert(tween_table, key, easing_tab[i])
+					end
 				end
 			end
 		end
 		create_tween_sections()
+		msg.post(".", hash("prepare_tweens"))
 	end
 end
 
 local function get_current_action()
 	local current_time = MOD.total_time * MOD.scrubber_progress
 	local duration = 0
-	for key, val in ipairs(MOD.tween_table) do
-		if val.time > 0.00000001 then
-			if duration + val.time > current_time and ((duration + val.time) - current_time) > 0.00000001 then
+	local timeline_tab = MOD.tween_table[selected_timeline]
+	for key, val in ipairs(timeline_tab) do
+		local time = tonumber(val.time)
+		if time > 0.00000001 then
+			if duration + time > current_time and ((duration + time) - current_time) > 0.00000001 then
 				return key, duration
 			else
-				duration = duration + val.time
+				duration = duration + time
 			end
 		end
 	end
-	return #MOD.tween_table, MOD.total_time
+	if (current_time - duration) > 0 then
+		return nil, duration
+	else
+		return #timeline_tab + 1, duration
+	end
 end
 
 local function evaluate_button(button)
 	if button == "button_colour" then
-		msg.post("/art", hash("open_colour_picker"))
-		msg.post("/colours", hash("show"))
+		local current_dialog
+		if current_bounding_node == bounding_node_transform then
+			current_dialog = hash("transform")
+			msg.post(UI.tab.dialog_transform.path, hash("release_input_focus"))
+		elseif current_bounding_node == bounding_node_preview then
+			current_dialog = hash("tween_preview")
+		else
+			current_dialog = hash("art")
+		end
+		msg.post("/art", hash("open_colour_picker"), {current_dialog = current_dialog})
 		msg.post("#", hash("release_input_focus"))
 		MOD.is_dragged = false
 		MOD.camera_is_dragged = false
 	elseif button == "pick_model" then
-		DIALOG.open(TAB_NAME, "dialog_props", {model = MEM.art_data.model_list[MOD.model_index].name})
+		DIALOG.open(TAB_NAME, "dialog_props", {model = MEM.art_data.table.propsDictionary[MOD.model_index].key})
 	elseif button == "show_background" then
 		msg.post(".", hash("switch_background"))
 	elseif button == "reset_view" then
@@ -460,15 +516,16 @@ local function evaluate_button(button)
 		local current_action, start_time = get_current_action()
 		local new_time
 		if not current_action then
-			new_time = MOD.scrubber_progress
+			new_time = start_time / MOD.total_time
 		elseif current_action < 2 then
 			new_time = 0
 		elseif (MOD.total_time * MOD.scrubber_progress) - start_time > 0.00000001 then
 			new_time = start_time / MOD.total_time
 		else
 			for i = 1, current_action - 1 do
-				if MOD.tween_table[current_action - i].time > 0 then
-					new_time = (start_time - MOD.tween_table[current_action - i].time) / MOD.total_time
+				local time = tonumber(MOD.tween_table[selected_timeline][current_action - i].time)
+				if time > 0 then
+					new_time = (start_time - time) / MOD.total_time
 					break
 				end
 			end
@@ -483,7 +540,11 @@ local function evaluate_button(button)
 		stop_playback()
 		local current_action, start_time = get_current_action()
 		if current_action then
-			move_scrubber(math.min((start_time + MOD.tween_table[current_action].time) / MOD.total_time, 1))
+			if current_action > #MOD.tween_table[selected_timeline] then
+				move_scrubber(1)
+			else
+				move_scrubber(math.min((start_time + tonumber(MOD.tween_table[selected_timeline][current_action].time)) / MOD.total_time, 1))
+			end
 		else
 			move_scrubber(1)
 		end
@@ -503,14 +564,11 @@ local function evaluate_button(button)
 		stop_playback()
 		move_scrubber(0)
 	elseif MOD.tween_preview and (button == "close_preview" or button == "escape") then
-		msg.post("/art#tab_art", hash("tween_preview_closed"), {model_index = MOD.model_index})
+		msg.post(UI.tab.dialog_tween.path, hash("tween_preview_closed"), {tween_index = selected_timeline})
+		msg.post(UI.tab.dialog_transform.path, hash("enable"))
 		close_preview()
 	end
 end
-
-
-
-
 
 local function evaluate_input(field, text)
 	if field == "position_x" then
@@ -518,7 +576,7 @@ local function evaluate_input(field, text)
 	elseif field == "position_y" then
 		MOD.offset_position.y = text
 	elseif field == "position_z" then
-		MOD.offset_position.z = -text
+		MOD.offset_position.z = text
 	elseif field == "rotation_x" then
 		MOD.offset_euler.x = text
 		handle_euler()
@@ -545,7 +603,6 @@ function update()
 end
 
 function on_input(self, action_id, action)
-	local current_bounding_node = {[true] = bounding_node_preview, [false] = bounding_node}
 	if not action_id then
 		if MOD.is_dragged then
 			MOD.target_x = MOD.target_x - action.dx * SET.model_rotation_sensitivity
@@ -578,7 +635,7 @@ function on_input(self, action_id, action)
 	elseif action.released and MOD.is_dragged and action_id == hash("touch") then
 		MOD.is_dragged = false
 		return
-	elseif gui.pick_node(current_bounding_node[MOD.tween_preview], action.x, action.y) then
+	elseif gui.pick_node(current_bounding_node, action.x, action.y) then
 		if MOD.tween_preview and gui.pick_node(timeline, action.x, action.y) then
 			if action_id == hash("touch") then
 				stop_playback()
@@ -587,6 +644,14 @@ function on_input(self, action_id, action)
 				local max_x = gui.get_screen_position(gui.get_node("max")).x
 				pos.x = math.min(math.max(action.screen_x, min_x), max_x)
 				move_scrubber((pos.x - min_x) / (max_x - min_x))
+				if action.released then
+					for key, val in ipairs(timelines) do
+						if gui.pick_node(val, action.x, action.y) then
+							select_timeline(key)
+							break
+						end
+					end
+				end
 			end
 		elseif not (gui.pick_node(button_box, action.x, action.y) or gui.pick_node(playback_box, action.x, action.y) or (gui.pick_node(close_button, action.x, action.y) and MOD.tween_preview)) then
 			if action_id == hash("touch") and action.pressed then
@@ -600,5 +665,5 @@ function on_input(self, action_id, action)
 			end
 		end
 	end
-	UI.on_input(TAB_NAME, action_id, action, evaluate_button, evaluate_input)
+	UI.on_input(TAB_NAME, action_id, action, evaluate_button, evaluate_input, not MOD.tween_preview)
 end

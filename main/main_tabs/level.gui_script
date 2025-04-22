@@ -107,7 +107,9 @@ function on_message(self, message_id, message, sender)
 		gui.set_text(gui.get_node("btn_movement/text"), MEM.level_data.moveMode)
 		gui.set_text(gui.get_node("preview_time/text"), MEM.level_data.previewTime)
 		gui.set_text(gui.get_node("label_name"), "Map name:\n"..MEM.level_data.sceneDisplayName)
-		display_description(MEM.level_data.description)
+		local clean_desc = string.gsub(MEM.level_data.description, "\\n", "\n")
+		clean_desc = string.gsub(clean_desc, "\\u0027", "'")
+		display_description(clean_desc)
 		if not MEM.beat_data.enemy_list then
 			gui.set_text(gui.get_node("label_enemy_count"), "Enemy count:\nUnknown")
 		else

@@ -15,7 +15,7 @@ input_method = HiddenInputField
 
 [project]
 title = Geomancer
-version = 0.9
+version = 0.94
 developer = Klear
 dependencies#0 = https://github.com/britzl/defold-png/archive/master.zip
 dependencies#1 = https://github.com/andsve/def-diags/archive/master.zip
@@ -39,5 +39,8 @@ repeat_interval = 0.1
 app_icon = /geomancer.ico
 
 [mesh]
-max_count = 512
+max_count = 2048
+
+[collection]
+max_instances = 8192
 

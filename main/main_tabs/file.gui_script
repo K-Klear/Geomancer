@@ -19,7 +19,12 @@ function init(self)
 	gui.set_render_order(1)
 	gui.set_text(gui.get_node("version_label"), "Version "..sys.get_config("project.version"))
 	UI.load_template({"exit", "load_dir", "load_file", "load_zip", "unload_all", "export_all", "export_folder_checkbox", "import_changes",
-	"import_checkbox", "degeomance", "import_level", "import_events", "import_beat", "import_models", "help"}, TAB_NAME)
+	"import_checkbox", "degeomance", "import_level", "import_events", "import_beat", "import_models", "help", "klear_button"}, TAB_NAME)
+	if SET.I_am_Klear then
+		UI.load_template("klear_button", TAB_NAME)
+	else
+		gui.set_enabled(gui.get_node("klear_button/button_white"), false)
+	end
 	set_checkbox("import_checkbox", SET.import_changes_from_zip)
 	set_checkbox("export_folder_checkbox", SET.create_folder_on_export)
 	set_checkbox("import_level", SET.import_level_changes)
@@ -35,35 +40,6 @@ local function run_export_fn()
 	end
 	msg.post("/navbar#navbar", hash("update_status"), {text = "Files exported"})
 	files_to_export = nil
-end
-
-function on_message(self, message_id, message, sender)
-	if message_id == hash("hide") then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		DIALOG.close_all(TAB_NAME)
-	elseif message_id == hash("show") then
-		msg.post("#", hash("enable"))
-		msg.post("#", hash("acquire_input_focus"))
-	elseif message_id == hash("dialog_closed") then
-		msg.post("#", hash("acquire_input_focus"))
-		if message.dialog == "dialog_confirm" then
-			if message.subject == "overwrite_export" then
-				if message.button == 1 then 			-- buttons are 1 = overwrite, 3 = cancel
-					run_export_fn()
-				else
-					files_to_export = nil
-					msg.post("/navbar#navbar", hash("update_status"), {text = "Export aborted", clear = true})
-				end
-			end
-		end
-	end
-end
-
-local function update_panel(extension)
-	if extension == "pw_event" then
-		msg.post("/event#tab_event", hash("update"))
-	end
 end
 
 local function check_for_reset()
@@ -85,19 +61,17 @@ local function check_for_reset()
 end
 
 local function export_level(path)
-	local str = MEM.export_json(MEM.level_data)
 	local f = G.safe_output(path)
 	if f then
-		io.write(str)
+		MEM.export_json(MEM.level_data)
 		io.close(f)
 	end
 end
 
 local function export_event(path)
-	local str = MEM.export_json(MEM.event_data.table)
 	local f = G.safe_output(path)
 	if f then
-		io.write(str)
+		MEM.export_json(MEM.event_data.table)
 		io.close(f)
 	end
 end
@@ -166,26 +140,22 @@ local function export_art(path)
 		return str
 	end
 
-	local function find_tweens(tab, model_name)
-		local tween_script = get_tween_script(tab.tween, model_name)
-		if tab.tab then
-			for i = #tab.tab.components, 1, -1 do
-				if (tab.tab.components[i].type == "ScriptedTween") or (tab.tab.components[i].type == "LevelEventReceiver") then
-					table.remove(tab.tab.components, i)
+	for key, val in ipairs(model_table.propsDictionary) do
+		for k, v in ipairs(val.model_data.transform_list) do
+			if v.tween then
+				local tween_script = get_tween_script(v.tween, val.key)
+				for i = #v.tab.components, 1, -1 do
+					if (v.tab.components[i].type == "ScriptedTween") or (v.tab.components[i].type == "LevelEventReceiver") then
+						table.remove(v.tab.components, i)
+					end
+				end
+				if tween_script then
+					table.insert(v.tab.components, {type = "ScriptedTween", Script = tween_script, _key_sort = {"type", "Script"}})
+					table.insert(v.tab.components, {type = "LevelEventReceiver", EventId = v.tween.signal,
+					ActionType = "ScriptedTweenTrigger", _key_sort = {"type", "EventId", "ActionType"}})
 				end
 			end
 		end
-		if tween_script then
-			table.insert(tab.tab.components, {type = "ScriptedTween", Script = tween_script, _key_sort = {"type", "Script"}})
-			table.insert(tab.tab.components, {type = "LevelEventReceiver", EventId = tab.tween.signal,
-			ActionType = "ScriptedTweenTrigger", _key_sort = {"type", "EventId", "ActionType"}})
-		end
-		for key, val in ipairs(tab) do
-			find_tweens(val, model_name)
-		end
-	end
-	for key, val in ipairs(model_table.propsDictionary) do
-		find_tweens(val.model_data.model_tree, key)
 		is_dynamic[val.key] = val.dynamic
 	end
 	table.insert(model_table.propsDictionary, 1, MEM.art_data.placeholder)
@@ -290,11 +260,9 @@ local function export_art(path)
 	table.insert(model_table._key_sort, colour_index, "staticCullingRanges")
 	table.insert(model_table._key_sort, colour_index, "staticProps")
 	
-	local str = MEM.export_json(MEM.art_data.table)
-	--str = json.encode(MEM.art_data.table)
 	local f = G.safe_output(path)
 	if f then
-		io.write(str)
+		MEM.export_json(MEM.art_data.table)
 		io.close(f)
 	end
 
@@ -306,19 +274,17 @@ local function export_art(path)
 end
 
 local function export_beat(path)
-	local str = MEM.export_json(MEM.beat_data.table)
 	local f = G.safe_output(path)
 	if f then
-		io.write(str)
+		MEM.export_json(MEM.beat_data.table)
 		io.close(f)
 	end
 end
 
 local function export_geo(path)
-	local str = MEM.export_json(MEM.geo_data.table)
 	local f = G.safe_output(path)
 	if f then
-		io.write(str)
+		MEM.export_json(MEM.geo_data.table)
 		io.close(f)
 	end
 end
@@ -478,6 +444,31 @@ local function export_all(overwrite)
 		end
 	else
 		G.update_navbar("Nothing to export", true)
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		DIALOG.close_all(TAB_NAME)
+	elseif message_id == hash("show") then
+		msg.post("#", hash("enable"))
+		msg.post("#", hash("acquire_input_focus"))
+	elseif message_id == hash("export_all") then
+		export_all(not SET.create_folder_on_export)
+	elseif message_id == hash("dialog_closed") then
+		msg.post("#", hash("acquire_input_focus"))
+		if message.dialog == "dialog_confirm" then
+			if message.subject == "overwrite_export" then
+				if message.button == 1 then 			-- buttons are 1 = overwrite, 3 = cancel
+					run_export_fn()
+				else
+					files_to_export = nil
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Export aborted", clear = true})
+				end
+			end
+		end
 	end
 end
 
@@ -775,8 +766,57 @@ local function import_changes()
 		end
 	end
 	if UI.tab.tab_art.state and art_data then
-		MEM.art_data.temp = art_data
-		msg.post("/art#tab_art", hash("import_changes"))
+		local art_tab = MEM.parse_json(art_data)
+		if MEM.check(art_tab, "pw_art", "Selected pw_art file") then
+			local dynamic_models = {}
+			if art_tab.dynamicProps then
+				for key, val in ipairs(art_tab.dynamicProps) do
+					dynamic_models[val.name] = true
+				end
+			end
+			if art_tab.dynamicCullingRanges then
+				for key, val in ipairs(art_tab.dynamicCullingRanges) do
+					for k, v in ipairs(val.members) do
+						dynamic_models[v.name] = true
+					end
+				end
+			end
+			local model_list = {}
+			for key, val in ipairs(art_tab.propsDictionary) do
+				model_list[val.key] = val
+			end
+			for key, val in ipairs(MEM.art_data.table.propsDictionary) do
+				if model_list[val.key] then
+					if dynamic_models[val.key] then
+						val.dynamic = true
+					end
+					MEM.add_metadata(model_list[val.key])
+					local materials_updated = false
+					if not val.tween or val.tween < 1 then
+						if model_list[val.key].tween > 0 then
+							MEM.art_data.table.propsDictionary[key] = model_list[val.key]
+							materials_updated = true
+							MEM.art_data.table.propsDictionary[key].dynamic = true
+						end
+					end
+					if not materials_updated then
+						for k, v in ipairs(val.model_data.parts) do
+							local new_part_tab = model_list[val.key].model_data.parts[k]
+							if new_part_tab and new_part_tab.name == v.name then
+								for _key in pairs(v.tab) do
+									if new_part_tab.tab[_key] then
+										v.tab[_key] = new_part_tab.tab[_key]
+									else
+										G.update_navbar("Model "..v.name.." has a wrong number of submeshes. Check if its materials ended up OK")
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+		G.update_navbar("Model data updated")
 	end
 	if UI.tab.tab_beat.state and beat_data then
 		local beat_tab = MEM.parse_json(beat_data)
@@ -791,7 +831,7 @@ local function import_changes()
 						for _key, list_val in ipairs(MEM.beat_data.obstacle_list) do
 							local obst = MEM.beat_data.table.beatData[list_val.beat_data_key]
 							local time = obst.time
-							obst = obst.obsctacles[list_val.obstacles_key]
+							obst = obst.obstacles[list_val.obstacles_key]
 							if tonumber(time) > num_time then break end
 							if time == val.time and obst.placement == v.placement then
 								obst.type = v.type
@@ -816,7 +856,7 @@ local function import_changes()
 									enemy.enemySequence = v.enemySequence
 								end
 								if change_type then
-									enemy.enemytype = v.enemyType
+									enemy.enemyType = v.enemyType
 								end
 								enemy_count = enemy_count + 1
 								break
@@ -854,6 +894,58 @@ end
 local function evaluate_button(button)
 	if button == "exit" then
 		os.exit(1)
+	elseif button == "klear_button" then
+		local frame_length = 3 / 29.97
+		local scripts = {
+			{42, 442},
+			{444, 818},
+			{819, 1260},
+			{1263, 1683},
+			{1686, 1745},
+			{1746, 2344},
+			{2346, 2742},
+			{1, 3},
+			{2779, 3316},
+			{3348, 3611},
+			{3612, 3638},
+			{3639, 3662},
+			{3663, 3779},
+			{3780, 4256},
+			{4257, 4635},
+			{4638, 5404},
+			{5406, 6131},
+			{6132, 6194},
+			{6195, 6449},
+			{6450, 6507}
+		}
+
+		for k, v in ipairs(scripts) do
+			local t = {}
+			for i = v[1], v[2], 3 do
+				local part_name = "I2M_bad_apple_"
+				if i > 99 then
+					part_name = part_name..i
+				else
+					part_name = part_name.."0"..i
+				end
+				table.insert(t, {start_state = {x = 0, y = 0, z = 0}, end_state = {x = 0, y = 5, z = 0}, time = 0, type = "T", part = part_name})
+				table.insert(t, {time = frame_length, type = "W"})
+				table.insert(t, {start_state = {x = 0, y = 5, z = 0}, end_state = {x = 0, y = 0, z = 0}, time = 0, type = "T", part = part_name})
+			end
+			local ext = ".pw_tween"
+			local path = "B:\\PISTOL WHIP MAPS\\tweens\\"
+			path = path.."tween_"..k..ext
+			local works, f = pcall(io.output, path)
+			if works then
+				io.write(json.encode(t))
+				io.close(f)
+				G.update_navbar("Done")
+			else
+				G.update_navbar("Error saving tween data.", true)
+			end
+		end
+		
+
 	elseif button == "help" then
 		sys.open_url("https://mod.io/g/pistol-whip/r/geomancer")
 	elseif button == "import_checkbox" then
@@ -892,7 +984,9 @@ local function evaluate_button(button)
 					msg.post("/navbar#navbar", hash("update_status"), {text = "File loaded successfully"})
 					msg.post("/navbar#navbar", hash("update_tabs"))
 					check_for_reset()
-					update_panel(panel)
+					if extension == "pw_event" then
+						msg.post("/event#tab_event", hash("detect_sample_rate"))
+					end
 				else
 					msg.post("/navbar#navbar", hash("update_status"), {text = "File not loaded"})
 				end
@@ -930,7 +1024,6 @@ local function evaluate_button(button)
 								ext_list[extension] = false
 								msg.post("/navbar#navbar", hash("update_status"), {text = file.name})
 								extracted_count = extracted_count + 1
-								update_panel(panel)
 							else
 								skip_count = skip_count + 1
 							end
@@ -949,6 +1042,9 @@ local function evaluate_button(button)
 							end
 						else
 							msg.post("/navbar#navbar", hash("update_status"), {text = "Unknown scene name"})
+						end
+						if UI.tab.tab_event.state then
+							msg.post("/event#tab_event", hash("detect_sample_rate"))
 						end
 						msg.post("/navbar#navbar", hash("update_tabs"))
 					else
@@ -991,13 +1087,15 @@ local function evaluate_button(button)
 					if panel then
 						G.update_navbar(_file.filename)
 						msg.post("/navbar#navbar", hash("update_tabs"))
-						update_panel(panel)
 					else
 						G.update_navbar("Error loading ".._file.filename)
 					end
 					if #files_to_load > 0 then
 						timer.delay(0.01, false, load_next_file)
 					else
+						if UI.tab.tab_event.state then
+							msg.post("/event#tab_event", hash("detect_sample_rate"))
+						end
 						if MEM.level_data.sceneDisplayName then
 							G.update_navbar("Done. Loaded scene: "..MEM.level_data.sceneDisplayName)
 							if MEM.level_data.mapper == "Klear" or MEM.level_data.mapper == "Klear_" or MEM.level_data.mapper == "kingklear" then

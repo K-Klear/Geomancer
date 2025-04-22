@@ -1,0 +1,452 @@
+local UI = require "modules.ui"
+local MEM = require "modules.memory"
+local MOD = require "main.model_viewer.model"
+local SET = require "modules.settings"
+local G = require "modules.global"
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "dialog_transform"
+local DIALOG_DATA
+
+local evaluate_button, model_index, model_tab, list, selected_transform, transform_euler
+local transform_list
+
+
+local function show_transform_controls(show)
+	local ui_list = {"transform_position_x", "transform_position_y", "transform_position_z",
+	"transform_rotation_x", "transform_rotation_y", "transform_rotation_z",
+	"transform_scale_x", "transform_scale_y", "transform_scale_z"}
+	local validation = {
+		number = true,
+		min = function() return -999 end,
+		max = function() return 999 end,
+		default = function() return 0 end
+	}
+	for key, val in ipairs(ui_list) do
+		if show then
+			UI.load_text_field(val, 8, DIALOG_NAME, validation)
+		else
+			UI.unload_template(DIALOG_NAME, val)
+		end
+		gui.set_enabled(gui.get_node(val.."/box"), show)
+		gui.set_enabled(gui.get_node("label_position"), show)
+		gui.set_enabled(gui.get_node("label_rotation"), show)
+		gui.set_enabled(gui.get_node("label_scale"), show)
+	end
+end
+
+function init(self)
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+	UI.load_template({"transform_close", "transform_add", "transform_delete", "transform_parent", "transform_tween", "transform_rename"}, DIALOG_NAME)
+	local transform_list_tab = {
+		{
+			type = hash("exclusive_button"),
+			node = gui.get_node("transform_exclusive/button_white"),
+			text_node = gui.get_node("transform_exclusive/text"),
+			value_fn = function(i)
+				local str = ""
+				local space = ""
+				for i = 1, transform_list[i].level - 1 do
+					str = str.."_"
+					space = " "
+				end
+				return str..space..transform_list[i].name
+			end,
+			template = "transform_exclusive;",
+			tint = function(i)
+				if transform_list[i].tween then
+					return SET.colour_highlight_tween
+				else
+					return vmath.vector4(1, 1, 1, 1)
+				end
+			end,
+			fn = evaluate_button
+		},
+		{
+			type = hash("label"),
+			node = gui.get_node("lbl_submesh"),
+			value_fn = function(i) return transform_list[i].mesh_count or 0 end
+		},
+		item_count = 0,
+		scroll_prefix = "transform_list_"
+	}
+	list = UI.create_list(DIALOG_NAME, gui.get_node("transform_list"), transform_list_tab)
+end
+
+local function display_transform_info()
+	
+	gui.set_text(gui.get_node("transform_position_x/text"), G.round(transform_list[selected_transform].position.x, 4))
+	gui.set_text(gui.get_node("transform_position_y/text"), G.round(transform_list[selected_transform].position.y, 4))
+	gui.set_text(gui.get_node("transform_position_z/text"), G.round(transform_list[selected_transform].position.z, 4))
+
+	transform_euler = math.deg(G.sanitise_euler(math.rad(G.quat_to_euler(transform_list[selected_transform].rotation))))
+
+	gui.set_text(gui.get_node("transform_rotation_x/text"), G.round(transform_euler.x, 4))
+	gui.set_text(gui.get_node("transform_rotation_y/text"), G.round(transform_euler.y, 4))
+	gui.set_text(gui.get_node("transform_rotation_z/text"), G.round(transform_euler.z, 4))
+
+	gui.set_text(gui.get_node("transform_scale_x/text"), G.round(transform_list[selected_transform].scale.x, 4))
+	gui.set_text(gui.get_node("transform_scale_y/text"), G.round(transform_list[selected_transform].scale.y, 4))
+	gui.set_text(gui.get_node("transform_scale_z/text"), G.round(transform_list[selected_transform].scale.z, 4))
+end
+
+local function transform_selected(selection)
+	show_transform_controls(not (selection == 1))
+	selected_transform = selection
+	local parts = {}
+	local level = transform_list[selected_transform].level
+	display_transform_info()
+	local part_index = 0
+	local end_search = false
+	for key, val in ipairs(transform_list) do
+		if val.meshes then
+			for k, v in ipairs(val.meshes) do
+				part_index = part_index + 1
+				if key == selected_transform then
+					table.insert(parts, part_index)
+				elseif key > selected_transform then
+					if val.level <= level then
+						end_search = true
+						break
+					end
+					table.insert(parts, part_index)
+				end
+			end
+		end
+		if (key > selected_transform) and (val.level <= level) then break end
+		if end_search then break end
+	end
+	if #parts > 0 then
+		MEM.art_data.temp_part_list = parts
+		msg.post("/model_viewer", hash("flash_multiple"))
+	else
+		msg.post("/model_viewer", hash("stop_flashing_multiple"))
+	end
+end
+
+local function add_transform(name, transform_index)
+	local children = transform_list[transform_index].tab.children
+	transform_list[transform_index].tab.children = {}
+	local components = {}
+	components[1] = {_key_sort = {"type", "values"}, type = "Transform", values = "0,0,0,0,0,0,1,1,1,1"}
+	transform_list[transform_index].tab.children[1] = {_key_sort = {"name", "components", "children"}, name = name, components = components, children = children}
+	local tree_table
+	local function find_table(tab)
+		if tree_table then return end
+		if tab.tab == transform_list[transform_index].tab then
+			tree_table = tab
+			return
+		else
+			for key, val in ipairs(tab) do
+				find_table(val)
+			end
+		end
+	end
+	find_table(MEM.art_data.table.propsDictionary[model_index].model_data.model_tree)
+	local children_storage = {}
+	for i = #tree_table, 1, -1 do
+		table.insert(children_storage, table.remove(tree_table, i))
+	end
+	tree_table[1] = {transform = "0,0,0,0,0,0,1,1,1,1", name = name, tab = transform_list[transform_index].tab.children[1]}
+	for i = #children_storage, 1, -1 do
+		table.insert(tree_table[1], children_storage[i])
+	end
+	UI.update_list(DIALOG_NAME, list, #transform_list)
+	G.update_navbar("Transform added", true)
+end
+
+local function find_transform_name()
+	local used_names = {}
+	for key, val in ipairs(transform_list) do
+		used_names[val.name] = true
+	end
+	if used_names[SET.default_transform_name] then
+		for i = 1, 1000 do
+			local name_to_test = SET.default_transform_name.."_"..i
+			if not (used_names[name_to_test]) then
+				return name_to_test
+			end
+		end
+	end
+	return SET.default_transform_name
+end
+
+function evaluate_button(button, item)
+	if button == "transform_close" or button == "escape" then
+		msg.post("/model_viewer", hash("stop_flashing_multiple"))
+		msg.post("/model_viewer", hash("resize_base"))
+		DIALOG.close(DIALOG_NAME)
+		model_index = nil
+		MOD.prop_data = nil
+		transform_list = nil
+		UI.update_list(DIALOG_NAME, list, 0)
+	elseif button == "transform_delete" then
+		if true then
+			G.update_navbar("BRYAN I TOLD YOU THIS IS NOT IMPLEMENTED YET!", true)
+			return
+		end
+		if not selected_transform then
+			G.update_navbar("Select a transform first", true)
+		elseif selected_transform == 1 then
+			G.update_navbar("Cannot delete base transform", true)
+		elseif transform_list[selected_transform].mesh_count > 0 then
+			G.update_navbar("Cannot delete transform with a mesh", true)
+		else
+			G.update_navbar("NOT IMPLEMENTED YET", true)
+			for k, v in pairs(transform_list[selected_transform]) do
+				print(k, v)
+			end
+			print("___")
+			for key, val in pairs(transform_list[selected_transform].tab) do
+				print(key, val)
+			end
+		end
+	elseif button == "transform_add" then
+		if not selected_transform then
+			G.update_navbar("Select a transform first", true)
+		else
+			if SET.use_default_transform_name then
+				add_transform(find_transform_name(), selected_transform)
+			else
+				msg.post("/model_viewer", hash("disable_input"))
+				DIALOG.open(DIALOG_NAME, "dialog_get_text", {subject = "new_transform", default_text = find_transform_name(), title = "Enter new transform name"})
+			end
+		end
+	elseif button == "transform_parent" then
+		if not selected_transform then
+			G.update_navbar("Select a transform first", true)
+		elseif selected_transform == 1 then
+			G.update_navbar("Cannot change parent of root transform", true)
+		else
+			msg.post("/model_viewer", hash("disable_input"))
+			DIALOG.open(DIALOG_NAME, "dialog_parent_transform", {model_index = model_index, transform_index = selected_transform})
+		end
+	elseif button == "transform_tween" then
+		if not selected_transform then
+			G.update_navbar("Select a transform first", true)
+		else
+			msg.post("/model_viewer", hash("disable_input"))
+			msg.post("/model_viewer", hash("stop_flashing_multiple"))
+			DIALOG.open(DIALOG_NAME, "dialog_tween", {model_index = model_index, transform_index = selected_transform})
+		end
+	elseif button == "transform_rename" then
+		if not selected_transform then
+			G.update_navbar("Select a transform first", true)
+		else
+			msg.post("/model_viewer", hash("disable_input"))
+			DIALOG.open(DIALOG_NAME, "dialog_get_text", {subject = "rename_transform", default_text = transform_list[selected_transform].name, title = "Enter a new transform name"})
+		end
+	elseif button == list then
+		transform_selected(item)
+	end
+end
+
+local function rename_transform(new_name)
+	local old_name = transform_list[selected_transform].name
+	transform_list[selected_transform].name = new_name
+	transform_list[selected_transform].tab.name = new_name
+	for key, val in ipairs(transform_list) do
+		if val.tween then
+			for k, v in ipairs(val.tween) do
+				if v.part == old_name then
+					v.part = new_name
+				end
+			end
+		end
+	end
+	UI.update_list(DIALOG_NAME, list, #transform_list)
+	G.update_navbar("Transform renamed.", true)
+end
+
+local function get_parent(transform_index)
+	if transform_index < 2 then return false end
+	local parent_tab = transform_list[transform_index].parent_tab
+	for i = transform_index - 1, 1, -1 do
+		if transform_list[i] == parent_tab then
+			return i
+		end
+	end
+end
+
+local function rebuild_transform_list()
+	local selected_transform_tab = transform_list[selected_transform].tab
+	local new_list = {}
+	local temp_list = {}
+	temp_list[transform_list[1].tab] = {index = 1, level = 1}
+	local index = 1
+	local function find_transform(tab, level)
+		if tab.name == "Colliders" then return end
+		index = index + 1
+		temp_list[tab] = {index = index, level = level}
+		if tab.children then
+			for key, val in ipairs(tab.children) do
+				find_transform(val, level + 1)
+			end
+		end
+	end
+	for key, val in ipairs(MEM.art_data.table.propsDictionary[model_index].object.children) do
+		find_transform(val, 2)
+	end
+	for key, val in ipairs(transform_list) do
+		new_list[temp_list[val.tab].index] = val
+		val.level = temp_list[val.tab].level
+		if val == selected_transform_tab then
+			selected_transform = temp_list[val.tab].index
+		end
+	end
+	MEM.art_data.table.propsDictionary[model_index].model_data.transform_list = new_list
+	transform_list = new_list
+	UI.update_list(DIALOG_NAME, list, #transform_list)
+	msg.post("/model_viewer", hash("update_model"), {model = model_index})
+	transform_selected(selected_transform)
+end
+
+local function change_parent(target_transform, new_parent)
+	local i = new_parent
+	repeat
+		i = get_parent(i)
+	until (i == target_transform) or (not i)
+	if i then
+		local child_storage = transform_list[target_transform].tab.children
+		transform_list[target_transform].tab.children = {}
+		for key, val in ipairs(child_storage) do
+			table.insert(transform_list[target_transform].parent_tab.tab.children, val)
+		end
+		for key, val in ipairs(transform_list) do
+			if val.parent_tab == transform_list[target_transform] then
+				val.parent_tab = transform_list[target_transform].parent_tab
+			end
+		end
+	end
+	local new_parent_tab = transform_list[new_parent].tab
+	local target_transform_tab
+	for key, val in ipairs(transform_list[target_transform].parent_tab.tab.children) do
+		if val == transform_list[target_transform].tab then
+			target_transform_tab = table.remove(transform_list[target_transform].parent_tab.tab.children, key)
+			table.insert(new_parent_tab.children, target_transform_tab)
+			transform_list[target_transform].parent_tab = transform_list[new_parent]
+			break
+		end
+	end
+	rebuild_transform_list()
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		model_index = message.model_index
+		model_tab = MEM.art_data.table.propsDictionary[model_index].model_data.model_tree
+		transform_list = MEM.art_data.table.propsDictionary[model_index].model_data.transform_list
+		local selection
+		for key, val in ipairs(transform_list) do
+			if val.tween then
+				selection = key
+				break
+			end
+		end
+		selection = selection or 1
+		UI.update_list(DIALOG_NAME, list, #transform_list)
+		UI.select_exclusive_button(DIALOG_NAME, list, selection)
+		transform_selected(selection)
+		DIALOG.show(DIALOG_DATA, sender)
+		msg.post("/model_viewer", hash("resize_transform"))
+	elseif message_id == hash("hide") then
+		if model_tab then
+			msg.post("/art#tab_art", hash("check_tweens"))
+		end
+		MOD.prop_data = nil
+		msg.post("/model_viewer", hash("stop_flashing_multiple"))
+		msg.post("/model_viewer", hash("resize_base"))
+	elseif message_id == hash("dialog_closed") then
+		msg.post("#", hash("acquire_input_focus"))
+		msg.post("/model_viewer", hash("show"))
+		if message.dialog == "dialog_tween" then
+			UI.update_list(DIALOG_NAME, list, #transform_list)
+			msg.post("/model_viewer", hash("resize_transform"))
+			msg.post("/art#tab_art", hash("check_tweens"))
+		elseif message.dialog == "dialog_parent_transform" and message.new_parent then
+			if transform_list[selected_transform].parent_tab == transform_list[message.new_parent] then
+				G.update_navbar(transform_list[message.new_parent].name.." is already the parent of "..transform_list[selected_transform].name, true)
+			else
+				change_parent(selected_transform, message.new_parent)
+			end
+		elseif message.subject == "rename_transform" and message.text then
+			rename_transform(message.text)
+			msg.post("/model_viewer", hash("acquire_input_focus"))
+		elseif message.subject == "new_transform" then
+			if message.text then
+				add_transform(message.text, selected_transform)
+				msg.post("/model_viewer", hash("acquire_input_focus"))
+			else
+				G.update_navbar("Transform not added", true)
+			end
+		end
+	end
+end
+
+local function set_transform_data()
+	local trans = transform_list[selected_transform]
+	local pos = tostring(trans.position.x)..","..tostring(trans.position.y)..","..tostring(trans.position.z)..","
+	local rot = tostring(trans.rotation.x)..","..tostring(trans.rotation.y)..","..tostring(trans.rotation.z)..","..tostring(trans.rotation.w)..","
+	local sc = tostring(trans.scale.x)..","..tostring(trans.scale.y)..","..tostring(trans.scale.z)
+	local tranform_string = pos..rot..sc
+	for key, val in ipairs(transform_list[selected_transform].tab.components) do
+		if val.type == "Transform" then
+			val.values = tranform_string
+			break
+		end
+	end
+	msg.post("/model_viewer", hash("update_model"), {model = model_index})
+end
+
+local function evaluate_input(field, text)
+	if field == "transform_position_x" then
+		transform_list[selected_transform].position.x = text
+		gui.set_text(gui.get_node("transform_position_x/text"), G.round(text, 4))
+	elseif field == "transform_position_y" then
+		transform_list[selected_transform].position.y = text
+		gui.set_text(gui.get_node("transform_position_y/text"), G.round(text, 4))
+	elseif field == "transform_position_z" then
+		transform_list[selected_transform].position.z = text
+		gui.set_text(gui.get_node("transform_position_z/text"), G.round(text, 4))
+	elseif field == "transform_rotation_x" then
+		transform_euler.x = text
+		transform_euler = math.deg(G.sanitise_euler(math.rad(transform_euler))) 
+		transform_list[selected_transform].rotation = G.euler_to_quat(transform_euler)
+		transform_euler = G.quat_to_euler(transform_list[selected_transform].rotation)
+		gui.set_text(gui.get_node("transform_rotation_x/text"), G.round(transform_euler.x, 4))
+	elseif field == "transform_rotation_y" then
+		transform_euler.y = text
+		transform_euler = math.deg(G.sanitise_euler(math.rad(transform_euler))) 
+		transform_list[selected_transform].rotation = G.euler_to_quat(transform_euler)
+		transform_euler = G.quat_to_euler(transform_list[selected_transform].rotation)
+		gui.set_text(gui.get_node("transform_rotation_y/text"), G.round(transform_euler.y, 4))
+	elseif field == "transform_rotation_z" then
+		transform_euler.z = text
+		transform_euler = math.deg(G.sanitise_euler(math.rad(transform_euler))) 
+		transform_list[selected_transform].rotation = G.euler_to_quat(transform_euler)
+		transform_euler = G.quat_to_euler(transform_list[selected_transform].rotation)
+		gui.set_text(gui.get_node("transform_rotation_z/text"), G.round(transform_euler.z, 4))
+	elseif field == "transform_scale_x" then
+		transform_list[selected_transform].scale.x = tonumber(text)
+		gui.set_text(gui.get_node("transform_scale_x/text"), G.round(text, 4))
+	elseif field == "transform_scale_y" then
+		transform_list[selected_transform].scale.y = tonumber(text)
+		gui.set_text(gui.get_node("transform_scale_y/text"), G.round(text, 4))
+	elseif field == "transform_scale_z" then
+		transform_list[selected_transform].scale.z = tonumber(text)
+		gui.set_text(gui.get_node("transform_scale_z/text"), G.round(text, 4))
+	end
+	set_transform_data()
+end
+
+function update()
+	if DIALOG_DATA.dialog_open then
+		for list_index in pairs(DIALOG_DATA.scrolling) do
+			UI.move_list_root(DIALOG_NAME, list_index, true)
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button, evaluate_input)
+end

@@ -1,6 +1,7 @@
 local UI = require "modules.ui"
 local MEM = require "modules.memory"
 local SET = require "modules.settings"
+local G = require "modules.global"
 local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_bulk_sequence"
 local DIALOG_DATA
@@ -198,11 +199,11 @@ end
 function evaluate_button(button, item)
 	if button == "bulk_sequence_accept" then
 		if not selected_existing_sequence then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a sequence to replace.", clear = true})
+			G.update_navbar("Select a sequence to replace.", true)
 		elseif not selected_sequence then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a replacement sequence.", clear = true})
+			G.update_navbar("Select a replacement sequence.", true)
 		elseif selected_sequence == selected_existing_sequence then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Can't replace a sequence with itself.", clear = true})
+			G.update_navbar("Can't replace a sequence with itself.", true)
 		else
 			DIALOG.close(DIALOG_NAME, {sequence = selected_sequence, existing_sequence = selected_existing_sequence})
 		end

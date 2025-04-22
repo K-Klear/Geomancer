@@ -712,6 +712,30 @@ nodes {
   layer: "text"
   material: "font-df"
 }
+nodes {
+  position {
+    x: 1166.0
+    y: 274.0
+  }
+  type: TYPE_TEMPLATE
+  id: "klear_button"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "klear_button/button_white"
+  parent: "klear_button"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Do that thing I need"
+  id: "klear_button/text"
+  parent: "klear_button/button_white"
+  overridden_fields: 3
+  overridden_fields: 8
+  template_node_child: true
+}
 layers {
   name: "below"
 }

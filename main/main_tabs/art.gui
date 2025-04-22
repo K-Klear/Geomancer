@@ -63,7 +63,7 @@ nodes {
     y: 100.0
   }
   type: TYPE_TEXT
-  text: "Parts"
+  text: "Submeshes"
   font: "tab_caption"
   id: "label_parts"
   outline {
@@ -862,7 +862,7 @@ layers {
 }
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_PARENT
-max_nodes: 1024
+max_nodes: 4096
 materials {
   name: "font-df"
   material: "/builtins/fonts/font-df.material"

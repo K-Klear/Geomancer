@@ -64,6 +64,42 @@ nodes {
 }
 nodes {
   position {
+    y: 840.0
+  }
+  scale {
+    x: 4.0
+    y: 4.0
+  }
+  size {
+    x: 208.5
+    y: 200.0
+  }
+  type: TYPE_BOX
+  texture: "UI/model_viewer_border"
+  id: "model_viewer_transform"
+  pivot: PIVOT_NW
+  layer: "below"
+  inherit_alpha: true
+  slice9 {
+    x: 6.0
+    y: 6.0
+    z: 6.0
+    w: 6.0
+  }
+}
+nodes {
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  id: "controls"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
     x: 1280.0
     y: 128.0
   }
@@ -74,6 +110,7 @@ nodes {
   type: TYPE_BOX
   id: "button_box"
   pivot: PIVOT_SE
+  parent: "controls"
   layer: "below"
   inherit_alpha: true
   visible: false
@@ -748,7 +785,7 @@ nodes {
 nodes {
   position {
     x: 40.0
-    y: 155.0
+    y: 80.0
   }
   size {
     x: 224.0
@@ -757,6 +794,7 @@ nodes {
   type: TYPE_BOX
   id: "playback_box"
   pivot: PIVOT_W
+  parent: "controls"
   layer: "below"
   inherit_alpha: true
   size_mode: SIZE_MODE_AUTO
@@ -912,17 +950,60 @@ nodes {
 }
 nodes {
   position {
+    x: 271.0
+    y: 75.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "0:50.115"
+  font: "logo_welcome"
+  id: "label_time"
+  pivot: PIVOT_W
+  parent: "controls"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 930.0
+    y: 75.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "0:50.115"
+  font: "logo_welcome"
+  id: "label_model"
+  pivot: PIVOT_E
+  parent: "controls"
+  inherit_alpha: true
+  enabled: false
+}
+nodes {
+  position {
     x: 40.0
-    y: 90.0
+    y: 52.0
   }
   size {
     x: 1200.0
-    y: 64.0
+    y: 20.0
   }
   type: TYPE_BOX
   texture: "UI/text_field"
-  id: "timeline"
-  pivot: PIVOT_W
+  id: "timeline_box"
+  pivot: PIVOT_SW
   layer: "timeline"
   inherit_alpha: true
   slice9 {
@@ -938,7 +1019,7 @@ nodes {
   }
   scale {
     x: 2.0
-    y: 60.0
+    y: 20.0
   }
   color {
     y: 0.0
@@ -947,7 +1028,8 @@ nodes {
   type: TYPE_BOX
   texture: "UI/white_pixel"
   id: "scrubber"
-  parent: "timeline"
+  pivot: PIVOT_S
+  parent: "timeline_box"
   layer: "below"
   inherit_alpha: true
   size_mode: SIZE_MODE_AUTO
@@ -967,7 +1049,7 @@ nodes {
   type: TYPE_BOX
   texture: "UI/white_pixel"
   id: "min"
-  parent: "timeline"
+  parent: "timeline_box"
   layer: "below"
   inherit_alpha: true
   size_mode: SIZE_MODE_AUTO
@@ -989,7 +1071,7 @@ nodes {
   type: TYPE_BOX
   texture: "UI/white_pixel"
   id: "max"
-  parent: "timeline"
+  parent: "timeline_box"
   layer: "below"
   inherit_alpha: true
   size_mode: SIZE_MODE_AUTO
@@ -997,12 +1079,32 @@ nodes {
   visible: false
 }
 nodes {
+  size {
+    x: 1200.0
+    y: 10.0
+  }
+  type: TYPE_BOX
+  texture: "UI/text_field"
+  id: "timeline"
+  pivot: PIVOT_W
+  parent: "timeline_box"
+  layer: "timeline"
+  inherit_alpha: true
+  slice9 {
+    x: 10.0
+    y: 5.0
+    z: 10.0
+    w: 5.0
+  }
+  enabled: false
+}
+nodes {
   position {
     x: 10.0
   }
   size {
-    x: 2.0
-    y: 50.0
+    x: 1.0
+    y: 10.0
   }
   color {
     x: 0.0
@@ -1013,16 +1115,17 @@ nodes {
   texture: "UI/white_pixel"
   id: "action_end"
   pivot: PIVOT_W
-  parent: "timeline"
+  parent: "timeline_box"
   layer: "ends"
   inherit_alpha: true
+  enabled: false
 }
 nodes {
   position {
     x: 10.0
   }
   size {
-    y: 10.0
+    y: 4.0
   }
   color {
     x: 0.0
@@ -1033,48 +1136,8 @@ nodes {
   texture: "UI/white_pixel"
   id: "action_bar"
   pivot: PIVOT_W
-  parent: "timeline"
+  parent: "timeline_box"
   layer: "timeline"
-  inherit_alpha: true
-}
-nodes {
-  position {
-    x: 271.0
-    y: 150.0
-  }
-  scale {
-    x: 0.5
-    y: 0.5
-  }
-  size {
-    x: 200.0
-    y: 100.0
-  }
-  type: TYPE_TEXT
-  text: "0:50.115"
-  font: "logo_welcome"
-  id: "label_time"
-  pivot: PIVOT_W
-  inherit_alpha: true
-}
-nodes {
-  position {
-    x: 930.0
-    y: 150.0
-  }
-  scale {
-    x: 0.5
-    y: 0.5
-  }
-  size {
-    x: 200.0
-    y: 100.0
-  }
-  type: TYPE_TEXT
-  text: "0:50.115"
-  font: "logo_welcome"
-  id: "label_model"
-  pivot: PIVOT_E
   inherit_alpha: true
   enabled: false
 }
@@ -1092,4 +1155,4 @@ layers {
 }
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_PARENT
-max_nodes: 2048
+max_nodes: 8192

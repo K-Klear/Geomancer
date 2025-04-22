@@ -21,8 +21,8 @@ UI.tab = {
 	tab_file = {path = "/file#tab_file", state = "active", render_order = 1, buttons = {}, fields = {}},
 	tab_level = {path = "/level#tab_level", state = false, render_order = 1, buttons = {}, fields = {}},
 	tab_event = {path = "/event#tab_event", state = false, render_order = 1, buttons = {}, fields = {}},
-	tab_geo = {path = "/geo#tab_geo", state = false, render_order = 1, buttons = {}, fields = {}},
 	tab_beat = {path = "/beat#tab_beat", state = false, render_order = 1, buttons = {}, fields = {}},
+	tab_geo = {path = "/geo#tab_geo", state = false, render_order = 1, buttons = {}, fields = {}},
 	tab_meta = {path = "/meta#tab_meta", state = false, render_order = 1, buttons = {}, fields = {}},
 	tab_sequence = {path = "/sequence#tab_sequence", state = false, render_order = 1, buttons = {}, fields = {}},
 	tab_art = {path = "/art#tab_art", state = false, render_order = 1, buttons = {}, fields = {}},
@@ -30,6 +30,7 @@ UI.tab = {
 }
 
 local mouse_held, r_ctr_held, l_ctr_held, l_shift_held, r_shift_held
+
 local hover = {}
 
 function UI.load_template(template, tab)
@@ -571,7 +572,7 @@ function UI.scroll_to_item(tab, list_index, item, fast)
 	end
 end
 
-function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
+function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_text_fields)
 	if action_id == hash("escape") and action.pressed then
 		button_fn("escape")
 		return
@@ -579,24 +580,28 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
 	mouse_held = action.pressed or (mouse_held and not action.released)
 	if action_id == hash("lctrl") then
 		l_ctr_held = not action.released
+		UI.ctrl_held = r_ctr_held or l_ctr_held
 		return
 	elseif action_id == hash("rctrl") then
 		r_ctr_held = not action.released
+		UI.ctrl_held = r_ctr_held or l_ctr_held
 		return
 	elseif action_id == hash("rshift") then
 		r_shift_held = not action.released
+		UI.shift_held = r_shift_held or l_shift_held
 		return
 	elseif action_id == hash("lshift") then
 		l_shift_held = not action.released
+		UI.shift_held = r_shift_held or l_shift_held
 		return
 	elseif action_id == hash("v") then
-		if action.pressed and (r_ctr_held or l_ctr_held) then
+		if action.pressed and UI.ctrl_held then
 			action_id = hash("paste")
 		else
 			return
 		end
 	elseif action_id == hash("c") then
-		if action.pressed and (r_ctr_held or l_ctr_held) then
+		if action.pressed and UI.ctrl_held then
 			action_id = hash("copy")
 		else
 			return
@@ -605,7 +610,7 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn)
 	if MOD.is_dragged then
 		return
 	end
-	if active_text_field then
+	if active_text_field and not suppress_text_fields then
 		if action.pressed and (action_id == hash("touch") or action_id == hash("enter") or action_id == hash("tab")) then
 			timer.cancel(cursor_timer)
 			cursor_visible = false

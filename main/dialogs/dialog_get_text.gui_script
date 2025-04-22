@@ -1,0 +1,48 @@
+local UI = require "modules.ui"
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "dialog_get_text"
+local DIALOG_DATA
+
+local subject, output_text
+
+function init(self)
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+end
+
+local function evaluate_button(button)
+	local data = {subject = subject}
+	if button == "get_text_accept" then
+		data.text = output_text
+	end
+	DIALOG.close(DIALOG_NAME, data)
+end
+
+local function evaluate_input(field, text)
+	if field == "get_text_field" then
+		output_text = text
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		DIALOG.show(DIALOG_DATA, sender)
+		UI.unload_template(DIALOG_NAME)
+		UI.load_template({"get_text_accept", "get_text_cancel"}, DIALOG_NAME)
+		local validation = {
+			text = true,
+			json_safe = true,
+			not_empty = true,
+			default = function() return message.default_text end
+		}
+		UI.load_text_field("get_text_field", 31, DIALOG_NAME, validation)
+		subject = message.subject
+		output_text = message.default_text
+		gui.set_text(gui.get_node("dialog_get_text_title"), message.title)
+		gui.set_text(gui.get_node("get_text_field/text"), message.default_text)
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button, evaluate_input)
+end

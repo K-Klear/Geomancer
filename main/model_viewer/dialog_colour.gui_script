@@ -5,8 +5,7 @@ local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_colours"
 local DIALOG_DATA
 
-local colour_list, evaluate_button
-
+local colour_list, evaluate_button, current_dialog
 local button_text = " MAIN     FOG    GLOW  ENEMY"
 
 function init(self)
@@ -50,7 +49,7 @@ end
 
 function evaluate_button(button, item)
 	if button == "colour_cancel" then
-		DIALOG.close(DIALOG_NAME)
+		DIALOG.close(DIALOG_NAME, {current_dialog = current_dialog})
 	elseif button == colour_list then
 		COL.set_current(MEM.art_data.colours[item])
 	end
@@ -58,6 +57,7 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
+		current_dialog = message.current_dialog
 		DIALOG.show(DIALOG_DATA, sender)
 		UI.update_list(DIALOG_NAME, colour_list, #MEM.art_data.colours)
 	end

@@ -1,11 +1,11 @@
 local UI = require "modules.ui"
 local MEM = require "modules.memory"
+local SET = require "modules.settings"
 local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_tween_part"
 local DIALOG_DATA
 
-local evaluate_button, selected_part, model_index, action_index, list
-local transform_name_list = {}
+local evaluate_button, selected_part, model_index, action_index, list, transform_list, part_list
 
 function init(self)
 	DIALOG.setup(DIALOG_NAME)
@@ -16,7 +16,7 @@ function init(self)
 			type = hash("exclusive_button"),
 			node = gui.get_node("tween_part_exclusive/button_white"),
 			text_node = gui.get_node("tween_part_exclusive/text"),
-			value_fn = function(i) return transform_name_list[i] end,
+			value_fn = function(i) return transform_list[part_list[i]].name end,
 			template = "tween_part_exclusive;",
 			fn = evaluate_button
 		},
@@ -31,42 +31,35 @@ function evaluate_button(button, item)
 		DIALOG.close(DIALOG_NAME, {
 			dialog = hash(DIALOG_NAME), selected_part = selected_part, model_index = model_index, action_index = action_index
 		})
-		transform_name_list = {}
 		selected_part, model_index = nil, nil
 		UI.update_list(DIALOG_NAME, list, 0)
 	elseif button == "tween_part_cancel" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)
-		transform_name_list = {}
 		selected_part, model_index = nil, nil
 		UI.update_list(DIALOG_NAME, list, 0)
 	elseif button == list then
-		selected_part = item
+		selected_part = part_list[item]
 	end
 end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		DIALOG.show(DIALOG_DATA, sender)
-		transform_name_list = {}
-		local name_list_temp = {}
-		local function find_transform(tab)
-			if not (tab.name and (tab.name == "Colliders")) then
-				if tab.name then
-					if not name_list_temp[tab.name] then
-						table.insert(transform_name_list, tab.name)
-						name_list_temp[tab.name] = true
-					end
-				end
-				for key, val in ipairs(tab) do
-					find_transform(val)
+		model_index = message.model
+		transform_list = MEM.art_data.table.propsDictionary[model_index].model_data.transform_list
+		part_list = {}
+		local part_names = {}
+		for key, val in ipairs(transform_list) do
+			if (key > 1) or SET.allow_tweening_base_transform then
+				if not part_names[val.name] then
+					table.insert(part_list, key)
+					part_names[val.name] = true
 				end
 			end
 		end
-		find_transform(MEM.art_data.table.propsDictionary[message.model].model_data.model_tree)
-		model_index = message.model
-		selected_part = message.part_index or 1
+		selected_part = message.transform_index or 1
 		action_index = message.action_index
-		UI.update_list(DIALOG_NAME, list, #transform_name_list)
+		UI.update_list(DIALOG_NAME, list, #part_list)
 		UI.select_exclusive_button(DIALOG_NAME, list, selected_part, true)
 	end
 end

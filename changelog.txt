@@ -24,35 +24,60 @@ To do:
 - Text fields in slices tab in wrong order
 - Maybe a player model?
 
-
 Bugs:
 
 - Volumes generate wrong on the edge of the pictures
-- Geomancer gets rekt by whitespace =/
-- Adding events from tween menu can use wrong samplerate
-
 
 Done:
 
 Features:
 - Selected mesh is flashing in the model preview window
 - Disabled geo generator for now
+- Added a check for mismatched prop key/object name on import.
+- Added the "Odin" material set
+- Choosing a specific prop for tween preview now also tries to find the signal activating its tween and sets its Z position accordingly.
+- Reworked tween editor to support multiple tweens on the same prop:
+	- Start by selecting one of the model's transforms to attach the tween
+	- Tweens can now freely target any of the model's transforms
+	- Tween preview will show the combination of all the model's tweens happening at the same time
+		- Click a timeline to select this tween for editing after the preview is closed
+
+New shortcuts:
+- You can now move between the main tabs using the F1-F7 keys
+- Press ctrl+E anytime to export changes
+- Holding down shift when selecting a material will apply this material to ALL the meshes in the model
 
 Fixes:
+- Selected prop in tween preview only resets after closing the transform selection dialog
+- POV lock no longer resets after exitting the tween preview
+- Sample rate autodetection notification now shows up while loading map files
+- Export is now a lot faster and supports large filesizes
+- Increased some internal limits to better support unreasonably large models
+- Model parts are now referred to as "Meshes" or "Submeshes".
+- Saved tweens are now named [model name]_[transform name].pw_tween to allow saving multiple tweens attached to the same model without overwriting
+- Tween previews should be more accurate
 
 Bugs:
 - Fixed a crash when trying to bulk change type of enemies in a map without enemies
-- Fixed error when attempting to render models with unknown format (Giant Walking)
+- Fixed an error when attempting to render models with unknown format (Giant Walking)
+- Material set "2089 - Arbiter" works correctly now
+- Line breaks and apostrophes should now always show in description preview correctly. Other special characters may still display wrong
+- Stopped "default_camera_pitch=25" being appended to the .cfg file with every launch
 
 New configs:
-SET.mesh_flash_frequency (not implemented)
-SET.mesh_flash_time (not implemented)
+mesh_flash_frequency
+mesh_flash_time
+mesh_flash_colour
+tween_timeline_bar_height
+use_default_transform_name
+add_root_transform_if_missing - NOT IMPLEMENTED IN THE WORSE WAY!
+allow_tweening_base_transform
 
 Notes:
 - See if "MEM.event_reloaded" and similar are necessary. Currently load error unloads previous data - is that a bad thing?
 - Check if importing a new enemy type doesn't mess up the bulk replace dialog
 - See if G.find_substring is still in use after I'm done with this
 - Check if I should sort prop lists by position
-- Figure out a better way to save/load tween parts
 - Cannot copy a tween from another transform in the same model
-
+- Add the demon enemy set
+- Add an option to automatically pick the first prop instance when opening a tween

@@ -46,19 +46,26 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		DIALOG.show(DIALOG_DATA, sender)
 		model_list = {}
+		for key, val in ipairs(MEM.art_data.table.propsDictionary[message.model].model_data.transform_list) do
+			if val.tween and not (message.selected_transform == key) then
+				table.insert(model_list, {
+					name = MEM.art_data.table.propsDictionary[message.model].key,
+					transform = val.name or "[no name]",
+					key = message.model,
+					transform_index = key
+				})
+			end
+		end
 		for key, val in ipairs(MEM.art_data.table.propsDictionary) do
-			if val.tween and val.tween > 0 and not (key == message.model) then
-				local transform_index = 1
-				local function find_tweens(tab)
-					if tab.tween then
-						table.insert(model_list, {name = val.key, transform = tab.name or "[no name]", key = key, transform_index = transform_index})
-					end
-					transform_index = transform_index + 1
-					for k, v in ipairs(tab) do
-						find_tweens(v)
-					end
+			for k, v in ipairs(val.model_data.transform_list) do
+				if v.tween and not (key == message.model) then
+					table.insert(model_list, {
+						name = val.key,
+						transform = v.name or "[no name]",
+						key = key,
+						transform_index = k
+					})
 				end
-				find_tweens(val.model_data.model_tree)
 			end
 		end
 		gui.set_enabled(gui.get_node("dialog_tween_copy_warning"), #model_list < 1)

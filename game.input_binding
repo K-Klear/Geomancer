@@ -50,6 +50,38 @@ key_trigger {
   input: KEY_ESC
   action: "escape"
 }
+key_trigger {
+  input: KEY_F1
+  action: "f1"
+}
+key_trigger {
+  input: KEY_F2
+  action: "f2"
+}
+key_trigger {
+  input: KEY_F3
+  action: "f3"
+}
+key_trigger {
+  input: KEY_F4
+  action: "f4"
+}
+key_trigger {
+  input: KEY_F5
+  action: "f5"
+}
+key_trigger {
+  input: KEY_F6
+  action: "f6"
+}
+key_trigger {
+  input: KEY_F7
+  action: "f7"
+}
+key_trigger {
+  input: KEY_E
+  action: "key_e"
+}
 mouse_trigger {
   input: MOUSE_BUTTON_1
   action: "touch"

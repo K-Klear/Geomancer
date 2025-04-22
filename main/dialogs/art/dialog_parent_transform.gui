@@ -1,4 +1,4 @@
-script: "/main/dialogs/art/dialog_replace_model.gui_script"
+script: "/main/dialogs/art/dialog_parent_transform.gui_script"
 fonts {
   name: "main_menu_button"
   font: "/assets/fonts/final/main_menu_button.font"
@@ -30,7 +30,7 @@ nodes {
   }
   size {
     x: 620.0
-    y: 800.0
+    y: 700.0
   }
   type: TYPE_BOX
   texture: "UI/panel_green"
@@ -46,17 +46,22 @@ nodes {
 }
 nodes {
   position {
-    y: 371.0
+    y: 307.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
   }
   size {
     x: 250.0
     y: 60.0
   }
   type: TYPE_TEXT
-  text: "Choose a model to replace\n"
-  "PF_pedCluster002"
+  text: "Choose a new parent for transform\n"
+  "long_ass transform name lalala"
   font: "main_menu_button"
-  id: "title_replace_model"
+  id: "title_parent"
   pivot: PIVOT_N
   outline {
     x: 1.0
@@ -77,10 +82,10 @@ nodes {
 nodes {
   position {
     x: -140.0
-    y: -335.0
+    y: -278.0
   }
   type: TYPE_TEMPLATE
-  id: "dialog_replace_accept"
+  id: "dialog_parent_accept"
   parent: "edit_box"
   template: "/templates/button_white_small.gui"
 }
@@ -90,8 +95,8 @@ nodes {
     y: 64.0
   }
   type: TYPE_BOX
-  id: "dialog_replace_accept/button_white"
-  parent: "dialog_replace_accept"
+  id: "dialog_parent_accept/button_white"
+  parent: "dialog_parent_accept"
   layer: "below"
   overridden_fields: 1
   overridden_fields: 4
@@ -100,9 +105,9 @@ nodes {
 }
 nodes {
   type: TYPE_TEXT
-  text: "Replace"
-  id: "dialog_replace_accept/text"
-  parent: "dialog_replace_accept/button_white"
+  text: "Set parent"
+  id: "dialog_parent_accept/text"
+  parent: "dialog_parent_accept/button_white"
   layer: "text"
   overridden_fields: 8
   overridden_fields: 20
@@ -111,10 +116,10 @@ nodes {
 nodes {
   position {
     x: 140.0
-    y: -335.0
+    y: -278.0
   }
   type: TYPE_TEMPLATE
-  id: "dialog_replace_cancel"
+  id: "dialog_parent_cancel"
   parent: "edit_box"
   template: "/templates/button_white_small.gui"
 }
@@ -124,8 +129,8 @@ nodes {
     y: 64.0
   }
   type: TYPE_BOX
-  id: "dialog_replace_cancel/button_white"
-  parent: "dialog_replace_cancel"
+  id: "dialog_parent_cancel/button_white"
+  parent: "dialog_parent_cancel"
   layer: "below"
   overridden_fields: 1
   overridden_fields: 4
@@ -135,8 +140,8 @@ nodes {
 nodes {
   type: TYPE_TEXT
   text: "Cancel"
-  id: "dialog_replace_cancel/text"
-  parent: "dialog_replace_cancel/button_white"
+  id: "dialog_parent_cancel/text"
+  parent: "dialog_parent_cancel/button_white"
   layer: "text"
   overridden_fields: 8
   overridden_fields: 20
@@ -145,15 +150,15 @@ nodes {
 nodes {
   position {
     x: -176.0
-    y: 277.0
+    y: 227.0
   }
   size {
     x: 352.0
-    y: 580.0
+    y: 452.0
   }
   type: TYPE_BOX
   texture: "UI/empty_pixel"
-  id: "replace_model_list"
+  id: "transform_parent_list"
   pivot: PIVOT_NW
   parent: "edit_box"
   clipping_mode: CLIPPING_MODE_STENCIL
@@ -166,8 +171,8 @@ nodes {
   }
   type: TYPE_BOX
   texture: "UI/scrollbar_button"
-  id: "replace_model_scroll_up"
-  parent: "replace_model_list"
+  id: "transform_parent_scroll_up"
+  parent: "transform_parent_list"
   layer: "below"
   size_mode: SIZE_MODE_AUTO
 }
@@ -181,8 +186,8 @@ nodes {
   }
   type: TYPE_BOX
   texture: "UI/scrollbar_button"
-  id: "replace_model_scroll_down"
-  parent: "replace_model_list"
+  id: "transform_parent_scroll_down"
+  parent: "transform_parent_list"
   layer: "below"
   size_mode: SIZE_MODE_AUTO
 }
@@ -202,9 +207,9 @@ nodes {
   }
   type: TYPE_BOX
   texture: "UI/scrollbar"
-  id: "replace_model_scroll_background"
+  id: "transform_parent_scroll_background"
   pivot: PIVOT_N
-  parent: "replace_model_list"
+  parent: "transform_parent_list"
   layer: "below"
   slice9 {
     x: 6.0
@@ -224,9 +229,9 @@ nodes {
   }
   type: TYPE_BOX
   texture: "UI/scrollbar"
-  id: "replace_model_scroll_grip"
+  id: "transform_parent_scroll_grip"
   pivot: PIVOT_N
-  parent: "replace_model_list"
+  parent: "transform_parent_list"
   layer: "below"
   slice9 {
     x: 6.0
@@ -240,8 +245,8 @@ nodes {
     y: -16.0
   }
   type: TYPE_TEMPLATE
-  id: "replace_model_exclusive"
-  parent: "replace_model_list"
+  id: "transform_parent_exclusive"
+  parent: "transform_parent_list"
   template: "/templates/button_white_small.gui"
 }
 nodes {
@@ -251,9 +256,9 @@ nodes {
   }
   type: TYPE_BOX
   texture: "UI/button_exclusive"
-  id: "replace_model_exclusive/button_white"
+  id: "transform_parent_exclusive/button_white"
   pivot: PIVOT_W
-  parent: "replace_model_exclusive"
+  parent: "transform_parent_exclusive"
   layer: "below"
   slice9 {
     x: 6.0
@@ -280,9 +285,9 @@ nodes {
   type: TYPE_TEXT
   text: "123456789012345678901234567890123456789"
   font: "status_text"
-  id: "replace_model_exclusive/text"
+  id: "transform_parent_exclusive/text"
   pivot: PIVOT_W
-  parent: "replace_model_exclusive/button_white"
+  parent: "transform_parent_exclusive/button_white"
   layer: "text"
   overridden_fields: 1
   overridden_fields: 4

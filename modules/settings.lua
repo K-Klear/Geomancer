@@ -1,5 +1,7 @@
 local SET = {}
 
+SET.I_am_Klear = false
+
 SET.scroll_speed = 150
 SET.scroll_time = 0.6
 
@@ -51,6 +53,7 @@ SET.colour_highlight_replace_enemy = vmath.vector4(0.7, 0.1, 0.1, 1)
 SET.colour_selection_change_enemy_type = vmath.vector4(0.1, 0.7, 0.1, 1)
 SET.colour_current_enemy_type = vmath.vector4(0.1, 0.1, 0.1, 1)
 SET.colour_signal_filter_selection = vmath.vector4(0.5, 0.5, 0.7, 1)
+SET.colour_selected_transform_parent = vmath.vector4(0.5, 0.5, 0.7, 1)
 
 SET.colour_tween_move = vmath.vector4(0, 0, 0.5, 1)
 SET.colour_tween_rotate = vmath.vector4(0, 0.5, 0, 1)
@@ -82,9 +85,18 @@ SET.model_grid_dots = false
 SET.default_rotation = 0
 SET.default_pitch = 25
 
+SET.tween_timeline_bar_height = 20 -- make this 6+
+
 SET.mesh_flash_time = 0.3
 SET.mesh_flash_frequency = 1
 SET.mesh_flash_colour = vmath.vector4(1, 0, 0, 0.4)
+
+-- transform
+
+SET.default_transform_name = "NewTransform"
+SET.use_default_transform_name = false
+SET.add_root_transform_if_missing = true
+SET.allow_tweening_base_transform = false
 
 -- tween
 SET.tween_action_type_dialog = true

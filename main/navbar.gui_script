@@ -64,34 +64,52 @@ function on_message(self, message_id, message, sender)
 	end
 end
 
+local function switch_tab(tab)
+	msg.post(UI.tab[UI.current_tab].path, hash("hide"))
+	msg.post(UI.tab[tab].path, hash("show"))
+	gui.play_flipbook(gui.get_node(UI.current_tab), "tab_normal")
+	gui.play_flipbook(gui.get_node(tab), "tab_active")
+	UI.current_tab = tab
+	if MEM.level_data.sceneDisplayName then
+		status_update("Loaded scene: "..MEM.level_data.sceneDisplayName, true)
+	else
+		status_update("Unknown scene name", true)
+	end
+	if tab == "tab_event" and not SET.autodetect_sample_rate then
+		status_update("Be sure to set the correct sample rate first, otherwise BPM and values in seconds will be inaccurate.")
+	end
+	--[[
+	if tab == "tab_art" then
+		ART.update_model_list()
+	elseif tab == "tab_beat" then
+		BEAT.update_obstacles()
+		BEAT.update_buttons()
+	elseif tab == "tab_meta" then
+		S.update("Start by loading one or more png files with the size of 167 x 166. Their names have to be a number representing the Z position of the resulting geo slice.", false)
+	end
+	--]]
+end
+
+local function check_tab(tab)
+	return UI.tab[tab].state and not (UI.current_tab == tab)
+end
+
+local tab_shortcuts = {[hash("f1")] = "tab_file", [hash("f2")] = "tab_level", [hash("f3")] = "tab_event", [hash("f4")] = "tab_art",
+[hash("f5")] = "tab_beat", [hash("f6")] = "tab_geo", [hash("f7")] = "tab_meta"}
+
 function on_input(self, action_id, action)
-	if action.pressed and action_id == hash("touch") then
-		for key, val in pairs(UI.tab) do
-			if val.state and not (UI.current_tab == key) and gui.pick_node(gui.get_node(key), action.x, action.y) then
-				msg.post(UI.tab[UI.current_tab].path, hash("hide"))
-				msg.post(val.path, hash("show"))
-				gui.play_flipbook(gui.get_node(UI.current_tab), "tab_normal")
-				gui.play_flipbook(gui.get_node(key), "tab_active")
-				UI.current_tab = key
-				if MEM.level_data.sceneDisplayName then
-					status_update("Loaded scene: "..MEM.level_data.sceneDisplayName, true)
-				else
-					status_update("Unknown scene name", true)
+	if action.pressed then
+		if action_id == hash("touch") then
+			for key, val in pairs(UI.tab) do
+				if check_tab(key) and gui.pick_node(gui.get_node(key), action.x, action.y) then
+					switch_tab(key)
 				end
-				if key == "tab_event" and not SET.autodetect_sample_rate then
-					status_update("Be sure to set the correct sample rate first, otherwise BPM and values in seconds will be inaccurate.")
-				end
-				--[[
-				if key == "tab_art" then
-					ART.update_model_list()
-				elseif key == "tab_beat" then
-					BEAT.update_obstacles()
-					BEAT.update_buttons()
-				elseif key == "tab_meta" then
-					S.update("Start by loading one or more png files with the size of 167 x 166. Their names have to be a number representing the Z position of the resulting geo slice.", false)
-				end
-				--]]
 			end
+		elseif tab_shortcuts[action_id] and check_tab(tab_shortcuts[action_id]) then
+			switch_tab(tab_shortcuts[action_id])
+		elseif action_id == hash("key_e") and UI.ctrl_held then
+			switch_tab("tab_file")
+			timer.delay(0.05, false, function() msg.post(UI.tab.tab_file.path, hash("export_all")) end)
 		end
 	end
 end

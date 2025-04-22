@@ -52,19 +52,29 @@ local default_settings_text = {
 	"colour_tween_scale=0.5,0.5,0;",
 	"colour_tween_wait=0.3,0.3,0.3;",
 	"",
-	"restrict_rotations_to_360=true; -- If true rotation values outside the 0-360 are recalculated to fall within that range.",
+	"default_transform_name=NewTransform;",
+	"use_default_transform_name=false;		-- If true skips the name selection dialog when adding new transform",
+	"add_root_transform_if_missing=true;	-- Automatically adds a transform that can be used to tween the whole model",
+	"allow_tweening_base_transform=false;	-- Tweening the base transform can lead to unexpected behaviour. Set this to true if you want to experiment with it",
+	"",
+	"restrict_rotations_to_360=true; 	-- If true rotation values outside 0-360 are recalculated to fall within that range.",
 	"tween_action_type_dialog=true; 	-- If false cycle through tween types instead of opening a dialog",
-	"tween_part_dialog=true; 		-- If false cycle through tween parts instead of opening a dialog",
+	"tween_part_dialog=true; 			-- If false cycle through tween parts instead of opening a dialog",
 	"tween_extra_add_buttons=false; 	-- If true adds \"Add action\" button between tween actions",
 	"ask_before_overwriting_tween_file=true;",
+	"tween_timeline_bar_height=20;		-- Should be 6 at least",
 	"",
 	"model_rotation_sensitivity=0.5;",
 	"model_move_sensitivity=0.01;",
 	"model_zoom_sensitivity=2.5;",
 	"default_camera_zoom=8;			-- Should be between 0.5 and 100",
-	"default_camera_rotation=0;	-- Euler angle.",
-	"default_camera_pitch=25		-- Euler angle ranging from -90 to 90",
+	"default_camera_rotation=0;		-- Euler angle.",
+	"default_camera_pitch=25;		-- Euler angle ranging from -90 to 90",
 	"default_model_z_position=8;",
+	"",
+	"mesh_flash_time=0.3;",
+	"mesh_flash_frequency=1;		-- Will stay highlighted if set to 0",
+	"mesh_flash_colour=1,0,0,0.4;	-- RGB plus alpha (transparency)",
 	"",
 	"easing_node_scale=0.5;",
 	"easing_curve_thickness=3;",
@@ -134,6 +144,12 @@ local settings_to_load = {
 	degeomance_glitched_enemy = {type = "string"},
 	degeomance_skull = {type = "string"},
 
+	tween_timeline_bar_height = {type = "number"},
+	default_transform_name = {type = "string"},
+	use_default_transform_name = {type = "boolean"},
+	add_root_transform_if_missing = {type = "boolean"},
+	allow_tweening_base_transform = {type = "boolean"},
+	
 	model_rotation_sensitivity = {type = "non_zero"},
 	model_move_sensitivity = {type = "non_zero"},
 	model_zoom_sensitivity = {type = "non_zero"},
@@ -141,6 +157,10 @@ local settings_to_load = {
 	default_camera_rotation = {type = "number"},
 	default_camera_pitch = {type = "angle_pitch"},
 	default_model_z_position = {type = "number"},
+
+	mesh_flash_time = {type = "number"},
+	mesh_flash_frequency = {type = "number"},
+	mesh_flash_colour = {type = "colour_full"},
 
 	default_colour_set = {type = "integer"},
 	custom_colour_main = {type = "hex_colour"},
@@ -184,11 +204,9 @@ function init(self)
 	if not sys.exists("geomancer.cfg") then
 		SET.cfg_created = true
 		local f = io.output("geomancer.cfg")
-		local str = ""
 		for key, val in ipairs(default_settings_text) do
-			str = str..val.."\n"
+			io.write(val.."\n")
 		end
-		io.write(str)
 		io.close(f)
 	else
 		local parse = {}
@@ -208,6 +226,16 @@ function init(self)
 			local y = string.sub(str, comma_1 + 1, comma_2 - 1)
 			local z = string.sub(str, comma_2 + 1)
 			return vmath.vector4(tonumber(x), tonumber(y), tonumber(z), 1)
+		end
+		function parse.colour_full(str)
+			local comma_1 = string.find(str, ",")
+			local comma_2 = string.find(str, ",", comma_1 + 1)
+			local comma_3 = string.find(str, ",", comma_2 + 1)
+			local x = string.sub(str, 1, comma_1 - 1)
+			local y = string.sub(str, comma_1 + 1, comma_2 - 1)
+			local z = string.sub(str, comma_2 + 1, comma_3 - 1)
+			local a = string.sub(str, comma_3 + 1)
+			return vmath.vector4(tonumber(x), tonumber(y), tonumber(z), tonumber(a))
 		end
 		function parse.path(str) return str end
 		function parse.non_zero(str)
@@ -240,20 +268,24 @@ function init(self)
 						if works then
 							loaded_settings[setting_name] = value
 						end
+					elseif setting_name == "I_am_Klear" then
+						SET.I_am_Klear = true
 					end
 				end
 			end
 		end
 		local f = io.open("geomancer.cfg", "a")
-		for key in pairs(settings_to_load) do
-			if loaded_settings[key] == nil then
-				f:write("\n"..default_settings_text[settings_to_load[key].line])
-				SET.cfg_appended = true
-			else
-				SET[key] = loaded_settings[key]
+		if f then
+			for key in pairs(settings_to_load) do
+				if loaded_settings[key] == nil then
+					f:write("\n"..default_settings_text[settings_to_load[key].line])
+					SET.cfg_appended = true
+				else
+					SET[key] = loaded_settings[key]
+				end
 			end
+			io.close(f)
 		end
-		io.close(f)
 	end
 	settings_are_loaded = true
 	start()

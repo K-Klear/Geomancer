@@ -54,7 +54,7 @@ local function evaluate_button(button)
 			if MEM.check(tab, "pw_geo", "Selected pw_geo file") then
 				MEM.geo_data.table.chunkSlices = tab.chunkSlices
 			end
-			G.update_status("Visual data replaced.", true)
+			G.update_navbar("Visual data replaced.", true)
 		end
 	elseif button == "geo_collision" then
 		local geo_data = load_geo_data()
@@ -63,7 +63,7 @@ local function evaluate_button(button)
 			if MEM.check(tab, "pw_geo", "Selected pw_geo file") then
 				MEM.geo_data.table.chunkData = tab.chunkData
 			end
-			G.update_status("Collision data replaced.", true)
+			G.update_navbar("Collision data replaced.", true)
 		end
 	end
 end

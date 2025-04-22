@@ -33,51 +33,39 @@ local TABLE = "table"
 local STRING = "string"
 
 function MEM.export_json(json_tab)
-	local final_str = "{"
+	io.write("{")
 	local string_tab = {}
 	local function export_table(tab)
-		if #final_str > 100000 then
-			table.insert(string_tab, final_str)
-			final_str = ""
-		end
-		local s
 		if tab._key_sort then
 			local key_count = #tab._key_sort
 			for key, val in ipairs(tab._key_sort) do
 				local val_type = type(tab[val])
 				if val_type == TABLE then
 					if tab[val]._key_sort then
-						s = QUOTE..val..QUOTE_3
-						final_str = final_str..s
+						io.write(QUOTE..val..QUOTE_3)
 						export_table(tab[val])
-						final_str = final_str.."}"
+						io.write("}")
 					elseif tab[val]._pure_array then
-						s = QUOTE..val..QUOTE_6..tab[val]._pure_array
-						final_str = final_str..s
+						io.write(QUOTE..val..QUOTE_6..tab[val]._pure_array)
 					else
-						s = QUOTE..val..QUOTE_4
-						final_str = final_str..s
+						io.write(QUOTE..val..QUOTE_4)
 						export_table(tab[val])
-						final_str = final_str.."]"
+						io.write("]")
 					end
 					if key_count > 1 then
-						final_str = final_str..","
+						io.write(",")
 					end
 				elseif val_type == STRING then
 					if key_count > 1 then
-						s = QUOTE..val..QUOTE_2..tab[val]..QUOTE_5
-						final_str = final_str..s
+						io.write(QUOTE..val..QUOTE_2..tab[val]..QUOTE_5)
 					else
-						s = QUOTE..val..QUOTE_2..tab[val]..QUOTE
-						final_str = final_str..s
+						io.write(QUOTE..val..QUOTE_2..tab[val]..QUOTE)
 					end
 				elseif val_type then
 					if key_count > 1 then
-						s = QUOTE..val..QUOTE_6..tab[val]..","
-						final_str = final_str..s
+						io.write(QUOTE..val..QUOTE_6..tab[val]..",")
 					else
-						s = QUOTE..val..QUOTE_6..tab[val]
-						final_str = final_str..s
+						io.write(QUOTE..val..QUOTE_6..tab[val])
 					end
 				end
 				key_count = key_count - 1
@@ -88,33 +76,30 @@ function MEM.export_json(json_tab)
 				local val_type = type(val)
 				if val_type == TABLE then
 					if val._key_sort then
-						final_str = final_str.."{"
+						io.write("{")
 						export_table(val)
-						final_str = final_str.."}"
+						io.write("}")
 					elseif val._pure_array then
-						final_str = final_str..tab[val]._pure_array
+						io.write(tab[val]._pure_array)
 					else
-						final_str = final_str.."["
+						io.write("[")
 						export_table(val)
-						final_str = final_str.."]"
+						io.write("]")
 					end
 					if key_count > 1 then
-						final_str = final_str..","
+						io.write(",")
 					end
 				elseif val_type == STRING then
 					if key_count > 1 then
-						s = QUOTE..val..QUOTE_5
-						final_str = final_str..s
+						io.write(QUOTE..val..QUOTE_5)
 					else
-						s = QUOTE..val..QUOTE
-						final_str = final_str..s
+						io.write(QUOTE..val..QUOTE)
 					end
 				else
 					if key_count > 1 then
-						s = val..","
-						final_str = final_str..s
+						io.write(",")
 					else
-						final_str = final_str..val
+						io.write(val)
 					end
 				end
 				key_count = key_count - 1
@@ -122,10 +107,8 @@ function MEM.export_json(json_tab)
 		end
 	end
 	export_table(json_tab)
-	for i = #string_tab, 1, -1 do
-		final_str = string_tab[i]..final_str
-	end
-	return final_str.."}"
+	io.write("}")
+	return true
 end
 
 function MEM.parse_json(json_str)
@@ -421,7 +404,7 @@ function MEM.parse_tween(tween_script)
 	repeat
 		tween_working, tween_action, tween_script = pcall(parse_tween_action, tween_script)
 		safety = safety - 1
-		if safety < 0 or (not tween_working) then
+		if safety < 0 or not (tween_working and tween_script) then
 			G.update_navbar("Malformed tween script has not been loaded.")
 			return
 		else
@@ -433,60 +416,68 @@ function MEM.parse_tween(tween_script)
 	end
 end
 
-local tween_count
 
-local function explore_model_tree(source_tab, result_tab, part_name, tree_section)
+
+--{name or "[no name]", level = level, tween = tab.tween, mesh_count = mesh_count, part_index = _part_index, tab = tab.tab}
+
+
+local tween_count, part_list, transform_list
+local function explore_model_tree(source_tab, part_name, level, parent_tab)
 	if source_tab.name == "Colliders" then
-		tree_section.name = source_tab.name
+	--	tree_section\.name = source_tab.name
 		return
 	end -- Catch colliders here so they appear on the model preview somehow
 	part_name = source_tab.name or part_name
+	table.insert(transform_list, {})
+	local current_transform = transform_list[#transform_list]
 	if source_tab.components then
 		for k, v in ipairs(source_tab.components) do
 			if v.type == "Transform" then
-				tree_section.transform = v.values
-				tree_section.name = source_tab.name
-				tree_section.tab = source_tab
+				current_transform.position, current_transform.rotation, current_transform.scale = G.parse_transform(v.values)
+				current_transform.name = part_name
+				current_transform.tab = source_tab
+				current_transform.level = level
+				current_transform.parent_tab = parent_tab
 			elseif v.type == "ScriptedTween" then
 				local tween_script = MEM.parse_tween(v.Script)
 				if tween_script then
-					tree_section.tween = tween_script
+					current_transform.tween = tween_script
 					tween_count = tween_count + 1
 				end
 			elseif v.type == "LevelEventReceiver" then
-				if tree_section.tween then
-					tree_section.tween.signal = v.EventId
+				if current_transform.tween then
+					current_transform.tween.signal = v.EventId
 				end
 			elseif v.type == "MeshFilter" then
 				local mesh_tab = {}
 				for key, val in ipairs(v.subMeshes) do
 					mesh_tab[key] = {IndexStart = val.IndexStart + 1, IndexEnd = val.IndexCount + val.IndexStart, verts = v.verts, tris = v.tris, normals = v.normals}
 				end
-				tree_section.meshes = {}
+				current_transform.meshes = {}
 				for key, val in ipairs(mesh_tab) do
-					tree_section.meshes[key] = val
+					current_transform.meshes[key] = val
 				end
+				current_transform.mesh_count = #mesh_tab
 			elseif v.type == "MeshRenderer" then
 				for key, val in ipairs(v.materials) do
-					table.insert(result_tab.parts, {name = part_name, tab = v.materials, index = key})
+					table.insert(part_list, {name = part_name, tab = v.materials, index = key})
 				end
 			end
 		end
 	end
 	if source_tab.children and source_tab.children[1] then
 		for k, v in ipairs(source_tab.children) do
-			table.insert(tree_section, {})
-			explore_model_tree(v, result_tab, part_name, tree_section[#tree_section])
+			explore_model_tree(v, part_name, level + 1, current_transform)
 		end
 	end
 end
 
 function MEM.add_metadata(model_tab)
-	local t = {parts = {}, model_tree = {}}
+	part_list, transform_list = {}, {}
 	tween_count = 0
-	explore_model_tree(model_tab.object, t, 0, t.model_tree)
+	explore_model_tree(model_tab.object, "[no name]", 1)
 	model_tab.tween = tween_count
-	model_tab.model_data = t
+	model_tab.model_data = {parts = part_list, transform_list = transform_list}
 end
 
 function load.pw_art(data, filename)
@@ -512,10 +503,14 @@ function load.pw_art(data, filename)
 		end
 
 		for key, val in ipairs(tab.propsDictionary) do
-			if dynamic_models[val.key] then
-				val.dynamic = true
+			if not (val.object.name == val.key) then
+				G.update_navbar("Found key/name mismatch is prop "..val.key..". It has been fixed.")
+				val.object.name = val.key
 			end
 			MEM.add_metadata(val)
+			if dynamic_models[val.key] or (val.tween > 0) then
+				val.dynamic = true
+			end
 		end
 
 		MEM.art_data.colours = {}
@@ -537,7 +532,6 @@ function load.pw_art(data, filename)
 		end
 		local t = {main = SET.custom_colour_main, fog = SET.custom_colour_fog, glow = SET.custom_colour_glow, enemy = SET.custom_colour_enemy}
 		table.insert(MEM.art_data.colours, t)
-
 		UI.tab.tab_art.state = true
 		MEM.art_reloaded = true
 		return true

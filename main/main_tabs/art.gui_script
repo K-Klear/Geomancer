@@ -347,24 +347,24 @@ local function rename_model(new_name, model_to_rename)
 	MEM.art_data.table.propsDictionary[model_to_rename].key = new_name
 	MEM.art_data.table.propsDictionary[model_to_rename].object.name = new_name
 	
-	for key, val in ipairs(MEM.art_data.table.staticProps) do
+	for key, val in ipairs(MEM.art_data.table.staticProps or {}) do
 		if val.name == old_name then
 			val.name = new_name
 		end
 	end
-	for key, val in ipairs(MEM.art_data.table.dynamicProps) do
+	for key, val in ipairs(MEM.art_data.table.dynamicProps or {}) do
 		if val.name == old_name then
 			val.name = new_name
 		end
 	end
-	for key, val in ipairs(MEM.art_data.table.staticCullingRanges) do
+	for key, val in ipairs(MEM.art_data.table.staticCullingRanges or {}) do
 		for k, v in ipairs(val.members) do
 			if v.name == old_name then
 				v.name = new_name
 			end
 		end
 	end
-	for key, val in ipairs(MEM.art_data.table.dynamicCullingRanges) do
+	for key, val in ipairs(MEM.art_data.table.dynamicCullingRanges or {}) do
 		for k, v in ipairs(val.members) do
 			if v.name == old_name then
 				v.name = new_name
@@ -439,17 +439,22 @@ local function delete_model(model) -- breaks maps, do not use without modifying 
 			table.remove(MEM.art_data.table_dynamic_culling_ranges, key)
 		end
 	end
-	MEM.art_data.part_names[model_name] = nil
-	MEM.art_data.model_tree[model_name] = nil
 	MEM.art_data.mesh_list[model_name] = nil
 	update_lists()
 	G.update_navbar("All instances of "..model_name.." deleted.", true)
 end
 
-local function change_model_material(model_index, part_index, material)
-	local part_tab = MEM.art_data.table.propsDictionary[model_index].model_data.parts[part_index]
-	part_tab.tab[part_tab.index] = material
-	part_tab.tab._pure_array = nil
+local function change_model_material(model_index, part_index, material, change_all)
+	if change_all then
+		for key, val in ipairs(MEM.art_data.table.propsDictionary[model_index].model_data.parts) do
+			val.tab[val.index] = material
+			val.tab._pure_array = nil
+		end
+	else
+		local part_tab = MEM.art_data.table.propsDictionary[model_index].model_data.parts[part_index]
+		part_tab.tab[part_tab.index] = material
+		part_tab.tab._pure_array = nil
+	end
 end
 
 local function degeomance()
@@ -462,8 +467,10 @@ local function degeomance()
 						table.remove(tab.components, i)
 					end
 				end
-				for k, v in ipairs(tab.children) do
-					remove_tweens(v)
+				if tab.children then
+					for k, v in ipairs(tab.children) do
+						remove_tweens(v)
+					end
 				end
 			end
 			remove_tweens(val.object)
@@ -525,15 +532,11 @@ local function check_tweens()
 	if selected_model then
 		local model_tab = MEM.art_data.table.propsDictionary[selected_model]
 		local tween_count = 0
-		local function count_tweens(tab)
-			if tab.tween then
+		for key, val in ipairs(model_tab.model_data.transform_list) do
+			if val.tween then
 				tween_count = tween_count + 1
 			end
-			for key, val in ipairs(tab) do
-				count_tweens(val)
-			end
 		end
-		count_tweens(model_tab.model_data.model_tree)
 		model_tab.tween = tween_count
 		if tween_count > 0 then
 			set_model_as_dynamic(selected_model, true)
@@ -566,29 +569,6 @@ function on_message(self, message_id, message, sender)
 			colour_set = true
 			COL.set_current_to_default()
 		end
-	elseif message_id == hash("tween_preview") then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		if UI.tab[TAB_NAME].child_dialog == "dialog_tween" then
-			msg.post(UI.tab.dialog_tween.path, hash("hide"))
-		end
-		DIALOG.close_all(TAB_NAME)
-		MOD.model_index = message.model_index
-		msg.post("/model_viewer", hash("tween_preview"), {model = message.model_index})
-	elseif message_id == hash("tween_preview_closed") then
-		msg.post("#", hash("enable"))
-		msg.post("#", hash("acquire_input_focus"))
-		update_lists()
-		msg.post("/model_viewer", hash("show"))
-		if not colour_set then
-			colour_set = true
-			COL.set_current_to_default()
-		end
-		local model_data = MEM.art_data.model_list[message.model_index]
-		if not model_data.tween then
-			model_data.tween = {signal = "tween", script = {}}
-		end
-		open_dialog("dialog_tween", {model_index = message.model_index})
 	elseif message_id == hash("reset") then
 		UI.update_list(TAB_NAME, model_list, 0)
 		UI.update_list(TAB_NAME, part_list, 0)
@@ -600,7 +580,7 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("check_tweens") then
 		check_tweens()
 	elseif message_id == hash("open_colour_picker") then
-		open_dialog("dialog_colours")
+		open_dialog("dialog_colours", {current_dialog = message.current_dialog})
 	elseif message_id == hash("dialog_closed") then
 		msg.post("#", hash("acquire_input_focus"))
 		msg.post("/model_viewer", hash("show"))
@@ -638,10 +618,18 @@ function on_message(self, message_id, message, sender)
 				update_lists()
 			end
 		elseif message.dialog == "dialog_transform" then
+			msg.post(".", hash("enable"))
 			check_tweens()
+			msg.post("/model_viewer", hash("show"), {model = get_selected_model(), selected_part = get_selected_part()})
 		elseif message.dialog == "dialog_colours" then
-			local selected_model = get_selected_model()
-			msg.post("/model_viewer", hash("show"), {model = selected_model, selected_part = get_selected_part()})
+			if message.current_dialog == hash("art") then
+				msg.post("/model_viewer", hash("show"), {model = get_selected_model(), selected_part = get_selected_part()})
+			elseif message.current_dialog == hash("transform") then
+				msg.post(UI.tab.dialog_transform.path, hash("acquire_input_focus"))
+				msg.post("#", hash("release_input_focus"))
+			elseif message.current_dialog == hash("tween_preview") then
+				msg.post("#", hash("release_input_focus"))
+			end
 		elseif message.dialog == "dialog_confirm" then
 			if message.button == 1 then	-- 1 is delete, 3 is cancel
 				delete_model(get_selected_model())
@@ -649,8 +637,6 @@ function on_message(self, message_id, message, sender)
 				G.update_navbar("Model deletion canceled", true)
 			end
 		end
-	elseif message_id == hash("update_labels") then
-
 	elseif message_id == hash("degeomance") then
 		degeomance()
 	end
@@ -728,8 +714,13 @@ function evaluate_button(button, item)
 		local selected_model = get_selected_model()
 		if selected_model > 0 then
 			local selected_part = get_selected_part()
-			change_model_material(selected_model, selected_part, material_list[item])
-			msg.post("/model_viewer", hash("change_material"), {part_index = selected_part, model_index = selected_model})
+			if UI.shift_held then
+				change_model_material(selected_model, selected_part, material_list[item], true)
+				msg.post("/model_viewer", hash("change_material"), {model_index = selected_model})
+			else
+				change_model_material(selected_model, selected_part, material_list[item])
+				msg.post("/model_viewer", hash("change_material"), {part_index = selected_part, model_index = selected_model})
+			end
 			update_materials()
 		else
 			G.update_navbar("Select a model and one of its parts first.", true)
@@ -753,6 +744,7 @@ function evaluate_button(button, item)
 			UI.select_exclusive_button(TAB_NAME, model_list, item, true)
 			update_lists()
 			msg.post("/model_viewer", hash("show"), {model = item})
+			msg.post(".", hash("disable"))
 			DIALOG.open(TAB_NAME, "dialog_transform", {model_index = item})
 		end
 	end

@@ -181,6 +181,45 @@ local function add_event(start_sample, signal)
 	table.insert(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, t)
 end
 
+local function detect_sample_rate()
+	if not MEM.event_data.sample_rate_set then
+		if SET.autodetect_sample_rate then
+			if MEM.beat_data.table then
+				local sample_rate_guess
+				for key, val in ipairs(MEM.beat_data.table.beatData) do
+					local guess = math.floor((val.sample / val.time) + 0.5)
+					sample_rate_guess = sample_rate_guess or guess
+					if not (sample_rate_guess == guess) then
+						sample_rate_guess = nil
+						break
+					end
+					if key > 15 then
+						break
+					end
+				end
+				if not sample_rate_guess then
+					G.update_navbar("Failed to detect sample rate. Using the default value")
+					SET.sample_rate = SET.default_sample_rate
+				elseif sample_rate_guess == 48000 or sample_rate_guess == 44100 then
+					G.update_navbar("Sample rate set to "..sample_rate_guess)
+					SET.sample_rate = sample_rate_guess
+				else
+					G.update_navbar("Sample rate set to "..sample_rate_guess.."\nThis is a non-standard value and might be an error")
+					SET.sample_rate = sample_rate_guess
+				end
+				MEM.event_data.sample_rate_set = true
+			else
+				G.update_navbar("Beat data not loaded. Using the default sample rate")
+				SET.sample_rate = SET.default_sample_rate
+			end
+		else
+			SET.sample_rate = SET.default_sample_rate
+		end
+		UI.update_list(TAB_NAME, tempo_list)
+		gui.set_text(gui.get_node("sample_rate_field/text"), SET.sample_rate)
+	end
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == hash("hide") then
 		msg.post("#", hash("disable"))
@@ -196,42 +235,7 @@ function on_message(self, message_id, message, sender)
 		update_event_list()
 		UI.update_list(TAB_NAME, tempo_list, #MEM.event_data.table.tempoSections)
 		update_filter_text()
-		if not MEM.event_data.sample_rate_set then
-			if SET.autodetect_sample_rate then
-				if MEM.beat_data.table then
-					local sample_rate_guess
-					for key, val in ipairs(MEM.beat_data.table) do
-						local guess = math.floor((val.sample / val.time) + 0.5)
-						sample_rate_guess = sample_rate_guess or guess
-						if not (sample_rate_guess == guess) then
-							sample_rate_guess = nil
-							break
-						end
-						if key > 15 then
-							break
-						end
-					end
-					if not sample_rate_guess then
-						G.update_navbar("Failed to detect sample rate. Using the default value")
-						SET.sample_rate = SET.default_sample_rate
-					elseif sample_rate_guess == 48000 or sample_rate_guess == 44100 then
-						G.update_navbar("Sample rate set to "..sample_rate_guess)
-						SET.sample_rate = sample_rate_guess
-					else
-						G.update_navbar("Sample rate set to "..sample_rate_guess.."\nThis is a non-standard value and might be an error")
-						SET.sample_rate = sample_rate_guess
-					end
-					MEM.event_data.sample_rate_set = true
-				else
-					G.update_navbar("Beat data not loaded. Using the default sample rate")
-					SET.sample_rate = SET.default_sample_rate
-				end
-			else
-				SET.sample_rate = SET.default_sample_rate
-			end
-			UI.update_list(TAB_NAME, tempo_list)
-			gui.set_text(gui.get_node("sample_rate_field/text"), SET.sample_rate)
-		end
+		detect_sample_rate()
 	elseif message_id == hash("dialog_closed") then
 		msg.post("#", hash("acquire_input_focus"))
 		if message.dialog == "dialog_nobeat" then
@@ -295,8 +299,9 @@ function on_message(self, message_id, message, sender)
 			update_event_list()
 			update_filter_text()
 		end
-	elseif message_id == hash("update") then
+	elseif message_id == hash("detect_sample_rate") then
 		MEM.event_data.sample_rate_set = false
+		detect_sample_rate()
 	elseif message_id == hash("add_event") then
 		add_event(message.start_sample, message.signal)
 		table.sort(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, sort_f)

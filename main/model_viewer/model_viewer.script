@@ -209,22 +209,36 @@ local function set_material(self, part_index, model_index)
 	end
 end
 
+local function reset_tween(self)
+	go.set(GROUND_GO, "position.z", 0)
+	if not MOD.inverted then
+		MOD.inverted = false
+		for i = 1, #created_meshes do
+			set_material(self, i, MOD.model_index)
+		end
+	end
+	for key, val in pairs(MOD.tweenable_transforms) do
+		if val.used then
+			go.set_position(val.transform_tab.position, val.url)
+			go.set(val.url, "scale", val.transform_tab.scale)
+			go.set_rotation(val.transform_tab.rotation, val.url)
+		end
+	end
+end
+
 function update(self, dt)
 	if MOD.viewer_active then
-		go.set_position(MOD.offset_position, PROP_OFFSET)
-		go.set(PROP_OFFSET, "scale", MOD.offset_scale)
-		go.set_rotation(MOD.offset_rotation, PROP_OFFSET)
 		local pitch = vmath.quat_rotation_x(math.rad(MOD.target_y))
 		local yaw = vmath.quat_rotation_y(math.rad(MOD.target_x))
 		local rot = yaw * pitch
 		go.set_rotation(rot, MODEL_CAMERA)
-		if MOD.pov_lock then
+		if MOD.pov_lock and MOD.tween_preview then
 			go.set_position(vmath.vector3(0, 0, 0), CAMERA_TARGET)
 			go.set_position(vmath.vector3(0, 1.75, 0), MODEL_CAMERA)
 		else
 			if MOD.find_prop then
 				MOD.find_prop = false
-				CAMERA_POSITION = go.get_world_position(BASE_TRANSFORM)
+				CAMERA_POSITION = go.get_world_position(created_meshes[1].mesh)
 			else
 				local move_vector = vmath.vector3(MOD.cam_target_x, MOD.cam_target_y, 0)
 				CAMERA_POSITION = CAMERA_POSITION + vmath.rotate(rot, move_vector)
@@ -234,98 +248,98 @@ function update(self, dt)
 			go.set_position(pos, MODEL_CAMERA)
 		end
 		MOD.cam_target_x, MOD.cam_target_y = 0, 0
-
 		if MOD.tween_preview then
-			local scale = go.get_scale(BASE_TRANSFORM)
-			local scale_2 = go.get_scale(PROP_OFFSET)
-			local inverted = scale_2.x * scale_2.y * scale_2.z * scale.x * scale.y * scale.z > 0
+			local scale = go.get_scale(PROP_OFFSET)
+			local inverted = scale.x * scale.y * scale.z * -1 > 0
 			if not (inverted == MOD.inverted) then
 				MOD.inverted = inverted
 				for i = 1, #created_meshes do
 					set_material(self, i, MOD.model_index)
 				end
 			end
-			local current_time = MOD.total_time * MOD.scrubber_progress
-			local action_end_time = 0
-			local position = vmath.vector3(0, 0, 0)
-			local euler = vmath.vector3(0, 0, 0)
-			scale = vmath.vector3(1, 1, 1)
-			for key, val in ipairs(MOD.tween_table) do
-				action_end_time = action_end_time + val.time
-				if current_time >= action_end_time then
-					if val.type == "T" then
-						position.x = val.end_state.x
-						position.y = val.end_state.y
-						position.z = val.end_state.z
-					elseif val.type == "R" then
-						euler.x = val.end_state.x
-						euler.y = val.end_state.y
-						euler.z = val.end_state.z
-					elseif val.type == "S" then
-						scale.x = val.end_state.x
-						scale.y = val.end_state.y
-						scale.z = val.end_state.z
-					end
-				else
-					local action_start = action_end_time - val.time
-					local action_progress = (current_time - action_start) / val.time
-					if not (action_progress == action_progress) then
-						action_progress = 0		-- this shouldn't be necessary, but keeping it to be safe
-					end
-					local function get_state()
-						local x = val.start_state.x + (val.end_state.x - val.start_state.x) * action_progress
-						local y = val.start_state.y + (val.end_state.y - val.start_state.y) * action_progress
-						local z = val.start_state.z + (val.end_state.z - val.start_state.z) * action_progress
-						return vmath.vector3(x, y, z)
-					end
-					if val.type == "T" then
-						position = get_state()
-					elseif val.type == "R" then
-						local function adjust_rotation(axis)
-							if val.start_state[axis] - val.end_state[axis] > 180 then
-								val.start_state[axis] = val.start_state[axis] - 360
-							elseif val.end_state[axis] - val.start_state[axis] > 180 then
-								val.end_state[axis] = val.end_state[axis] - 360
-							end
-						end
-						adjust_rotation("x")
-						adjust_rotation("y")
-						adjust_rotation("z")
-						euler = get_state()
 
-					elseif val.type == "S" then
-						scale = get_state()
-					end
-					break
+			for key, val in pairs(MOD.tweenable_transforms) do
+				if val.used then
+					val.position = vmath.vector3(val.transform_tab.position)
+					val.rotation = vmath.quat(val.transform_tab.rotation)
+					val.scale = vmath.vector3(val.transform_tab.scale)
 				end
 			end
-			position.z = -position.z
-			scale.z = -scale.z
-			local pos = vmath.vector3(position.x * MOD.offset_scale.x, position.y * MOD.offset_scale.y, position.z * MOD.offset_scale.z)
-			go.set_position(pos, BASE_TRANSFORM)
+			
+			local current_time = MOD.total_time * MOD.scrubber_progress
+			for tween_index, v in ipairs(MOD.tween_table) do
+				local action_end_time = 0
+				for key, val in ipairs(v) do
+					action_end_time = action_end_time + val.time
+					if current_time >= action_end_time then
+						if val.type == "T" then
+							MOD.tweenable_transforms[val.part].position = vmath.vector3(val.end_state.x, val.end_state.y, val.end_state.z)
+						elseif val.type == "R" then
+							MOD.tweenable_transforms[val.part].rotation = G.euler_to_quat(vmath.vector3(val.end_state.x, val.end_state.y, val.end_state.z))
+						elseif val.type == "S" then
+							MOD.tweenable_transforms[val.part].scale = vmath.vector3(val.end_state.x, val.end_state.y, val.end_state.z)
+						end
+					else
+						local action_start = action_end_time - val.time
+						local action_progress = (current_time - action_start) / val.time
+						if not (action_progress == action_progress) then
+							action_progress = 0		-- this shouldn't be necessary, but keeping it to be safe
+						end
+						local function get_state()
+							local start_state = vmath.vector3(val.start_state.x, val.start_state.y, val.start_state.z)
+							local end_state = vmath.vector3(val.end_state.x, val.end_state.y, val.end_state.z)
+							return vmath.lerp(action_progress, start_state, end_state)
+						end
+						if val.type == "T" then
+							MOD.tweenable_transforms[val.part].position = get_state()
+						elseif val.type == "R" then
+							local start_quat = G.euler_to_quat(val.start_state)
+							local end_quat = G.euler_to_quat(val.end_state)
+							MOD.tweenable_transforms[val.part].rotation = vmath.slerp(action_progress, start_quat, end_quat)
+						elseif val.type == "S" then
+							MOD.tweenable_transforms[val.part].scale = get_state()
+						end
+						break
+					end
+				end
+			end
+
+			for key, val in pairs(MOD.tweenable_transforms) do
+				if val.used then
+					go.set_position(val.position, val.url)
+					local sc = vmath.vector3(val.scale.x, val.scale.y, val.scale.z)
+					go.set(val.url, "scale", sc)
+					go.set_rotation(val.rotation, val.url)
+				end
+			end
+			
 			if MOD.move_terrain then
 				go.set(GROUND_GO, "position.z", current_time * 3)
 			else
 				go.set(GROUND_GO, "position.z", 0)
 			end
-			go.set(BASE_TRANSFORM, "scale", scale)
-			local qx = vmath.quat_rotation_x(math.rad(-euler.x))
-			local qy = vmath.quat_rotation_y(math.rad(-euler.y))
-			local qz = vmath.quat_rotation_z(math.rad(euler.z))
-			go.set_rotation(qx * qy * qz, BASE_TRANSFORM)
 		end
 	end
 end
 
 
 local function delete_model()
+	stop_flashing_multiple()
+	stop_flashing()
 	for key, val in ipairs(created_meshes) do
 		go.delete(val.mesh)
 	end
 	for key, val in ipairs(created_transforms) do
-		go.delete(val)
+		go.delete(val.url)
 	end
 	created_meshes, created_transforms = {}, {}
+end
+
+local function adjust_transform_positions()
+	go.set_position(MOD.offset_position, PROP_OFFSET)
+	go.set(PROP_OFFSET, "position.z", -MOD.offset_position.z)
+	go.set(PROP_OFFSET, "scale", MOD.offset_scale)
+	go.set_rotation(MOD.offset_rotation, PROP_OFFSET)
 end
 
 local function show_model(self, model_index)
@@ -337,31 +351,6 @@ local function show_model(self, model_index)
 		local y = string.sub(str, comma_1 + 1, comma_2 - 1)
 		local z = string.sub(str, comma_2 + 1)
 		return tonumber(x), tonumber(y), tonumber(z)
-	end
-
-	local function parse_transform(str, inverted)
-		local commas = {string.find(str, ",")}
-		for i = 2, 9 do
-			commas[i] = string.find(str, ",", commas[i - 1] + 1)
-		end
-		local values = {string.sub(str, 1, commas[1] - 1)}
-		for i = 2, 9 do
-			values[i] = string.sub(str, commas[i - 1] + 1, commas[i] - 1)
-		end
-		values[10] = string.sub(str, commas[9] + 1)
-		local pos = vmath.vector3(values[1], values[2], values[3])
-		local rot = vmath.quat(values[4], values[5], values[6], values[7])
-		local sc = vmath.vector3(values[8], values[9], values[10])
-		if sc.x < 0 then
-			inverted = not inverted
-		end
-		if sc.y < 0 then
-			inverted = not inverted
-		end
-		if sc.z < 0 then
-			inverted = not inverted
-		end
-		return pos, rot, sc, inverted
 	end
 
 	local function create_mesh(mesh_tab, parent, part_index, invert)
@@ -423,32 +412,42 @@ local function show_model(self, model_index)
 		table.insert(created_meshes, {mesh = new_mesh, invert = invert})
 		set_material(self, part_index, model_index)
 	end
+	
+	MOD.tweenable_transforms = {}
+	local invert = false
 	local mesh_count = 0
-	local function create_transforms(tab, parent, invert)
-		if tab.transform then
-			local new_transform = factory.create("#create_transform")
-			go.set_parent(new_transform, parent)
-			if not (parent == BASE_TRANSFORM) then
-				local pos, rot, sc
-				pos, rot, sc, invert = parse_transform(tab.transform, invert)
-				go.set_position(pos, new_transform)
-				go.set_rotation(rot, new_transform)
-				go.set(new_transform, "scale", sc)
-			end
-			table.insert(created_transforms, new_transform)
-			parent = new_transform
+	for key, val in ipairs(MEM.art_data.table.propsDictionary[model_index].model_data.transform_list) do
+		local new_transform = factory.create("#create_transform")
+		if val.parent_tab then
+			go.set_parent(new_transform, val.parent_tab.transform_go)
+			go.set_position(val.position, new_transform)
+		else
+			go.set_parent(new_transform, BASE_TRANSFORM)
 		end
-		if tab.meshes then
-			for key, val in ipairs(tab.meshes) do
+		if val.scale.x * val.scale.y * val.scale.z < 0 then
+			invert = not invert
+		end
+		go.set_rotation(val.rotation, new_transform)
+		go.set(new_transform, "scale", val.scale)
+		val.transform_go = new_transform
+		if val.name then
+			MOD.tweenable_transforms[val.name] = MOD.tweenable_transforms[val.name] or {
+				url = new_transform,
+				position = vmath.vector3(val.position),
+				rotation = vmath.quat(val.rotation),
+				scale = vmath.vector3(val.scale),
+				used = false,
+				transform_tab = val
+			}
+		end
+		if val.meshes then
+			for k, v in ipairs(val.meshes) do
 				mesh_count = mesh_count + 1
-				create_mesh(val, parent, mesh_count, invert)
+				create_mesh(v, new_transform, mesh_count, invert)
 			end
-		end
-		for key, val in ipairs(tab) do
-			create_transforms(val, parent, invert)
 		end
 	end
-	create_transforms(MEM.art_data.table.propsDictionary[model_index].model_data.model_tree, BASE_TRANSFORM, false)
+	adjust_transform_positions()
 	for key, val in ipairs(created_meshes) do
 		msg.post(val.mesh, hash("enable"))
 	end
@@ -462,7 +461,9 @@ function on_message(self, message_id, message, sender)
 			for key, val in ipairs(created_meshes) do
 				msg.post(val.mesh, hash("enable"))
 			end
-			flash_part(self, message.selected_part)
+			if not MOD.tween_preview then
+				flash_part(self, message.selected_part)
+			end
 		elseif message.model > 0 then
 			stop_flashing()
 			show_model(self, message.model)
@@ -475,12 +476,20 @@ function on_message(self, message_id, message, sender)
 		msg.post(".", hash("acquire_input_focus"))
 		--msg.post("/grid#grid", hash("enable"))
 		show_grid(self)
-		if message_id == hash("show") then
-			go.set_position(vmath.vector3(0, 0, 0), BASE_TRANSFORM)
-			go.set(BASE_TRANSFORM, "scale", vmath.vector3(1, 1, -1))
-			go.set_rotation(vmath.quat(0, 0, 0, 1), BASE_TRANSFORM)
-		end
 		msg.post("/model_camera#background", hash("enable"))
+	elseif message_id == hash("prepare_tweens") then
+		for key, val in pairs(MOD.tweenable_transforms) do
+			val.used = false
+		end
+		for key, val in ipairs(MOD.tween_table) do
+			for k, v in ipairs(val) do
+				if v.part and MOD.tweenable_transforms[v.part] then
+					MOD.tweenable_transforms[v.part].used = true
+				end
+			end
+		end
+	elseif message_id == hash("offsets_changed") then
+		adjust_transform_positions()
 	elseif message_id == hash("update_model") then
 		show_model(self, message.model)
 		flash_part(self, 1)
@@ -503,6 +512,8 @@ function on_message(self, message_id, message, sender)
 		end
 		stop_flashing()
 		msg.post("/model_camera#background", hash("disable"))
+	elseif message_id == hash("reset_tween") then
+		reset_tween(self)
 	elseif message_id == hash("remove_model") then
 		delete_model()
 	elseif message_id == hash("colours_changed") then
@@ -513,7 +524,13 @@ function on_message(self, message_id, message, sender)
 			go.set("/grid#grid", "tint", COL.get_current("main"))
 		end
 	elseif message_id == hash("change_material") then
-		set_material(self, message.part_index, message.model_index)
+		if message.part_index then
+			set_material(self, message.part_index, message.model_index)
+		else
+			for key, val in ipairs(created_meshes) do
+				set_material(self, key, message.model_index)
+			end
+		end
 	elseif message_id == hash("switch_background") then
 		show_fog = not show_fog
 		if show_fog then

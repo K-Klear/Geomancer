@@ -7,7 +7,7 @@ instances {
   children: "ground"
   children: "pick_prop"
 }
-scale_along_z: 0
+scale_along_z: 1
 embedded_instances {
   id: "event"
   children: "dialog_event"
@@ -33,6 +33,7 @@ embedded_instances {
 embedded_instances {
   id: "navbar"
   children: "confirm"
+  children: "get_text"
   data: "components {\n"
   "  id: \"navbar\"\n"
   "  component: \"/main/navbar.gui\"\n"
@@ -80,6 +81,7 @@ embedded_instances {
   children: "rename"
   children: "replace"
   children: "transform"
+  children: "transform_parent"
   children: "tween"
   data: "components {\n"
   "  id: \"tab_art\"\n"
@@ -368,7 +370,23 @@ embedded_instances {
   id: "transform"
   data: "components {\n"
   "  id: \"dialog_transform\"\n"
-  "  component: \"/main/dialogs/art/tween/dialog_transform.gui\"\n"
+  "  component: \"/main/dialogs/art/dialog_transform.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "get_text"
+  data: "components {\n"
+  "  id: \"dialog_get_text\"\n"
+  "  component: \"/main/dialogs/dialog_get_text.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "transform_parent"
+  data: "components {\n"
+  "  id: \"dialog_parent_transform\"\n"
+  "  component: \"/main/dialogs/art/dialog_parent_transform.gui\"\n"
   "}\n"
   ""
 }
