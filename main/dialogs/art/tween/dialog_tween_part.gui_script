@@ -27,7 +27,7 @@ function init(self)
 end
 
 function evaluate_button(button, item)
-	if button == "tween_part_accept" then
+	if button == "tween_part_accept" or button == "enter" then
 		DIALOG.close(DIALOG_NAME, {
 			dialog = hash(DIALOG_NAME), selected_part = selected_part, model_index = model_index, action_index = action_index
 		})
@@ -49,18 +49,32 @@ function on_message(self, message_id, message, sender)
 		transform_list = MEM.art_data.table.propsDictionary[model_index].model_data.transform_list
 		part_list = {}
 		local part_names = {}
+		local selected_name
+		selected_part = nil
+		local selection_index
+		if message.transform_index then
+			selected_name = transform_list[message.transform_index].name
+		end
 		for key, val in ipairs(transform_list) do
 			if (key > 1) or SET.allow_tweening_base_transform then
 				if not part_names[val.name] then
 					table.insert(part_list, key)
 					part_names[val.name] = true
+					if selected_name == val.name then
+						selected_part = key
+						selection_index = #part_list
+					end
 				end
 			end
 		end
-		selected_part = message.transform_index or 1
 		action_index = message.action_index
 		UI.update_list(DIALOG_NAME, list, #part_list)
-		UI.select_exclusive_button(DIALOG_NAME, list, selected_part, true)
+		if selected_part then
+			UI.select_exclusive_button(DIALOG_NAME, list, selection_index, true)
+		else
+			selected_part = part_list[1]
+			UI.select_exclusive_button(DIALOG_NAME, list, 1, true)
+		end
 	end
 end
 

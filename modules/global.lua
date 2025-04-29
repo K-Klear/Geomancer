@@ -37,6 +37,9 @@ function G.sanitise_json(str)
 end
 
 function G.safe_decode(json_str, filename)
+	--if not (type(json_str) == "string") then
+	--	return
+	--end
 	json_str = G.sanitise_json(json_str)
 	filename = filename or "File"
 	local err, table = pcall(json.decode, json_str)
@@ -78,6 +81,7 @@ end
 function G.expand_repeat_actions(tween_script)
 	local new_script = {}
 	local deletion_count = 0
+	local save_original = false
 	local function copy_action(action_table)
 		local new_tab = {type = action_table.type, part = action_table.part, time = action_table.time}
 		if action_table.start_state then
@@ -87,6 +91,7 @@ function G.expand_repeat_actions(tween_script)
 			new_tab.end_state = {x = action_table.end_state.x, y = action_table.end_state.y, z = action_table.end_state.z}
 		end
 		if action_table.easing then
+			save_original = true
 			new_tab.easing = action_table.easing
 		end
 		return new_tab
@@ -96,6 +101,7 @@ function G.expand_repeat_actions(tween_script)
 		local val = tween_script[key]
 		local ignore_repeat = false
 		if val.type == "X" then
+			save_original = true
 			local number_of_repetitions = val.number_of_repetitions
 			local actions_to_repeat = val.actions_to_repeat
 			for action_index = key - val.actions_to_repeat, key - 1 do
@@ -117,7 +123,43 @@ function G.expand_repeat_actions(tween_script)
 			table.insert(new_script, 1, copy_action(val))
 		end
 	end
-	return new_script, deletion_count
+	return new_script, deletion_count, save_original
+end
+
+function G.separate_easing(action_tab)
+	local x_diff = action_tab.end_state.x - action_tab.start_state.x
+	local y_diff = action_tab.end_state.y - action_tab.start_state.y
+	local z_diff = action_tab.end_state.z - action_tab.start_state.z
+	if action_tab.type == "R" then
+		if x_diff > 180 then
+			x_diff = x_diff - 360
+		elseif x_diff < -180 then
+			x_diff = x_diff + 360
+		end
+		if y_diff > 180 then
+			y_diff = y_diff - 360
+		elseif y_diff < -180 then
+			y_diff = y_diff + 360
+		end
+		if z_diff > 180 then
+			z_diff = z_diff - 360
+		elseif z_diff < -180 then
+			z_diff = z_diff + 360
+		end
+	end
+	local node_tab = action_tab.easing.nodes
+	local node_values = {}
+	for i = 1, #node_tab - 1 do
+		local s_x = action_tab.start_state.x + (node_tab[i].comp * x_diff)
+		local s_y = action_tab.start_state.y + (node_tab[i].comp * y_diff)
+		local s_z = action_tab.start_state.z + (node_tab[i].comp * z_diff)
+		local e_x = action_tab.start_state.x + (node_tab[i + 1].comp * x_diff)
+		local e_y = action_tab.start_state.y + (node_tab[i + 1].comp * y_diff)
+		local e_z = action_tab.start_state.z + (node_tab[i + 1].comp * z_diff)
+		local t = action_tab.time * (node_tab[i + 1].time - node_tab[i].time)
+		table.insert(node_values, {s = {x = s_x, y = s_y, z = s_z}, e = {x = e_x, y = e_y, z = e_z}, t = t})
+	end
+	return node_values
 end
 
 function G.parse_transform(str, inverted)

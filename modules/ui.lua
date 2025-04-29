@@ -174,6 +174,7 @@ local function text_field_clicked(text_field)
 	active_text_field = text_field
 	gui.set_color(active_text_field.node, SET.colour_active_text_field)
 	text_field_text = gui.get_text(active_text_field.text)
+	active_text_field.previous_text = text_field_text
 	cursor_visible = false
 	text_field_cursor()
 end
@@ -572,49 +573,12 @@ function UI.scroll_to_item(tab, list_index, item, fast)
 	end
 end
 
-function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_text_fields)
-	if action_id == hash("escape") and action.pressed then
-		button_fn("escape")
-		return
-	end
-	mouse_held = action.pressed or (mouse_held and not action.released)
-	if action_id == hash("lctrl") then
-		l_ctr_held = not action.released
-		UI.ctrl_held = r_ctr_held or l_ctr_held
-		return
-	elseif action_id == hash("rctrl") then
-		r_ctr_held = not action.released
-		UI.ctrl_held = r_ctr_held or l_ctr_held
-		return
-	elseif action_id == hash("rshift") then
-		r_shift_held = not action.released
-		UI.shift_held = r_shift_held or l_shift_held
-		return
-	elseif action_id == hash("lshift") then
-		l_shift_held = not action.released
-		UI.shift_held = r_shift_held or l_shift_held
-		return
-	elseif action_id == hash("v") then
-		if action.pressed and UI.ctrl_held then
-			action_id = hash("paste")
-		else
-			return
-		end
-	elseif action_id == hash("c") then
-		if action.pressed and UI.ctrl_held then
-			action_id = hash("copy")
-		else
-			return
-		end
-	end
-	if MOD.is_dragged then
-		return
-	end
-	if active_text_field and not suppress_text_fields then
-		if action.pressed and (action_id == hash("touch") or action_id == hash("enter") or action_id == hash("tab")) then
-			timer.cancel(cursor_timer)
-			cursor_visible = false
-			gui.set_color(active_text_field.node, vmath.vector4(1, 1, 1, 1))
+local function exit_text_field(text_field_fn)
+	if active_text_field then
+		timer.cancel(cursor_timer)
+		cursor_visible = false
+		gui.set_color(active_text_field.node, vmath.vector4(1, 1, 1, 1))
+		if text_field_fn then
 			local valid = active_text_field.validation
 			local rounded_text
 			if valid then
@@ -661,6 +625,58 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_
 			end
 			gui.set_text(active_text_field.text, rounded_text or text_field_text)
 			text_field_fn(active_text_field.template, text_field_text, active_text_field.item)
+		else
+			gui.set_text(active_text_field.text, active_text_field.previous_text)
+		end
+		active_text_field.previous_text = nil
+		active_text_field = nil
+	end
+end
+
+function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_text_fields)
+	mouse_held = action.pressed or (mouse_held and not action.released)
+	if action_id == hash("lctrl") then
+		l_ctr_held = not action.released
+		UI.ctrl_held = r_ctr_held or l_ctr_held
+		return
+	elseif action_id == hash("rctrl") then
+		r_ctr_held = not action.released
+		UI.ctrl_held = r_ctr_held or l_ctr_held
+		return
+	elseif action_id == hash("rshift") then
+		r_shift_held = not action.released
+		UI.shift_held = r_shift_held or l_shift_held
+		return
+	elseif action_id == hash("lshift") then
+		l_shift_held = not action.released
+		UI.shift_held = r_shift_held or l_shift_held
+		return
+	elseif action_id == hash("v") then
+		if action.pressed and UI.ctrl_held then
+			action_id = hash("paste")
+		else
+			return
+		end
+	elseif action_id == hash("c") then
+		if action.pressed and UI.ctrl_held then
+			action_id = hash("copy")
+		else
+			return
+		end
+	end
+	if MOD.is_dragged then
+		return
+	end
+	if action_id == hash("escape") and action.pressed then
+		if active_text_field then
+			exit_text_field()
+		else
+			button_fn("escape")
+		end
+		return
+	end
+	if active_text_field and not suppress_text_fields then
+		if action.pressed and (action_id == hash("touch") or action_id == hash("enter") or action_id == hash("tab")) then
 			if action_id == hash("tab") then
 				local field_index
 				for key, val in ipairs(UI.tab[tab].fields) do
@@ -682,9 +698,10 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_
 						field_index = 1
 					end
 				end
+				exit_text_field(text_field_fn)
 				text_field_clicked(UI.tab[tab].fields[field_index])
 			else
-				active_text_field = nil
+				exit_text_field(text_field_fn)
 			end
 		elseif action_id == hash("copy") then
 			reset_cursor_timer(true)
@@ -694,6 +711,10 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_
 		else
 			text_field_input(action_id, action)
 		end
+		return
+	end
+	if action_id == hash("enter") and action.pressed then
+		button_fn("enter")
 		return
 	end
 	if UI.tab[tab].scrolling_lists then
@@ -870,12 +891,14 @@ end
 
 local DIALOG = {}
 
+
 function DIALOG.setup(dialog_name)
 	UI.tab[dialog_name] = {buttons = {}, fields = {}, path = msg.url("#"), dialog_open = false}
 	msg.post("#", hash("disable"))
 end
 
 function DIALOG.open(tab, dialog_name, data)
+	exit_text_field()
 	msg.post(UI.tab[dialog_name].path, hash("show"), data)
 	UI.tab[dialog_name].render_order = UI.tab[tab].render_order + 1
 	UI.tab[dialog_name].parent_name = tab
@@ -884,6 +907,7 @@ function DIALOG.open(tab, dialog_name, data)
 end
 
 function DIALOG.show(DIALOG_DATA, parent)
+	exit_text_field()
 	gui.set_render_order(DIALOG_DATA.render_order)
 	DIALOG_DATA.parent_tab = parent
 	msg.post("#", hash("acquire_input_focus"))
@@ -892,6 +916,7 @@ function DIALOG.show(DIALOG_DATA, parent)
 end
 
 function DIALOG.close(DIALOG_NAME, data)
+	exit_text_field()
 	msg.post("#", hash("disable"))
 	msg.post("#", hash("release_input_focus"))
 	UI.tab[DIALOG_NAME].dialog_open = false
@@ -903,6 +928,7 @@ function DIALOG.close(DIALOG_NAME, data)
 end
 
 function DIALOG.hide(DIALOG_NAME)
+	exit_text_field()
 	local dialog_path = UI.tab[DIALOG_NAME].path
 	msg.post(dialog_path, hash("disable"))
 	msg.post(dialog_path, hash("release_input_focus"))
@@ -913,6 +939,7 @@ function DIALOG.hide(DIALOG_NAME)
 end
 
 function DIALOG.close_all(TAB_NAME)
+	exit_text_field()
 	if UI.tab[TAB_NAME].child_dialog then
 		DIALOG.hide(UI.tab[TAB_NAME].child_dialog)
 		UI.tab[TAB_NAME].child_dialog = nil

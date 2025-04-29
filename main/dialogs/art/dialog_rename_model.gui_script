@@ -21,7 +21,7 @@ function init(self)
 end
 
 local function evaluate_button(button)
-	if button == "dialog_rename_model_accept" then
+	if button == "dialog_rename_model_accept" or button == "enter" then
 		if model_name == MEM.art_data.table.propsDictionary[model_to_rename].key then
 			G.update_navbar("Enter a different name.", true)
 			return

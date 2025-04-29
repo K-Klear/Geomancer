@@ -485,15 +485,30 @@ function load.pw_art(data, filename)
 	if MEM.check(tab, "pw_art", filename) then
 		MEM.art_data = {table = tab, filename = filename}
 		local dynamic_models = {}
+		local model_count = {}
 		if tab.dynamicProps then
 			for key, val in ipairs(tab.dynamicProps) do
 				dynamic_models[val.name] = true
+				model_count[val.name] = (model_count[val.name] or 0) + 1
 			end
 		end
 		if tab.dynamicCullingRanges then
 			for key, val in ipairs(tab.dynamicCullingRanges) do
 				for k, v in ipairs(val.members) do
 					dynamic_models[v.name] = true
+					model_count[v.name] = (model_count[v.name] or 0) + 1
+				end
+			end
+		end
+		if tab.staticProps then
+			for key, val in ipairs(tab.staticProps) do
+				model_count[val.name] = (model_count[val.name] or 0) + 1
+			end
+		end
+		if tab.staticCullingRanges then
+			for key, val in ipairs(tab.staticCullingRanges) do
+				for k, v in ipairs(val.members) do
+					model_count[v.name] = (model_count[v.name] or 0) + 1
 				end
 			end
 		end
@@ -504,13 +519,14 @@ function load.pw_art(data, filename)
 
 		for key, val in ipairs(tab.propsDictionary) do
 			if not (val.object.name == val.key) then
-				G.update_navbar("Found key/name mismatch is prop "..val.key..". It has been fixed.")
 				val.object.name = val.key
+				G.update_navbar("Found key/name mismatch is prop "..val.key..". It has been fixed.")
 			end
 			MEM.add_metadata(val)
 			if dynamic_models[val.key] or (val.tween > 0) then
 				val.dynamic = true
 			end
+			val.model_data.model_count = model_count[val.key] or 0
 		end
 
 		MEM.art_data.colours = {}
@@ -539,6 +555,27 @@ function load.pw_art(data, filename)
 		MEM.art_data = {}
 		UI.tab.tab_art.state = false
 	end
+end
+
+function load.geomancer(data, filename)
+	local tab = G.safe_decode(data, filename)
+	if tab then
+		if tab.props then
+			for key, val in pairs(tab.props) do
+				for k, v in pairs(val.tweens) do
+					v.table.signal = v.signal
+				end
+			end
+		end
+		MEM.geomancer_meta = tab
+		return true
+	else
+		MEM.geomancer_meta = nil
+	end
+end
+
+function MEM.load_geomancer_data(data, filename)
+	load.geomancer(data, filename)
 end
 
 function MEM.load_file(path, filename, extension, data)

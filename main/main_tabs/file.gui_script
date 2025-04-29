@@ -76,83 +76,59 @@ local function export_event(path)
 	end
 end
 
-local function export_art(path)
-	-- put the geomancer meta file creation stuff here somewhere
-	local is_dynamic = {}
-	local model_table = MEM.art_data.table
-
-	local function get_tween_script(tween_data, model_name)
-		if not tween_data then return end
-		local str = ""
-		local deletion_count
-		tween_data, deletion_count = G.expand_repeat_actions(tween_data)
-		
+local function get_tween_script(tween_data, model_name)
+	if not tween_data then return end
+	local str = ""
+	local deletion_count, save_original
+	tween_data, deletion_count, save_original = G.expand_repeat_actions(tween_data)
+	if model_name then
 		if deletion_count > 1 then
 			G.update_navbar(deletion_count.." invalid repeat actions have been removed from tween of "..model_name)
 		elseif deletion_count > 0 then
 			G.update_navbar("An invalid repeat action has been removed from tween of "..model_name)
 		end
-		
-		for key, val in ipairs(tween_data) do
-			if val.type == "W" then
-				str = str..val.type..val.time..";"
-			else
-				if val.easing then
-					local x_diff = val.end_state.x - val.start_state.x
-					local y_diff = val.end_state.y - val.start_state.y
-					local z_diff = val.end_state.z - val.start_state.z
-					if val.type == "R" then
-						if x_diff > 180 then
-							x_diff = x_diff - 360
-						elseif x_diff < -180 then
-							x_diff = x_diff + 360
-						end
-						if y_diff > 180 then
-							y_diff = y_diff - 360
-						elseif y_diff < -180 then
-							y_diff = y_diff + 360
-						end
-						if z_diff > 180 then
-							z_diff = z_diff - 360
-						elseif z_diff < -180 then
-							z_diff = z_diff + 360
-						end
-					end
-					local node_tab = val.easing.nodes
-					for i = 1, #node_tab - 1 do
-						local s_x = val.start_state.x + (node_tab[i].comp * x_diff)
-						local s_y = val.start_state.y + (node_tab[i].comp * y_diff)
-						local s_z = val.start_state.z + (node_tab[i].comp * z_diff)
-						local e_x = val.start_state.x + (node_tab[i + 1].comp * x_diff)
-						local e_y = val.start_state.y + (node_tab[i + 1].comp * y_diff)
-						local e_z = val.start_state.z + (node_tab[i + 1].comp * z_diff)
-						local t = val.time * (node_tab[i + 1].time - node_tab[i].time)
-						str = str..val.type..val.part..";"
-						str = str..s_x..","..s_y..","..s_z..";"
-						str = str..e_x..","..e_y..","..e_z..";"..t..";"
-					end
-				else
-					str = str..val.type..val.part..";"..val.start_state.x..","..val.start_state.y..","
-					str = str..val.start_state.z..";"..val.end_state.x..","..val.end_state.y..","..val.end_state.z..";"..val.time..";"
-				end
-			end
-		end
-		return str
 	end
 
+	for key, val in ipairs(tween_data) do
+		if val.type == "W" then
+			str = str..val.type..val.time..";"
+		else
+			if val.easing then
+				local node_values = G.separate_easing(val)
+				for k, v in ipairs(node_values) do
+					str = str..val.type..val.part..";"..v.s.x..","..v.s.y..","..v.s.y..";"..v.e.x..","..v.e.y..","..v.e.z..";"..v.t..";"
+				end
+			else
+				str = str..val.type..val.part..";"..val.start_state.x..","..val.start_state.y..","
+				str = str..val.start_state.z..";"..val.end_state.x..","..val.end_state.y..","..val.end_state.z..";"..val.time..";"
+			end
+		end
+	end
+	return str, save_original
+end
+
+local function export_art(path)
+	-- put the geomancer meta file creation stuff here somewhere
+	local is_dynamic = {}
+	local model_table = MEM.art_data.table
 	for key, val in ipairs(model_table.propsDictionary) do
 		for k, v in ipairs(val.model_data.transform_list) do
-			if v.tween then
-				local tween_script = get_tween_script(v.tween, val.key)
-				for i = #v.tab.components, 1, -1 do
-					if (v.tab.components[i].type == "ScriptedTween") or (v.tab.components[i].type == "LevelEventReceiver") then
-						table.remove(v.tab.components, i)
-					end
+			for i = #v.tab.components, 1, -1 do
+				if (v.tab.components[i].type == "ScriptedTween") or (v.tab.components[i].type == "LevelEventReceiver") then
+					table.remove(v.tab.components, i)
 				end
+			end
+			if v.tween then
+				local tween_script, save_original = get_tween_script(v.tween, val.key)
 				if tween_script then
 					table.insert(v.tab.components, {type = "ScriptedTween", Script = tween_script, _key_sort = {"type", "Script"}})
 					table.insert(v.tab.components, {type = "LevelEventReceiver", EventId = v.tween.signal,
 					ActionType = "ScriptedTweenTrigger", _key_sort = {"type", "EventId", "ActionType"}})
+					if save_original then
+						MEM.geomancer_meta.props[val.key] = MEM.geomancer_meta.props[val.key] or {tweens = {}}
+						MEM.geomancer_meta.props[val.key].tweens[k] = {table = v.tween, script = tween_script, signal = v.tween.signal}
+						MEM.geomancer_meta.props[val.key].tweens[k].table.signal = nil
+					end
 				end
 			end
 		end
@@ -317,6 +293,15 @@ local function export_slice(path)
 	end
 end
 
+local function export_geomancer_meta(path)
+	local f = G.safe_output(path)
+	if f then
+		io.write(json.encode(MEM.geomancer_meta))
+		io.close(f)
+	end
+	MEM.geomancer_meta = nil
+end
+
 local function export_all(overwrite)
 	if UI.tab.tab_level.state or UI.tab.tab_event.state or UI.tab.tab_geo.state or UI.tab.tab_beat.state or UI.tab.tab_meta.state or UI.tab.tab_art.state then
 		local num, path
@@ -353,6 +338,7 @@ local function export_all(overwrite)
 					end
 				end
 			end
+			MEM.geomancer_meta = {version = sys.get_config("project.version"), props = {}}
 			if not overwrite then
 				path = path.."\\"..common_filename.."_geomanced"
 				if not lfs.mkdir(path) then
@@ -390,6 +376,9 @@ local function export_all(overwrite)
 				if MEM.meta_data.table then
 					export_slice(path.."\\do_not_ship.pw_meta")
 				end
+
+				export_geomancer_meta(path.."\\"..common_filename..".geomancer")
+				
 				G.update_navbar("Files exported to "..path)
 			else
 				G.update_navbar("Starting export", true)
@@ -425,6 +414,10 @@ local function export_all(overwrite)
 					end
 					table.insert(files_to_export, {fn = export_slice, path = full_path, exists = sys.exists(full_path), text = text})
 				end
+
+				full_path = path.."\\"..common_filename..".geomancer"
+				table.insert(files_to_export, {fn = export_geomancer_meta, path = full_path, exists = sys.exists(full_path), text = "Geomancer metadata exported"})
+				
 				local overwrite_count = 0
 				for key, val in ipairs(files_to_export) do
 					if val.exists then
@@ -679,6 +672,24 @@ local function degeomance()
 	end
 end
 
+local function check_geomancer_meta()
+	if MEM.art_data.table and MEM.geomancer_meta and MEM.geomancer_meta.props and next(MEM.geomancer_meta.props) then
+		for key, val in ipairs(MEM.art_data.table.propsDictionary) do
+			if MEM.geomancer_meta.props[val.key] then
+				for k, v in pairs(MEM.geomancer_meta.props[val.key].tweens) do
+					if val.model_data.transform_list[k] and val.model_data.transform_list[k].tween then
+						local old_script = get_tween_script(val.model_data.transform_list[k].tween)
+						if old_script == v.script then
+							val.model_data.transform_list[k].tween = v.table
+						end
+					end
+				end
+			end
+		end
+	end
+	MEM.geomancer_meta = nil
+end
+
 local function import_changes()
 	if not ((SET.import_level_changes and UI.tab.tab_level.state) or (SET.import_event_changes and UI.tab.tab_event.state) or
 	(SET.import_beat_changes and UI.tab.tab_beat.state) or (SET.import_model_changes and UI.tab.tab_art.state)) then
@@ -687,7 +698,7 @@ local function import_changes()
 	else
 		G.update_navbar("Importing changes", true)
 	end
-	local _, path, level_data, event_data, art_data, beat_data
+	local _, path, level_data, event_data, art_data, beat_data, geomancer_data
 	if SET.import_changes_from_zip then
 		_, path = diags.open("zip", SET.default_path_import_model_data)
 		if path then
@@ -704,6 +715,8 @@ local function import_changes()
 						level_data = file.content
 					elseif SET.import_model_changes and string.sub(file.name, -6) == "pw_art" then
 						art_data = file.content
+					elseif SET.import_model_changes and string.sub(file.name, -9) == "geomancer" then
+						geomancer_data = file.content
 					elseif SET.import_beat_changes and string.sub(file.name, -7) == "pw_beat" then
 						beat_data = file.content
 					end
@@ -732,6 +745,8 @@ local function import_changes()
 							level_data = read_file(path.."/"..filename)
 						elseif SET.import_model_changes and extension == "pw_art" then
 							art_data = read_file(path.."/"..filename)
+						elseif SET.import_model_changes and extension == "geomancer" then
+							geomancer_data = read_file(path.."/"..filename)
 						elseif SET.import_beat_changes and extension == "pw_beat" then
 							beat_data = read_file(path.."/"..filename)
 						end
@@ -791,6 +806,7 @@ local function import_changes()
 						val.dynamic = true
 					end
 					MEM.add_metadata(model_list[val.key])
+					model_list[val.key].model_data.model_count = MEM.art_data.table.propsDictionary[key].model_data.model_count
 					local materials_updated = false
 					if not val.tween or val.tween < 1 then
 						if model_list[val.key].tween > 0 then
@@ -816,6 +832,10 @@ local function import_changes()
 				end
 			end
 		end
+		if geomancer_data then
+			MEM.load_geomancer_data(geomancer_data, "The geomancer metadata file")
+		end
+		check_geomancer_meta()
 		G.update_navbar("Model data updated")
 	end
 	if UI.tab.tab_beat.state and beat_data then
@@ -977,18 +997,18 @@ local function evaluate_button(button)
 			local filename = string.reverse(string.sub(htap, 1, string.find(htap, "\\") - 1))
 			local extension = string.find(htap, "%.")
 			extension = string.reverse(string.sub(htap, 1, extension - 1))
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Loading "..filename, clear = true})
+			G.update_navbar("Loading "..filename, true)
 			timer.delay(0.02, false, function()
 				local panel = MEM.load_file(path, filename, extension)
 				if panel then
-					msg.post("/navbar#navbar", hash("update_status"), {text = "File loaded successfully"})
+					G.update_navbar("File loaded successfully")
 					msg.post("/navbar#navbar", hash("update_tabs"))
 					check_for_reset()
 					if extension == "pw_event" then
 						msg.post("/event#tab_event", hash("detect_sample_rate"))
 					end
 				else
-					msg.post("/navbar#navbar", hash("update_status"), {text = "File not loaded"})
+					G.update_navbar("File not loaded")
 				end
 			end)
 		end
@@ -997,20 +1017,20 @@ local function evaluate_button(button)
 		if path then
 			local f = io.open(path, "rb")
 			if f then
-				msg.post("/navbar#navbar", hash("update_status"), {text = "Loading files from "..path, clear = true})
+				G.update_navbar("Loading files from "..path, true)
 				local zip_data = f:read("*a")
 				local archive = zip.open(zip_data)
 				if not archive then
-					msg.post("/navbar#navbar", hash("update_status"), {text = "Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually."})
+					G.update_navbar("Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually.")
 					return
 				end
 				local file_index = zip.get_number_of_entries(archive) - 1
 				local skip_count, extracted_count = 0, 0
-				local ext_list = {pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = true}
+				local ext_list = {pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = true, geomancer = true}
 				local function extract_next()
 					local err, file = pcall(zip.extract_by_index, archive, file_index)
 					if not err then
-						msg.post("/navbar#navbar", hash("update_status"), {text = "Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually."})
+						G.update_navbar("Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually.")
 						return
 					end
 					
@@ -1022,7 +1042,7 @@ local function evaluate_button(button)
 							local panel = MEM.load_file(nil, file.name, extension, file.content) 
 							if panel then
 								ext_list[extension] = false
-								msg.post("/navbar#navbar", hash("update_status"), {text = file.name})
+								G.update_navbar(file.name)
 								extracted_count = extracted_count + 1
 							else
 								skip_count = skip_count + 1
@@ -1034,14 +1054,15 @@ local function evaluate_button(button)
 					file_index = file_index - 1
 					if file_index < 0 then
 						zip.close(archive)
-						msg.post("/navbar#navbar", hash("update_status"), {text = "Extracted "..extracted_count.." files, "..skip_count.." skipped."})
+						check_geomancer_meta()
+						G.update_navbar("Extracted "..extracted_count.." files, "..skip_count.." skipped.")
 						if MEM.level_data.sceneDisplayName then
 							G.update_navbar("Loaded scene: "..MEM.level_data.sceneDisplayName)
 							if MEM.level_data.mapper == "Klear" or MEM.level_data.mapper == "Klear_" or MEM.level_data.mapper == "kingklear" then
 								G.update_navbar("Hey, that's one of mine! Hope you like it")
 							end
 						else
-							msg.post("/navbar#navbar", hash("update_status"), {text = "Unknown scene name"})
+							G.update_navbar("Unknown scene name")
 						end
 						if UI.tab.tab_event.state then
 							msg.post("/event#tab_event", hash("detect_sample_rate"))
@@ -1054,7 +1075,7 @@ local function evaluate_button(button)
 				if file_index > -1 then
 					timer.delay(0.01, false, extract_next)
 				else
-					msg.post("/navbar#navbar", hash("update_status"), {text = "Archive is empty."})
+					G.update_navbar("Archive is empty.")
 				end
 				check_for_reset()
 			end
@@ -1062,10 +1083,10 @@ local function evaluate_button(button)
 	elseif button == "load_dir" then
 		local num, path = diags.open_folder(SET.default_path_load_directory)
 		if path then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Loading files from "..path, clear = true})
+			G.update_navbar("Loading files from "..path, true)
 			local files_to_load = {}
 			local skip_count = 0
-			local ext_list = {pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = false}
+			local ext_list = {pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = false, geomancer = true}
 			for filename in lfs.dir(path) do
 				if not (filename == "." or filename == "..") then
 					local extension = string.find(filename, "%.")
@@ -1096,6 +1117,7 @@ local function evaluate_button(button)
 						if UI.tab.tab_event.state then
 							msg.post("/event#tab_event", hash("detect_sample_rate"))
 						end
+						check_geomancer_meta()
 						if MEM.level_data.sceneDisplayName then
 							G.update_navbar("Done. Loaded scene: "..MEM.level_data.sceneDisplayName)
 							if MEM.level_data.mapper == "Klear" or MEM.level_data.mapper == "Klear_" or MEM.level_data.mapper == "kingklear" then

@@ -3,7 +3,6 @@ To do:
 - Fix buttons firing when mouse is held, moved away and then returned to the button
 - Meta data purge button
 - Check for illegal enemy types
-- Unload pictures button for geo slices
 - Partial export
 - Link the model spreadsheet from somewhere, maybe
 - "Smart" model dynamizer
@@ -26,8 +25,6 @@ To do:
 
 Bugs:
 
-- Volumes generate wrong on the edge of the pictures
-
 Done:
 
 Features:
@@ -35,14 +32,37 @@ Features:
 - Disabled geo generator for now
 - Added a check for mismatched prop key/object name on import.
 - Added the "Odin" material set
+- Model list now shows number of each prop placed within the map
 - Choosing a specific prop for tween preview now also tries to find the signal activating its tween and sets its Z position accordingly.
+- Added a transform editor, accessed by using the tween button on the art tab
+	- Transforms can be added, renamed, deleted and re-parented freely
+	- Adding a transform adds it as a parent of all child transforms of the selected transform
+		- Holding shift when clicking the add button adds it as the parent of selected transform instead
+	- Transform properties can be seen and modified
+	- A new base transform ready for tweening the whole prop gets created automatically first time transform editor is opened by default
+
 - Reworked tween editor to support multiple tweens on the same prop:
 	- Start by selecting one of the model's transforms to attach the tween
 	- Tweens can now freely target any of the model's transforms
+		- Tween actions now default to the initial state of selected transform
 	- Tween preview will show the combination of all the model's tweens happening at the same time
 		- Click a timeline to select this tween for editing after the preview is closed
+	- Tween preview will now load the properties of the first prop instance when opened
+
+- The model viewer can now optionally visualise the model's transforms, represented by a white sphere with directional arrows
+	- The preview on the model tab can show either all or none of the transforms
+		- Transform editor can also show only the selected transform
+		- Tween preview can show only the one currently being affected by the selected tween
+
+- Exporting a map now generates a [mapname].geomancer file
+	- If loaded alongside of a map, it will reconstruct easings/repeats rather than showing them as separate actions.
+	- The file can be safely bundled in the map file - Pistol Whip will ignore it and it doesn't take much space.
+	- It also stores Geomancer version used to create it, though this is not used anywhere
+
+- Added a "Separate actions" in the easing editor to split the easing.
 
 New shortcuts:
+- Certan dialogs can now be accepted by pressing enter
 - You can now move between the main tabs using the F1-F7 keys
 - Press ctrl+E anytime to export changes
 - Holding down shift when selecting a material will apply this material to ALL the meshes in the model
@@ -53,9 +73,10 @@ Fixes:
 - Sample rate autodetection notification now shows up while loading map files
 - Export is now a lot faster and supports large filesizes
 - Increased some internal limits to better support unreasonably large models
-- Model parts are now referred to as "Meshes" or "Submeshes".
+- Model parts are now referred to as "Meshes" or "Submeshes"
 - Saved tweens are now named [model name]_[transform name].pw_tween to allow saving multiple tweens attached to the same model without overwriting
 - Tween previews should be more accurate
+- Easing node's completion value is no longer hidden by the graph
 
 Bugs:
 - Fixed a crash when trying to bulk change type of enemies in a map without enemies
@@ -63,21 +84,26 @@ Bugs:
 - Material set "2089 - Arbiter" works correctly now
 - Line breaks and apostrophes should now always show in description preview correctly. Other special characters may still display wrong
 - Stopped "default_camera_pitch=25" being appended to the .cfg file with every launch
+- Fixed a crash caused by closing a dialog while a text field is active
 
 New configs:
+add_root_transform_if_missing
 mesh_flash_frequency
 mesh_flash_time
 mesh_flash_colour
 tween_timeline_bar_height
 use_default_transform_name
-add_root_transform_if_missing - NOT IMPLEMENTED IN THE WORSE WAY!
+root_transform_default_name
 allow_tweening_base_transform
+confirm_transform_delete
+allow_mesh_delete
+hide_model_count
+auto_set_tween_preview_prop
+show_transform_edit_warning
 
 Notes:
 - See if "MEM.event_reloaded" and similar are necessary. Currently load error unloads previous data - is that a bad thing?
 - Check if importing a new enemy type doesn't mess up the bulk replace dialog
 - See if G.find_substring is still in use after I'm done with this
 - Check if I should sort prop lists by position
-- Cannot copy a tween from another transform in the same model
 - Add the demon enemy set
-- Add an option to automatically pick the first prop instance when opening a tween

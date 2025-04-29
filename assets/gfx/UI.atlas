@@ -103,6 +103,15 @@ images {
 images {
   image: "/assets/gfx/model_viewer/pov_cam.png"
 }
+images {
+  image: "/assets/gfx/model_viewer/button_transform_one.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/button_transform_all.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/button_transform_none.png"
+}
 animations {
   id: "button_white_down"
   images {

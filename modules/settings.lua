@@ -60,6 +60,9 @@ SET.colour_tween_rotate = vmath.vector4(0, 0.5, 0, 1)
 SET.colour_tween_scale = vmath.vector4(0.5, 0.5, 0, 1)
 SET.colour_tween_wait = vmath.vector4(0.3, 0.3, 0.3, 1)
 
+-- art
+SET.hide_model_count = false
+
 -- model
 SET.restrict_rotations_to_360 = true
 
@@ -82,6 +85,8 @@ SET.custom_colour_enemy = "000000"
 SET.model_show_grid = 1
 SET.model_grid_dots = false
 
+SET.show_transform = 1
+
 SET.default_rotation = 0
 SET.default_pitch = 25
 
@@ -96,13 +101,18 @@ SET.mesh_flash_colour = vmath.vector4(1, 0, 0, 0.4)
 SET.default_transform_name = "NewTransform"
 SET.use_default_transform_name = false
 SET.add_root_transform_if_missing = true
+SET.root_transform_default_name = "Base"
 SET.allow_tweening_base_transform = false
+SET.confirm_transform_delete = true
+SET.allow_mesh_delete = false
+SET.show_transform_edit_warning = true
 
 -- tween
 SET.tween_action_type_dialog = true
 SET.tween_part_dialog = true
 SET.tween_extra_add_buttons = false
 SET.ask_before_overwriting_tween_file = true
+SET.auto_set_tween_preview_prop = true
 
 -- easing  													ALL IS NEW!!!
 SET.easing_node_scale = 0.5

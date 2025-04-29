@@ -256,7 +256,7 @@ nodes {
 }
 nodes {
   type: TYPE_TEXT
-  text: "Close"
+  text: "Accept"
   id: "btn_enemies_close/text"
   parent: "btn_enemies_close/button_white"
   layer: "text"

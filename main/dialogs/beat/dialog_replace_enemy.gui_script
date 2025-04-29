@@ -74,7 +74,7 @@ local function evaluate_button(button, item)
 	if button == "choice_cancel" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)
 		remove_selection()
-	elseif button == "choice_accept" then
+	elseif button == "choice_accept" or button == "enter" then
 		if not enemy_to_replace then
 			G.update_navbar("You must select an enemy type to replace.", true)
 		elseif not new_type then

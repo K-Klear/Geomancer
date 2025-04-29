@@ -55,7 +55,7 @@ function init(self)
 end
 
 local function evaluate_button(button)
-	if button == "dialog_event_accept" then
+	if button == "dialog_event_accept" or button == "enter" then
 		DIALOG.close(DIALOG_NAME, {start_sample = start_sample, signal = signal, offset = offset, repeats = repeats})
 	elseif button == "dialog_event_cancel" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)

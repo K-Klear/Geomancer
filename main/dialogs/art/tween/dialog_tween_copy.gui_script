@@ -27,7 +27,7 @@ function init(self)
 end
 
 function evaluate_button(button, item)
-	if button == "tween_copy_accept" then
+	if button == "tween_copy_accept" or button == "enter" then
 		DIALOG.close(DIALOG_NAME, {selected_model = model_list[selected_model].key, transform_index = model_list[selected_model].transform_index})
 		model_list = {}
 		selected_model = nil

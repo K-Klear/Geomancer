@@ -14,7 +14,7 @@ end
 
 local function evaluate_button(button, item)
 	local data
-	if not (button == "btn_enemies_close" or button == "escape" ) then
+	if not (button == "btn_enemies_close" or button == "escape" or button == "enter") then
 		data = {enemy_set = button}
 	end
 	DIALOG.close(DIALOG_NAME, data)

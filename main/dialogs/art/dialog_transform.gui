@@ -288,6 +288,53 @@ nodes {
     y: -114.0
   }
   type: TYPE_TEMPLATE
+  id: "transform_tween"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 34.0
+  }
+  type: TYPE_BOX
+  id: "transform_tween/button_white"
+  parent: "transform_tween"
+  layer: "below"
+  slice9 {
+    x: 12.0
+    y: 12.0
+    z: 12.0
+    w: 12.0
+  }
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.65
+    y: 0.65
+    z: 0.65
+  }
+  type: TYPE_TEXT
+  text: "Tween"
+  id: "transform_tween/text"
+  parent: "transform_tween/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 153.0
+    y: -148.0
+  }
+  type: TYPE_TEMPLATE
   id: "transform_add"
   parent: "edit_box"
   template: "/templates/button_white_small.gui"
@@ -333,7 +380,7 @@ nodes {
 nodes {
   position {
     x: 153.0
-    y: -148.0
+    y: -182.0
   }
   type: TYPE_TEMPLATE
   id: "transform_delete"
@@ -380,7 +427,7 @@ nodes {
 nodes {
   position {
     x: 153.0
-    y: -182.0
+    y: -216.0
   }
   type: TYPE_TEMPLATE
   id: "transform_rename"
@@ -427,7 +474,7 @@ nodes {
 nodes {
   position {
     x: 153.0
-    y: -216.0
+    y: -250.0
   }
   type: TYPE_TEMPLATE
   id: "transform_parent"
@@ -465,53 +512,6 @@ nodes {
   text: "Set parent"
   id: "transform_parent/text"
   parent: "transform_parent/button_white"
-  layer: "text"
-  overridden_fields: 3
-  overridden_fields: 8
-  overridden_fields: 20
-  template_node_child: true
-}
-nodes {
-  position {
-    x: 153.0
-    y: -250.0
-  }
-  type: TYPE_TEMPLATE
-  id: "transform_tween"
-  parent: "edit_box"
-  template: "/templates/button_white_small.gui"
-}
-nodes {
-  size {
-    x: 120.0
-    y: 34.0
-  }
-  type: TYPE_BOX
-  id: "transform_tween/button_white"
-  parent: "transform_tween"
-  layer: "below"
-  slice9 {
-    x: 12.0
-    y: 12.0
-    z: 12.0
-    w: 12.0
-  }
-  overridden_fields: 1
-  overridden_fields: 4
-  overridden_fields: 20
-  overridden_fields: 22
-  template_node_child: true
-}
-nodes {
-  scale {
-    x: 0.65
-    y: 0.65
-    z: 0.65
-  }
-  type: TYPE_TEXT
-  text: "Tween"
-  id: "transform_tween/text"
-  parent: "transform_tween/button_white"
   layer: "text"
   overridden_fields: 3
   overridden_fields: 8
@@ -921,6 +921,39 @@ nodes {
   overridden_fields: 3
   overridden_fields: 8
   template_node_child: true
+}
+nodes {
+  position {
+    x: -56.0
+    y: -116.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Transform editor"
+  font: "tab_caption"
+  id: "label_tranform_editor"
+  parent: "edit_box"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: -219.0
+    y: -282.0
+  }
+  size {
+    x: 310.0
+    y: 140.0
+  }
+  type: TYPE_BOX
+  id: "warning_box"
+  pivot: PIVOT_SW
+  parent: "edit_box"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
 }
 layers {
   name: "list_background"

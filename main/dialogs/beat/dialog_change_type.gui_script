@@ -20,7 +20,7 @@ local function evaluate_button(button)
 			gui.set_color(gui.get_node("choice_"..selected_type.."/button_white"), vmath.vector4(1, 1, 1, 1))
 		end
 		current_type = nil
-	elseif button == "choice_accept" then
+	elseif button == "choice_accept" or button == "enter" then
 		if not selected_type then
 			msg.post("/navbar#navbar", hash("update_status"), {text = "You must select a new enemy type.", clear = true})
 		elseif selected_type == current_type then

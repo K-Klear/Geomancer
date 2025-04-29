@@ -1,0 +1,15 @@
+embedded_components {
+  id: "transform_model"
+  type: "model"
+  data: "mesh: \"/assets/models/transform.dae\"\n"
+  "name: \"{{NAME}}\"\n"
+  "materials {\n"
+  "  name: \"default\"\n"
+  "  material: \"/render/transform.material\"\n"
+  "  textures {\n"
+  "    sampler: \"tex0\"\n"
+  "    texture: \"/assets/models/transform_tex.png\"\n"
+  "  }\n"
+  "}\n"
+  ""
+}

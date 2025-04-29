@@ -51,7 +51,7 @@ local function update_label()
 end
 
 function evaluate_button(button, item)
-	if button == "filter_accept" then
+	if button == "filter_accept" or button == "enter" then
 		MEM.event_data.filter = {}
 		local event_count = 0
 		for key, val in ipairs(signal_list) do

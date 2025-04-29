@@ -132,7 +132,7 @@ nodes {
 nodes {
   position {
     x: -120.0
-    y: -266.0
+    y: -252.0
   }
   type: TYPE_TEMPLATE
   id: "easing_accept"
@@ -166,7 +166,7 @@ nodes {
 nodes {
   position {
     x: 120.0
-    y: -266.0
+    y: -252.0
   }
   type: TYPE_TEMPLATE
   id: "easing_cancel"
@@ -306,7 +306,7 @@ nodes {
     y: 282.0
   }
   size {
-    x: 200.0
+    x: 400.0
     y: 100.0
   }
   type: TYPE_TEXT
@@ -1568,6 +1568,42 @@ nodes {
   layer: "text"
   overridden_fields: 3
   overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -380.0
+    y: -252.0
+  }
+  type: TYPE_TEMPLATE
+  id: "easing_separate"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 80.0
+  }
+  type: TYPE_BOX
+  id: "easing_separate/button_white"
+  parent: "easing_separate"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Separate actions"
+  id: "easing_separate/text"
+  line_break: true
+  parent: "easing_separate/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 18
   overridden_fields: 20
   template_node_child: true
 }

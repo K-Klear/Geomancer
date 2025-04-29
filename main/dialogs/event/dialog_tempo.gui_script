@@ -41,7 +41,7 @@ function init(self)
 end
 
 local function evaluate_button(button)
-	if button == "dialog_tempo_accept" then
+	if button == "dialog_tempo_accept" or button == "enter" then
 		DIALOG.close(DIALOG_NAME, {start_sample = start_sample, spb = spb, signature = signature, item = item_index})
 	elseif button == "dialog_tempo_cancel" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)

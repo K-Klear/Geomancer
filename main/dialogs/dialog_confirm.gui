@@ -67,7 +67,7 @@ nodes {
 }
 nodes {
   position {
-    x: -200.0
+    x: -165.0
     y: -60.0
   }
   type: TYPE_TEMPLATE
@@ -134,7 +134,7 @@ nodes {
 }
 nodes {
   position {
-    x: 200.0
+    x: 165.0
     y: -60.0
   }
   type: TYPE_TEMPLATE

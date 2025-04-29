@@ -152,7 +152,13 @@ function init(self)
 			type = hash("exclusive_button"),
 			node = gui.get_node("model_exclusive/button_white"),
 			text_node = gui.get_node("model_exclusive/text"),
-			value_fn = function(i) return MEM.art_data.table.propsDictionary[i].key end,
+			value_fn = function(i)
+				if SET.hide_model_count then
+					return MEM.art_data.table.propsDictionary[i].key
+				else
+					return "("..MEM.art_data.table.propsDictionary[i].model_data.model_count..")"..MEM.art_data.table.propsDictionary[i].key
+				end
+			end,
 			template = "model_exclusive;",
 			fn = evaluate_button,
 			tint = function(i)
@@ -474,15 +480,9 @@ local function degeomance()
 				end
 			end
 			remove_tweens(val.object)
-			local function remove_tweens_meta(tab)
-				if tab.tween then
-					tab.tween = nil
-				end
-				for _key, _val in ipairs(tab) do
-					remove_tweens_meta(_val)
-				end
+			for k, v in ipairs(val.model_data.transform_list) do
+				v.tween = nil
 			end
-			remove_tweens_meta(val.model_data.model_tree)
 			tween_count = tween_count + val.tween
 			val.tween = 0
 		end
@@ -619,6 +619,7 @@ function on_message(self, message_id, message, sender)
 			end
 		elseif message.dialog == "dialog_transform" then
 			msg.post(".", hash("enable"))
+			update_lists()
 			check_tweens()
 			msg.post("/model_viewer", hash("show"), {model = get_selected_model(), selected_part = get_selected_part()})
 		elseif message.dialog == "dialog_colours" then

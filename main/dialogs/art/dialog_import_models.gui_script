@@ -45,7 +45,7 @@ local function update_label()
 end
 
 function evaluate_button(button, item)
-	if button == "dialog_import_accept" then
+	if button == "dialog_import_accept" or button == "enter" then
 		if next(selection_list) then
 			for key, val in ipairs(import_list) do
 				if not selection_list[val] then

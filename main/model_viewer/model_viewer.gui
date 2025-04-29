@@ -117,7 +117,7 @@ nodes {
 }
 nodes {
   position {
-    x: -203.0
+    x: -253.0
     y: 25.0
   }
   type: TYPE_TEMPLATE
@@ -148,7 +148,7 @@ nodes {
 }
 nodes {
   position {
-    x: -153.0
+    x: -203.0
     y: 25.0
   }
   type: TYPE_TEMPLATE
@@ -179,7 +179,7 @@ nodes {
 }
 nodes {
   position {
-    x: -103.0
+    x: -153.0
     y: 25.0
   }
   type: TYPE_TEMPLATE
@@ -205,6 +205,37 @@ nodes {
   texture: "UI/button_show_grid"
   id: "show_grid/text"
   parent: "show_grid/button_white"
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -103.0
+    y: 25.0
+  }
+  type: TYPE_TEMPLATE
+  id: "show_transforms"
+  parent: "button_box"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 50.0
+    y: 50.0
+  }
+  type: TYPE_BOX
+  id: "show_transforms/button_white"
+  parent: "show_transforms"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/button_transform_one"
+  id: "show_transforms/text"
+  parent: "show_transforms/button_white"
   overridden_fields: 9
   template_node_child: true
 }
@@ -257,7 +288,7 @@ nodes {
 }
 nodes {
   position {
-    x: -289.0
+    x: -339.0
     y: 25.0
   }
   type: TYPE_TEMPLATE

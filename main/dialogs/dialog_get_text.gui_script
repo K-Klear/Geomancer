@@ -12,7 +12,7 @@ end
 
 local function evaluate_button(button)
 	local data = {subject = subject}
-	if button == "get_text_accept" then
+	if button == "get_text_accept" or button == "enter" then
 		data.text = output_text
 	end
 	DIALOG.close(DIALOG_NAME, data)

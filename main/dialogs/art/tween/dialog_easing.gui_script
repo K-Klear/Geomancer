@@ -5,7 +5,7 @@ local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_easing"
 local DIALOG_DATA
 
-local evaluate_button, evaluate_input, action_tab
+local evaluate_button, evaluate_input, action_tab, action_index
 local vertices = {}
 local lines = {}
 local vertex_temp, line_temp
@@ -208,7 +208,7 @@ end
 function init(self)
 	DIALOG.setup(DIALOG_NAME)
 	DIALOG_DATA = UI.tab[DIALOG_NAME]
-	UI.load_template({"easing_accept", "easing_cancel", "sections_plus", "sections_minus"}, DIALOG_NAME)
+	UI.load_template({"easing_accept", "easing_cancel", "easing_separate", "sections_plus", "sections_minus"}, DIALOG_NAME)
 	for key in pairs(easing_fn) do
 		UI.load_template(key, DIALOG_NAME)
 	end
@@ -243,7 +243,7 @@ local function get_vertex_data(vertex_index)
 end
 
 function evaluate_button(button, item)
-	if button == "easing_accept" then
+	if button == "easing_accept" or button == "enter" then
 		local easing = {vertex_count = vertex_count, easing_type = current_easing, nodes = {}}
 		for key in ipairs(vertices) do
 			local t, c = get_vertex_data(key)
@@ -265,6 +265,14 @@ function evaluate_button(button, item)
 			gui.set_text(gui.get_node("sections/text"), vertex_count - 1)
 			build_graph()
 		end
+	elseif button == "easing_separate" then
+		local easing = {vertex_count = vertex_count, easing_type = current_easing, nodes = {}}
+		for key in ipairs(vertices) do
+			local t, c = get_vertex_data(key)
+			table.insert(easing.nodes, {time = t * 0.01, comp = c * 0.01})
+		end
+		action_tab.easing = easing
+		DIALOG.close(DIALOG_NAME, {easing = true, separate = true, action_index = action_index})
 	elseif easing_fn[button] then
 		current_easing = button
 		build_graph()
@@ -285,6 +293,7 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		DIALOG.show(DIALOG_DATA, sender)
+		action_index = message.action_index
 		action_tab = MEM.art_data.transform_tab_temp
 		MEM.art_data.transform_tab_temp = nil
 		if action_tab.easing then
@@ -326,7 +335,7 @@ end
 local function show_vertex_info()
 	if current_vertex then
 		local time, comp = get_vertex_data(current_vertex)
-		gui.set_text(gui.get_node("vertex_info"), "Time:\n"..string.format(" %.2f", time).." %\nCompletion:\n"..string.format(" %.2f", comp).."%")
+		gui.set_text(gui.get_node("vertex_info"), "Time: "..string.format(" %.2f", time).." %\nCompletion: "..string.format(" %.2f", comp).."%")
 	else
 		gui.set_text(gui.get_node("vertex_info"), "")
 	end

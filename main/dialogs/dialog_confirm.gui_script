@@ -13,7 +13,7 @@ end
 
 local function evaluate_button(button)
 	local data = {subject = subject}
-	if button == "dialog_confirm_button_1" then
+	if button == "dialog_confirm_button_1" or button == "enter" then
 		data.button = 1
 	elseif button == "dialog_confirm_button_2" then
 		data.button = 2

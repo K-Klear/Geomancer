@@ -382,50 +382,31 @@ local function get_tween_defaults(action_type, current_action_index)
 			new_action_tab.end_state = {x = action_to_copy_tab.start_state.x, y = action_to_copy_tab.start_state.y, z = action_to_copy_tab.start_state.z}
 		end
 	else
-		local current = tween_actions[current_action_index]
-		local part
-		if current then
-			if SET.allow_tweening_base_transform then
-				part = current.part or transform_list[2].name or transform_list[1].name
-			else
-				part = current.part or transform_list[2].name
+		local part_tab
+		local part = transform_list[2].name
+		if selected_transform > 1 then
+			part = transform_list[selected_transform].name
+		end
+		if tween_actions[current_action_index] then
+			part = tween_actions[current_action_index].part or part
+		end
+		for key, val in ipairs(transform_list) do
+			if val.name == part then
+				part_tab = val
+				break
 			end
-			if action_type == "T" then
-				new_action_tab = {part = part, type = action_type, start_state = {x = 0, y = 0, z = 0}, end_state = {x = 0, y = 0, z = 0}, time = 1}
-			elseif action_type == "R" then
-				new_action_tab = {part = part, type = action_type, start_state = current.start_state or {x = 0, y = 0, z = 0},
-				end_state = current.end_state or {x = 0, y = 0, z = 0}, time = current.time or 1}
-				if SET.restrict_rotations_to_360 then
-					for key, val in pairs(new_action_tab.start_state) do
-						new_action_tab.start_state[key] = val % 360
-					end
-					for key, val in pairs(new_action_tab.end_state) do
-						new_action_tab.end_state[key] = val % 360
-					end
-				end
-			elseif action_type == "S" then
-				new_action_tab = {part = part, type = action_type, start_state = current.start_state or {x = 1, y = 1, z = 1},
-				end_state = current.end_state or {x = 1, y = 1, z = 1}, time = current.time or 1}
-			elseif action_type == "W" then
-				new_action_tab = {time = current.time or 1, type = action_type}
-			elseif action_type == "X" then
-				new_action_tab = {type = action_type, actions_to_repeat = 1, number_of_repetitions = 2}
-			end
-		else
-			if SET.allow_tweening_base_transform then
-				part = transform_list[2].name or transform_list[1].name
-			else
-				part = transform_list[2].name
-			end
-			if action_type == "T" or action_type == "R" then
-				new_action_tab = {part = part, type = action_type, start_state = {x = 0, y = 0, z = 0}, end_state = {x = 0, y = 0, z = 0}, time = 1}
-			elseif action_type == "S" then
-				new_action_tab = {part = part, type = action_type, start_state = {x = 1, y = 1, z = 1}, end_state = {x = 1, y = 1, z = 1}, time = 1}
-			elseif action_type == "W" then
-				new_action_tab = {time = 1, type = action_type}
-			elseif action_type == "X" then
-				new_action_tab = {type = action_type, actions_to_repeat = 1, number_of_repetitions = 2}
-			end
+		end
+		if action_type == "T" then
+			new_action_tab = {part = part, type = action_type, start_state = {x = part_tab.position.x, y = part_tab.position.y, z = part_tab.position.z}, end_state = {x = part_tab.position.x, y = part_tab.position.y, z = part_tab.position.z}, time = 1}
+		elseif action_type == "R" then
+			local rotation = G.quat_to_euler(part_tab.rotation)
+			new_action_tab = {part = part, type = action_type, start_state = {x = rotation.x, y = rotation.y, z = rotation.z}, end_state = {x = rotation.x, y = rotation.y, z = rotation.z}, time = 1}
+		elseif action_type == "S" then
+			new_action_tab = {part = part, type = action_type, start_state = {x = part_tab.scale.x, y = part_tab.scale.y, z = part_tab.scale.z}, end_state = {x = part_tab.scale.x, y = part_tab.scale.y, z = part_tab.scale.z}, time = 1}
+		elseif action_type == "W" then
+			new_action_tab = {time = 1, type = action_type}
+		elseif action_type == "X" then
+			new_action_tab = {type = action_type, actions_to_repeat = 1, number_of_repetitions = 2}
 		end
 	end
 	return new_action_tab
@@ -530,7 +511,7 @@ function evaluate_button(button, item)
 		msg.post(UI.tab.dialog_transform.path, hash("disable"))
 		msg.post("/model_viewer", hash("tween_preview"), {model = model_index, selected_transform = selected_transform})
 	elseif button == "dialog_tween_transform" and #tween_actions > 0 then
-		DIALOG.open(DIALOG_NAME, "dialog_tween_part", {model = model_index})
+		DIALOG.open(DIALOG_NAME, "dialog_tween_part", {model = model_index, transform_index = selected_transform})
 	elseif button == "dialog_tween_save" then
 		local _, path
 		if sys.exists(SET.default_path_save_tween) then
@@ -562,6 +543,23 @@ function evaluate_button(button, item)
 					gui.set_text(gui.get_node("tween_signal/text"), tween_table.signal)
 					transform_tab.tween = tween_table
 					tween_actions = transform_tab.tween
+
+					local legal_transforms = {}
+					for key, val in ipairs(transform_list) do
+						legal_transforms[val.name] = true
+					end
+					for key, val in ipairs(tween_actions) do
+						if val.part then
+							local part = val.part
+							if not legal_transforms[val.part] then
+								part = transform_tab.name
+								if selected_transform == 1 and not SET.allow_tweening_base_transform then
+									part = transform_list[2].name
+								end
+							end
+							val.part = part
+						end
+					end
 				end
 			end
 		end
@@ -641,6 +639,10 @@ end
 local function copy_tween(source_index, target_index, transform_index)
 	local source_tween = MEM.art_data.table.propsDictionary[source_index].model_data.transform_list[transform_index].tween
 	local target_tween = {signal = source_tween.signal}
+	local legal_transforms = {}
+	for key, val in ipairs(transform_list) do
+		legal_transforms[val.name] = true
+	end
 	for key, val in ipairs(source_tween) do
 		local start_state, end_state
 		local easing
@@ -654,7 +656,14 @@ local function copy_tween(source_index, target_index, transform_index)
 				table.insert(easing.nodes, {time = v.time, comp = v.comp})
 			end
 		end
-		target_tween[key] = {type = val.type, part = val.part, time = val.time, start_state = start_state, end_state = end_state,
+		local part = val.part
+		if not legal_transforms[val.part] then
+			part = transform_tab.name
+			if selected_transform == 1 and not SET.allow_tweening_base_transform then
+				part = transform_list[2].name
+			end
+		end
+		target_tween[key] = {type = val.type, part = part, time = val.time, start_state = start_state, end_state = end_state,
 		actions_to_repeat = val.actions_to_repeat, number_of_repetitions = val.number_of_repetitions, easing = easing}
 	end
 	transform_tab.tween = target_tween
@@ -727,7 +736,22 @@ function on_message(self, message_id, message, sender)
 			end
 		elseif message.dialog == "dialog_easing" then
 			if message.easing then
-				UI.update_list(DIALOG_NAME, action_list)
+				if message.separate then
+					local old_action = transform_tab.tween[message.action_index]
+					local node_values = G.separate_easing(old_action)
+					for key, val in ipairs(node_values) do
+						local tab = {
+							type = old_action.type,
+							part = old_action.part,
+							time = val.t,
+							start_state = val.s,
+							end_state = val.e
+						}
+						table.insert(transform_tab.tween, message.action_index + key, tab)
+					end
+					table.remove(transform_tab.tween, message.action_index)
+				end
+				UI.update_list(DIALOG_NAME, action_list, #tween_actions)
 			end
 		elseif message.dialog == "dialog_event" then
 			if message.start_sample then
