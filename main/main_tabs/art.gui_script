@@ -535,6 +535,9 @@ local function check_tweens()
 		local legal_transforms = {}
 		local transform_list = model_tab.model_data.transform_list
 		for key, val in ipairs(transform_list) do
+			legal_transforms[val.name] = true
+		end
+		for key, val in ipairs(transform_list) do
 			if val.tween then
 				tween_count = tween_count + 1
 				for k, v in ipairs(val.tween) do

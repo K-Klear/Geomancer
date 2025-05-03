@@ -32,16 +32,10 @@ Features:
 New shortcuts:
 
 Fixes:
-- Prevented transforms being created for models that cannot be rendered
-	- Also disabled the tween button for such models
-- Prevented the transform editor warning dialog from closing immediately if the mouse cursor is over the close button when it opens
 
 Bugs:
-- Fixed a crash when attempting to add a transform
-- Fixed an error when a transform used in a tween is deleted
 
 New configs:
-- confirm_degeomance
 
 Notes:
 - See if "MEM.event_reloaded" and similar are necessary. Currently load error unloads previous data - is that a bad thing?
