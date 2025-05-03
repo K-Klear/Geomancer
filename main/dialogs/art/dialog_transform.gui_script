@@ -269,6 +269,10 @@ local function add_transform(name, transform_index, add_as_parent)
 end
 
 local function delete_transform(transform_index)
+	
+
+	
+	
 	selected_transform = nil
 	MOD.visible_transform = nil
 	if SET.show_transform == 1 then
@@ -369,6 +373,7 @@ function evaluate_button(button, item)
 		if not selected_transform then
 			G.update_navbar("Select a transform first", true)
 		else
+			msg.post("/art#tab_art", hash("check_tweens"))
 			msg.post("/model_viewer", hash("disable_input"))
 			msg.post("/model_viewer", hash("stop_flashing"))
 			DIALOG.open(DIALOG_NAME, "dialog_tween", {model_index = model_index, transform_index = selected_transform})
@@ -548,7 +553,7 @@ function update()
 end
 
 function on_input(self, action_id, action)
-	if SET.show_transform_edit_warning and gui.is_enabled(gui.get_node("label_position")) and gui.pick_node(gui.get_node("warning_box"), action.x, action.y) and action.pressed then
+	if SET.show_transform_edit_warning and gui.is_enabled(gui.get_node("label_position")) and gui.pick_node(gui.get_node("warning_box"), action.x, action.y) and action.released then
 		msg.post("/model_viewer", hash("disable_input"))
 		DIALOG.open(DIALOG_NAME, "dialog_confirm", {title = "Changing these values will modify the model file.\nAre you sure?", button_1 = "Yes", button_3 = "Cancel", subject = "edit_warning"})
 		return

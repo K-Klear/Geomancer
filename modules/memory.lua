@@ -477,7 +477,11 @@ function MEM.add_metadata(model_tab)
 	tween_count = 0
 	explore_model_tree(model_tab.object, "[no name]", 1)
 	model_tab.tween = tween_count
-	model_tab.model_data = {parts = part_list, transform_list = transform_list}
+	if #part_list < 1 then
+		model_tab.model_data = {parts = part_list, transform_list = {}, do_not_render = true}
+	else
+		model_tab.model_data = {parts = part_list, transform_list = transform_list}
+	end
 end
 
 function load.pw_art(data, filename)

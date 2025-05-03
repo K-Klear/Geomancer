@@ -532,9 +532,18 @@ local function check_tweens()
 	if selected_model then
 		local model_tab = MEM.art_data.table.propsDictionary[selected_model]
 		local tween_count = 0
-		for key, val in ipairs(model_tab.model_data.transform_list) do
+		local legal_transforms = {}
+		local transform_list = model_tab.model_data.transform_list
+		for key, val in ipairs(transform_list) do
 			if val.tween then
 				tween_count = tween_count + 1
+				for k, v in ipairs(val.tween) do
+					if v.part then
+						if not legal_transforms[v.part] then
+							v.part = transform_list[2].name
+						end
+					end
+				end
 			end
 		end
 		model_tab.tween = tween_count
@@ -730,6 +739,10 @@ function evaluate_button(button, item)
 		local selected_model = get_selected_model()
 		UI.update_list(TAB_NAME, part_list, #MEM.art_data.table.propsDictionary[selected_model].model_data.parts)
 		UI.select_exclusive_button(TAB_NAME, part_list, 1)
+		if MEM.art_data.table.propsDictionary[item].model_data.do_not_render then
+			msg.post("/model_viewer", hash("remove_model")+_G)
+			return
+		end
 		update_materials()
 		msg.post("/model_viewer", hash("show"), {model = selected_model, selected_part = 1})
 	elseif button == part_list then
@@ -742,6 +755,10 @@ function evaluate_button(button, item)
 			set_model_as_dynamic(item)
 			UI.update_list(TAB_NAME, model_list)
 		elseif str == "model_tween;" then
+			if MEM.art_data.table.propsDictionary[item].model_data.do_not_render then
+				G.update_navbar("Cannot tween this model", true)
+				return
+			end
 			UI.select_exclusive_button(TAB_NAME, model_list, item, true)
 			update_lists()
 			msg.post("/model_viewer", hash("show"), {model = item})

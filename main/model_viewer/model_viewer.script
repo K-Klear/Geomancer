@@ -574,8 +574,10 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("show_part") then
 		flash(self, {message.selected_part})
 	elseif message_id == hash("flash") then
-		flash(self, MEM.art_data.temp_part_list)
-		MEM.art_data.temp_part_list = nil
+		if MEM.art_data.temp_part_list then
+			flash(self, MEM.art_data.temp_part_list)
+			MEM.art_data.temp_part_list = nil
+		end
 	elseif message_id == hash("stop_flashing") then
 		stop_flash(self)
 	elseif message_id == hash("hide") then

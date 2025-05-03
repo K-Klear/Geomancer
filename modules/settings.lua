@@ -29,6 +29,7 @@ SET.import_beat_changes = true
 SET.degeomance_sequence = "Dance_03"
 SET.degeomance_glitched_enemy = "Normal"
 SET.degeomance_skull = "Normal Turret"
+SET.confirm_degeomance = true
 
 -- events
 SET.sample_rate = 48000

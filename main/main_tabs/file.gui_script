@@ -440,31 +440,6 @@ local function export_all(overwrite)
 	end
 end
 
-function on_message(self, message_id, message, sender)
-	if message_id == hash("hide") then
-		msg.post("#", hash("disable"))
-		msg.post("#", hash("release_input_focus"))
-		DIALOG.close_all(TAB_NAME)
-	elseif message_id == hash("show") then
-		msg.post("#", hash("enable"))
-		msg.post("#", hash("acquire_input_focus"))
-	elseif message_id == hash("export_all") then
-		export_all(not SET.create_folder_on_export)
-	elseif message_id == hash("dialog_closed") then
-		msg.post("#", hash("acquire_input_focus"))
-		if message.dialog == "dialog_confirm" then
-			if message.subject == "overwrite_export" then
-				if message.button == 1 then 			-- buttons are 1 = overwrite, 3 = cancel
-					run_export_fn()
-				else
-					files_to_export = nil
-					msg.post("/navbar#navbar", hash("update_status"), {text = "Export aborted", clear = true})
-				end
-			end
-		end
-	end
-end
-
 local advanced_sequences = 	{
 	__Flying_ATTACK = true,
 	["Zig_shoot _Zag_shoot"] = true,
@@ -577,8 +552,8 @@ local function degeomance()
 		else
 			MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events = {}
 		end
-		
-		
+
+
 		if #MEM.event_data.table.tempoSections > 1 then
 			MEM.event_data.table.tempoSections = {MEM.event_data.table.tempoSections[1]}
 		end
@@ -633,7 +608,7 @@ local function degeomance()
 			FlyingBomb = "skull",
 			["Trap Enemy"] = "trap"
 		}
-		
+
 		for key, val in ipairs(MEM.beat_data.enemy_list) do
 			local enemy_data = MEM.beat_data.table.beatData[val.beat_data_key].targets[val.enemies_key]
 			if enemy_data.enemyType == "FlyingBomb" then
@@ -668,7 +643,36 @@ local function degeomance()
 		end
 	end
 	if UI.tab.tab_meta.state then
-		
+
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		DIALOG.close_all(TAB_NAME)
+	elseif message_id == hash("show") then
+		msg.post("#", hash("enable"))
+		msg.post("#", hash("acquire_input_focus"))
+	elseif message_id == hash("export_all") then
+		export_all(not SET.create_folder_on_export)
+	elseif message_id == hash("dialog_closed") then
+		msg.post("#", hash("acquire_input_focus"))
+		if message.dialog == "dialog_confirm" then
+			if message.subject == "overwrite_export" then
+				if message.button == 1 then 			-- buttons are 1 = overwrite, 3 = cancel
+					run_export_fn()
+				else
+					files_to_export = nil
+					msg.post("/navbar#navbar", hash("update_status"), {text = "Export aborted", clear = true})
+				end
+			elseif message.subject == "degeomance_confirm" then
+				if message.button == 1 then
+					degeomance()
+				end
+			end
+		end
 	end
 end
 
@@ -989,7 +993,11 @@ local function evaluate_button(button)
 	elseif button == "import_changes" then
 		import_changes()
 	elseif button == "degeomance" then
-		degeomance()
+		if SET.confirm_degeomance then
+			DIALOG.open(TAB_NAME, "dialog_confirm", {title = "Are you sure you want to remove all Geomancer changes from the loaded map?", button_1 = "Degeomance", button_3 = "Cancel", subject = "degeomance_confirm"})
+		else
+			degeomance()
+		end
 	elseif button == "load_file" then
 		local num, path = diags.open("pw_meta,pw,pw_beat,pw_event,pw_geo,pw_art,pw_seq", SET.default_path_load_file)
 		if path then

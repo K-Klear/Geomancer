@@ -27,6 +27,7 @@ local default_settings_text = {
 	"degeomance_sequence=Dance_03;		-- Only enter valid sequences",
 	"degeomance_glitched_enemy=Normal;	-- Valid enemy types are Normal, Tough, ChuckNorris, Mounted Enemy, Shield, Normal Turret, Minigun Turret",
 	"degeomance_skull=Normal Turret;	-- Anything else is likely to break things",
+	"confirm_degeomance=true;",
 	"",
 	"ignore_char_limit=false;		-- if true, all text fields will accept inputs of any lengths, even if it makes the text spill out",
 	"",
@@ -150,6 +151,7 @@ local settings_to_load = {
 	degeomance_sequence = {type = "string"},
 	degeomance_glitched_enemy = {type = "string"},
 	degeomance_skull = {type = "string"},
+	confirm_degeomance = {type = "boolean"},
 
 	tween_timeline_bar_height = {type = "number"},
 	hide_model_count = {type = "boolean"},
