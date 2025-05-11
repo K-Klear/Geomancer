@@ -96,7 +96,7 @@ local function get_tween_script(tween_data, model_name)
 			if val.easing then
 				local node_values = G.separate_easing(val)
 				for k, v in ipairs(node_values) do
-					str = str..val.type..val.part..";"..v.s.x..","..v.s.y..","..v.s.y..";"..v.e.x..","..v.e.y..","..v.e.z..";"..v.t..";"
+					str = str..val.type..val.part..";"..v.s.x..","..v.s.y..","..v.s.z..";"..v.e.x..","..v.e.y..","..v.e.z..";"..v.t..";"
 				end
 			else
 				str = str..val.type..val.part..";"..val.start_state.x..","..val.start_state.y..","
@@ -298,6 +298,13 @@ local function export_geomancer_meta(path)
 	if f then
 		io.write(json.encode(MEM.geomancer_meta))
 		io.close(f)
+	end
+	for key, val in pairs(MEM.geomancer_meta.props) do
+		if val.tweens then
+			for k, v in pairs(val.tweens) do
+				v.table.signal = v.signal
+			end
+		end
 	end
 	MEM.geomancer_meta = nil
 end

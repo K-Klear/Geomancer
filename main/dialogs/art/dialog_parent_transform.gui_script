@@ -69,8 +69,8 @@ function on_message(self, message_id, message, sender)
 		local text = "Choose a new parent for transform\n"..transform_list[transform_index].name
 		gui.set_text(gui.get_node("title_parent"), text)
 		selected_transform = nil
-		UI.select_exclusive_button(DIALOG_NAME, transform_parent_list, 0, true)
 		UI.update_list(DIALOG_NAME, transform_parent_list, #transform_list)
+		UI.select_exclusive_button(DIALOG_NAME, transform_parent_list, 0, true)
 	end
 end
 

@@ -250,7 +250,7 @@ function evaluate_button(button, item)
 			table.insert(easing.nodes, {time = t * 0.01, comp = c * 0.01})
 		end
 		action_tab.easing = easing
-		DIALOG.close(DIALOG_NAME, {easing = true})
+		DIALOG.close(DIALOG_NAME, {easing = true, action_index = action_index})
 	elseif button == "easing_cancel" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)
 	elseif button == "sections_plus" then

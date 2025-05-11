@@ -24,6 +24,7 @@ To do:
 - Maybe a player model?
 
 Bugs:
+- Opening preview of a model without instances leaves the chose dialog open
 
 Done:
 
@@ -32,8 +33,12 @@ Features:
 New shortcuts:
 
 Fixes:
+- Setting an easing to linear will now remove it
 
 Bugs:
+- Fixed an issue causing Geomancer to forget signals after export
+- Fixed an error causing easings to export wrong
+- Fixed a crash when changing transform parent after deleting a transform in some cases
 
 New configs:
 

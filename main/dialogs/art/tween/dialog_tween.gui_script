@@ -750,6 +750,8 @@ function on_message(self, message_id, message, sender)
 						table.insert(transform_tab.tween, message.action_index + key, tab)
 					end
 					table.remove(transform_tab.tween, message.action_index)
+				elseif transform_tab.tween[message.action_index].easing.easing_type == "linear" then
+					transform_tab.tween[message.action_index].easing = nil
 				end
 				UI.update_list(DIALOG_NAME, action_list, #tween_actions)
 			end

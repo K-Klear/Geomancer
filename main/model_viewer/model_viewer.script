@@ -471,10 +471,12 @@ local function show_model(self, model_index)
 		local sc = val.scale.x * val.scale.y * val.scale.z
 		local parent = get_parent(key, transform_list)
 		if parent then
+			local safety = 10000
 			repeat
 				sc = sc * transform_list[parent].scale.x * transform_list[parent].scale.y * transform_list[parent].scale.z
 				parent = get_parent(parent, transform_list)
-			until not parent
+				safety = safety - 1
+			until (not parent) or (safety < 0)
 		end
 		if sc < 0 then
 			invert = true
@@ -554,6 +556,7 @@ function on_message(self, message_id, message, sender)
 		for key, val in ipairs(created_meshes) do
 			val.check_scale = {}
 			local parent = val.parent_transform
+			local safety = 10000
 			repeat
 				if parent then
 					local right_one = MOD.tweenable_transforms[transform_list[parent].name].url == transform_list[parent].transform_go
@@ -562,7 +565,8 @@ function on_message(self, message_id, message, sender)
 					end
 				end
 				parent = get_parent(parent, transform_list)
-			until not parent
+				safety = safety - 1
+			until (not parent) or (safety < 0)
 		end
 	elseif message_id == hash("offsets_changed") then
 		adjust_transform_positions()
