@@ -2,14 +2,14 @@ local UI = require "modules.ui"
 local SET = require "modules.settings"
 local DIALOG = UI.DIALOG
 
-local button_list = {"Normal", "Robots", "Outlaws", "Majesty", "Skeletons", "Targets"}
+local button_list = {"Normal", "Robots", "Outlaws", "Majesty", "Skeletons", "Fantasy", "Targets"}
 local DIALOG_NAME = "enemy_set"
 local DIALOG_DATA
 
 function init(self)
 	DIALOG.setup(DIALOG_NAME)
 	DIALOG_DATA = UI.tab[DIALOG_NAME]
-	UI.load_template({"Normal", "Robots", "Outlaws", "Majesty", "Skeletons", "Targets", "btn_enemies_close"}, DIALOG_NAME)
+	UI.load_template({"Normal", "Robots", "Outlaws", "Majesty", "Skeletons", "Fantasy", "Targets", "btn_enemies_close"}, DIALOG_NAME)
 end
 
 local function evaluate_button(button, item)

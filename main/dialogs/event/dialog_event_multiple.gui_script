@@ -31,6 +31,18 @@ function init(self)
 		max = function() return samples_to_seconds(max_sample) end,
 		default = function() return 0 end
 	}
+	local validation_sample_offset = {
+		integer = true,
+		min = function() return -max_sample end,
+		max = function() return max_sample end,
+		default = function() return 0 end
+	}
+	local validation_seconds_offset = {
+		number = true,
+		min = function() return samples_to_seconds(-max_sample) end,
+		max = function() return samples_to_seconds(max_sample) end,
+		default = function() return 0 end
+	}
 	local validation_signal = {
 		text = true,
 		json_safe = true,
@@ -44,10 +56,8 @@ function init(self)
 	}
 	UI.load_text_field("event_start_sample", 10, DIALOG_NAME, validation_sample)
 	UI.load_text_field("event_start_seconds", 10, DIALOG_NAME, validation_seconds)
-	UI.load_text_field("event_offset_sample", 10, DIALOG_NAME, validation_sample)
-
-
-	UI.load_text_field("event_offset_seconds", 10, DIALOG_NAME, validation_seconds)
+	UI.load_text_field("event_offset_sample", 10, DIALOG_NAME, validation_sample_offset)
+	UI.load_text_field("event_offset_seconds", 10, DIALOG_NAME, validation_seconds_offset)
 
 	UI.load_text_field("event_signal", 15, DIALOG_NAME, validation_signal)
 

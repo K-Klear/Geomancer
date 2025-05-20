@@ -10,6 +10,7 @@ enemy_set_names.Outlaws = "Bandits"
 enemy_set_names.Targets = "Targets"
 enemy_set_names.Majesty = "Knights"
 enemy_set_names.Skeletons = "Skeletons"
+enemy_set_names.Fantasy = "Demons"
 
 local desc_node, desc_font
 local DESCRIPTION_WIDTH = 517

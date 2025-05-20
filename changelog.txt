@@ -1,7 +1,6 @@
 To do:
 
 - Fix buttons firing when mouse is held, moved away and then returned to the button
-- Meta data purge button
 - Check for illegal enemy types
 - Partial export
 - Link the model spreadsheet from somewhere, maybe
@@ -19,26 +18,33 @@ To do:
 - Add a cfg for default easing and number of nodes
 - Option to view colliders in model viewer
 - Auto-rotate for model viewer
+- Lock view to base transform in tween preview
 - Reorganise cfgs - look into the guide
-- Text fields in slices tab in wrong order
 - Maybe a player model?
+- Catch errors when running out of available gui nodes, maybe? Might be worth on the preview timeline.
+	- Alternatively just stop creating them when they're way too smooched together, but that sounds like work
 
 Bugs:
-- Opening preview of a model without instances leaves the chose dialog open
 
 Done:
 
 Features:
+- Removed volume generation and replaced it with a metadata tab consisting of two buttons:
+	- Delete decor group information (effectively splitting each prop into its own group in Pistol Mix)
+	- Delete all volumes (does not affect geo)
+- Negative offsets now allowed when creating multiple events
+- Added the Demon enemy set from Voidslayer
 
 New shortcuts:
 
 Fixes:
-- Setting an easing to linear will now remove it
+- Added a warning if .geomancer file fails to generate
+- Reopening tween preview with POV lock enabled correctly resets the camera
+- Material "ParticleMesh_GlowMultiply" now shows correctly as glow-coloured and shaded
 
 Bugs:
-- Fixed an issue causing Geomancer to forget signals after export
-- Fixed an error causing easings to export wrong
-- Fixed a crash when changing transform parent after deleting a transform in some cases
+- Fixed a crash when leaving the models tab if the loaded map has no model data
+- Opening preview of a model without instances leaves the chose dialog open
 
 New configs:
 
@@ -47,4 +53,3 @@ Notes:
 - Check if importing a new enemy type doesn't mess up the bulk replace dialog
 - See if G.find_substring is still in use after I'm done with this
 - Check if I should sort prop lists by position
-- Add the demon enemy set

@@ -272,13 +272,22 @@ function on_message(self, message_id, message, sender)
 			update_filter_text()
 		elseif message.dialog == "dialog_event_multiple" then
 			if message.start_sample then
+				local skip_count = 0
 				for i = 0, message.repeats - 1 do
-					add_event(message.start_sample + (i * message.offset), message.signal)
+					local sample = message.start_sample + (i * message.offset)
+					if sample < 0 then
+						skip_count = skip_count + 1
+					else
+						add_event(sample, message.signal)
+					end
+				end
+				if skip_count > 0 then
+					G.update_navbar("Skipped "..skip_count.." events with a negative sample", true)
 				end
 				table.sort(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, sort_f)
 				update_event_list()
 				update_filter_text()
-				G.update_navbar(message.repeats.." events have been created.", true)
+				G.update_navbar(message.repeats - skip_count.." events have been created.", skip_count == 0)
 			end
 		elseif message.dialog == "dialog_tempo" then
 			if message.item then

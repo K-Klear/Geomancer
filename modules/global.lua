@@ -64,6 +64,9 @@ end
 function G.check_version(tab, filename)
 	local version = tonumber(tab.version)
 	filename = filename or "file"
+	if filename == "do_not_ship.pw_meta" then
+		return true
+	end
 	if not version then
 		G.update_navbar("Error reading version information of "..filename..". File not loaded.")
 		return

@@ -29,7 +29,7 @@ nodes {
     y: 400.0
   }
   size {
-    x: 940.0
+    x: 1090.0
     y: 310.0
   }
   type: TYPE_BOX
@@ -46,7 +46,7 @@ nodes {
 }
 nodes {
   position {
-    x: -375.0
+    x: -450.0
     y: 45.0
   }
   type: TYPE_TEMPLATE
@@ -75,7 +75,7 @@ nodes {
 }
 nodes {
   position {
-    x: -225.0
+    x: -300.0
     y: 45.0
   }
   type: TYPE_TEMPLATE
@@ -106,7 +106,7 @@ nodes {
 }
 nodes {
   position {
-    x: -75.0
+    x: -150.0
     y: 45.0
   }
   type: TYPE_TEMPLATE
@@ -137,7 +137,6 @@ nodes {
 }
 nodes {
   position {
-    x: 75.0
     y: 45.0
   }
   type: TYPE_TEMPLATE
@@ -168,7 +167,7 @@ nodes {
 }
 nodes {
   position {
-    x: 225.0
+    x: 150.0
     y: 45.0
   }
   type: TYPE_TEMPLATE
@@ -199,7 +198,38 @@ nodes {
 }
 nodes {
   position {
-    x: 375.0
+    x: 300.0
+    y: 45.0
+  }
+  type: TYPE_TEMPLATE
+  id: "Fantasy"
+  parent: "enemy_box"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "Fantasy/button_white"
+  parent: "Fantasy"
+  layer: "dialog"
+  overridden_fields: 20
+  overridden_fields: 21
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "enemies/Fantasy"
+  id: "Fantasy/text"
+  parent: "Fantasy/button_white"
+  layer: "dialog"
+  overridden_fields: 9
+  overridden_fields: 20
+  overridden_fields: 21
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 450.0
     y: 45.0
   }
   type: TYPE_TEMPLATE
@@ -256,7 +286,7 @@ nodes {
 }
 nodes {
   type: TYPE_TEXT
-  text: "Accept"
+  text: "Close"
   id: "btn_enemies_close/text"
   parent: "btn_enemies_close/button_white"
   layer: "text"

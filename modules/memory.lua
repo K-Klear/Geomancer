@@ -221,6 +221,7 @@ function MEM.check(tab, file_type, filename)
 	expected_values.pw_event = {"eventsData", "tempoSections"}
 	expected_values.pw_art = {"colors", "propsDictionary"}
 	expected_values.pw_geo = {"chunkData", "chunkSlices"}
+	expected_values.pw_meta = {"NORMALSection", "Volume", "Decor", "DecorGroups"}
 	for key, val in pairs(expected_values[file_type]) do
 		if not tab[val] then
 			G.update_navbar(filename.." is missing the "..val.." entry.")
@@ -243,50 +244,30 @@ function load.pw(data)
 end
 
 function load.pw_meta(data)
-	if true then return end
 	local tab = MEM.parse_json(data)
-	if not tab then return end
-	MEM.meta_data.string = data
-	
-	local s_index = string.find(MEM.meta_data.string, "\"Volume\":[", 1, true)
-	if not s_index then
-		msg.post("/navbar#navbar", hash("update_status"), {text = "Error loading volume information. Try resaving the file with the current version of Pistol Mix."})
-		MEM.meta_data = {}
-		return false
-	end
-	local e_index = string.find(MEM.meta_data.string, "]", s_index + 8, true)
-	local _ = string.sub(MEM.meta_data.string, s_index + 9, e_index)
-	tab = G.safe_decode(string.sub(MEM.meta_data.string, s_index + 9, e_index), "do_not_ship.pw_meta")
-	if not tab then return end
-	MEM.meta_data.volume_table = tab
-	local expected_group_index = 1
-	local fix_applied = false
-	for key, val in ipairs(tab) do
-		if val.groupIndex and (tonumber(val.groupIndex) > expected_group_index) then
-			local index = G.find_substring(MEM.meta_data.string, "groupIndex", key, s_index) + 12
-			MEM.meta_data.string = string.sub(MEM.meta_data.string, 1, index)..expected_group_index..string.sub(MEM.meta_data.string, index + 1 + #val.groupIndex)
-			val.groupIndex = expected_group_index
-			fix_applied = true
+	if MEM.check(tab, "pw_meta", "do_not_ship.pw_meta") then
+		UI.tab.tab_meta.state = true
+		MEM.meta_data = tab
+		local expected_group_index = 1
+		local fix_applied = false
+		for key, val in ipairs(tab.Volume) do
+			local index_num = tonumber(val.groupIndex)
+			if index_num > expected_group_index then
+				val.groupIndex = expected_group_index
+				fix_applied = true
+				expected_group_index = expected_group_index + 1
+			elseif index_num == expected_group_index then
+				expected_group_index = expected_group_index + 1
+			end
 		end
-		expected_group_index = expected_group_index + 1
-	end
-	if fix_applied then
-		G.update_navbar("Volume index information corruption detected and fixed.")
-	end
-	if #MEM.meta_data.volume_table < 1 then
-		MEM.meta_data.free_group_index = 1
-	elseif not MEM.meta_data.volume_table[#MEM.meta_data.volume_table].groupIndex then
-		msg.post("/navbar#navbar", hash("update_status"), {text = "Error loading volume information. Try resaving the file with the current version of Pistol Mix."})
-		MEM.meta_data = {}
-		return false
+		if fix_applied then
+			G.update_navbar("Volume index information corruption detected and fixed.")
+		end
+		return true
 	else
-		MEM.meta_data.free_group_index = MEM.meta_data.volume_table[#MEM.meta_data.volume_table].groupIndex + 1
+		MEM.meta_data = {}
+		UI.tab.tab_meta.state = false
 	end
-	MEM.meta_data.string_start = string.sub(MEM.meta_data.string, 1, e_index - 1)
-	MEM.meta_data.string_end = string.sub(MEM.meta_data.string, e_index)
-	UI.tab.tab_meta.state = true
-	MEM.slices_reloaded = true
-	return true
 end
 
 function load.pw_beat(data, filename)

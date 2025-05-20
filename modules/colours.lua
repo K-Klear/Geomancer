@@ -127,7 +127,7 @@ COL.materials = {
 	["(DoNotEdit)LiveMat_Obstacles"] = {tint = colour_function.main},
 	["(DoNotEdit)LiveMat_MRObstacles"] = {tint = colour_function.main},
 	["(DoNotEdit)LiveMat_Props_NoDistortion"] = {tint = colour_function.main},
-	["(DoNotEdit)LiveMat_ParticleMesh_GlowMultiply"] = {tint = colour_function.fog, texture = tex_glow},
+	["(DoNotEdit)LiveMat_ParticleMesh_GlowMultiply"] = {tint = colour_function.glow, texture = tex_shaded},
 	["(DoNotEdit)LiveMat_Pedestrians"] = {tint = colour_function.main, texture = tex_ped},
 	["(DoNotEdit)LiveMat_PedestriansAlt"] = {tint = colour_function.enemy, texture = tex_ped},
 	-- unique

@@ -147,7 +147,7 @@ nodes {
   }
   size {
     x: 362.0
-    y: 614.0
+    y: 654.0
   }
   type: TYPE_BOX
   texture: "UI/empty_pixel"

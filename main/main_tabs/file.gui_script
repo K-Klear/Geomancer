@@ -35,10 +35,13 @@ end
 
 local function run_export_fn()
 	for key, val in ipairs(files_to_export) do
-		val.fn(val.path)
-		msg.post("/navbar#navbar", hash("update_status"), {text = val.text})
+		if val.fn(val.path) then
+			G.update_navbar(val.text_fail)
+		else
+			G.update_navbar(val.text)
+		end
 	end
-	msg.post("/navbar#navbar", hash("update_status"), {text = "Files exported"})
+	G.update_navbar("Files exported")
 	files_to_export = nil
 end
 
@@ -265,35 +268,19 @@ local function export_geo(path)
 	end
 end
 
-local function export_slice(path)
-	local output_string = ""
-	if #MEM.meta_data.volumes < 1 then
-		output_string = MEM.meta_data.string_start..MEM.meta_data.string_end
-	else
-		if #MEM.meta_data.volume_table > 0 then
-			output_string = ","
-		end
-		for key, val in ipairs(MEM.meta_data.volumes) do
-			output_string = output_string..val
-			if key < #MEM.meta_data.volumes then
-				output_string = output_string..","
-			end
-		end
-		output_string = MEM.meta_data.string_start..output_string..MEM.meta_data.string_end
-	end
-
-	if not G.safe_decode(output_string, "do_not_ship.pw_meta") then
-		msg.post("/navbar#navbar", hash("update_status"), {text = "Meta data might be corrupted. Use with caution."})
-	end
-
+local function export_pw_meta(path)
 	local f = G.safe_output(path)
 	if f then
-		io.write(output_string)
+		MEM.export_json(MEM.meta_data)
 		io.close(f)
 	end
 end
 
 local function export_geomancer_meta(path)
+	if not (type(MEM.geomancer_meta) == "table" and next(MEM.geomancer_meta)) then
+		MEM.geomancer_meta = nil
+		return true
+	end
 	local f = G.safe_output(path)
 	if f then
 		io.write(json.encode(MEM.geomancer_meta))
@@ -380,11 +367,15 @@ local function export_all(overwrite)
 					export_geo(path.."\\"..common_filename..".pw_geo")
 					G.update_navbar("Geo exported")
 				end
-				if MEM.meta_data.table then
-					export_slice(path.."\\do_not_ship.pw_meta")
+				if next(MEM.meta_data) then
+					export_pw_meta(path.."\\do_not_ship.pw_meta")
 				end
 
-				export_geomancer_meta(path.."\\"..common_filename..".geomancer")
+				if export_geomancer_meta(path.."\\"..common_filename..".geomancer") then
+					G.update_navbar("Failed to generate metadata", false)
+				else
+					G.update_navbar("Metadata exported", false)
+				end
 				
 				G.update_navbar("Files exported to "..path)
 			else
@@ -411,19 +402,13 @@ local function export_all(overwrite)
 					full_path = path.."\\"..common_filename..".pw_geo"
 					table.insert(files_to_export, {fn = export_geo, path = full_path, exists = sys.exists(full_path), text = "Geo exported"})
 				end
-				if MEM.meta_data.table then
+				if next(MEM.meta_data) then
 					full_path = path.."\\do_not_ship.pw_meta"
-					local text
-					if #MEM.meta_data.volumes > 0 then
-						text = "Volumes exported. NOTE: this does nothing until you open the map in Pistol Mix and generate geo."
-					else
-						text = "do_not_ship.pw_meta exported."
-					end
-					table.insert(files_to_export, {fn = export_slice, path = full_path, exists = sys.exists(full_path), text = text})
+					table.insert(files_to_export, {fn = export_pw_meta, path = full_path, exists = sys.exists(full_path), text = "do_not_ship.pw_meta exported."})
 				end
 
 				full_path = path.."\\"..common_filename..".geomancer"
-				table.insert(files_to_export, {fn = export_geomancer_meta, path = full_path, exists = sys.exists(full_path), text = "Geomancer metadata exported"})
+				table.insert(files_to_export, {fn = export_geomancer_meta, path = full_path, exists = sys.exists(full_path), text = "Geomancer metadata exported", text_fail = "Failed to generate metadata"})
 				
 				local overwrite_count = 0
 				for key, val in ipairs(files_to_export) do

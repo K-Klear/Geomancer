@@ -462,6 +462,10 @@ function on_message(self, message_id, message, sender)
 		if SET.auto_set_tween_preview_prop then
 			DIALOG.open(TAB_NAME, "dialog_props", {model = MEM.art_data.table.propsDictionary[MOD.model_index].key, autoclose = true})
 		end
+		if MOD.pov_lock then
+			MOD.target_x = 0
+			MOD.target_y = 0
+		end
 	end
 end
 

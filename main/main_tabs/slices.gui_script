@@ -3,162 +3,12 @@ local UI = require "modules.ui"
 local SET = require "modules.settings"
 local DIALOG = UI.DIALOG
 local TAB_NAME = "tab_meta"
-
-local image_data = {}
-local filter = 0
-local filter_threshold = 128
-local invert = false
-local create_additive = true
-local create_subtractive = false
-local current_preview = 1
-local show_path = true
-local separate_group_index = true
-local z_depth = 1
-local processing_order = 0
-local MIN_X, MAX_X, MIN_Y, MAX_Y = -84, 82, -80, 85
-local min_x, max_x, min_y, max_y = MIN_X, MAX_X, MIN_Y, MAX_Y
-
-local vol_1 = "{\"type\":\""
-local vol_1b= "\",\"offset\":\"("
-local vol_2 = ")\",\"scale\":\"("
-local vol_3 = ")\",\"worldPosition\":\"("
-local vol_4 = ")\",\"localScale\":\"("
-local vol_5 = ")\",\"groupIndex\":\""
-local vol_6 = "\",\"processingOrder\":\""
-local vol_7 = "\"}"
-local comma = ", "
-local volume_type = {[true] = "Additive", [false] = "Subtractive"}
-
-local function set_preview_image(image)
-	current_preview = image or current_preview
-	gui.set_texture(gui.get_node("preview"), tostring(image_data[current_preview].z))
-	gui.set_text(gui.get_node("preview_label"), "Z position: "..tostring(image_data[current_preview].z))
-end
-
-local function set_stencil_size()
-	local w = (max_x - min_x + 1) * 4
-	local h = (max_y - min_y + 1) * 4
-	local x = -334 + (min_x + math.abs(MIN_X)) * 4
-	local y = -332 + (min_y + math.abs(MIN_Y)) * 4
-	gui.set_size(gui.get_node("crop_stencil"), vmath.vector3(w, h, 1))
-	gui.set_position(gui.get_node("crop_stencil"), vmath.vector3(x, y, 0))
-	gui.set_position(gui.get_node("range_box"), vmath.vector3(min_x * -4 - 340 + 4, min_y * -4 - 328 + 8, 0))
-end
+local G = require "modules.global"
 
 function init(self)
-	msg.post("#", hash("disable"))
 	gui.set_render_order(1)
-	MEM.meta_data.volumes = {}
-	UI.load_template({
-		"load_images", "create", "subtractive", "additive", "invert", "left", "right", "min_y_down", "max_y_down",
-		"min_y_up", "max_y_up", "min_x_down", "min_x_up", "max_x_up", "max_x_down", "depth_down", "depth_up",
-		"show_path", "filter_white", "filter_alpha", "image_group"}, TAB_NAME)
-	local validation = {
-		integer = true,
-		min = function() return 1 end,
-		default = function() return 1 end
-	}
-	UI.load_text_field("depth", 3, TAB_NAME, validation)
-	validation = {
-		integer = true,
-		min = function() return MIN_X end,
-		max = function() return max_x end,
-		default = function() return math.max(math.min(0, max_x), MIN_X) end
-	}
-	UI.load_text_field("min_x", 3, TAB_NAME, validation)
-	validation = {
-		integer = true,
-		min = function() return MIN_Y end,
-		max = function() return max_y end,
-		default = function() return math.max(math.min(0, max_y), MIN_Y) end
-	}
-	UI.load_text_field("min_y", 3, TAB_NAME, validation)
-	validation = {
-		integer = true,
-		min = function() return min_x end,
-		max = function() return MAX_X end,
-		default = function() return math.max(math.min(0, MAX_X), min_x) end
-	}
-	UI.load_text_field("max_x", 3, TAB_NAME, validation)
-	validation = {
-		integer = true,
-		min = function() return min_y end,
-		max = function() return MAX_Y end,
-		default = function() return math.max(math.min(0, MAX_Y), min_y) end
-	}
-	UI.load_text_field("max_y", 3, TAB_NAME, validation)
-	validation = {integer = true, default = function() return 0 end}
-	UI.load_text_field("processing_order", 4, TAB_NAME, validation)
+	UI.load_template({"meta_delete_groups", "meta_delete_volumes"}, TAB_NAME)
 	msg.post("#", hash("disable"))
-end
-
-local function is_geo(pixels, width, x, y)
-	local index = y * width * 4 + x * 4 + 1
-	local value = pixels[index + filter]
-	if invert then
-		return value < filter_threshold
-	end
-	return value > filter_threshold
-end
-
-local function get_volume(pos_x, pos_y, pos_z, scale_x, scale_y, scale_z, group_index, is_additive)
-	local vol = vol_1..volume_type[is_additive]..vol_1b..tostring(pos_x)..comma..tostring(pos_y)..comma..tostring(pos_z)..vol_2..tostring(scale_x)..comma..tostring(scale_y)..comma..tostring(scale_z)
-	vol = vol..vol_3..tostring(((scale_x * 0.5) + pos_x) * 0.5)..comma..tostring(((scale_y * 0.5) + pos_y) * 0.5)..comma..tostring(((scale_z * 0.5) + pos_z) * 0.5)
-	vol = vol..vol_4..tostring(scale_x * 0.5)..comma..tostring(scale_y * 0.5)..comma..tostring(scale_z * 0.5)..vol_5..group_index..vol_6..processing_order..vol_7
-	return vol
-end
-
-local function divide_picture(index, group_index)
-	local pixel_values = {}
-	local width = max_x - min_x + 1
-	local height = max_y - min_y + 1
-	local volume_created = false
-	for i = 1, width * height do
-		local x = (i - 1) % width + (min_x - MIN_X)
-		local y = math.floor((i - 1) / width) + (min_y - MIN_Y)
-		table.insert(pixel_values, is_geo(image_data[index].pixels, image_data[index].w, x, y))
-	end
-	for starting_pixel = 1, width * height do
-		if not (pixel_values[starting_pixel] == nil) then
-			local volume_width = 1
-			local volume_height = 0
-			local is_additive = pixel_values[starting_pixel]
-			pixel_values[starting_pixel] = nil
-			repeat
-				if (starting_pixel + volume_width - 1) % width == 0 then
-					break
-				end
-				if pixel_values[starting_pixel + volume_width] == is_additive then
-					pixel_values[starting_pixel + volume_width] = nil
-					volume_width = volume_width + 1
-				else
-					break
-				end
-			until false
-			local height_found
-			repeat
-				volume_height = volume_height + 1
-				for i = 1, volume_width do
-					if not (pixel_values[starting_pixel + width * volume_height + i - 1] == is_additive) then
-						height_found = true
-						break
-					end
-				end
-				if not height_found then
-					for i = 1, volume_width do
-						pixel_values[starting_pixel + width * volume_height + i - 1] = nil
-					end
-				end
-			until height_found
-			if (is_additive and create_additive) or (create_subtractive and not is_additive) then
-				local x = min_x + (starting_pixel - 1) % width
-				local y = min_y + math.floor(starting_pixel / width)
-				table.insert(MEM.meta_data.volumes, get_volume(x, y, image_data[index].z, volume_width, volume_height, z_depth, group_index, is_additive))
-				volume_created = true
-			end
-		end
-	end
-	return volume_created
 end
 
 function on_message(self, message_id, message, sender)
@@ -168,157 +18,36 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("show") then
 		msg.post("#", hash("enable"))
 		msg.post("#", hash("acquire_input_focus"))
-	elseif message_id == hash("reset") then
-		MEM.meta_data.volumes = {}
-		image_data = {}
-		current_preview = 1
+	elseif message_id == hash("dialog_closed") then
+		msg.post("#", hash("acquire_input_focus"))
+		if message.dialog == "dialog_confirm" then
+			if message.button == 1 then	-- 1 is delete, 3 is cancel
+				MEM.meta_data.Volume = {}
+				G.update_navbar("All volumes deleted", true)
+			elseif message.button == 3 then
+				G.update_navbar("Volume deletion canceled", true)
+			end
+		end
 	end
 end
-
-local function evaluate_input(field, text)
-	if field == "depth" then
-		z_depth = text
-	elseif field == "min_x" then
-		min_x = text
-		set_stencil_size()
-	elseif field == "min_y" then
-		min_y = text
-		set_stencil_size()
-	elseif field == "max_x" then
-		max_x = text
-		set_stencil_size()
-	elseif field == "max_y" then
-		max_y = text
-		set_stencil_size()
-	elseif field == "processing_order" then
-		processing_order = text
-	end
-end
-
-local valid_min_x = function(val) return math.max(math.min(val, max_x), MIN_X) end
-local valid_min_y = function(val) return math.max(math.min(val, max_y), MIN_Y) end
-local valid_max_x = function(val) return math.max(math.min(val, MAX_X), min_x) end
-local valid_max_y = function(val) return math.max(math.min(val, MAX_Y), min_y) end
-local valid_depth = function(val) return math.max(1, val) end
-
-local text_field_button_data = {}
-text_field_button_data.min_x_down = {change = -1, node_id = "min_x", validation = valid_min_x}
-text_field_button_data.min_x_up = {change = 1, node_id = "min_x", validation = valid_min_x}
-text_field_button_data.max_x_down = {change = -1, node_id = "max_x", validation = valid_max_x}
-text_field_button_data.max_x_up = {change = 1, node_id = "max_x", validation = valid_max_x}
-text_field_button_data.min_y_down = {change = -1, node_id = "min_y", validation = valid_min_y}
-text_field_button_data.min_y_up = {change = 1, node_id = "min_y", validation = valid_min_y}
-text_field_button_data.max_y_down = {change = -1, node_id = "max_y", validation = valid_max_y}
-text_field_button_data.max_y_up = {change = 1, node_id = "max_y", validation = valid_max_y}
-text_field_button_data.depth_up = {change = 1, node_id = "depth", validation = valid_depth}
-text_field_button_data.depth_down = {change = -1, node_id = "depth", validation = valid_depth}
 
 local function evaluate_button(button)
-	local checkbox_text = {[true] = "X", [false] = ""}
-	if button == "load_images" then
-		local num, path = diags.open_folder()
-		if path then
-			for key, val in ipairs(image_data) do
-				gui.delete_texture(tostring(val.z))
-			end
-			image_data = {}
-			local count = 0
-			for filename in lfs.dir(path) do
-				local ext_dot = string.find(filename, "%.")
-				if ext_dot then
-					local z = string.sub(filename, 1, ext_dot - 1)
-					if z and tonumber(z) then
-						local f = io.open(path.."/"..filename, "rb")
-						if f then
-							local image = f:read("*a")
-							local buf, w, h = png.decode_rgba(image, true)
-							if not (w == 167 and h == 166) then
-								msg.post("/navbar#navbar", hash("update_status"), {text = "Image "..filename.." has wrong dimensions."})
-							else
-								local pixels = buffer.get_stream(buf, hash("pixels"))
-								gui.new_texture(z, w, h, "rgba", buffer.get_bytes(buf, hash("pixels")), true)
-								table.insert(image_data, {pixels = pixels, w = w, h = h, z = z})
-								msg.post("/navbar#navbar", hash("update_status"), {text = filename.." loaded."})
-								count = count + 1
-							end
-							io.close(f)
-						end
-					end
-				end
-			end
-			msg.post("/navbar#navbar", hash("update_status"), {text = "Loaded "..count.." images."})
-			if count > 0 then
-				table.sort(image_data, function(a, b) return tonumber(a.z) < tonumber(b.z) end)
-				set_preview_image(1)
-			end
-		end
-	elseif button == "left" then
-		if current_preview > 1 then
-			current_preview = current_preview - 1
-			set_preview_image()
-		end
-	elseif button == "right" then
-		if current_preview < #image_data then
-			current_preview = current_preview + 1
-			set_preview_image()
-		end
-	elseif button == "additive" then
-		create_additive = not create_additive
-		gui.set_text(gui.get_node("additive/text"), checkbox_text[create_additive])
-	elseif button == "subtractive" then
-		create_subtractive = not create_subtractive
-		gui.set_text(gui.get_node("subtractive/text"), checkbox_text[create_subtractive])
-	elseif button == "invert" then
-		invert = not invert
-		msg.post("@render:", hash("invert_preview"), {invert = invert})
-		gui.set_text(gui.get_node("invert/text"), checkbox_text[invert])
-	elseif button == "show_path" then
-		show_path = not show_path
-		gui.set_text(gui.get_node(button.."/text"), checkbox_text[show_path])
-		gui.set_visible(gui.get_node("player_path"), show_path)
-	elseif button == "image_group" then
-		separate_group_index = not separate_group_index
-		gui.set_text(gui.get_node(button.."/text"), checkbox_text[separate_group_index])
-	elseif button == "filter_white" then
-		filter = 0
-		gui.set_text(gui.get_node("filter_white/text"), "X")
-		gui.set_text(gui.get_node("filter_alpha/text"), "")
-	elseif button == "filter_alpha" then
-		filter = 3
-		gui.set_text(gui.get_node("filter_white/text"), "")
-		gui.set_text(gui.get_node("filter_alpha/text"), "X")
-	elseif text_field_button_data[button] then
-		local data = text_field_button_data[button]
-		local new_val = gui.get_text(gui.get_node(data.node_id.."/text")) + data.change
-		new_val = text_field_button_data[button].validation(new_val)
-		gui.set_text(gui.get_node(data.node_id.."/text"), new_val)
-		evaluate_input(data.node_id, new_val)
-	elseif button == "create" then
-		if false and #image_data < 1 then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "No images loaded", clear = true})
-		elseif not (create_additive or create_subtractive) then
-			msg.post("/navbar#navbar", hash("update_status"), {text = "No volumes created. Select additive or subtractive to generate volumes.", clear = true})
+	if button == "meta_delete_groups" then
+		if not next(MEM.meta_data.DecorGroups) then
+			G.update_navbar("No decor group data to remove", true)
 		else
-			MEM.meta_data.volumes = {}
-			local group_index = MEM.meta_data.free_group_index
-			for index, val in ipairs(image_data) do
-				if divide_picture(index, group_index) and separate_group_index then
-					group_index = group_index + 1
-				end
-			end
-			if #MEM.meta_data.volumes > 1 then
-				msg.post("/navbar#navbar", hash("update_status"), {text = #MEM.meta_data.volumes.." volumes created.", clear = true})
-				msg.post("/navbar#navbar", hash("update_status"), {text = "They will be added to the file on export."})
-			elseif #MEM.meta_data.volumes == 1 then
-				msg.post("/navbar#navbar", hash("update_status"), {text = "One volume created.", clear = true})
-				msg.post("/navbar#navbar", hash("update_status"), {text = "It will be added to the file on export."})
-			else
-				msg.post("/navbar#navbar", hash("update_status"), {text = "No volumes created for whatever reason.", clear = true})
-			end
+			MEM.meta_data.DecorGroups = {}
+			G.update_navbar("Decor group information deleted", true)
+		end
+	elseif button == "meta_delete_volumes" then
+		if not next(MEM.meta_data.Volume) then
+			G.update_navbar("No volumes to delete", true)
+		else
+			DIALOG.open(TAB_NAME, "dialog_confirm", {title = "This will remove all volumes but keep the generated geo intact.\nAre you sure?", button_1 = "Delete", button_3 = "Cancel", subject = "delete_volumes"})
 		end
 	end
 end
 
 function on_input(self, action_id, action)
-	UI.on_input(TAB_NAME, action_id, action, evaluate_button, evaluate_input)
+	UI.on_input(TAB_NAME, action_id, action, evaluate_button)
 end

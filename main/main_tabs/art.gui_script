@@ -236,6 +236,7 @@ local function update_materials()
 end
 
 local function update_lists()
+	-- THIS IS PART OF THE UI LEAK, HAPPENED WHEN WORKING ON A TWEEN
 	UI.update_list(TAB_NAME, model_list, #MEM.art_data.table.propsDictionary)
 	if get_selected_model() > 0 then
 		local part_table = MEM.art_data.table.propsDictionary[get_selected_model()].model_data.parts
@@ -531,6 +532,10 @@ local function check_tweens()
 	local selected_model = get_selected_model()
 	if selected_model then
 		local model_tab = MEM.art_data.table.propsDictionary[selected_model]
+		if not model_tab then
+			UI.update_list(TAB_NAME, model_list, 0)
+			return
+		end
 		local tween_count = 0
 		local legal_transforms = {}
 		local transform_list = model_tab.model_data.transform_list

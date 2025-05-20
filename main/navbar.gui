@@ -318,7 +318,7 @@ nodes {
     z: 0.0
   }
   type: TYPE_TEXT
-  text: "Volumes"
+  text: "Metadata"
   font: "tab_caption"
   id: "text7"
   parent: "tab_meta"

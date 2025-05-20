@@ -1,6 +1,7 @@
 local SET = {}
 
 SET.I_am_Klear = false
+SET.debug = false
 
 SET.scroll_speed = 150
 SET.scroll_time = 0.6
@@ -125,6 +126,5 @@ SET.easing_curve_colour = vmath.vector4(0, 0, 1, 1)
 -- beat
 SET.bulk_sequence_sort = false
 
-SET.debug = false
 
 return SET

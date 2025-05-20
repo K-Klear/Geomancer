@@ -40,4 +40,7 @@ images {
 images {
   image: "/assets/gfx/enemies/turret.png"
 }
+images {
+  image: "/assets/gfx/enemies/Fantasy.png"
+}
 extrude_borders: 2
