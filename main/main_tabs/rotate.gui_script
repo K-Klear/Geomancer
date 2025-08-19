@@ -141,9 +141,9 @@ end
 
 function on_input(self, action_id, action)
 	if not action_id and model_dragged then
-		if true or SET.rotate_multiple_axes then
+		if SET.rotate_multiple_axes then
 			if UI.ctrl_held then
-				rotation_quat = vmath.quat_rotation_z(math.rad(action.dx)) * vmath.quat_rotation_x(math.rad(-action.dy)) * rotation_quat
+				rotation_quat = vmath.quat_rotation_z(math.rad(-action.dx)) * vmath.quat_rotation_x(math.rad(-action.dy)) * rotation_quat
 			else
 				rotation_quat = vmath.quat_rotation_y(math.rad(action.dx)) * vmath.quat_rotation_x(math.rad(-action.dy)) * rotation_quat
 			end
@@ -151,7 +151,7 @@ function on_input(self, action_id, action)
 			if UI.shift_held then
 				rotation_quat = vmath.quat_rotation_x(math.rad(-action.dy)) * rotation_quat
 			elseif UI.ctrl_held then
-				rotation_quat = vmath.quat_rotation_z(math.rad(action.dx)) * rotation_quat
+				rotation_quat = vmath.quat_rotation_z(math.rad(-action.dx)) * rotation_quat
 			else
 				rotation_quat = vmath.quat_rotation_y(math.rad(action.dx)) * rotation_quat
 			end
