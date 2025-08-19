@@ -36,16 +36,14 @@ function G.sanitise_json(str)
 	return str
 end
 
-function G.safe_decode(json_str, filename)
-	--if not (type(json_str) == "string") then
-	--	return
-	--end
+function G.safe_decode(json_str, filename, suppress_error)
 	json_str = G.sanitise_json(json_str)
 	filename = filename or "File"
 	local err, table = pcall(json.decode, json_str)
 	if not err then
-		msg.post("/navbar#navbar", hash("update_status"), {text = filename.." doesn't seem to be valid JSON."})
-		msg.post("/navbar#navbar", hash("update_status"), {text = table})
+		if suppress_error then return end
+		G.update_navbar(filename.." doesn't seem to be valid JSON.")
+		G.update_navbar(table)
 		return
 	else
 		return table, json_str

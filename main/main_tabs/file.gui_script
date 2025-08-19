@@ -111,7 +111,6 @@ local function get_tween_script(tween_data, model_name)
 end
 
 local function export_art(path)
-	-- put the geomancer meta file creation stuff here somewhere
 	local is_dynamic = {}
 	local model_table = MEM.art_data.table
 	for key, val in ipairs(model_table.propsDictionary) do

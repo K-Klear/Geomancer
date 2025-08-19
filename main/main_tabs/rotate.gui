@@ -1,0 +1,259 @@
+script: "/main/main_tabs/rotate.gui_script"
+fonts {
+  name: "main_menu_button_small"
+  font: "/assets/fonts/final/main_menu_button_small.font"
+}
+fonts {
+  name: "menu_title"
+  font: "/assets/fonts/final/menu_title.font"
+}
+textures {
+  name: "UI"
+  texture: "/assets/gfx/UI.atlas"
+}
+textures {
+  name: "get_rotated"
+  texture: "/assets/gfx/get_rotated.atlas"
+}
+nodes {
+  position {
+    x: 640.0
+    y: 100.0
+  }
+  type: TYPE_TEMPLATE
+  id: "rotate"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  position {
+    y: 12.0
+  }
+  size {
+    x: 360.0
+    y: 96.0
+  }
+  type: TYPE_BOX
+  id: "rotate/button_white"
+  parent: "rotate"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+    z: 2.0
+  }
+  type: TYPE_TEXT
+  text: "Get rotation"
+  id: "rotate/text"
+  parent: "rotate/button_white"
+  overridden_fields: 3
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1102.0
+    y: 231.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "X         Y          Z"
+  font: "main_menu_button_small"
+  id: "label_rotation"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 974.0
+    y: 200.0
+  }
+  type: TYPE_TEMPLATE
+  id: "rot_x"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 32.0
+  }
+  type: TYPE_BOX
+  id: "rot_x/box"
+  parent: "rot_x"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  type: TYPE_TEXT
+  text: "0"
+  id: "rot_x/text"
+  parent: "rot_x/box"
+  overridden_fields: 3
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1062.0
+    y: 200.0
+  }
+  type: TYPE_TEMPLATE
+  id: "rot_y"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 32.0
+  }
+  type: TYPE_BOX
+  id: "rot_y/box"
+  parent: "rot_y"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  type: TYPE_TEXT
+  text: "180"
+  id: "rot_y/text"
+  parent: "rot_y/box"
+  overridden_fields: 3
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1148.0
+    y: 200.0
+  }
+  type: TYPE_TEMPLATE
+  id: "rot_z"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 32.0
+  }
+  type: TYPE_BOX
+  id: "rot_z/box"
+  parent: "rot_z"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  type: TYPE_TEXT
+  text: "0"
+  id: "rot_z/text"
+  parent: "rot_z/box"
+  overridden_fields: 3
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 384.0
+    y: 800.0
+  }
+  size {
+    x: 512.0
+    y: 512.0
+  }
+  type: TYPE_BOX
+  texture: "UI/model_viewer_border"
+  id: "rotate_box"
+  pivot: PIVOT_NW
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1110.0
+    y: 494.0
+  }
+  type: TYPE_BOX
+  texture: "get_rotated/rotate"
+  id: "gif"
+  layer: "below"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  enabled: false
+}
+nodes {
+  position {
+    x: 1102.0
+    y: 324.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Round to\n"
+  "\n"
+  "degrees"
+  font: "main_menu_button_small"
+  id: "label_rotation1"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1049.0
+    y: 321.0
+  }
+  type: TYPE_TEMPLATE
+  id: "rounding"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 100.0
+    y: 32.0
+  }
+  type: TYPE_BOX
+  id: "rounding/box"
+  parent: "rounding"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  type: TYPE_TEXT
+  text: "15"
+  id: "rounding/text"
+  parent: "rounding/box"
+  overridden_fields: 3
+  overridden_fields: 8
+  template_node_child: true
+}
+layers {
+  name: "below"
+}
+layers {
+  name: "text"
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT
+materials {
+  name: "font-df"
+  material: "/builtins/fonts/font-df.material"
+}

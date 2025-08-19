@@ -270,9 +270,6 @@ end
 
 local function delete_transform(transform_index)
 	
-
-	
-	
 	selected_transform = nil
 	MOD.visible_transform = nil
 	if SET.show_transform == 1 then
@@ -314,8 +311,6 @@ end
 
 local function close_cleanup()
 	msg.post("/model_viewer", hash("stop_flashing"))
-	msg.post("/model_viewer", hash("resize_base"))
-	msg.post("/model_viewer", hash("reset_view"))
 	MOD.prop_data = nil
 	model_index = nil
 	transform_list = nil
@@ -330,6 +325,8 @@ function evaluate_button(button, item)
 	if button == "transform_close" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)
 		close_cleanup()
+		msg.post("/model_viewer", hash("resize_base"))
+		msg.post("/model_viewer", hash("reset_view"))
 	elseif button == "transform_delete" then
 		if not selected_transform then
 			G.update_navbar("Select a transform first", true)
@@ -403,6 +400,7 @@ local function rename_transform(new_name)
 			end
 		end
 	end
+	rebuild_transform_list()
 	UI.update_list(DIALOG_NAME, list, #transform_list)
 	G.update_navbar("Transform renamed.", true)
 end
@@ -501,6 +499,13 @@ local function set_transform_data()
 		end
 	end
 	msg.post("/model_viewer", hash("update_model"), {model = model_index})
+	transform_selected(selected_transform)
+end
+
+local function display_euler()
+	gui.set_text(gui.get_node("transform_rotation_x/text"), G.round(transform_euler.x, 4))
+	gui.set_text(gui.get_node("transform_rotation_y/text"), G.round(transform_euler.y, 4))
+	gui.set_text(gui.get_node("transform_rotation_z/text"), G.round(transform_euler.z, 4))
 end
 
 local function evaluate_input(field, text)
@@ -517,20 +522,20 @@ local function evaluate_input(field, text)
 		transform_euler.x = text
 		transform_euler = math.deg(G.sanitise_euler(math.rad(transform_euler))) 
 		transform_list[selected_transform].rotation = G.euler_to_quat(transform_euler)
-		transform_euler = G.quat_to_euler(transform_list[selected_transform].rotation)
-		gui.set_text(gui.get_node("transform_rotation_x/text"), G.round(transform_euler.x, 4))
+		transform_euler = math.deg(G.sanitise_euler(math.rad(G.quat_to_euler(transform_list[selected_transform].rotation))))
+		display_euler()
 	elseif field == "transform_rotation_y" then
 		transform_euler.y = text
 		transform_euler = math.deg(G.sanitise_euler(math.rad(transform_euler))) 
 		transform_list[selected_transform].rotation = G.euler_to_quat(transform_euler)
-		transform_euler = G.quat_to_euler(transform_list[selected_transform].rotation)
-		gui.set_text(gui.get_node("transform_rotation_y/text"), G.round(transform_euler.y, 4))
+		transform_euler = math.deg(G.sanitise_euler(math.rad(G.quat_to_euler(transform_list[selected_transform].rotation))))
+		display_euler()
 	elseif field == "transform_rotation_z" then
 		transform_euler.z = text
 		transform_euler = math.deg(G.sanitise_euler(math.rad(transform_euler))) 
 		transform_list[selected_transform].rotation = G.euler_to_quat(transform_euler)
-		transform_euler = G.quat_to_euler(transform_list[selected_transform].rotation)
-		gui.set_text(gui.get_node("transform_rotation_z/text"), G.round(transform_euler.z, 4))
+		transform_euler = math.deg(G.sanitise_euler(math.rad(G.quat_to_euler(transform_list[selected_transform].rotation))))
+		display_euler()
 	elseif field == "transform_scale_x" then
 		transform_list[selected_transform].scale.x = tonumber(text)
 		gui.set_text(gui.get_node("transform_scale_x/text"), G.round(text, 4))

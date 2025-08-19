@@ -7,7 +7,7 @@ local G = require "modules.global"
 local DIALOG = UI.DIALOG
 
 local bounding_node, bounding_node_preview, bounding_node_transform, aux_node, button_box, playback_box
-local close_button, transform_button, timeline, scrubber, time_display, selected_timeline
+local close_button, timeline, scrubber, time_display, selected_timeline
 local get_current_transform, previous_transform_name
 local current_bounding_node
 local colour_unselected_timeline = vmath.vector4(0.6, 0.6, 0.6, 1)
@@ -39,7 +39,6 @@ local function set_button_colours()
 	gui.set_color(gui.get_node("button_colour/glow"), COL.get_current("glow"))
 	gui.set_color(gui.get_node("button_colour/enemy"), COL.get_current("enemy"))
 end
-
 
 local function update_offset_fields()
 	local xyz = {"x", "y", "z"}
@@ -92,7 +91,6 @@ function init(self)
 	button_box = gui.get_node("button_box")
 	playback_box = gui.get_node("playback_box")
 	close_button = gui.get_node("close_preview/button_white")
-	transform_button = gui.get_node("show_transforms/button_white")
 	gui.set_position(button_box, BUTTON_BOX_POSITION)
 	gui.set_size(button_box, BUTTON_BOX_SIZE)
 	timeline = gui.get_node("timeline_box")
@@ -159,25 +157,31 @@ local function create_tween_sections()
 			if val.type == "X" then
 
 			else
-				local new_bar = gui.clone(gui.get_node("action_bar"))
-				local new_bar_end = gui.clone(gui.get_node("action_end"))
-				gui.set_parent(new_bar, new_timeline)
-				gui.set_parent(new_bar_end, new_timeline)
-				gui.set_enabled(new_bar, true)
-				gui.set_enabled(new_bar_end, true)
-				if val.type == "T" then
-					gui.set_color(new_bar, SET.colour_tween_move)
-				elseif val.type == "R" then
-					gui.set_color(new_bar, SET.colour_tween_rotate)
-				elseif val.type == "S" then
-					gui.set_color(new_bar, SET.colour_tween_scale)
-				elseif val.type == "W" then
-					gui.set_color(new_bar, SET.colour_tween_wait)
-				else
-					gui.set_color(new_bar, vmath.vector4(0.5, 0, 0, 1))
+				local function add_bar(time)
+					local new_bar = gui.clone(gui.get_node("action_bar"))
+					local new_bar_end = gui.clone(gui.get_node("action_end"))
+					gui.set_parent(new_bar, new_timeline)
+					gui.set_parent(new_bar_end, new_timeline)
+					gui.set_enabled(new_bar, true)
+					gui.set_enabled(new_bar_end, true)
+					if val.type == "T" then
+						gui.set_color(new_bar, SET.colour_tween_move)
+					elseif val.type == "R" then
+						gui.set_color(new_bar, SET.colour_tween_rotate)
+					elseif val.type == "S" then
+						gui.set_color(new_bar, SET.colour_tween_scale)
+					elseif val.type == "W" then
+						gui.set_color(new_bar, SET.colour_tween_wait)
+					else
+						gui.set_color(new_bar, vmath.vector4(0.5, 0, 0, 1))
+					end
+					table.insert(action_bars[tween_index], {bar = new_bar, ending = new_bar_end, time = time})
+					tween_time = tween_time + time
 				end
-				table.insert(action_bars[tween_index], {bar = new_bar, ending = new_bar_end, time = val.time})
-				tween_time = tween_time + val.time
+				if not (val.easing_mid or val.easing_end) then
+					add_bar(val.easing_start or val.time)
+				end
+				
 			end
 		end
 		MOD.total_time = math.max(MOD.total_time, tween_time)
@@ -330,6 +334,8 @@ function on_message(self, message_id, message, sender)
 		change_bounds(bounding_node_transform)
 	elseif message_id == hash("update_transform_button") then
 		set_transform_button()
+	elseif message_id == hash("resize_rotate") then
+		change_bounds(gui.get_node("rotate_box"))
 	elseif message_id == hash("tween_preview") then
 		MOD.tween_preview = true
 		MOD.total_time = 0
@@ -452,6 +458,13 @@ function on_message(self, message_id, message, sender)
 					end
 					table.remove(tween_table, key)
 					for i = #easing_tab, 1, -1 do
+						if i == #easing_tab then
+							easing_tab[i].easing_end = true
+						elseif i == 1 then
+							easing_tab[i].easing_start = val.time
+						else
+							easing_tab[i].easing_mid = true
+						end
 						table.insert(tween_table, key, easing_tab[i])
 					end
 				end
@@ -474,12 +487,14 @@ local function get_current_action()
 	local duration = 0
 	local timeline_tab = MOD.tween_table[selected_timeline]
 	for key, val in ipairs(timeline_tab) do
-		local time = tonumber(val.time)
-		if time > 0.00000001 then
-			if duration + time > current_time and ((duration + time) - current_time) > 0.00000001 then
-				return key, duration
-			else
-				duration = duration + time
+		if not (val.easing_mid or val.easing_end) then
+			local time = val.easing_start or tonumber(val.time)
+			if time > 0.00000001 then
+				if duration + time > current_time and ((duration + time) - current_time) > 0.00000001 then
+					return key, duration
+				else
+					duration = duration + time
+				end
 			end
 		end
 	end
@@ -596,7 +611,14 @@ local function evaluate_button(button)
 			new_time = start_time / MOD.total_time
 		else
 			for i = 1, current_action - 1 do
-				local time = tonumber(MOD.tween_table[selected_timeline][current_action - i].time)
+				local function find_previous_action(index)
+					local tab = MOD.tween_table[selected_timeline][index]
+					if tab.easing_mid or tab.easing_end then
+						return find_previous_action(index - 1)
+					end
+					return tab.easing_start or tonumber(tab.time)
+				end
+				local time = find_previous_action(current_action - i)
 				if time > 0 then
 					new_time = (start_time - time) / MOD.total_time
 					break
@@ -617,7 +639,8 @@ local function evaluate_button(button)
 			if current_action > #MOD.tween_table[selected_timeline] then
 				move_scrubber(1)
 			else
-				move_scrubber(math.min((start_time + tonumber(MOD.tween_table[selected_timeline][current_action].time)) / MOD.total_time, 1))
+				local time = MOD.tween_table[selected_timeline][current_action].easing_start or tonumber(MOD.tween_table[selected_timeline][current_action].time)
+				move_scrubber(math.min((start_time + time) / MOD.total_time, 1))
 			end
 		else
 			move_scrubber(1)
@@ -723,12 +746,11 @@ function on_input(self, action_id, action)
 				pos.x = math.min(math.max(action.screen_x, min_x), max_x)
 				move_scrubber((pos.x - min_x) / (max_x - min_x))
 				get_current_transform()
-				if action.released then
-					for key, val in ipairs(timelines) do
-						if gui.pick_node(val, action.x, action.y) then
-							select_timeline(key)
-							break
-						end
+			elseif action_id == hash("r_click") and action.released then
+				for key, val in ipairs(timelines) do
+					if gui.pick_node(val, action.x, action.y) then
+						select_timeline(key)
+						break
 					end
 				end
 			end

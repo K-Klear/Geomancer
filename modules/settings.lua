@@ -126,5 +126,8 @@ SET.easing_curve_colour = vmath.vector4(0, 0, 1, 1)
 -- beat
 SET.bulk_sequence_sort = false
 
+-- enemy rotation
+SET.rotate_multiple_axes = false
+SET.default_rotation_rounding = 15
 
 return SET

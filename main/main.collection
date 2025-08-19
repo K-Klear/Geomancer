@@ -23,7 +23,6 @@ embedded_instances {
 }
 embedded_instances {
   id: "file"
-  children: "easing"
   data: "components {\n"
   "  id: \"tab_file\"\n"
   "  component: \"/main/main_tabs/file.gui\"\n"
@@ -115,6 +114,7 @@ embedded_instances {
 }
 embedded_instances {
   id: "tween"
+  children: "easing"
   children: "tween_action"
   children: "tween_copy"
   children: "tween_part"
@@ -262,14 +262,6 @@ embedded_instances {
   ""
 }
 embedded_instances {
-  id: "easing"
-  data: "components {\n"
-  "  id: \"dialog_easing\"\n"
-  "  component: \"/main/dialogs/art/tween/dialog_easing.gui\"\n"
-  "}\n"
-  ""
-}
-embedded_instances {
   id: "filter"
   data: "components {\n"
   "  id: \"dialog_event_filter\"\n"
@@ -389,4 +381,44 @@ embedded_instances {
   "  component: \"/main/dialogs/art/dialog_parent_transform.gui\"\n"
   "}\n"
   ""
+}
+embedded_instances {
+  id: "easing"
+  data: "components {\n"
+  "  id: \"dialog_easing\"\n"
+  "  component: \"/main/dialogs/art/tween/dialog_easing.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "rotate"
+  children: "enemy_model"
+  data: "components {\n"
+  "  id: \"tab_rotate\"\n"
+  "  component: \"/main/main_tabs/rotate.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "enemy_model"
+  data: "embedded_components {\n"
+  "  id: \"model\"\n"
+  "  type: \"model\"\n"
+  "  data: \"mesh: \\\"/assets/models/enemy.dae\\\"\\n"
+  "name: \\\"{{NAME}}\\\"\\n"
+  "materials {\\n"
+  "  name: \\\"default\\\"\\n"
+  "  material: \\\"/render/model.material\\\"\\n"
+  "  textures {\\n"
+  "    sampler: \\\"tex0\\\"\\n"
+  "    texture: \\\"/assets/gfx/white_pixel.png\\\"\\n"
+  "  }\\n"
+  "}\\n"
+  "\"\n"
+  "}\n"
+  ""
+  rotation {
+    y: 1.0
+    w: 6.123234E-17
+  }
 }

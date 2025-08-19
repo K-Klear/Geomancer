@@ -95,7 +95,7 @@ local function check_tab(tab)
 end
 
 local tab_shortcuts = {[hash("f1")] = "tab_file", [hash("f2")] = "tab_level", [hash("f3")] = "tab_event", [hash("f4")] = "tab_art",
-[hash("f5")] = "tab_beat", [hash("f6")] = "tab_geo", [hash("f7")] = "tab_meta"}
+[hash("f5")] = "tab_beat", [hash("f6")] = "tab_geo", [hash("f7")] = "tab_meta", [hash("f8")] = "tab_rotate"}
 
 function on_input(self, action_id, action)
 	if action.pressed then

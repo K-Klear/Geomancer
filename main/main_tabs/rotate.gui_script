@@ -1,0 +1,181 @@
+local UI = require "modules.ui"
+local MEM = require "modules.memory"
+local MOD = require "main.model_viewer.model"
+local G = require "modules.global"
+local SET = require "modules.settings"
+local DIALOG = UI.DIALOG
+local TAB_NAME = "tab_rotate"
+
+local rotation_euler = vmath.vector3(0, 180, 0)
+local rotation_quat = vmath.quat(0, 1, 0, 0)
+local model_dragged = false
+local gif_timer
+local rounding = 15
+
+function init(self)
+	gui.set_render_order(1)
+	rounding = math.min(math.max(SET.default_rotation_rounding, 0), 90)
+	gui.set_text(gui.get_node("rounding/text"), rounding)
+	UI.load_template({"rotate"}, TAB_NAME)
+	local validation = {
+		number = true,
+		min = function() return -999 end,
+		max = function() return 999 end,
+		default = function() return 0 end
+	}
+	local validation_2 = {
+		number = true,
+		min = function() return -999 end,
+		max = function() return 999 end,
+		default = function() return 180 end
+	}
+	local validation_3 = {
+		number = true,
+		min = function() return 0 end,
+		max = function() return 90 end,
+		default = function() return 0 end
+	}
+	UI.load_text_field("rot_x", 6, TAB_NAME, validation)
+	UI.load_text_field("rot_y", 6, TAB_NAME, validation_2)
+	UI.load_text_field("rot_z", 6, TAB_NAME, validation)
+	UI.load_text_field("rounding", 5, TAB_NAME, validation_3)
+	msg.post("#", hash("disable"))
+	msg.post("/enemy_model", hash("disable"))
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		DIALOG.close_all(TAB_NAME)
+		msg.post("/enemy_model", hash("disable"))
+		model_dragged = false
+		msg.post("/model_viewer", hash("resize_base"))
+		msg.post("/model_viewer", hash("reset_view"))
+	elseif message_id == hash("show") then
+		msg.post("/model_viewer", hash("resize_rotate"))
+		msg.post("/model_viewer", hash("rotate_view"))
+		msg.post("/enemy_model", hash("enable"))
+		msg.post("#", hash("enable"))
+		msg.post("#", hash("acquire_input_focus"))
+	elseif message_id == hash("dialog_closed") then
+		msg.post("#", hash("acquire_input_focus"))
+	end
+end
+
+local function set_new_rotation()
+	gui.set_text(gui.get_node("rot_x/text"), G.round(rotation_euler.x, 2))
+	gui.set_text(gui.get_node("rot_y/text"), G.round(rotation_euler.y, 2))
+	gui.set_text(gui.get_node("rot_z/text"), G.round(rotation_euler.z, 2))
+	msg.post("/model_viewer", hash("set_enemy_rotation"), {rotation = rotation_quat})
+end
+
+local function handle_euler()
+	if rounding > 0 then
+		local half_r = rounding / 2
+		rotation_euler.x = rotation_euler.x + half_r - ((rotation_euler.x + half_r) % rounding)
+		rotation_euler.y = rotation_euler.y + half_r - ((rotation_euler.y + half_r) % rounding)
+		rotation_euler.z = rotation_euler.z + half_r - ((rotation_euler.z + half_r) % rounding)
+	end
+	local euler_rad = math.rad(vmath.vector3(-rotation_euler.x, -rotation_euler.y, rotation_euler.z))
+	rotation_euler = math.deg(G.sanitise_euler(euler_rad))
+	rotation_quat = G.euler_to_quat(rotation_euler)
+	rotation_euler = G.quat_to_euler(rotation_quat)
+	rotation_euler.x = -rotation_euler.x
+	rotation_euler.y = -rotation_euler.y
+	rotation_euler = math.deg(G.sanitise_euler(math.rad(rotation_euler)))
+end
+
+local function evaluate_input(field, text)
+	if field == "rot_x" then
+		rotation_euler.x = text
+	elseif field == "rot_y" then
+		rotation_euler.y = text
+	elseif field == "rot_z" then
+		rotation_euler.z = text
+	elseif field == "rounding" then
+		rounding = text
+	end
+	handle_euler()
+	set_new_rotation()
+end
+
+--[[
+[{"Label":"","Track":0,"EventType":0,"Sample":364965,"Duration":44100,"Targets":[{"Type":0,"Distance":1,"Placement":"0,0","Offset":"-5,0,-3","Rotation":"0,0.7071068,0,0.7071068","Shielded":false,"NoGround":true,"NoCarve":true,"EnemySequence":"ShortRun"}],"Obstacles":[],"Prop":null}]
+--]]
+
+local function evaluate_button(button)
+	if button == "rotate" then
+		local clipboard_string = clipboard.paste()
+		local enemy_info
+		local rotation_changed
+		if type(clipboard_string) == "string" then
+			enemy_info = G.safe_decode(clipboard_string, "clipboard", true)
+			if type(enemy_info) == "table" then
+				for key, val in ipairs(enemy_info) do
+					if val.Targets and type(val.Targets) == "table" then
+						for k, v in ipairs(val.Targets) do
+							if v.Rotation then
+								local new_quat = G.euler_to_quat(rotation_euler)
+								v.Rotation = new_quat.x..","..new_quat.y..","..new_quat.z..","..new_quat.w
+								rotation_changed = true
+							end
+						end
+					end
+				end
+			end
+		end
+		if rotation_changed then
+			clipboard.copy(json.encode(enemy_info))
+			gui.set_enabled(gui.get_node("gif"), true)
+			gui.play_flipbook(gui.get_node("gif"), "rotate")
+			if gif_timer then
+				timer.cancel(gif_timer)
+			end
+			gif_timer = timer.delay(2, false, function() gui.set_enabled(gui.get_node("gif"), false); gif_timer = nil end)
+		else
+			G.update_navbar("Clipboard doesn't contain valid enemy data.", true)
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	if not action_id and model_dragged then
+		if true or SET.rotate_multiple_axes then
+			if UI.ctrl_held then
+				rotation_quat = vmath.quat_rotation_z(math.rad(action.dx)) * vmath.quat_rotation_x(math.rad(-action.dy)) * rotation_quat
+			else
+				rotation_quat = vmath.quat_rotation_y(math.rad(action.dx)) * vmath.quat_rotation_x(math.rad(-action.dy)) * rotation_quat
+			end
+		else
+			if UI.shift_held then
+				rotation_quat = vmath.quat_rotation_x(math.rad(-action.dy)) * rotation_quat
+			elseif UI.ctrl_held then
+				rotation_quat = vmath.quat_rotation_z(math.rad(action.dx)) * rotation_quat
+			else
+				rotation_quat = vmath.quat_rotation_y(math.rad(action.dx)) * rotation_quat
+			end
+		end
+		rotation_euler = G.quat_to_euler(rotation_quat)
+		rotation_euler.x = -rotation_euler.x
+		rotation_euler.y = -rotation_euler.y
+		rotation_euler = math.deg(G.sanitise_euler(math.rad(rotation_euler)))
+		set_new_rotation()
+		return
+	elseif action.released and model_dragged and action_id == hash("touch") then
+		model_dragged = false
+		if rounding > 0 then
+			local half_r = rounding / 2
+			rotation_euler.x = rotation_euler.x + half_r - ((rotation_euler.x + half_r) % rounding)
+			rotation_euler.y = rotation_euler.y + half_r - ((rotation_euler.y + half_r) % rounding)
+			rotation_euler.z = rotation_euler.z + half_r - ((rotation_euler.z + half_r) % rounding)
+		end
+		rotation_quat = G.euler_to_quat(vmath.vector3(-rotation_euler.x, -rotation_euler.y, rotation_euler.z))
+		set_new_rotation()
+		return
+	elseif action.pressed and action_id == hash("touch") and gui.pick_node(gui.get_node("rotate_box"), action.x, action.y) then
+		model_dragged = true
+		return
+	end
+	UI.on_input(TAB_NAME, action_id, action, evaluate_button, evaluate_input)
+end

@@ -560,7 +560,7 @@ local function check_tweens()
 		else
 			set_model_as_dynamic(selected_model, false)
 		end
-		UI.update_list(TAB_NAME, model_list, #MEM.art_data.table.propsDictionary)
+		UI.update_list(TAB_NAME, model_list, #MEM.art_data.table.propsDictionary) --this is so weird
 	end
 end
 
@@ -582,6 +582,7 @@ function on_message(self, message_id, message, sender)
 			update_lists()
 		end
 		msg.post("/model_viewer", hash("show"), {model = model_for_viewer or get_selected_model(), selected_part = get_selected_part()})
+		msg.post("/model_viewer", hash("resize_base"))
 		if not colour_set then
 			colour_set = true
 			COL.set_current_to_default()
@@ -607,6 +608,7 @@ function on_message(self, message_id, message, sender)
 				for key, val in ipairs(MEM.art_data.models_for_import) do
 					if not MEM.art_data.models_for_import_ignore[val.key] then
 						MEM.add_metadata(val)
+						val.model_data.model_count = 0
 						table.insert(MEM.art_data.table.propsDictionary, val)
 						model_count = model_count + 1
 					end

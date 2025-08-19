@@ -146,8 +146,8 @@ nodes {
     y: 40.0
   }
   type: TYPE_BOX
-  texture: "UI/tab_disabled"
-  id: "tab_sequence"
+  texture: "UI/tab_normal"
+  id: "tab_rotate"
   slice9 {
     x: 16.0
     y: 10.0
@@ -166,10 +166,10 @@ nodes {
     z: 0.0
   }
   type: TYPE_TEXT
-  text: "Sequences"
+  text: "Rotate enemy"
   font: "tab_caption"
   id: "text8"
-  parent: "tab_sequence"
+  parent: "tab_rotate"
   inherit_alpha: true
   outline_alpha: 0.0
   shadow_alpha: 0.25

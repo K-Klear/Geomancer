@@ -7,7 +7,6 @@ To do:
 - "Smart" model dynamizer
 - The json sanitiser is dumb. Make it less dumb
 - Reset buttons when a panel loses focus
-- rps field for tween rotations
 - animations for moving/adding tween actions to make it more clear what's happening.
 - Automatically resize text for text fields (and maybe buttons)
 - Maybe "delete all" buttons for the event tab
@@ -17,36 +16,42 @@ To do:
 	- Add a new section for sequences found among the enemies/in the sequence file?
 - Add a cfg for default easing and number of nodes
 - Option to view colliders in model viewer
-- Auto-rotate for model viewer
 - Lock view to base transform in tween preview
 - Reorganise cfgs - look into the guide
+	- Scratch that - start implementing an actual options screen
 - Maybe a player model?
 - Catch errors when running out of available gui nodes, maybe? Might be worth on the preview timeline.
 	- Alternatively just stop creating them when they're way too smooched together, but that sounds like work
+		- Definitely worth it to not make separate ones for easings. But still work.
 
 Bugs:
+- The check for Spooky and airdrop obstacle signals needs to be more robust
+	- That is to say, it needs to happen on every export, not just while degeomancing, plus it needs to be smarter
+- Had a dynamic model refuse to stay dynamic after switching tabs. No idea why.
 
 Done:
 
 Features:
-- Removed volume generation and replaced it with a metadata tab consisting of two buttons:
-	- Delete decor group information (effectively splitting each prop into its own group in Pistol Mix)
-	- Delete all volumes (does not affect geo)
-- Negative offsets now allowed when creating multiple events
-- Added the Demon enemy set from Voidslayer
+- Enemy rotation tool
+- Easings are no longer shown on the timeline in tween preview
 
 New shortcuts:
+F8 to go to the rotate tool
 
 Fixes:
-- Added a warning if .geomancer file fails to generate
-- Reopening tween preview with POV lock enabled correctly resets the camera
-- Material "ParticleMesh_GlowMultiply" now shows correctly as glow-coloured and shaded
+- Swiching between tweens is now done by right-clicking the timeline, to prevent accidental switches
 
 Bugs:
-- Fixed a crash when leaving the models tab if the loaded map has no model data
-- Opening preview of a model without instances leaves the chose dialog open
+- Fixed an error when attempting to import a model from another map
+- Fixed a bug causing transform editor to display wrong rotation values
+- Adjusting transform properties no longer changes which meshes are flashing
+- Closing the colour menu no longer forces transforms to appear
+- Event list no longer goes crazy when switching back to the event tab after scrolling to its end
+- Renaming a transform is reflected in the mesh list on the main model tab
 
 New configs:
+rotate_multiple_axes
+default_rotation_rounding
 
 Notes:
 - See if "MEM.event_reloaded" and similar are necessary. Currently load error unloads previous data - is that a bad thing?

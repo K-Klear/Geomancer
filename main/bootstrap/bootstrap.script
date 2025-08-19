@@ -101,7 +101,9 @@ local default_settings_text = {
 	"default_rotation=0;			-- Euler angle.",
 	"default_pitch=25;				-- Euler angle ranging from -90 to 90",
 	"",
-	"bulk_sequence_sort=false;		-- Existing sequences when bulk replacing can be sorted alphabetically. Otherwise they are listed in the order they appear"
+	"bulk_sequence_sort=false;		-- Existing sequences when bulk replacing can be sorted alphabetically. Otherwise they are listed in the order they appear",
+	"rotate_multiple_axes=false;	-- When set to true, you can rotate enemies on two axes simultaneously", 
+	"default_rotation_rounding=15;"
 }
 
 local settings_to_load = {
@@ -193,6 +195,9 @@ local settings_to_load = {
 	easing_node_colour = {type = "colour"},
 	easing_node_highlight_colour = {type = "colour"},
 	easing_curve_colour = {type = "colour"},
+
+	rotate_multiple_axes = {type = "boolean"},
+	default_rotation_rounding = {type = "number"}
 }
 
 

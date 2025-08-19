@@ -1172,6 +1172,22 @@ nodes {
   inherit_alpha: true
   enabled: false
 }
+nodes {
+  position {
+    x: 384.0
+    y: 800.0
+  }
+  size {
+    x: 512.0
+    y: 512.0
+  }
+  type: TYPE_BOX
+  texture: "UI/model_viewer_border"
+  id: "rotate_box"
+  pivot: PIVOT_NW
+  inherit_alpha: true
+  enabled: false
+}
 layers {
   name: "timeline"
 }

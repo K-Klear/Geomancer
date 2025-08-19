@@ -24,7 +24,7 @@ UI.tab = {
 	tab_beat = {path = "/beat#tab_beat", state = false, render_order = 1, buttons = {}, fields = {}},
 	tab_geo = {path = "/geo#tab_geo", state = false, render_order = 1, buttons = {}, fields = {}},
 	tab_meta = {path = "/meta#tab_meta", state = false, render_order = 1, buttons = {}, fields = {}},
-	tab_sequence = {path = "/sequence#tab_sequence", state = false, render_order = 1, buttons = {}, fields = {}},
+	tab_rotate = {path = "/rotate#tab_rotate", state = true, render_order = 1, buttons = {}, fields = {}},
 	tab_art = {path = "/art#tab_art", state = false, render_order = 1, buttons = {}, fields = {}},
 	model_viewer = {path = "/model_viewer#model_viewer1", render_order = 2, buttons = {}, fields = {}},
 }

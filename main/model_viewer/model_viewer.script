@@ -534,6 +534,7 @@ function on_message(self, message_id, message, sender)
 		--msg.post("/grid#grid", hash("enable"))
 		show_grid(self)
 		msg.post("/model_camera#background", hash("enable"))
+		show_transforms()
 	elseif message_id == hash("prepare_tweens") then
 		for key, val in pairs(MOD.tweenable_transforms) do
 			val.used = false
@@ -635,5 +636,11 @@ function on_message(self, message_id, message, sender)
 		show_grid(self)
 	elseif message_id == hash("show_transforms") then
 		show_transforms()
+	elseif message_id == hash("rotate_view") then
+		go.set_position(vmath.vector3(0, -1.3, 0), CAMERA_TARGET)
+		go.set_position(vmath.vector3(0, 1.7, 10), MODEL_CAMERA)
+		go.set_rotation(vmath.quat(0, 0, 0, 1), MODEL_CAMERA)
+	elseif message_id == hash("set_enemy_rotation") then
+		go.set_rotation(message.rotation, "/enemy_model")
 	end
 end

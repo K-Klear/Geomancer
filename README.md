@@ -8,7 +8,9 @@ Detailed usage guide can be found here: https://mod.io/g/pistol-whip/r/geomancer
 
 This tool is provided as is. Use at your own risk, though there isn't any, really. If you need help, shoot me a message and I might help you out, but keep in mind the tool is still very early in development, so issues are expected.
 
-Made with Defold, using extensions by Björn Ritzl, Sven Andersson and Sergey Lerg. 
+Made with Defold, using extensions by Björn Ritzl, Sven Andersson and Sergey Lerg.
+
+"Human with few faces" model by Wyatt Roy [CC-BY] via Poly Pizza
 
 ---
 
