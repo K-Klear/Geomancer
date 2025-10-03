@@ -213,10 +213,6 @@ function init(self)
 		UI.load_template(key, DIALOG_NAME)
 	end
 	vertex_temp, line_temp = gui.get_node("vertex_template"), gui.get_node("line_template")
-	gui.set_scale(vertex_temp, vmath.vector3(SET.easing_node_scale))
-	gui.set(line_temp, "size.y", SET.easing_curve_thickness)
-	gui.set_color(vertex_temp, SET.easing_node_colour)
-	gui.set_color(line_temp, SET.easing_curve_colour)
 	local validation = {
 		integer = true,
 		min = function() return 2 end,
@@ -307,6 +303,10 @@ function on_message(self, message_id, message, sender)
 		vertex_dragged = false
 		current_vertex = nil
 		DIALOG_DATA.dialog_active = true
+		gui.set_scale(vertex_temp, vmath.vector3(SET.easing_node_scale))
+		gui.set(line_temp, "size.y", SET.easing_curve_thickness)
+		gui.set_color(vertex_temp, SET.easing_node_colour)
+		gui.set_color(line_temp, SET.easing_curve_colour)
 		build_graph()
 	end
 end

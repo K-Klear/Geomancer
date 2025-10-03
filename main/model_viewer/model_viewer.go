@@ -18,3 +18,9 @@ embedded_components {
   data: "prototype: \"/main/model_viewer/transform.go\"\n"
   ""
 }
+embedded_components {
+  id: "create_transform_invisible"
+  type: "factory"
+  data: "prototype: \"/main/model_viewer/transform_invisible.go\"\n"
+  ""
+}

@@ -1,0 +1,601 @@
+script: "/main/dialogs/colour_picker.gui_script"
+fonts {
+  name: "main_menu_button"
+  font: "/assets/fonts/final/main_menu_button.font"
+}
+fonts {
+  name: "tab_caption"
+  font: "/assets/fonts/final/tab_caption.font"
+}
+fonts {
+  name: "menu_text"
+  font: "/assets/fonts/final/menu_text.font"
+}
+textures {
+  name: "UI"
+  texture: "/assets/gfx/UI.atlas"
+}
+nodes {
+  position {
+    x: 640.0
+    y: 400.0
+  }
+  size {
+    x: 950.0
+    y: 700.0
+  }
+  type: TYPE_BOX
+  texture: "UI/panel_green"
+  id: "edit_box"
+  layer: "list_background"
+  slice9 {
+    x: 40.0
+    y: 40.0
+    z: 40.0
+    w: 40.0
+  }
+  alpha: 0.9
+}
+nodes {
+  position {
+    y: 300.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  size {
+    x: 1180.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "PF_pedcluster_chilliung2.verison2.pw_tween already exitsts. Overwrite?"
+  font: "main_menu_button"
+  id: "dialog_confirm_title"
+  pivot: PIVOT_N
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  line_break: true
+  parent: "edit_box"
+  layer: "text"
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+}
+nodes {
+  position {
+    x: -101.0
+    y: -252.0
+  }
+  type: TYPE_TEMPLATE
+  id: "accept"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  id: "accept/button_white"
+  parent: "accept"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Accept"
+  id: "accept/text"
+  parent: "accept/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 94.0
+    y: -252.0
+  }
+  type: TYPE_TEMPLATE
+  id: "cancel"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  id: "cancel/button_white"
+  parent: "cancel"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Cancel"
+  id: "cancel/text"
+  parent: "cancel/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -189.0
+    y: 12.0
+  }
+  size {
+    x: 450.0
+    y: 450.0
+  }
+  type: TYPE_BOX
+  id: "colour_bounds"
+  parent: "edit_box"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: -200.0
+    y: -200.0
+  }
+  size {
+    x: 400.0
+    y: 400.0
+  }
+  type: TYPE_BOX
+  id: "colour"
+  pivot: PIVOT_SW
+  parent: "colour_bounds"
+  layer: "below"
+  inherit_alpha: true
+  clipping_mode: CLIPPING_MODE_STENCIL
+  size_mode: SIZE_MODE_AUTO
+  material: "colour_picker"
+}
+nodes {
+  position {
+    y: 400.0
+  }
+  size {
+    x: 10.0
+    y: 10.0
+  }
+  type: TYPE_PIE
+  id: "colour_cursor"
+  parent: "colour"
+  layer: "text"
+  inherit_alpha: true
+  innerRadius: 4.0
+  perimeterVertices: 12
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 200.0
+    y: 200.0
+  }
+  size {
+    x: 5.0
+    y: 5.0
+  }
+  type: TYPE_BOX
+  id: "colour_aux"
+  parent: "colour_bounds"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: 98.0
+    y: 12.0
+  }
+  size {
+    x: 120.0
+    y: 440.0
+  }
+  type: TYPE_BOX
+  id: "hue_bounds"
+  parent: "edit_box"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    y: 200.0
+  }
+  size {
+    x: 80.0
+    y: 400.0
+  }
+  type: TYPE_BOX
+  id: "hue"
+  pivot: PIVOT_N
+  parent: "hue_bounds"
+  inherit_alpha: true
+  clipping_mode: CLIPPING_MODE_STENCIL
+  size_mode: SIZE_MODE_AUTO
+  material: "hue_picker"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 4.0
+  }
+  type: TYPE_BOX
+  id: "hue_cursor"
+  parent: "hue"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    y: -200.0
+  }
+  size {
+    x: 5.0
+    y: 5.0
+  }
+  type: TYPE_BOX
+  id: "hue_aux"
+  parent: "hue_bounds"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: -308.0
+    y: -250.0
+  }
+  size {
+    x: 200.0
+    y: 80.0
+  }
+  type: TYPE_BOX
+  id: "preview"
+  parent: "edit_box"
+  layer: "text"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 170.0
+    y: 180.0
+  }
+  type: TYPE_TEMPLATE
+  id: "field_red"
+  parent: "edit_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "field_red/box"
+  parent: "field_red"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 80.0
+    y: 50.0
+  }
+  type: TYPE_TEXT
+  text: "255"
+  id: "field_red/text"
+  parent: "field_red/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 170.0
+    y: 120.0
+  }
+  type: TYPE_TEMPLATE
+  id: "field_green"
+  parent: "edit_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "field_green/box"
+  parent: "field_green"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 80.0
+    y: 50.0
+  }
+  type: TYPE_TEXT
+  text: "255"
+  id: "field_green/text"
+  parent: "field_green/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 170.0
+    y: 60.0
+  }
+  type: TYPE_TEMPLATE
+  id: "field_blue"
+  parent: "edit_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "field_blue/box"
+  parent: "field_blue"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 80.0
+    y: 50.0
+  }
+  type: TYPE_TEXT
+  text: "255"
+  id: "field_blue/text"
+  parent: "field_blue/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 170.0
+    y: -20.0
+  }
+  type: TYPE_TEMPLATE
+  id: "field_hue"
+  parent: "edit_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "field_hue/box"
+  parent: "field_hue"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 80.0
+    y: 50.0
+  }
+  type: TYPE_TEXT
+  text: "255"
+  id: "field_hue/text"
+  parent: "field_hue/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 170.0
+    y: -80.0
+  }
+  type: TYPE_TEMPLATE
+  id: "field_saturation"
+  parent: "edit_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "field_saturation/box"
+  parent: "field_saturation"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 80.0
+    y: 50.0
+  }
+  type: TYPE_TEXT
+  text: "255"
+  id: "field_saturation/text"
+  parent: "field_saturation/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 170.0
+    y: -140.0
+  }
+  type: TYPE_TEMPLATE
+  id: "field_value"
+  parent: "edit_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "field_value/box"
+  parent: "field_value"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 80.0
+    y: 50.0
+  }
+  type: TYPE_TEXT
+  text: "255"
+  id: "field_value/text"
+  parent: "field_value/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 226.0
+    y: -252.0
+  }
+  type: TYPE_TEMPLATE
+  id: "field_hex"
+  parent: "edit_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "field_hex/box"
+  parent: "field_hex"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 80.0
+    y: 50.0
+  }
+  type: TYPE_TEXT
+  text: "255"
+  id: "field_hex/text"
+  parent: "field_hex/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 271.0
+    y: 187.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  size {
+    x: 1180.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "Red\n"
+  "\n"
+  "\n"
+  "Green\n"
+  "\n"
+  "\n"
+  "Blue\n"
+  "\n"
+  "\n"
+  "\n"
+  "\n"
+  "Hue\n"
+  "\n"
+  "\n"
+  "Saturation\n"
+  "\n"
+  "\n"
+  "Value\n"
+  "\n"
+  "\n"
+  "\n"
+  "Hex"
+  font: "menu_text"
+  id: "dialog_confirm_title1"
+  pivot: PIVOT_NW
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  line_break: true
+  parent: "edit_box"
+  layer: "text"
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+}
+layers {
+  name: "list_background"
+}
+layers {
+  name: "below"
+}
+layers {
+  name: "text"
+}
+layers {
+  name: "dialog"
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT
+materials {
+  name: "font-df"
+  material: "/builtins/fonts/font-df.material"
+}
+materials {
+  name: "colour_picker"
+  material: "/render/colour_picker.material"
+}
+materials {
+  name: "hue_picker"
+  material: "/render/hue_picker.material"
+}

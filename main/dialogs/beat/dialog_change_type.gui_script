@@ -4,12 +4,11 @@ local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_change_enemy_type"
 local DIALOG_DATA
 
-local current_type, selected_type
+local current_type, selected_type, hide_illegal
 
 function init(self)
 	DIALOG.setup(DIALOG_NAME)
 	DIALOG_DATA = UI.tab[DIALOG_NAME]
-	UI.load_template({"choice_normal", "choice_tough", "choice_chuck", "choice_turret", "choice_minigun", "choice_shield", "choice_horse", "choice_skull", "choice_trap", "choice_cancel", "choice_accept"}, DIALOG_NAME)
 end
 
 local function evaluate_button(button)
@@ -21,12 +20,12 @@ local function evaluate_button(button)
 		end
 		current_type = nil
 	elseif button == "choice_accept" or button == "enter" then
-		if not selected_type then
+		if not (selected_type or hide_illegal) then
 			msg.post("/navbar#navbar", hash("update_status"), {text = "You must select a new enemy type.", clear = true})
-		elseif selected_type == current_type then
+		elseif (selected_type == current_type) or not hide_illegal then
 			msg.post("/navbar#navbar", hash("update_status"), {text = "Select a different enemy type.", clear = true})
 		else
-			DIALOG.close(DIALOG_NAME, {new_type = selected_type})
+			DIALOG.close(DIALOG_NAME, {new_type = selected_type, hide_illegal = hide_illegal})
 			gui.set_color(gui.get_node("choice_"..current_type.."/button_white"), vmath.vector4(1, 1, 1, 1))
 			gui.set_color(gui.get_node("choice_"..selected_type.."/button_white"), vmath.vector4(1, 1, 1, 1))
 			current_type = nil
@@ -49,6 +48,14 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		DIALOG.show(DIALOG_DATA, sender)
+		gui.set_enabled(gui.get_node("choice_skull/button_white"), not message.hide_illegal)
+		gui.set_enabled(gui.get_node("choice_trap/button_white"), not message.hide_illegal)
+		UI.unload_template(DIALOG_NAME)
+		UI.load_template({"choice_normal", "choice_tough", "choice_chuck", "choice_turret", "choice_minigun", "choice_shield", "choice_horse", "choice_cancel", "choice_accept"}, DIALOG_NAME)
+		hide_illegal = message.hide_illegal
+		if not hide_illegal then
+			UI.load_template({"choice_skull", "choice_trap"}, DIALOG_NAME)
+		end
 		current_type = message.current_type or "dummy"
 		gui.set_color(gui.get_node("choice_"..current_type.."/button_white"), SET.colour_current_enemy_type)
 		if selected_type then

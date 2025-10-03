@@ -1,6 +1,8 @@
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
 local DIALOG = UI.DIALOG
+local SND = require "modules.sound"
+local COL = require "modules.colours"
 local TAB_NAME = "tab_level"
 
 local enemy_set_names = {}
@@ -14,6 +16,7 @@ enemy_set_names.Fantasy = "Demons"
 
 local desc_node, desc_font
 local DESCRIPTION_WIDTH = 517
+local preview_playing = false
 
 local function shorten_last_word(line, char_count)
 	local shorter
@@ -81,7 +84,8 @@ end
 
 function init(self)
 	gui.set_render_order(1)
-	UI.load_template({"btn_enemies", "btn_obstacles", "btn_materials", "btn_movement"}, TAB_NAME)
+	UI.load_template({"btn_enemies", "btn_obstacles", "btn_materials", "btn_movement", "preview_test",
+	"lobby_main", "lobby_fog", "lobby_glow", "lobby_enemy"}, TAB_NAME)
 	local validation = {
 		integer = true,
 		min = function() return 0 end,
@@ -94,11 +98,18 @@ function init(self)
 	desc_font = gui.get_font_resource(gui.get_font(desc_node))
 end
 
+local function stop_music_preview()
+	SND.stop_music()
+	gui.play_flipbook(gui.get_node("preview_test/text"), "play")
+	preview_playing = false
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == hash("hide") then
 		msg.post("#", hash("disable"))
 		msg.post("#", hash("release_input_focus"))
 		DIALOG.close_all(TAB_NAME)
+		stop_music_preview()
 	elseif message_id == hash("show") then
 		msg.post("#", hash("enable"))
 		msg.post("#", hash("acquire_input_focus"))
@@ -108,6 +119,10 @@ function on_message(self, message_id, message, sender)
 		gui.set_text(gui.get_node("btn_movement/text"), MEM.level_data.moveMode)
 		gui.set_text(gui.get_node("preview_time/text"), MEM.level_data.previewTime)
 		gui.set_text(gui.get_node("label_name"), "Map name:\n"..MEM.level_data.sceneDisplayName)
+		gui.set_color(gui.get_node("lobby_main/text"), COL.str_to_colour(MEM.level_data.customMainMenuColor.Main))
+		gui.set_color(gui.get_node("lobby_fog/text"), COL.str_to_colour(MEM.level_data.customMainMenuColor.Fog))
+		gui.set_color(gui.get_node("lobby_glow/text"), COL.str_to_colour(MEM.level_data.customMainMenuColor.Glow))
+		gui.set_color(gui.get_node("lobby_enemy/text"), COL.str_to_colour(MEM.level_data.customMainMenuColor.Enemies))
 		local clean_desc = string.gsub(MEM.level_data.description, "\\n", "\n")
 		clean_desc = string.gsub(clean_desc, "\\u0027", "'")
 		display_description(clean_desc)
@@ -159,6 +174,20 @@ function on_message(self, message_id, message, sender)
 				gui.set_text(gui.get_node("btn_enemies/text"), enemy_set_names[MEM.level_data.enemySet])
 			end
 			msg.post("#", hash("acquire_input_focus"))
+		elseif message.dialog == "colour_picker" then
+			if message.colour then
+				if message.colour_id == "lobby_main" then
+					MEM.level_data.customMainMenuColor.Main = message.hex
+				elseif message.colour_id == "lobby_fog" then
+					MEM.level_data.customMainMenuColor.Fog = message.hex
+				elseif message.colour_id == "lobby_glow" then
+					MEM.level_data.customMainMenuColor.Glow = message.hex
+				elseif message.colour_id == "lobby_enemy" then
+					MEM.level_data.customMainMenuColor.Enemies = message.hex
+				end
+				gui.set_color(gui.get_node(message.colour_id.."/text"), message.colour)
+			end
+			msg.post("#", hash("acquire_input_focus"))
 		end
 	end
 end
@@ -177,6 +206,27 @@ local function evaluate_button(button)
 			MEM.level_data.moveMode = "Moving"
 		end
 		gui.set_text(gui.get_node("btn_movement/text"), MEM.level_data.moveMode)
+	elseif button == "preview_test" then
+		if preview_playing then
+			stop_music_preview()
+		else
+			if SND.play_music(MEM.level_data.previewTime) then
+				gui.play_flipbook(gui.get_node("preview_test/text"), "stop")
+				preview_playing = true
+			end
+		end
+	elseif button == "lobby_main" then
+		local colour = COL.str_to_colour(MEM.level_data.customMainMenuColor.Main)
+		DIALOG.open(TAB_NAME, "colour_picker", {rgb = colour, colour_id = button})
+	elseif button == "lobby_fog" then
+		local colour = COL.str_to_colour(MEM.level_data.customMainMenuColor.Fog)
+		DIALOG.open(TAB_NAME, "colour_picker", {rgb = colour, colour_id = button})
+	elseif button == "lobby_glow" then
+		local colour = COL.str_to_colour(MEM.level_data.customMainMenuColor.Glow)
+		DIALOG.open(TAB_NAME, "colour_picker", {rgb = colour, colour_id = button})
+	elseif button == "lobby_enemy" then
+		local colour = COL.str_to_colour(MEM.level_data.customMainMenuColor.Enemies)
+		DIALOG.open(TAB_NAME, "colour_picker", {rgb = colour, colour_id = button})
 	end
 end
 

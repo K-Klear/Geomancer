@@ -390,11 +390,30 @@ nodes {
   shadow_alpha: 0.0
 }
 nodes {
-  type: TYPE_BOX
-  texture: "UI/empty_pixel"
+  position {
+    x: -739.0
+    y: -489.0
+  }
+  type: TYPE_TEMPLATE
   id: "choice_dummy"
+  parent: "edit_box"
   inherit_alpha: true
-  size_mode: SIZE_MODE_AUTO
+  template: "/templates/button_white_tiny.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "choice_dummy/button_white"
+  parent: "choice_dummy"
+  overridden_fields: 46
+  template_node_child: true
+  visible: false
+}
+nodes {
+  type: TYPE_TEXT
+  id: "choice_dummy/text"
+  parent: "choice_dummy/button_white"
+  overridden_fields: 46
+  template_node_child: true
   visible: false
 }
 layers {

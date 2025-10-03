@@ -1621,6 +1621,7 @@ layers {
 }
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_PARENT
+max_nodes: 2048
 materials {
   name: "font-df"
   material: "/builtins/fonts/font-df.material"

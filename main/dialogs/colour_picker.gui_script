@@ -1,0 +1,199 @@
+local UI = require "modules.ui"
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "colour_picker"
+local DIALOG_DATA
+
+local G = require "modules.global"
+
+local mouse_held_hue, mouse_held_colour = false
+local red, green, blue, hue, saturation, value = 1, 1, 1, 0, 0, 1
+local picked_colour = vmath.vector4(red, green, blue, 1)
+local colour_id
+
+function init(self)
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+	UI.load_template({"accept", "cancel"}, DIALOG_NAME)
+
+	local validation_colour = {
+		number = true,
+		min = function() return 0 end,
+		max = function() return 255 end,
+		default = function() return 0 end
+	}
+	local validation_hue = {
+		number = true,
+		min = function() return 0 end,
+		max = function() return 360 end,
+		default = function() return 0 end
+	}
+	local validation_s_v = {
+		number = true,
+		min = function() return 0 end,
+		max = function() return 100 end,
+		default = function() return 0 end
+	}
+	local validation_hex = {
+		hex = true,
+		default = function() return "000000" end
+	}
+	
+	UI.load_text_field("field_red", 3, DIALOG_NAME, validation_colour)
+	UI.load_text_field("field_green", 3, DIALOG_NAME, validation_colour)
+	UI.load_text_field("field_blue", 3, DIALOG_NAME, validation_colour)
+	UI.load_text_field("field_hue", 3, DIALOG_NAME, validation_hue)
+	UI.load_text_field("field_saturation", 3, DIALOG_NAME, validation_s_v)
+	UI.load_text_field("field_value", 3, DIALOG_NAME, validation_s_v)
+	UI.load_text_field("field_hex", 6, DIALOG_NAME, validation_hex)
+end
+
+local function set_colour_fields()
+	picked_colour.x = (1 - saturation * (1 - red)) * value
+	picked_colour.y = (1 - saturation * (1 - green)) * value
+	picked_colour.z = (1 - saturation * (1 - blue)) * value
+	gui.set_text(gui.get_node("field_red/text"), G.round(picked_colour.x * 255, 0))
+	gui.set_text(gui.get_node("field_green/text"), G.round(picked_colour.y * 255, 0))
+	gui.set_text(gui.get_node("field_blue/text"), G.round(picked_colour.z * 255, 0))
+	gui.set_text(gui.get_node("field_hue/text"), G.round((1 - hue) * 360, 0))
+	gui.set_text(gui.get_node("field_saturation/text"), G.round(saturation * 100, 0))
+	gui.set_text(gui.get_node("field_value/text"), G.round(value * 100, 0))
+	local function get_hex(num)
+		local str = string.format("%x", G.round(num * 255, 0))
+		if #str == 1 then str = "0"..str end
+		return str
+	end
+	gui.set_text(gui.get_node("field_hex/text"), get_hex(picked_colour.x)..get_hex(picked_colour.y)..get_hex(picked_colour.z))
+
+	gui.set(gui.get_node("hue_cursor"), "position.y", -400 * (1 - hue))
+	gui.set_position(gui.get_node("colour_cursor"), vmath.vector3(saturation * 400, value * 400, 0))
+
+	gui.set_color(gui.get_node("preview"), picked_colour)
+
+	if picked_colour.x + picked_colour.y + picked_colour.z > 1.5 then
+		gui.set_color(gui.get_node("colour_cursor"), vmath.vector4(0, 0, 0, 1))
+	else
+		gui.set_color(gui.get_node("colour_cursor"), vmath.vector4(1, 1, 1, 1))
+	end
+end
+
+local function set_hue(hue_val)
+	hue = hue_val
+	red = G.clamp(math.abs(hue * 6 - 3) - 1)
+	green = G.clamp(2 - math.abs(hue * 6 - 4))
+	blue = G.clamp(2 - math.abs(hue * 6 - 2))
+	gui.set_color(gui.get_node("colour"), vmath.vector4(red, green, blue, 1))
+	set_colour_fields()
+end
+
+local function get_hsv()
+	value = math.max(picked_colour.x, picked_colour.y, picked_colour.z)
+	local min = math.min(picked_colour.x, picked_colour.y, picked_colour.z)
+	if value > 0 then
+		saturation = (value - min) / value
+		if picked_colour.x > picked_colour.y and picked_colour.x > picked_colour.z then
+			hue = (60 * (picked_colour.y - picked_colour.z) / (value - min)) / 360
+		elseif picked_colour.y > picked_colour.z then
+			hue = ((60 * (picked_colour.z - picked_colour.x) / (value - min)) + 120) / 360
+		else
+			hue = ((60 * (picked_colour.x - picked_colour.y) / (value - min)) + 240) / 360
+		end
+		if not (hue == hue) then hue = 0 end
+		if hue < 0 then
+			hue = hue + 1
+		elseif hue > 1 then
+			hue = hue - 1
+		end
+		hue = 1 - hue
+	end
+end
+
+local function evaluate_button(button)
+	if button == "accept" or button == "enter" then
+		DIALOG.close(DIALOG_NAME, {colour = picked_colour, colour_id = colour_id, hex = gui.get_text(gui.get_node("field_hex/text"))})
+	elseif button == "cancel" or button == "escape" then
+		DIALOG.close(DIALOG_NAME, {colour_id = colour_id})
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		DIALOG.show(DIALOG_DATA, sender)
+		hue, saturation, value = 1, 0, 0
+		if message.rgb then
+			picked_colour = message.rgb
+			get_hsv()
+			set_hue(hue)
+		elseif message.hsv then
+			saturation = message.hsv.y
+			value = message.hsv.z
+			set_hue(message.hsv.x)
+		end
+		colour_id = message.colour_id
+	elseif message_id == hash("disable") then
+		mouse_held_hue, mouse_held_colour = false, false
+	end
+end
+
+local function evaluate_input(field, text)
+	if field == "field_red" then
+		gui.set_text(gui.get_node("field_red/text"), G.round(text, 0))
+		picked_colour.x = text / 255
+		get_hsv()
+		set_hue(hue)
+	elseif field == "field_green" then
+		gui.set_text(gui.get_node("field_green/text"), G.round(text, 0))
+		picked_colour.y = text / 255
+		get_hsv()
+		set_hue(hue)
+	elseif field == "field_blue" then
+		gui.set_text(gui.get_node("field_blue/text"), G.round(text, 0))
+		picked_colour.z = text / 255
+		get_hsv()
+		set_hue(hue)
+	elseif field == "field_hue" then
+		gui.set_text(gui.get_node("field_hue/text"), G.round(text, 0))
+		set_hue(1 - (text / 360))
+	elseif field == "field_saturation" then
+		gui.set_text(gui.get_node("field_saturation/text"), G.round(text, 0))
+		saturation = text / 100
+		set_colour_fields()
+	elseif field == "field_value" then
+		gui.set_text(gui.get_node("field_value/text"), G.round(text, 0))
+		value = text / 100
+		set_colour_fields()
+	elseif field == "field_hex" then
+		gui.set_text(gui.get_node("field_hex/text"), text)
+	end
+end
+
+
+function on_input(self, action_id, action)
+	if action_id == hash("touch") and action.released then
+		if mouse_held_hue or mouse_held_colour then
+			mouse_held_hue, mouse_held_colour = false, false
+			return
+		end
+	end
+	if (action.x and (mouse_held_hue or mouse_held_colour)) or (action_id == hash("touch") and action.pressed) then
+		if mouse_held_hue or (gui.pick_node(gui.get_node("hue_bounds"), action.x, action.y) and not mouse_held_colour) then
+			mouse_held_hue = true
+			local max_y = gui.get_screen_position(gui.get_node("hue")).y
+			local min_y = gui.get_screen_position(gui.get_node("hue_aux")).y
+			local pos = G.clamp(action.screen_y, min_y, max_y)
+			set_hue((pos - min_y) / (max_y - min_y))
+			set_colour_fields()
+			return
+		elseif mouse_held_colour or (gui.pick_node(gui.get_node("colour_bounds"), action.x, action.y) and not mouse_held_hue) then
+			mouse_held_colour = true
+			local node_pos = gui.get_screen_position(gui.get_node("colour"))
+			local aux_pos = gui.get_screen_position(gui.get_node("colour_aux"))
+			local min_x, max_x, min_y, max_y = node_pos.x, aux_pos.x, node_pos.y, aux_pos.y
+			saturation = (G.clamp(action.screen_x, min_x, max_x) - min_x) / (max_x - min_x)
+			value = (G.clamp(action.screen_y, min_y, max_y) - min_y) / (max_y - min_y)
+			set_colour_fields()
+			return
+		end
+	end
+	
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button, evaluate_input)
+end

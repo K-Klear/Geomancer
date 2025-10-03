@@ -2,6 +2,12 @@ local G = {}
 
 local current_version = 0.4
 
+function G.clamp(num, lowest, highest)
+	lowest = lowest or 0
+	highest = highest or 1
+	return math.min(math.max(num, lowest), highest)
+end
+
 function G.round(num, decimals)
 	local divisor = 0.1 ^ decimals
 	return math.floor((num + 0.5 * divisor) * 10 ^ decimals) * divisor
@@ -23,6 +29,22 @@ function G.find_substring(string, substring, count, index)
 		end
 	until count < 1
 	return index - 1
+end
+
+function G.parse_values(str)
+	local commas = {}
+	commas[0] = 0
+	repeat
+		local new = string.find(str, ",", (commas[#commas] + 1))
+		if not new then break end
+		table.insert(commas, new)
+	until not new
+	table.insert(commas, #str + 1)
+	local values = {}
+	for i = 1, #commas do
+		table.insert(values, tonumber(string.sub(str, commas[i - 1] + 1, commas[i] - 1)))
+	end
+	return values
 end
 
 function G.sanitise_json(str)

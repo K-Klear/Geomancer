@@ -1187,6 +1187,72 @@ nodes {
   overridden_fields: 8
   template_node_child: true
 }
+nodes {
+  position {
+    x: 1123.0
+    y: 375.0
+  }
+  type: TYPE_TEMPLATE
+  id: "music_preview"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  position {
+    x: 24.0
+    y: -4.0
+  }
+  size {
+    x: 160.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  id: "music_preview/button_white"
+  parent: "music_preview"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Play music"
+  id: "music_preview/text"
+  parent: "music_preview/button_white"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1123.0
+    y: 293.0
+  }
+  type: TYPE_TEMPLATE
+  id: "metronome_sound"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  position {
+    x: 25.0
+    y: -4.0
+  }
+  size {
+    x: 180.0
+    y: 80.0
+  }
+  type: TYPE_BOX
+  id: "metronome_sound/button_white"
+  parent: "metronome_sound"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Metronome: beep"
+  id: "metronome_sound/text"
+  parent: "metronome_sound/button_white"
+  overridden_fields: 8
+  template_node_child: true
+}
 layers {
   name: "list_background"
 }

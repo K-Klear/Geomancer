@@ -1,0 +1,524 @@
+local UI = require "modules.ui"
+local G = require "modules.global"
+local SET = require "modules.settings"
+local COL = require "modules.colours"
+local MEM = require "modules.memory"
+local DIALOG = UI.DIALOG
+local TAB_NAME = "tab_options"
+
+local validation_bar = {integer = true,	default = function() return SET.tween_timeline_bar_height end}
+local validation_node_scale = {number = true, min = function() return 0.1 end, max = function() return 4 end, default = function() return SET.easing_node_scale end}
+local validation_curve_thickness = {number = true, min = function() return 0 end, max = function() return 50 end, default = function() return SET.easing_curve_thickness end}
+local validation_transform_name = {
+	text = true,
+	json_safe = true,
+	not_empty = true,
+	default = function() return SET.default_transform_name end
+}
+local validation_root_transform_name = {
+	text = true,
+	json_safe = true,
+	not_empty = true,
+	default = function() return SET.root_transform_default_name end
+}
+local validation_model_rotation_sensitivity = {
+	number = true,
+	min = function() return 0.01 end,
+	max = function() return 10 end,
+	default = function() return SET.model_rotation_sensitivity end
+}
+local validation_model_move_sensitivity = {
+	number = true,
+	min = function() return 0.01 end,
+	max = function() return 2 end,
+	default = function() return SET.model_move_sensitivity end
+}
+local validation_model_zoom_sensitivity = {
+	number = true,
+	min = function() return 0.01 end,
+	max = function() return 10 end,
+	default = function() return SET.model_zoom_sensitivity end
+}
+local validation_zoom = {
+	number = true,
+	min = function() return 0.5 end,
+	max = function() return 100 end,
+	default = function() return SET.default_camera_zoom end
+}
+local validation_camera_rotation = {
+	number = true,
+	min = function() return 0 end,
+	max = function() return 360 end,
+	default = function() return SET.default_camera_rotation end
+}
+local validation_camera_pitch = {
+	number = true,
+	min = function() return -90 end,
+	max = function() return 90 end,
+	default = function() return SET.default_camera_pitch end
+}
+local validation_model_z_position = {
+	number = true,
+	min = function() return -999 end,
+	max = function() return 999 end,
+	default = function() return SET.default_model_z_position end
+}
+local validation_default_colour_set = {
+	integer = true,
+	min = function() return 0 end,
+	max = function() return 99 end,
+	default = function() return SET.default_colour_set end
+}
+local validation_default_sample_rate = {
+	integer = true,
+	min = function() return 1 end,
+	max = function() return 999999 end,
+	default = function() return SET.default_sample_rate end
+}
+local validation_new_event_sample_offset = {
+	integer = true,
+	min = function() return -999999 end,
+	max = function() return 9999999 end,
+	default = function() return SET.default_new_event_sample_offset end
+}
+local validation_mesh_flash_time = {
+	number = true,
+	min = function() return 0 end,
+	max = function() return 99 end,
+	default = function() return SET._mesh_flash_time end
+}
+local validation_mesh_flash_frequency = {
+	number = true,
+	min = function() return 0 end,
+	max = function() return 99 end,
+	default = function() return SET.mesh_flash_frequency end
+}
+local validation_mesh_flash_alpha = {
+	integer = true,
+	min = function() return 0 end,
+	max = function() return 100 end,
+	default = function() return SET.mesh_flash_colour.w end
+}
+local validation_default_rotation_rounding = {
+	number = true,
+	min = function() return 0 end,
+	max = function() return 90 end,
+	default = function() return SET.default_rotation_rounding end
+}
+
+
+local active_tab = "paths"
+local tab_list = {}
+tab_list.paths = {buttons = {}, fields = {}}
+tab_list.files = {buttons = {"confirm_file_overwrite", "default_create_folder_on_export", "default_import_changes_from_zip",
+"default_import_level_changes", "default_import_event_changes", "default_import_model_changes", "default_import_beat_changes"}, fields = {}}
+tab_list.colours = {buttons = {
+	"background_colour", "colour_active_text_field", "colour_highlight_material", "colour_highlight_dynamic", "colour_highlight_tween",
+	"colour_model_import_selection", "colour_model_replace", "colour_unsupported_obstacle", "colour_current_enemy_set",
+	"colour_selection_change_enemy_type", "colour_highlight_replace_enemy", "colour_current_enemy_type", "colour_tween_move",
+	"colour_tween_rotate", "colour_tween_scale", "colour_tween_wait"}, fields = {}
+}
+tab_list.tween = {buttons = {
+	"restrict_rotations_to_360", "tween_action_type_dialog", "tween_part_dialog", "tween_extra_add_buttons", "ask_before_overwriting_tween_file",
+	"auto_set_tween_preview_prop", "easing_node_colour", "easing_node_highlight_colour", "easing_curve_colour", "default_tween_time_in_beats"},
+	fields = {{name = "tween_timeline_bar_height", char_limit = 3, validation = validation_bar},
+	{name = "easing_node_scale", char_limit = 3, validation = validation_node_scale},
+	{name = "easing_curve_thickness", char_limit = 3, validation = validation_curve_thickness}}
+}
+tab_list.transform = {buttons = {
+	"use_default_transform_name", "add_root_transform_if_missing", "allow_tweening_base_transform", "allow_tweening_base_transform",
+	"allow_mesh_delete", "confirm_transform_delete", "show_transform_edit_warning"
+}, fields = {
+	{name = "default_transform_name", char_limit = 26, validation = validation_transform_name},
+	{name = "root_transform_default_name", char_limit = 26, validation = validation_root_transform_name}}
+}
+tab_list.model_viewer = {buttons = {"model_show_grid", "model_grid_dots", "show_transform", "custom_colour_main", "custom_colour_fog",
+"custom_colour_glow", "custom_colour_enemy"}, fields = {
+	{name = "model_rotation_sensitivity", char_limit = 4, validation = validation_model_rotation_sensitivity},
+	{name = "model_move_sensitivity", char_limit = 4, validation = validation_model_move_sensitivity},
+	{name = "model_zoom_sensitivity", char_limit = 4, validation = validation_model_zoom_sensitivity},
+	{name = "default_camera_zoom", char_limit = 3, validation = validation_zoom},
+	{name = "default_camera_rotation", char_limit = 3, validation = validation_camera_rotation},
+	{name = "default_camera_pitch", char_limit = 3, validation = validation_camera_pitch},
+	{name = "default_model_z_position", char_limit = 4, validation = validation_model_z_position},
+	{name = "default_colour_set", char_limit = 2, validation = validation_default_colour_set}
+}}
+tab_list.events = {buttons = {"autodetect_sample_rate", "add_opens_edit_box", "hide_model_count", "mesh_flash_colour", "rotate_multiple_axes"},
+fields = {
+	{name = "default_sample_rate", char_limit = 6, validation = validation_default_sample_rate},
+	{name = "default_new_event_sample_offset", char_limit = 7, validation = validation_new_event_sample_offset},
+	{name = "mesh_flash_time", char_limit = 4, validation = validation_mesh_flash_time},
+	{name = "mesh_flash_frequency", char_limit = 4, validation = validation_mesh_flash_frequency},
+	{name = "mesh_flash_alpha", char_limit = 3, validation = validation_mesh_flash_alpha},
+	{name = "default_rotation_rounding", char_limit = 4, validation = validation_default_rotation_rounding}
+}}
+tab_list.misc = {buttons = {"bulk_sequence_sort", "ignore_char_limit", "confirm_degeomance", "degeomance_sequence",
+"degeomance_glitched_enemy", "degeomance_skull"}, fields = {}}
+tab_list.sound = {buttons = {}, fields = {}}
+
+local function set_checkbox(checkbox, value)
+	if value then
+		gui.set_text(gui.get_node(checkbox.."/text"), "X")
+	else
+		gui.set_text(gui.get_node(checkbox.."/text"), "")
+	end
+end
+
+local path_list = {}
+path_list.zip = "default_path_load_zip"
+path_list.directory = "default_path_load_directory"
+path_list.file = "default_path_load_file"
+path_list.export = "default_path_export"
+path_list.export_overwrite = "default_path_export_overwrite"
+path_list.import_models = "default_path_import_models"
+path_list.tween = "default_path_save_tween"
+path_list.import_changes = "default_path_import_model_data"
+
+for key, val in pairs(path_list) do
+	table.insert(tab_list.paths.buttons, "change_path_"..key)
+	table.insert(tab_list.paths.buttons, "reset_path_"..key)
+end
+
+local validation = {
+	text = true,
+	json_safe = true,
+	not_empty = true,
+	default = function() return "" end
+}
+
+local function switch_tab(tab_name)
+	UI.unload_template(TAB_NAME)
+	gui.play_flipbook(gui.get_node(active_tab), "tab_normal")
+	gui.play_flipbook(gui.get_node(tab_name), "tab_active")
+	UI.load_template(tab_list[tab_name].buttons, TAB_NAME)
+	UI.load_template("save_changes", TAB_NAME)
+	for key, val in ipairs(tab_list[tab_name].fields) do
+		UI.load_text_field(val.name, val.char_limit, TAB_NAME, val.validation or validation)
+	end
+	gui.set_enabled(gui.get_node("panel_"..active_tab), false)
+	gui.set_enabled(gui.get_node("panel_"..tab_name), true)
+	active_tab = tab_name
+end
+
+
+local enemy_names = {
+	normal = "Normal",
+	tough = "Tough",
+	chuck = "Heavy",
+	horse = "Horse Rider",
+	shield = "Shielded",
+	turret = "Normal Turret",
+	minigun = "Minigun Turret",
+	skull = "Flying Skull",
+	trap = "Glitched Enemy"
+}
+local internal_names = {
+	normal = "Normal",
+	tough = "Tough",
+	chuck = "ChuckNorris",
+	horse = "Mounted Enemy",
+	shield = "Shield",
+	turret = "Normal Turret",
+	minigun = "Minigun Turret",
+	skull = "FlyingBomb",
+	trap = "Trap Enemy"
+}
+local internal_to_pretty = {
+	Normal = "Normal",
+	Tough = "Tough",
+	ChuckNorris = "Heavy",
+	["Mounted Enemy"] = "Horse Rider",
+	Shield = "Shielded",
+	["Normal Turret"] = "Normal Turret",
+	["Minigun Turret"] = "Minigun Turret",
+	FlyingBomb = "Flying Skull",
+	["Trap Enemy"] = "Glitched Enemy"
+}
+
+function init(self)
+	gui.set_render_order(1)
+	msg.post("#", hash("disable"))
+	-- files
+	for key, val in ipairs(tab_list.files.buttons) do
+		set_checkbox(val, SET[val])
+	end
+	-- paths
+	gui.set_text(gui.get_node("default_path_zip"), SET.default_path_load_zip)
+	gui.set_text(gui.get_node("default_path_directory"), SET.default_path_load_directory)
+	gui.set_text(gui.get_node("default_path_file"), SET.default_path_load_file)
+	gui.set_text(gui.get_node("default_path_export"), SET.default_path_export)
+	gui.set_text(gui.get_node("default_path_export_overwrite"), SET.default_path_export_overwrite)
+	gui.set_text(gui.get_node("default_path_import_changes"), SET.default_path_import_model_data)
+	gui.set_text(gui.get_node("default_path_import_models"), SET.default_path_import_models)
+	gui.set_text(gui.get_node("default_path_tween"), SET.default_path_save_tween)
+	-- colours
+	for key, val in ipairs(tab_list.colours.buttons) do
+		gui.set_color(gui.get_node(val.."/text"), SET[val])
+	end
+	-- transform
+	set_checkbox("use_default_transform_name", SET.use_default_transform_name)
+	set_checkbox("add_root_transform_if_missing", SET.add_root_transform_if_missing)
+	set_checkbox("allow_tweening_base_transform", SET.allow_tweening_base_transform)
+	set_checkbox("allow_mesh_delete", SET.allow_mesh_delete)
+	set_checkbox("confirm_transform_delete", SET.confirm_transform_delete)
+	set_checkbox("show_transform_edit_warning", SET.default_show_transform_edit_warning)
+	gui.set_text(gui.get_node("default_transform_name/text"), SET.default_transform_name)
+	gui.set_text(gui.get_node("root_transform_default_name/text"), SET.root_transform_default_name)
+	-- tween
+	gui.set_text(gui.get_node("tween_timeline_bar_height/text"), SET.tween_timeline_bar_height)
+	gui.set_text(gui.get_node("easing_node_scale/text"), SET.easing_node_scale)
+	gui.set_text(gui.get_node("easing_curve_thickness/text"), SET.easing_curve_thickness)
+	gui.set_color(gui.get_node("easing_node_colour/text"), SET.easing_node_colour)
+	gui.set_color(gui.get_node("easing_node_highlight_colour/text"), SET.easing_node_highlight_colour)
+	gui.set_color(gui.get_node("easing_curve_colour/text"), SET.easing_curve_colour)
+	set_checkbox("restrict_rotations_to_360", SET.restrict_rotations_to_360)
+	set_checkbox("tween_action_type_dialog", SET.tween_action_type_dialog)
+	set_checkbox("tween_part_dialog", SET.tween_part_dialog)
+	set_checkbox("tween_extra_add_buttons", SET.tween_extra_add_buttons)
+	set_checkbox("ask_before_overwriting_tween_file", SET.ask_before_overwriting_tween_file)
+	set_checkbox("auto_set_tween_preview_prop", SET.auto_set_tween_preview_prop)
+	if SET.default_tween_time_in_beats then
+		gui.set_text(gui.get_node("default_tween_time_in_beats/text"), "Beats")
+	else
+		gui.set_text(gui.get_node("default_tween_time_in_beats/text"), "Seconds")
+	end
+	-- model viewer
+	gui.set_text(gui.get_node("model_rotation_sensitivity/text"), SET.model_rotation_sensitivity)
+	gui.set_text(gui.get_node("model_move_sensitivity/text"), SET.model_move_sensitivity)
+	gui.set_text(gui.get_node("model_zoom_sensitivity/text"), SET.model_zoom_sensitivity)
+	gui.set_text(gui.get_node("default_camera_zoom/text"), SET.default_camera_zoom)
+	gui.set_text(gui.get_node("default_camera_rotation/text"), SET.default_camera_rotation)
+	gui.set_text(gui.get_node("default_camera_pitch/text"), SET.default_camera_pitch)
+	gui.set_text(gui.get_node("default_model_z_position/text"), SET.default_model_z_position)
+	gui.set_text(gui.get_node("default_colour_set/text"), SET.default_colour_set)
+	gui.set_color(gui.get_node("custom_colour_main/text"), COL.str_to_colour(SET.custom_colour_main))
+	gui.set_color(gui.get_node("custom_colour_fog/text"), COL.str_to_colour(SET.custom_colour_fog))
+	gui.set_color(gui.get_node("custom_colour_glow/text"), COL.str_to_colour(SET.custom_colour_glow))
+	gui.set_color(gui.get_node("custom_colour_enemy/text"), COL.str_to_colour(SET.custom_colour_enemy))
+	if SET.default_model_show_grid == 1 then
+		gui.set_text(gui.get_node("model_show_grid/text"), "Ground")
+	elseif SET.default_model_show_grid == 2 then
+		gui.set_text(gui.get_node("model_show_grid/text"), "Grid")
+	else
+		gui.set_text(gui.get_node("model_show_grid/text"), "Hide")
+	end
+	if SET.model_grid_dots then
+		gui.set_text(gui.get_node("model_grid_dots/text"), "Dots")
+	else
+		gui.set_text(gui.get_node("model_grid_dots/text"), "Grid")
+	end
+	if SET.default_show_transform == 0 then
+		gui.play_flipbook(gui.get_node("show_transform/text"), "button_transform_none")
+	elseif SET.default_show_transform == 1 then
+		gui.play_flipbook(gui.get_node("show_transform/text"), "button_transform_one")
+	else
+		gui.play_flipbook(gui.get_node("show_transform/text"), "button_transform_all")
+	end
+	-- events etc
+	set_checkbox("autodetect_sample_rate", SET.autodetect_sample_rate)
+	set_checkbox("add_opens_edit_box", SET.add_opens_edit_box)
+	gui.set_text(gui.get_node("default_sample_rate/text"), SET.default_sample_rate)
+	gui.set_text(gui.get_node("default_new_event_sample_offset/text"), SET.default_new_event_sample_offset)
+	set_checkbox("hide_model_count", SET.hide_model_count)
+	gui.set_text(gui.get_node("mesh_flash_time/text"), SET.mesh_flash_time)
+	gui.set_text(gui.get_node("mesh_flash_frequency/text"), SET.mesh_flash_frequency)
+	gui.set_text(gui.get_node("mesh_flash_alpha/text"), G.round(SET.mesh_flash_colour.w * 100, 0))
+	local c = vmath.vector4(SET.mesh_flash_colour.x, SET.mesh_flash_colour.y, SET.mesh_flash_colour.z, 1)
+	gui.set_color(gui.get_node("mesh_flash_colour/text"), c)
+	set_checkbox("rotate_multiple_axes", SET.rotate_multiple_axes)
+	gui.set_text(gui.get_node("default_rotation_rounding/text"), SET.default_rotation_rounding)
+	-- misc
+	set_checkbox("bulk_sequence_sort", SET.bulk_sequence_sort)
+	set_checkbox("ignore_char_limit", SET.ignore_char_limit)
+	set_checkbox("confirm_degeomance", SET.confirm_degeomance)
+	gui.set_text(gui.get_node("degeomance_sequence/text"), SET.degeomance_sequence)
+	gui.set_text(gui.get_node("degeomance_glitched_enemy/text"), internal_to_pretty[SET.degeomance_glitched_enemy])
+	gui.set_text(gui.get_node("degeomance_skull/text"), internal_to_pretty[SET.degeomance_skull])
+	
+	for key, val in pairs(tab_list) do
+		gui.set_enabled(gui.get_node("panel_"..key), false)
+	end
+	switch_tab("files")
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("hide") then
+		msg.post("#", hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		DIALOG.close_all(TAB_NAME)
+	elseif message_id == hash("show") then
+		msg.post("#", hash("enable"))
+		msg.post("#", hash("acquire_input_focus"))
+	elseif message_id == hash("dialog_closed") then
+		msg.post("#", hash("acquire_input_focus"))
+		if message.dialog == "colour_picker" then
+			if message.colour then
+				if message.colour_id == "custom_colour_main" or message.colour_id == "custom_colour_fog" or
+				message.colour_id == "custom_colour_glow" or message.colour_id == "custom_colour_enemy" then
+					SET[message.colour_id] = message.hex
+					if MEM.art_data.colours then
+						MEM.art_data.colours[#MEM.art_data.colours] = {main = SET.custom_colour_main, fog = SET.custom_colour_fog, glow = SET.custom_colour_glow, enemy = SET.custom_colour_enemy}
+					end
+				else
+					SET[message.colour_id] = message.colour
+				end
+				gui.set_color(gui.get_node(message.colour_id.."/text"), message.colour)
+				if message.colour_id == "background_colour" then
+					msg.post("@render:", hash("clear_color"), {color = message.colour})
+				elseif message.colour_id == "mesh_flash_colour" then
+					SET.mesh_flash_colour.w = tonumber(gui.get_text(gui.get_node("mesh_flash_alpha/text")) / 100)
+				end
+			end
+		elseif message.dialog == "dialog_change_sequence" then
+			if message.sequence then
+				SET.degeomance_sequence = message.sequence
+				gui.set_text(gui.get_node("degeomance_sequence/text"), message.sequence)
+			end
+		elseif message.dialog == "dialog_change_enemy_type" then
+			if message.new_type then
+				SET[message.hide_illegal] = internal_names[message.new_type]
+				gui.set_text(gui.get_node(message.hide_illegal.."/text"), enemy_names[message.new_type])
+			end
+		end
+	end
+end
+
+local function evaluate_input(field, text)
+	if field == "mesh_flash_alpha" then
+		SET.mesh_flash_colour.w = text / 100
+	else
+		SET[field] = text
+	end
+end
+
+local function evaluate_button(button)
+	if button == "save_changes" then
+		SET.save_config()
+		return
+	end
+	if active_tab == "paths" then
+		local snip = string.sub(button, 1, 11)
+		if snip == "reset_path_" then
+			button = string.sub(button, 12)
+			SET[path_list[button]] = ""
+			gui.set_text(gui.get_node("default_path_"..button), "")
+		elseif snip == "change_path" then
+			button = string.sub(button, 13)
+			local _, path = diags.open_folder(SET[path_list[button]])
+			if path then
+				SET[path_list[button]] = path
+				gui.set_text(gui.get_node("default_path_"..button), path)
+			end
+		end
+	elseif active_tab == "colours" then
+		for key, val in ipairs(tab_list.colours.buttons) do
+			if button == val then
+				UI.DIALOG.open(TAB_NAME, "colour_picker", {rgb = SET[button], colour_id = button})
+				return
+			end
+		end
+	elseif active_tab == "files" then
+		SET[button] = not SET[button]
+		set_checkbox(button, SET[button])
+	elseif active_tab == "transform" then
+		if button == "show_transform_edit_warning" then
+			SET.default_show_transform_edit_warning = not SET.default_show_transform_edit_warning
+			SET.show_transform_edit_warning = SET.default_show_transform_edit_warning
+			set_checkbox(button, SET[button])
+		else
+			SET[button] = not SET[button]
+			set_checkbox(button, SET[button])
+		end
+	elseif active_tab == "tween" then
+		if button == "easing_node_colour" or button == "easing_node_highlight_colour" or button == "easing_curve_colour" then
+			UI.DIALOG.open(TAB_NAME, "colour_picker", {rgb = SET[button], colour_id = button})
+		elseif button == "tween_extra_add_buttons" then
+			SET[button] = not SET[button]
+			set_checkbox(button, SET[button])
+			msg.post(UI.tab.dialog_tween.path, hash("regenerate_list"))
+		elseif button == "default_tween_time_in_beats" then
+			SET[button] = not SET[button]
+			if SET.default_tween_time_in_beats then
+				gui.set_text(gui.get_node("default_tween_time_in_beats/text"), "Beats")
+			else
+				gui.set_text(gui.get_node("default_tween_time_in_beats/text"), "Seconds")
+			end
+		else
+			SET[button] = not SET[button]
+			set_checkbox(button, SET[button])
+		end
+	elseif active_tab == "model_viewer" then
+		if button == "model_show_grid" then
+			SET.default_model_show_grid = SET.default_model_show_grid + 1
+			if SET.default_model_show_grid > 3 then
+				SET.default_model_show_grid = 1
+			end
+			if SET.default_model_show_grid == 1 then
+				gui.set_text(gui.get_node("model_show_grid/text"), "Ground")
+			elseif SET.default_model_show_grid == 2 then
+				gui.set_text(gui.get_node("model_show_grid/text"), "Grid")
+			else
+				gui.set_text(gui.get_node("model_show_grid/text"), "Hide")
+			end
+		elseif button == "model_grid_dots" then
+			SET.model_grid_dots = not SET.model_grid_dots
+			if SET.model_grid_dots then
+				gui.set_text(gui.get_node("model_grid_dots/text"), "Dots")
+			else
+				gui.set_text(gui.get_node("model_grid_dots/text"), "Grid")
+			end
+		elseif button == "show_transform" then
+			SET.default_show_transform = SET.default_show_transform + 1
+			if SET.default_show_transform > 2 then
+				SET.default_show_transform = 0
+			end
+			if SET.default_show_transform == 0 then
+				gui.play_flipbook(gui.get_node("show_transform/text"), "button_transform_none")
+			elseif SET.default_show_transform == 1 then
+				gui.play_flipbook(gui.get_node("show_transform/text"), "button_transform_one")
+			else
+				gui.play_flipbook(gui.get_node("show_transform/text"), "button_transform_all")
+			end
+		else
+			local colour = COL.str_to_colour(SET[button])
+			UI.DIALOG.open(TAB_NAME, "colour_picker", {rgb = colour, colour_id = button})
+		end
+	elseif active_tab == "events" then
+		if button == "mesh_flash_colour" then
+			local c = vmath.vector4(SET.mesh_flash_colour.x, SET.mesh_flash_colour.y, SET.mesh_flash_colour.z, 1)
+			UI.DIALOG.open(TAB_NAME, "colour_picker", {rgb = c, colour_id = button})
+		else
+			SET[button] = not SET[button]
+			set_checkbox(button, SET[button])
+		end
+	elseif active_tab == "misc" then
+		if button == "degeomance_sequence" then
+			UI.DIALOG.open(TAB_NAME, "dialog_change_sequence", {current_sequence = SET.degeomance_sequence, hide_illegal = true})
+		elseif button == "degeomance_glitched_enemy" or button == "degeomance_skull" then
+			local _current_type = SET[button]
+			local current_type
+			for key, val in pairs(internal_names) do
+				if _current_type == val then
+					current_type = key
+					break
+				end
+			end
+			UI.DIALOG.open(TAB_NAME, "dialog_change_enemy_type", {hide_illegal = button, current_type = current_type})
+		else
+			SET[button] = not SET[button]
+			set_checkbox(button, SET[button])
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	if action_id == hash("touch") and action.pressed then
+		for key, val in pairs(tab_list) do
+			if gui.pick_node(gui.get_node(key), action.x, action.y) then
+				switch_tab(key)
+				return
+			end
+		end
+	end
+	UI.on_input(TAB_NAME, action_id, action, evaluate_button, evaluate_input)
+end

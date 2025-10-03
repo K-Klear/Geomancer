@@ -1,5 +1,5 @@
 local MEM = require "modules.memory"
-local MOD = require "main.model_viewer.model"
+local MOD = require "modules.models"
 local SET = require "modules.settings"
 local UI = require "modules.ui"
 local COL = require "modules.colours"
@@ -79,8 +79,16 @@ local function change_bounds(node)
 	get_viewport()
 end
 
+local function set_transform_button()
+	local transfrom_pics = {[0] = "button_transform_none", [1] = "button_transform_one", [2] = "button_transform_all"}
+	if not SET.show_single_transform then transfrom_pics[1] = transfrom_pics[0] end
+	gui.play_flipbook(gui.get_node("show_transforms/text"), transfrom_pics[SET.show_transform])
+	msg.post(".", hash("show_transforms"))
+end
+
 function init(self)
 	update_offset_fields()
+	set_transform_button()
 	bounding_node = gui.get_node("model_viewer")
 	bounding_node_preview = gui.get_node("model_viewer_preview")
 	bounding_node_transform = gui.get_node("model_viewer_transform")
@@ -141,6 +149,10 @@ local function create_tween_sections()
 	MOD.total_time = 0
 	delete_timeline()
 	for tween_index, tween_table in ipairs(MOD.tween_table) do
+		tween_table.time_offset = 0
+		if MOD.prop_data.lowest_z then
+			tween_table.time_offset = ((MOD.prop_data.signal_z[tween_index] or MOD.prop_data.lowest_z) - MOD.prop_data.lowest_z) / 3
+		end
 		action_bars[tween_index] = {}
 		local new_timeline = gui.clone(gui.get_node("timeline"))
 		gui.set(new_timeline, "position.y", SET.tween_timeline_bar_height * (tween_index - 0.5))
@@ -151,7 +163,7 @@ local function create_tween_sections()
 			gui.set_color(new_timeline, colour_unselected_timeline)
 		end
 		
-		local tween_time = 0
+		local tween_time = tween_table.time_offset
 		
 		for key, val in ipairs(tween_table) do
 			if val.type == "X" then
@@ -181,7 +193,6 @@ local function create_tween_sections()
 				if not (val.easing_mid or val.easing_end) then
 					add_bar(val.easing_start or val.time)
 				end
-				
 			end
 		end
 		MOD.total_time = math.max(MOD.total_time, tween_time)
@@ -191,7 +202,8 @@ local function create_tween_sections()
 	gui.set(gui.get_node("controls"), "position.y", box_y)
 	gui.set(gui.get_node("scrubber"), "scale.y", #MOD.tween_table * SET.tween_timeline_bar_height)
 	for tween_index, action_bar in ipairs(action_bars) do
-		local time = 0
+		local time_offset = MOD.tween_table[tween_index].time_offset
+		local time = time_offset
 		for key, val in ipairs(action_bar) do
 			local start_pos = percent_to_position(time / MOD.total_time)
 			local length = (val.time / MOD.total_time) * POSITION_MAX
@@ -213,6 +225,7 @@ local function stop_playback(go_to_end)
 		move_scrubber(1)
 	end
 	gui.play_flipbook(gui.get_node("playback_play/text"), "play")
+	msg.post("/sound", hash("stop_music"))
 end
 
 local function start_playback()
@@ -220,6 +233,9 @@ local function start_playback()
 	local duration = (1 - MOD.scrubber_progress) * MOD.total_time
 	gui.play_flipbook(gui.get_node("playback_play/text"), "pause")
 	gui.animate(scrubber, "position.x", POSITION_MAX + POSITION_MIN, gui.EASING_LINEAR, duration, 0, stop_playback)
+	if MOD.prop_data.signal_z then
+		msg.post("/sound", hash("play_music"), {start = (MOD.prop_data.lowest_z / 3) + MOD.total_time * MOD.scrubber_progress})
+	end
 end
 
 local function close_preview()
@@ -278,17 +294,21 @@ local function handle_euler()
 end
 
 local function apply_prop_transform()
+	local geo_z = 0
 	MOD.offset_position.x = MOD.prop_data.position.x
 	MOD.offset_position.y = MOD.prop_data.position.y
 	if MEM.level_data.moveMode and MEM.level_data.moveMode == "Stationary" then
 		MOD.offset_position.z = MOD.prop_data.position.z
 	else
-		local _, z
-		if MOD.prop_data.signal_z then
-			_, z = next(MOD.prop_data.signal_z)
+		local z = math.huge
+		local z_found = false
+		for key, val in ipairs(MOD.prop_data.signal_z or {}) do
+			z_found = true
+			z = math.min(z, val)
 		end
-		if z then
+		if z_found then
 			MOD.offset_position.z = MOD.prop_data.position.z - z
+			geo_z = z
 		else
 			MOD.offset_position.z = SET.default_model_z_position
 		end
@@ -301,13 +321,7 @@ local function apply_prop_transform()
 	MOD.offset_scale.z = MOD.prop_data.scale.z
 	handle_euler()
 	update_offset_fields()
-end
-
-local function set_transform_button()
-	local transfrom_pics = {[0] = "button_transform_none", [1] = "button_transform_one", [2] = "button_transform_all"}
-	if not SET.show_single_transform then transfrom_pics[1] = transfrom_pics[0] end
-	gui.play_flipbook(gui.get_node("show_transforms/text"), transfrom_pics[SET.show_transform])
-	msg.post(".", hash("show_transforms"))
+	msg.post(".", hash("move_geo"), {z = geo_z})
 end
 
 function on_message(self, message_id, message, sender)
@@ -326,6 +340,8 @@ function on_message(self, message_id, message, sender)
 		if message.dialog == "dialog_props" then
 			if message.prop_changed then
 				apply_prop_transform()
+				create_tween_sections()
+				msg.post(".", hash("prepare_tweens"))
 			end
 		end
 	elseif message_id == hash("resize_base") then
@@ -336,6 +352,20 @@ function on_message(self, message_id, message, sender)
 		set_transform_button()
 	elseif message_id == hash("resize_rotate") then
 		change_bounds(gui.get_node("rotate_box"))
+	elseif message_id == hash("geo_preview") then
+		--MOD.tween_preview = true
+		previous_transform_name = nil
+		gui.set_position(button_box, BUTTON_BOX_POSITION_PREVIEW)
+		gui.set_size(button_box, BUTTON_BOX_SIZE_PREVIEW)
+		msg.post("#", hash("acquire_input_focus"))
+		change_bounds(bounding_node_preview)
+		gui.set_text(gui.get_node("position_z/text"), MOD.offset_position.z)
+		UI.load_template({"close_preview", "lock_cam", "move_terrain"}, TAB_NAME)
+		gui.set_enabled(gui.get_node("close_preview/button_white"), true)
+		if MOD.pov_lock then
+			MOD.target_x = 0
+			MOD.target_y = 0
+		end
 	elseif message_id == hash("tween_preview") then
 		MOD.tween_preview = true
 		MOD.total_time = 0
@@ -470,10 +500,11 @@ function on_message(self, message_id, message, sender)
 				end
 			end
 		end
-		create_tween_sections()
-		msg.post(".", hash("prepare_tweens"))
 		if SET.auto_set_tween_preview_prop then
 			DIALOG.open(TAB_NAME, "dialog_props", {model = MEM.art_data.table.propsDictionary[MOD.model_index].key, autoclose = true})
+		else
+			create_tween_sections()
+			msg.post(".", hash("prepare_tweens"))
 		end
 		if MOD.pov_lock then
 			MOD.target_x = 0
@@ -484,8 +515,9 @@ end
 
 local function get_current_action()
 	local current_time = MOD.total_time * MOD.scrubber_progress
-	local duration = 0
 	local timeline_tab = MOD.tween_table[selected_timeline]
+	local duration = timeline_tab.time_offset--0
+
 	for key, val in ipairs(timeline_tab) do
 		if not (val.easing_mid or val.easing_end) then
 			local time = val.easing_start or tonumber(val.time)
@@ -736,7 +768,7 @@ function on_input(self, action_id, action)
 	elseif action.released and MOD.is_dragged and action_id == hash("touch") then
 		MOD.is_dragged = false
 		return
-	elseif gui.pick_node(current_bounding_node, action.x, action.y) then
+	elseif action.x and gui.pick_node(current_bounding_node, action.x, action.y) then
 		if MOD.tween_preview and gui.pick_node(timeline, action.x, action.y) then
 			if action_id == hash("touch") then
 				stop_playback()

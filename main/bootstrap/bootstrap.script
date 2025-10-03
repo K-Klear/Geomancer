@@ -3,204 +3,6 @@ local COL = require "modules.colours"
 
 local proxy_is_loaded, settings_are_loaded
 
-local default_settings_text = {
-	"When editing, keep the format [variable_name][=][value][;]. Anything beyond this is ignored when loading configuration.",
-	"If there are any missing variables or the values cannot be read/are in the wrong format, Geomancer will add new entries for them with default values on launch.",
-	"",
-	"confirm_file_overwrite=true;",
-	"default_path_load_directory=;", 
-	"default_path_load_zip=;",
-	"default_path_load_file=;",
-	"default_path_export=;",
-	"default_path_export_overwrite=;",
-	"default_path_import_models=;",
-	"default_path_import_model_data=;",
-	"default_path_save_tween=;",
-	"import_changes_from_zip=false;",
-	"create_folder_on_export=true;",
-	"",
-	"import_level_changes=true;",
-	"import_event_changes=true;",
-	"import_model_changes=true;",
-	"import_beat_changes=true;",
-	"",
-	"degeomance_sequence=Dance_03;		-- Only enter valid sequences",
-	"degeomance_glitched_enemy=Normal;	-- Valid enemy types are Normal, Tough, ChuckNorris, Mounted Enemy, Shield, Normal Turret, Minigun Turret",
-	"degeomance_skull=Normal Turret;	-- Anything else is likely to break things",
-	"confirm_degeomance=true;",
-	"",
-	"ignore_char_limit=false;		-- if true, all text fields will accept inputs of any lengths, even if it makes the text spill out",
-	"",
-	"autodetect_sample_rate=true;",
-	"default_sample_rate=48000;		-- this value is used if autodetect is turned off or sample rate cannot be determined",
-	"new_event_sample_offset=0;",
-	"add_opens_edit_box=true;		-- open the edit dialog when adding new events/nobeats/tempo sections",
-	"",
-	"background_colour=0.15,0.03,0.12;	-- All colours are r,g,b going from 0 to 1",
-	"colour_active_text_field=0.65,0.65,0.65;",
-	"colour_highlight_material=0.8,0.8,0.35;",
-	"colour_highlight_dynamic=0.6,0.75,1;",
-	"colour_highlight_tween=0.3,0.55,1;",
-	"colour_model_import_selection=0.5,0.5,0.7;",
-	"colour_model_replace=1,0.7,0.7;",
-	"colour_unsupported_obstacle=0.8,0.2,0.2;",
-	"colour_current_enemy_set=0.2,0.4,0.8;",
-	"colour_selection_change_enemy_type=0.1,0.7,0.1;",
-	"colour_highlight_replace_enemy=0.7,0.1,0.1;",
-	"colour_current_enemy_type=0.1,0.1,0.1;",
-	"colour_tween_move=0,0,0.5;",
-	"colour_tween_rotate=0,0.5,0;",
-	"colour_tween_scale=0.5,0.5,0;",
-	"colour_tween_wait=0.3,0.3,0.3;",
-	"",
-	"hide_model_count=false;				-- If false displays the number of instances of each prop in the model tab",
-	"default_transform_name=NewTransform;",
-	"use_default_transform_name=false;		-- If true skips the name selection dialog when adding new transform",
-	"root_transform_default_name=Base;",
-	"add_root_transform_if_missing=true;	-- Automatically adds a transform that can be used to tween the whole model",
-	"allow_tweening_base_transform=false;	-- Tweening the base transform can lead to unexpected behaviour. Set this to true if you want to experiment with it",
-	"confirm_transform_delete=true;",
-	"allow_mesh_delete=false;				-- Prevents you from deleting visible parts of a prop if set to true",
-	"show_transform_edit_warning=true;		-- Will display a warning before letting you to edit transform values if true",
-	"",
-	"restrict_rotations_to_360=true; 		-- If true rotation values outside 0-360 are recalculated to fall within that range.",
-	"tween_action_type_dialog=true; 		-- If false cycle through tween types instead of opening a dialog",
-	"tween_part_dialog=true; 				-- If false cycle through tween parts instead of opening a dialog",
-	"tween_extra_add_buttons=false; 		-- If true adds \"Add action\" button between tween actions",
-	"ask_before_overwriting_tween_file=true;",
-	"tween_timeline_bar_height=20;			-- Should be 6 at least",
-	"auto_set_tween_preview_prop=true;		-- Loads properties of the first prop instance in the map when opening tween preview",
-	"",
-	"model_rotation_sensitivity=0.5;",
-	"model_move_sensitivity=0.01;",
-	"model_zoom_sensitivity=2.5;",
-	"default_camera_zoom=8;			-- Should be between 0.5 and 100",
-	"default_camera_rotation=0;		-- Euler angle.",
-	"default_camera_pitch=25;		-- Euler angle ranging from -90 to 90",
-	"default_model_z_position=8;",
-	"",
-	"mesh_flash_time=0.3;",
-	"mesh_flash_frequency=1;		-- Will stay highlighted if set to 0",
-	"mesh_flash_colour=1,0,0,0.4;	-- RGB plus alpha (transparency)",
-	"",
-	"easing_node_scale=0.5;",
-	"easing_curve_thickness=3;",
-	"easing_node_colour=0,0,0;",
-	"easing_node_highlight_colour=1,0,0;",
-	"easing_curve_colour=0,0,1;",
-	"",
-	"default_colour_set=1;			-- Sets which unique colour set from the map will be selected by default. Use 0 to default to the custom colours.",
-	"custom_colour_main=471537;		-- uses the same hexadecimal format as Pistol Mix",
-	"custom_colour_fog=C9C3C1;",
-	"custom_colour_glow=FCC69D;",
-	"custom_colour_enemy=000000;",
-	"",
-	"model_show_grid=1;				-- Set to 1 to show main-coloured ground, 2 for a white grid, 3 to turn off",
-	"model_grid_dots=false;			-- Changes the grid to just dots",
-	"",
-	"default_rotation=0;			-- Euler angle.",
-	"default_pitch=25;				-- Euler angle ranging from -90 to 90",
-	"",
-	"bulk_sequence_sort=false;		-- Existing sequences when bulk replacing can be sorted alphabetically. Otherwise they are listed in the order they appear",
-	"rotate_multiple_axes=false;	-- When set to true, you can rotate enemies on two axes simultaneously", 
-	"default_rotation_rounding=15;"
-}
-
-local settings_to_load = {
-	autodetect_sample_rate = {type = "boolean"},
-	default_sample_rate = {type = "integer"},
-	new_event_sample_offset = {type = "integer"},
-	background_colour = {type = "colour"},
-	colour_active_text_field = {type = "colour"},
-	colour_highlight_material = {type = "colour"},
-	colour_highlight_dynamic = {type = "colour"},
-	colour_highlight_tween = {type = "colour"},
-	colour_model_import_selection = {type = "colour"},
-	colour_model_replace = {type = "colour"},
-	colour_unsupported_obstacle = {type = "colour"},
-	colour_current_enemy_set = {type = "colour"},
-	colour_selection_change_enemy_type = {type = "colour"},
-	colour_current_enemy_type = {type = "colour"},
-	colour_highlight_replace_enemy = {type = "colour"},
-	colour_tween_move = {type = "colour"},
-	colour_tween_rotate = {type = "colour"},
-	colour_tween_scale = {type = "colour"},
-	colour_tween_wait = {type = "colour"},
-	restrict_rotations_to_360 = {type = "boolean"},
-	tween_action_type_dialog = {type = "boolean"},
-	tween_part_dialog = {type = "boolean"},
-	tween_extra_add_buttons = {type = "boolean"},
-	default_path_load_directory = {type = "path"},
-	default_path_load_zip = {type = "path"},
-	default_path_load_file = {type = "path"},
-	default_path_export = {type = "path"},
-	default_path_export_overwrite = {type = "path"},
-	default_path_import_models = {type = "path"},
-	default_path_import_model_data = {type = "path"},
-	default_path_save_tween = {type = "path"},
-	import_changes_from_zip = {type = "boolean"},
-	create_folder_on_export = {type = "boolean"},
-	confirm_file_overwrite = {type = "boolean"},
-	ask_before_overwriting_tween_file = {type = "boolean"},
-	auto_set_tween_preview_prop = {type = "boolean"},
-	ignore_char_limit = {type = "boolean"},
-
-	import_level_changes = {type = "boolean"},
-	import_event_changes = {type = "boolean"},
-	import_model_changes = {type = "boolean"},
-	import_beat_changes = {type = "boolean"},
-
-	degeomance_sequence = {type = "string"},
-	degeomance_glitched_enemy = {type = "string"},
-	degeomance_skull = {type = "string"},
-	confirm_degeomance = {type = "boolean"},
-
-	tween_timeline_bar_height = {type = "number"},
-	hide_model_count = {type = "boolean"},
-	default_transform_name = {type = "string"},
-	use_default_transform_name = {type = "boolean"},
-	root_transform_default_name = {type = "string"},
-	add_root_transform_if_missing = {type = "boolean"},
-	allow_tweening_base_transform = {type = "boolean"},
-	confirm_transform_delete = {type = "boolean"},
-	allow_mesh_delete = {type = "boolean"},
-	show_transform_edit_warning = {type = "boolean"},
-	
-	model_rotation_sensitivity = {type = "non_zero"},
-	model_move_sensitivity = {type = "non_zero"},
-	model_zoom_sensitivity = {type = "non_zero"},
-	default_camera_zoom = {type = "number"},
-	default_camera_rotation = {type = "number"},
-	default_camera_pitch = {type = "angle_pitch"},
-	default_model_z_position = {type = "number"},
-
-	mesh_flash_time = {type = "number"},
-	mesh_flash_frequency = {type = "number"},
-	mesh_flash_colour = {type = "colour_full"},
-
-	default_colour_set = {type = "integer"},
-	custom_colour_main = {type = "hex_colour"},
-	custom_colour_fog = {type = "hex_colour"},
-	custom_colour_glow = {type = "hex_colour"},
-	custom_colour_enemy = {type = "hex_colour"},
-
-	model_show_grid = {type = "one_two_three"},
-	model_grid_dots = {type = "boolean"},
-
-	bulk_sequence_sort = {type = "boolean"},
-
-	add_opens_edit_box = {type = "boolean"},
-	easing_node_scale = {type = "number"},
-	easing_curve_thickness = {type = "number"},
-	easing_node_colour = {type = "colour"},
-	easing_node_highlight_colour = {type = "colour"},
-	easing_curve_colour = {type = "colour"},
-
-	rotate_multiple_axes = {type = "boolean"},
-	default_rotation_rounding = {type = "number"}
-}
-
-
 local function start()
 	if settings_are_loaded and proxy_is_loaded then
 		msg.post("#main", "enable")
@@ -209,102 +11,199 @@ local function start()
 	end
 end
 
-function init(self)
-	msg.post("#main", hash("async_load"))
-	for key, val in pairs(settings_to_load) do
-		for k, v in ipairs(default_settings_text) do
-			if string.find(v, key) then
-				settings_to_load[key].line = k
-				break
+
+local function load_old_config()
+	local settings_to_load = {
+		autodetect_sample_rate = {type = "boolean"},
+		default_sample_rate = {type = "integer"},
+		new_event_sample_offset = {type = "integer"},
+		background_colour = {type = "colour"},
+		colour_active_text_field = {type = "colour"},
+		colour_highlight_material = {type = "colour"},
+		colour_highlight_dynamic = {type = "colour"},
+		colour_highlight_tween = {type = "colour"},
+		colour_model_import_selection = {type = "colour"},
+		colour_model_replace = {type = "colour"},
+		colour_unsupported_obstacle = {type = "colour"},
+		colour_current_enemy_set = {type = "colour"},
+		colour_selection_change_enemy_type = {type = "colour"},
+		colour_current_enemy_type = {type = "colour"},
+		colour_highlight_replace_enemy = {type = "colour"},
+		colour_tween_move = {type = "colour"},
+		colour_tween_rotate = {type = "colour"},
+		colour_tween_scale = {type = "colour"},
+		colour_tween_wait = {type = "colour"},
+		restrict_rotations_to_360 = {type = "boolean"},
+		tween_action_type_dialog = {type = "boolean"},
+		tween_part_dialog = {type = "boolean"},
+		tween_extra_add_buttons = {type = "boolean"},
+		default_path_load_directory = {type = "path"},
+		default_path_load_zip = {type = "path"},
+		default_path_load_file = {type = "path"},
+		default_path_export = {type = "path"},
+		default_path_export_overwrite = {type = "path"},
+		default_path_import_models = {type = "path"},
+		default_path_import_model_data = {type = "path"},
+		default_path_save_tween = {type = "path"},
+		import_changes_from_zip = {type = "boolean"},
+		create_folder_on_export = {type = "boolean"},
+		confirm_file_overwrite = {type = "boolean"},
+		ask_before_overwriting_tween_file = {type = "boolean"},
+		auto_set_tween_preview_prop = {type = "boolean"},
+		ignore_char_limit = {type = "boolean"},
+		import_level_changes = {type = "boolean"},
+		import_event_changes = {type = "boolean"},
+		import_model_changes = {type = "boolean"},
+		import_beat_changes = {type = "boolean"},
+		degeomance_sequence = {type = "string"},
+		degeomance_glitched_enemy = {type = "string"},
+		degeomance_skull = {type = "string"},
+		confirm_degeomance = {type = "boolean"},
+		tween_timeline_bar_height = {type = "number"},
+		hide_model_count = {type = "boolean"},
+		default_transform_name = {type = "string"},
+		use_default_transform_name = {type = "boolean"},
+		root_transform_default_name = {type = "string"},
+		add_root_transform_if_missing = {type = "boolean"},
+		allow_tweening_base_transform = {type = "boolean"},
+		confirm_transform_delete = {type = "boolean"},
+		allow_mesh_delete = {type = "boolean"},
+		show_transform_edit_warning = {type = "boolean"},
+		model_rotation_sensitivity = {type = "non_zero"},
+		model_move_sensitivity = {type = "non_zero"},
+		model_zoom_sensitivity = {type = "non_zero"},
+		default_camera_zoom = {type = "number"},
+		default_camera_rotation = {type = "number"},
+		default_camera_pitch = {type = "angle_pitch"},
+		default_model_z_position = {type = "number"},
+		mesh_flash_time = {type = "number"},
+		mesh_flash_frequency = {type = "number"},
+		mesh_flash_colour = {type = "colour_full"},
+		default_colour_set = {type = "integer"},
+		custom_colour_main = {type = "hex_colour"},
+		custom_colour_fog = {type = "hex_colour"},
+		custom_colour_glow = {type = "hex_colour"},
+		custom_colour_enemy = {type = "hex_colour"},
+		model_show_grid = {type = "one_two_three"},
+		model_grid_dots = {type = "boolean"},
+		bulk_sequence_sort = {type = "boolean"},
+		add_opens_edit_box = {type = "boolean"},
+		easing_node_scale = {type = "number"},
+		easing_curve_thickness = {type = "number"},
+		easing_node_colour = {type = "colour"},
+		easing_node_highlight_colour = {type = "colour"},
+		easing_curve_colour = {type = "colour"},
+		rotate_multiple_axes = {type = "boolean"},
+		default_rotation_rounding = {type = "number"}
+	}
+	local parse = {}
+	function parse.number(str) return tonumber(str) end
+	function parse.integer(str) return math.floor(tonumber(str)) end
+	function parse.boolean(str)
+		if string.lower(str) == "true" then
+			return true
+		elseif string.lower(str) == "false" then
+			return false
+		end
+	end
+	function parse.colour(str)
+		local comma_1 = string.find(str, ",")
+		local comma_2 = string.find(str, ",", comma_1 + 1)
+		local x = string.sub(str, 1, comma_1 - 1)
+		local y = string.sub(str, comma_1 + 1, comma_2 - 1)
+		local z = string.sub(str, comma_2 + 1)
+		return vmath.vector4(tonumber(x), tonumber(y), tonumber(z), 1)
+	end
+	function parse.colour_full(str)
+		local comma_1 = string.find(str, ",")
+		local comma_2 = string.find(str, ",", comma_1 + 1)
+		local comma_3 = string.find(str, ",", comma_2 + 1)
+		local x = string.sub(str, 1, comma_1 - 1)
+		local y = string.sub(str, comma_1 + 1, comma_2 - 1)
+		local z = string.sub(str, comma_2 + 1, comma_3 - 1)
+		local a = string.sub(str, comma_3 + 1)
+		return vmath.vector4(tonumber(x), tonumber(y), tonumber(z), tonumber(a))
+	end
+	function parse.path(str) return str end
+	function parse.non_zero(str)
+		local n = tonumber(str)
+		if n > 0 then
+			return n
+		end
+	end
+	function parse.hex_colour(str)
+		if COL.str_to_colour(str) then
+			return str
+		end
+	end
+	function parse.angle_pitch(str)
+		return math.max(-90, math.min(tonumber(str), 90))
+	end
+	function parse.one_two_three(str) return math.min(3, math.max(1, math.floor(tonumber(str)))) end
+	function parse.string(str) return str end
+
+	for line in io.lines("geomancer.cfg") do
+		local equals = string.find(line, "=")
+		if equals then
+			local semicolon = string.find(line, ";")
+			if semicolon then
+				local setting_name = string.sub(line, 1, equals - 1)
+				local str = string.sub(line, equals + 1, semicolon - 1)
+				if settings_to_load[setting_name] then
+					local works, value = pcall(parse[settings_to_load[setting_name].type], str)
+					if works then
+						SET[setting_name] = value
+					end
+				elseif setting_name == "I_am_Klear" then
+					SET.I_am_Klear = true
+				end
 			end
 		end
 	end
-	
-	if not sys.exists("geomancer.cfg") then
-		SET.cfg_created = true
-		local f = io.output("geomancer.cfg")
-		for key, val in ipairs(default_settings_text) do
-			io.write(val.."\n")
-		end
-		io.close(f)
-	else
-		local parse = {}
-		function parse.number(str) return tonumber(str) end
-		function parse.integer(str) return math.floor(tonumber(str)) end
-		function parse.boolean(str)
-			if string.lower(str) == "true" then
-				return true
-			elseif string.lower(str) == "false" then
-				return false
-			end
-		end
-		function parse.colour(str)
-			local comma_1 = string.find(str, ",")
-			local comma_2 = string.find(str, ",", comma_1 + 1)
-			local x = string.sub(str, 1, comma_1 - 1)
-			local y = string.sub(str, comma_1 + 1, comma_2 - 1)
-			local z = string.sub(str, comma_2 + 1)
-			return vmath.vector4(tonumber(x), tonumber(y), tonumber(z), 1)
-		end
-		function parse.colour_full(str)
-			local comma_1 = string.find(str, ",")
-			local comma_2 = string.find(str, ",", comma_1 + 1)
-			local comma_3 = string.find(str, ",", comma_2 + 1)
-			local x = string.sub(str, 1, comma_1 - 1)
-			local y = string.sub(str, comma_1 + 1, comma_2 - 1)
-			local z = string.sub(str, comma_2 + 1, comma_3 - 1)
-			local a = string.sub(str, comma_3 + 1)
-			return vmath.vector4(tonumber(x), tonumber(y), tonumber(z), tonumber(a))
-		end
-		function parse.path(str) return str end
-		function parse.non_zero(str)
-			local n = tonumber(str)
-			if n > 0 then
-				return n
-			end
-		end
-		function parse.hex_colour(str)
-			if COL.str_to_colour(str) then
-				return str
-			end
-		end
-		function parse.angle_pitch(str)
-			return math.max(-90, math.min(tonumber(str), 90))
-		end
-		function parse.one_two_three(str) return math.min(3, math.max(1, math.floor(tonumber(str)))) end
-		function parse.string(str) return str end
-			
-		local loaded_settings = {}
-		for line in io.lines("geomancer.cfg") do
-			local equals = string.find(line, "=")
-			if equals then
-				local semicolon = string.find(line, ";")
-				if semicolon then
-					local setting_name = string.sub(line, 1, equals - 1)
-					local str = string.sub(line, equals + 1, semicolon - 1)
-					if settings_to_load[setting_name] then
-						local works, value = pcall(parse[settings_to_load[setting_name].type], str)
-						if works then
-							loaded_settings[setting_name] = value
-						end
-					elseif setting_name == "I_am_Klear" then
-						SET.I_am_Klear = true
+	if sys.exists("geomancer.cfg_old") then
+		os.remove("geomancer.cfg_old")
+	end
+	os.rename("geomancer.cfg", "geomancer.cfg_old")
+end
+
+function init(self)
+	msg.post("#main", hash("async_load"))
+	local create_cfg = true
+	if sys.exists("geomancer.cfg") then
+		local f = io.open("geomancer.cfg", "rb")
+		if f then
+			local data = f:read("*a")
+			io.close(f)
+			local err, json_data = pcall(json.decode, data)
+			if err then
+				for key, val in pairs(json_data) do
+					if type(val) == "table" then
+						SET[key] = vmath.vector4(val[1], val[2], val[3], val[4])
+					else
+						SET[key] = val
 					end
 				end
+				SET.show_transform_edit_warning = SET.default_show_transform_edit_warning
+				SET.model_show_grid = SET.default_model_show_grid
+				SET.show_transform = SET.default_show_transform
+				SET.new_event_sample_offset = SET.default_new_event_sample_offset
+				SET.create_folder_on_export = SET.default_create_folder_on_export
+				SET.import_changes_from_zip = SET.default_import_changes_from_zip
+				SET.import_level_changes = SET.default_import_level_changes
+				SET.import_event_changes = SET.default_import_event_changes
+				SET.import_model_changes = SET.default_import_model_changes
+				SET.import_beat_changes = SET.default_import_beat_changes
+				SET.tween_time_in_beats = SET.default_tween_time_in_beats
+				create_cfg = false
+			else
+				load_old_config()
+				SET.old_config = true
 			end
 		end
-		local f = io.open("geomancer.cfg", "a")
-		if f then
-			for key in pairs(settings_to_load) do
-				if loaded_settings[key] == nil then
-					f:write("\n"..default_settings_text[settings_to_load[key].line])
-					SET.cfg_appended = true
-				else
-					SET[key] = loaded_settings[key]
-				end
-			end
-			io.close(f)
-		end
+	end
+	if create_cfg then
+		SET.save_config()
+		SET.config_created = true
 	end
 	settings_are_loaded = true
 	start()

@@ -8,7 +8,7 @@ local colour_function = {}
 
 local function rgb_to_hsv(colour)
 	local r, g, b = colour.x, colour.y, colour.z
-	local M, m = math.max( r, g, b ), math.min( r, g, b )
+	local M, m = math.max(r, g, b), math.min(r, g, b)
 	local C = M - m
 	local K = 1.0/(6.0 * C)
 	local h = 0.0
@@ -98,6 +98,10 @@ local tex_ped = hash("ped")
 local tex_shield = hash("shield")
 local tex_funky = hash("funky")
 
+function COL.geo()
+	local current = colour_function.main()
+	return vmath.vector4(current.x * 4, current.y * 4, current.z * 4, 1)
+end
 
 COL.materials = {
 	-- default

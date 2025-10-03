@@ -4,7 +4,7 @@ local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_change_sequence"
 local DIALOG_DATA
 
-local sequence_list, selected_sequence, evaluate_button
+local sequence_list, selected_sequence, evaluate_button, legal_count
 
 local seq = {
 	{
@@ -146,6 +146,9 @@ local sequences = {}
 local sequence_types = {}
 
 for key, val in ipairs(seq) do
+	if key > 9 and (not legal_count) then
+		legal_count = #sequences
+	end
 	table.insert(sequences, #sequences + 1)
 	sequence_types[#sequences] = val.name
 	for k, v in ipairs(val) do
@@ -198,7 +201,11 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		DIALOG.show(DIALOG_DATA, sender)
-		UI.update_list(DIALOG_NAME, sequence_list, #sequences)
+		if message.hide_illegal then
+			UI.update_list(DIALOG_NAME, sequence_list, legal_count)
+		else
+			UI.update_list(DIALOG_NAME, sequence_list, #sequences)
+		end
 		local sequence_found
 		for key, val in ipairs(sequences) do
 			if val == message.current_sequence then

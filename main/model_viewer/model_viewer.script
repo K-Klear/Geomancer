@@ -1,7 +1,7 @@
 local MEM = require "modules.memory"
 local SET = require "modules.settings"
 local G = require "modules.global"
-local MOD = require "main.model_viewer.model"
+local MOD = require "modules.models"
 local COL = require "modules.colours"
 
 local MODEL_CAMERA = "/model_camera"
@@ -32,7 +32,9 @@ go.property("floor_tex", resource.texture("/assets/gfx/textures/default_floor.pn
 
 local created_meshes = {}
 local created_transforms = {}
-local buffer_resources = {}
+local geo_meshes = {}
+local geo_collider_meshes = {}
+local static_meshes = {}
 
 local show_fog = true
 
@@ -106,6 +108,7 @@ function flash_on()
 	if flash_timer then
 		timer.cancel(flash_timer)
 	end
+	if SET.mesh_flash_time == 0 then return end
 	flash_active = true
 	for key, val in pairs(flash_list) do
 		go.set(val.url, "tint", val.flash_tint)
@@ -149,14 +152,19 @@ local function flash(self, list)
 	end
 	if #list > 0 then
 		flash_on()
-		flash_timer = timer.delay(SET.mesh_flash_time, false, flash_off)
 	end
 end
 
 
-local function set_material(self, part_index, model_index, flip)
-	local model_url = msg.url(nil, created_meshes[part_index].mesh, "mesh")
-	local invert = created_meshes[part_index].invert
+local function set_material(self, part_index, model_index, flip, static)
+	local model_url, invert
+	if static then
+		model_url = msg.url(nil, static_meshes[part_index].mesh, "mesh")
+		invert = static_meshes[part_index].invert
+	else
+		model_url = msg.url(nil, created_meshes[part_index].mesh, "mesh")
+		invert = created_meshes[part_index].invert
+	end
 	if MOD.inverted then
 		invert = not invert
 	end
@@ -275,7 +283,7 @@ function update(self, dt)
 			
 			local current_time = MOD.total_time * MOD.scrubber_progress
 			for tween_index, v in ipairs(MOD.tween_table) do
-				local action_end_time = 0
+				local action_end_time = v.time_offset
 				for key, val in ipairs(v) do
 					action_end_time = action_end_time + val.time
 					if current_time >= action_end_time then
@@ -344,6 +352,7 @@ local function delete_model(self)
 	stop_flash(self)
 	for key, val in ipairs(created_meshes) do
 		go.delete(val.mesh)
+		MOD.mesh_deleted(val.buffer)
 	end
 	for key, val in ipairs(created_transforms) do
 		go.delete(val)
@@ -384,77 +393,134 @@ local function show_transforms()
 	end
 end
 
+local function create_mesh(mesh_tab, parent, invert, transform_index, mesh_type)
+	local new_mesh = factory.create("#create_mesh")
+	msg.post(new_mesh, hash("disable"))
+	go.set_parent(new_mesh, parent)
+	local _url = msg.url(nil, new_mesh, "mesh")
+	go.set(_url, "vertices", mesh_tab.buffer_resource)
+
+	MOD.mesh_created(mesh_tab.buffer_resource)
+	
+	if mesh_type == "geo" then
+		table.insert(geo_meshes, {mesh = new_mesh})
+	elseif mesh_type == "collider" then
+		table.insert(geo_collider_meshes, {mesh = new_mesh})
+	elseif mesh_type == "static" then
+		table.insert(static_meshes, {mesh = new_mesh, invert = invert})
+	else
+		table.insert(created_meshes, {mesh = new_mesh, invert = invert, parent_transform = transform_index, buffer = mesh_tab.buffer_resource})
+	end
+end
+
+local function delete_geo()
+	for key, val in ipairs(geo_meshes) do
+		if not val.empty then
+			go.delete(val.mesh)
+		end
+	end
+	geo_meshes = {}
+end
+
+local function show_geo(self)
+	delete_geo()
+	if true then return end
+	for key, val in ipairs(MEM.geo_data.slices) do
+		if not val.empty then
+			create_mesh(val, nil, false, 1, "geo")
+			local new_mesh = geo_meshes[#geo_meshes].mesh
+			go.set_parent(new_mesh, "/geo_base")
+			go.set_position(vmath.vector3(0, 0, 16.1 * val.id), new_mesh)
+			local model_url = msg.url(nil, new_mesh, "mesh")
+			go.set(model_url, "tint", COL.geo())
+			go.set(model_url, "texture0", self.prop_tex)
+			go.set(model_url, "material", self.prop_material)
+			msg.post(new_mesh, hash("enable"))
+		end
+	end
+	if true then return end
+	for key, val in ipairs(MEM.geo_data.chunks) do
+		if not val.empty then
+			create_mesh(val, nil, false, 1, "collider")
+			local new_mesh = geo_collider_meshes[#geo_collider_meshes].mesh
+			go.set_parent(new_mesh, "/geo_base")
+			go.set_position(vmath.vector3(16 * val.id[1], 16 * val.id[2], 16 * val.id[3]), new_mesh)
+			local model_url = msg.url(nil, new_mesh, "mesh")
+			go.set(model_url, "tint", COL.geo())
+			go.set(model_url, "texture0", self.prop_tex)
+			go.set(model_url, "material", self.prop_material)
+			msg.post(new_mesh, hash("enable"))
+		end
+	end
+end
+
+local static_prop_transforms = {}
+
+
+local function create_static_models(self)
+	for _k, _v in ipairs(MEM.art_data.prop_list) do
+		local model_index
+		for key, val in ipairs(MEM.art_data.table.propsDictionary) do
+			if val.key == _v.name then
+				model_index = key
+				break
+			end
+		end
+		if model_index then
+			local new_base = factory.create("#create_transform_invisible")
+			table.insert(static_prop_transforms, new_base)
+			go.set_parent(new_base, "/static_prop_base")
+			
+			local mesh_count = 0
+			local transform_list = MEM.art_data.table.propsDictionary[model_index].model_data.transform_list
+			local meta_table = {}
+			for key, val in ipairs(transform_list) do
+				local invert = false
+				local new_transform = factory.create("#create_transform_invisible")
+				table.insert(static_prop_transforms, new_transform)
+				if val.parent_tab then
+					go.set_parent(new_transform, meta_table[val.parent_tab])
+					go.set_position(val.position, new_transform)
+				else
+					go.set_parent(new_transform, new_base)
+				end
+				local sc = val.scale.x * val.scale.y * val.scale.z
+				local parent = get_parent(key, transform_list)
+				if parent then
+					local safety = 10000
+					repeat
+						sc = sc * transform_list[parent].scale.x * transform_list[parent].scale.y * transform_list[parent].scale.z
+						parent = get_parent(parent, transform_list)
+						safety = safety - 1
+					until (not parent) or (safety < 0)
+				end
+				if sc < 0 then
+					invert = true
+				end
+				go.set_rotation(val.rotation, new_transform)
+				go.set(new_transform, "scale", val.scale)
+				meta_table[val] = new_transform
+				if val.meshes then
+					for k, v in ipairs(val.meshes) do
+						mesh_count = mesh_count + 1
+						create_mesh(v, new_transform, invert, key, "static")
+						set_material(self, mesh_count, model_index, nil, true)
+					end
+				end
+			end
+			go.set_position(_v.position, new_base)
+			--go.set(new_base, "position.z", -_v.position.z)
+			go.set(new_base, "scale", _v.scale)
+			go.set_rotation(_v.rotation, new_base)
+		end
+	end
+	for key, val in ipairs(static_meshes) do
+		msg.post(val.mesh, hash("enable"))
+	end
+end
+
 local function show_model(self, model_index)
 	delete_model(self)
-	local function parse_vertex_data(str)
-		local comma_1 = string.find(str, ",")
-		local comma_2 = string.find(str, ",", comma_1 + 1)
-		local x = string.sub(str, 1, comma_1 - 1)
-		local y = string.sub(str, comma_1 + 1, comma_2 - 1)
-		local z = string.sub(str, comma_2 + 1)
-		return tonumber(x), tonumber(y), tonumber(z)
-	end
-
-	local function create_mesh(mesh_tab, parent, part_index, invert, transform_index)
-		local new_mesh = factory.create("#create_mesh")
-		msg.post(new_mesh, hash("disable"))
-		go.set_parent(new_mesh, parent)
-		if not mesh_tab.triangles then
-			mesh_tab.triangles = {}
-			mesh_tab.normals_parsed = {}
-			for i = mesh_tab.IndexStart, mesh_tab.IndexEnd, 3 do
-				local function add_triangle(index)
-					index = index + 1
-					local x, y, z = parse_vertex_data(mesh_tab.verts[index])
-					table.insert(mesh_tab.triangles, x); table.insert(mesh_tab.triangles, y); table.insert(mesh_tab.triangles, z)
-					x, z, y = parse_vertex_data(mesh_tab.normals[index])
-					table.insert(mesh_tab.normals_parsed, x); table.insert(mesh_tab.normals_parsed, y); table.insert(mesh_tab.normals_parsed, z)
-				end
-				add_triangle(mesh_tab.tris[i])
-				add_triangle(mesh_tab.tris[i + 1])
-				add_triangle(mesh_tab.tris[i + 2])
-			end
-			mesh_tab.tris = nil
-			mesh_tab.normals = nil
-			mesh_tab.verts = nil
-		end
-
-		-- create a buffer with a position stream
-		local buf = buffer.create(#mesh_tab.triangles / 3, {
-			{name = hash("position"), type = buffer.VALUE_TYPE_FLOAT32, count = 3},
-			{name = hash("normal"), type = buffer.VALUE_TYPE_FLOAT32, count = 3},
-			{name = hash("texcoord0"), type = buffer.VALUE_TYPE_FLOAT32, count = 2}
-		})
-
-		-- get the position stream and write the vertices
-
-		local positions = buffer.get_stream(buf, "position")
-		local normal = buffer.get_stream(buf, "normal")
-		local texcoord0 = buffer.get_stream(buf, "texcoord0")
-
-		local tex_index = 1
-		for i, value in ipairs(mesh_tab.triangles) do
-			positions[i] = mesh_tab.triangles[i]
-			normal[i] = mesh_tab.normals_parsed[i]
-			if not (i % 3 == 0) then
-				texcoord0[tex_index] = mesh_tab.triangles[i] * 0.25
-				tex_index = tex_index + 1
-			end
-		end
-
-		if not buffer_resources[part_index] then
-			local resource_name = "/buffer"..part_index..".bufferc"
-			buffer_resources[part_index] = resource.create_buffer(resource_name, {buffer = buf})
-		end
-
-		local _url = msg.url(nil, new_mesh, "mesh")
-		go.set(_url, "vertices", buffer_resources[part_index])
-		local res = go.get(_url, "vertices")
-		resource.set_buffer(res, buf)
-		table.insert(created_meshes, {mesh = new_mesh, invert = invert, parent_transform = transform_index})
-		set_material(self, part_index, model_index)
-	end
-	
 	MOD.tweenable_transforms = {}
 	local mesh_count = 0
 	local transform_list = MEM.art_data.table.propsDictionary[model_index].model_data.transform_list
@@ -497,7 +563,8 @@ local function show_model(self, model_index)
 		if val.meshes then
 			for k, v in ipairs(val.meshes) do
 				mesh_count = mesh_count + 1
-				create_mesh(v, new_transform, mesh_count, invert, key)
+				create_mesh(v, new_transform, invert, key, "model")
+				set_material(self, mesh_count, model_index)
 			end
 		end
 	end
@@ -535,6 +602,19 @@ function on_message(self, message_id, message, sender)
 		show_grid(self)
 		msg.post("/model_camera#background", hash("enable"))
 		show_transforms()
+	elseif message_id == hash("geo_preview") then
+		msg.post(".", hash("enable"))
+		MOD.viewer_active = true
+		msg.post(".", hash("acquire_input_focus"))
+		--msg.post("/grid#grid", hash("enable"))
+		show_geo(self)
+		show_grid(self)
+		msg.post("/model_camera#background", hash("enable"))
+	elseif message_id == hash("move_geo") then
+		show_geo(self)
+		go.set("/geo_base", "position.z", message.z)
+		--create_static_models(self)
+		go.set("/static_prop_base", "position.z", message.z)
 	elseif message_id == hash("prepare_tweens") then
 		for key, val in pairs(MOD.tweenable_transforms) do
 			val.used = false

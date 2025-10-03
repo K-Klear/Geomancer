@@ -871,12 +871,13 @@ nodes {
 nodes {
   position {
     x: 602.0
-    y: 10.0
+    y: -10.0
   }
   type: TYPE_TEMPLATE
   id: "tween_add"
   parent: "tween_list"
   template: "/templates/button_white_small.gui"
+  enabled: false
 }
 nodes {
   size {
@@ -1283,19 +1284,20 @@ nodes {
 }
 nodes {
   position {
-    x: -620.0
-    y: -335.0
+    x: -544.0
+    y: -296.0
   }
   size {
-    x: 250.0
+    x: 180.0
     y: 60.0
   }
   type: TYPE_TEXT
   text: "Total duration:\n"
-  "58.5 seconds"
+  "58.5\n"
+  "seconds"
   font: "tab_caption"
   id: "lbl_tween_duration"
-  pivot: PIVOT_W
+  pivot: PIVOT_N
   outline {
     x: 1.0
     y: 1.0
@@ -1306,7 +1308,6 @@ nodes {
     y: 1.0
     z: 1.0
   }
-  line_break: true
   parent: "edit_box"
   layer: "text"
   outline_alpha: 0.0
@@ -1437,6 +1438,58 @@ nodes {
   overridden_fields: 4
   overridden_fields: 8
   overridden_fields: 18
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -547.0
+    y: -358.0
+  }
+  type: TYPE_TEMPLATE
+  id: "dialog_tween_time_units"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 38.0
+  }
+  type: TYPE_BOX
+  id: "dialog_tween_time_units/button_white"
+  parent: "dialog_tween_time_units"
+  layer: "below"
+  slice9 {
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
+  }
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.8
+    y: 0.8
+    z: 0.8
+  }
+  size {
+    x: 160.0
+    y: 70.0
+  }
+  type: TYPE_TEXT
+  text: "Seconds"
+  id: "dialog_tween_time_units/text"
+  parent: "dialog_tween_time_units/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
   overridden_fields: 20
   template_node_child: true
 }

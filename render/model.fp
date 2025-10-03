@@ -11,6 +11,7 @@ void main()
     // Pre-multiply alpha since all runtime textures already are
     vec4 tint_pm = vec4(tint.xyz * tint.w, tint.w);
     vec4 color = texture2D(tex0, var_texcoord0.xy) * tint_pm;
+    //vec4 color = texture2D(tex0, var_position.xy) * tint_pm;
 
     // Diffuse light calculations
     vec3 ambient_light = vec3(0.8);
@@ -18,5 +19,5 @@ void main()
     diff_light = max(dot(var_normal,diff_light), 0.0) + ambient_light;
     diff_light = clamp(diff_light, 0.0, 1.0);
 
-    gl_FragColor = vec4(color.rgb*diff_light,tint.w);
+    gl_FragColor = vec4(color.rgb * diff_light, tint.w);
 }

@@ -1,0 +1,46 @@
+textures {
+  name: "UI"
+  texture: "/assets/gfx/UI.atlas"
+}
+nodes {
+  size {
+    x: 50.0
+    y: 50.0
+  }
+  type: TYPE_BOX
+  texture: "UI/button_white"
+  id: "button_white"
+  layer: "below"
+  inherit_alpha: true
+  slice9 {
+    x: 24.0
+    y: 24.0
+    z: 24.0
+    w: 24.0
+  }
+}
+nodes {
+  size {
+    x: 28.0
+    y: 28.0
+  }
+  color {
+    x: 0.702
+    y: 0.102
+    z: 0.102
+  }
+  type: TYPE_BOX
+  texture: "UI/white_pixel"
+  id: "text"
+  parent: "button_white"
+  layer: "below"
+  inherit_alpha: true
+}
+layers {
+  name: "below"
+}
+layers {
+  name: "text"
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT

@@ -3,7 +3,7 @@ local UI = require "modules.ui"
 local G = require "modules.global"
 local SET = require "modules.settings"
 local COL = require "modules.colours"
-local MOD = require "main.model_viewer.model"
+local MOD = require "modules.models"
 local DIALOG = UI.DIALOG
 local TAB_NAME = "tab_art"
 

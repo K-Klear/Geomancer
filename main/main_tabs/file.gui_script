@@ -4,6 +4,7 @@ local G = require "modules.global"
 local SET = require "modules.settings"
 local DIALOG = UI.DIALOG
 local TAB_NAME = "tab_file"
+local MOD = require "modules.models"
 
 local files_to_export
 
@@ -19,7 +20,7 @@ function init(self)
 	gui.set_render_order(1)
 	gui.set_text(gui.get_node("version_label"), "Version "..sys.get_config("project.version"))
 	UI.load_template({"exit", "load_dir", "load_file", "load_zip", "unload_all", "export_all", "export_folder_checkbox", "import_changes",
-	"import_checkbox", "degeomance", "import_level", "import_events", "import_beat", "import_models", "help", "klear_button"}, TAB_NAME)
+	"import_checkbox", "degeomance", "import_level", "import_events", "import_beat", "import_models", "help"}, TAB_NAME)
 	if SET.I_am_Klear then
 		UI.load_template("klear_button", TAB_NAME)
 	else
@@ -676,6 +677,8 @@ local function check_geomancer_meta()
 						local old_script = get_tween_script(val.model_data.transform_list[k].tween)
 						if old_script == v.script then
 							val.model_data.transform_list[k].tween = v.table
+						else
+							print("Meta script mismatch!")
 						end
 					end
 				end
@@ -910,56 +913,6 @@ local function evaluate_button(button)
 	if button == "exit" then
 		os.exit(1)
 	elseif button == "klear_button" then
-		local frame_length = 3 / 29.97
-		local scripts = {
-			{42, 442},
-			{444, 818},
-			{819, 1260},
-			{1263, 1683},
-			{1686, 1745},
-			{1746, 2344},
-			{2346, 2742},
-			{1, 3},
-			{2779, 3316},
-			{3348, 3611},
-			{3612, 3638},
-			{3639, 3662},
-			{3663, 3779},
-			{3780, 4256},
-			{4257, 4635},
-			{4638, 5404},
-			{5406, 6131},
-			{6132, 6194},
-			{6195, 6449},
-			{6450, 6507}
-		}
-
-		for k, v in ipairs(scripts) do
-			local t = {}
-			for i = v[1], v[2], 3 do
-				local part_name = "I2M_bad_apple_"
-				if i > 99 then
-					part_name = part_name..i
-				else
-					part_name = part_name.."0"..i
-				end
-				table.insert(t, {start_state = {x = 0, y = 0, z = 0}, end_state = {x = 0, y = 5, z = 0}, time = 0, type = "T", part = part_name})
-				table.insert(t, {time = frame_length, type = "W"})
-				table.insert(t, {start_state = {x = 0, y = 5, z = 0}, end_state = {x = 0, y = 0, z = 0}, time = 0, type = "T", part = part_name})
-			end
-			local ext = ".pw_tween"
-			local path = "B:\\PISTOL WHIP MAPS\\tweens\\"
-			path = path.."tween_"..k..ext
-			local works, f = pcall(io.output, path)
-			if works then
-				io.write(json.encode(t))
-				io.close(f)
-				G.update_navbar("Done")
-			else
-				G.update_navbar("Error saving tween data.", true)
-			end
-		end
-		
 
 	elseif button == "help" then
 		sys.open_url("https://mod.io/g/pistol-whip/r/geomancer")
@@ -1016,16 +969,19 @@ local function evaluate_button(button)
 		if path then
 			local f = io.open(path, "rb")
 			if f then
-				G.update_navbar("Loading files from "..path, true)
+				G.update_navbar("Extracting files from "..path, true)
 				local zip_data = f:read("*a")
 				local archive = zip.open(zip_data)
+				local htap = string.reverse(path)
+				local archive_name = string.reverse(string.sub(htap, string.find(htap, "%.") + 1, string.find(htap, "\\") - 1))
+
 				if not archive then
 					G.update_navbar("Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually.")
 					return
 				end
 				local file_index = zip.get_number_of_entries(archive) - 1
 				local skip_count, extracted_count = 0, 0
-				local ext_list = {pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = true, geomancer = true}
+				local ext_list = {ogg = true, pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = true, geomancer = true}
 				local function extract_next()
 					local err, file = pcall(zip.extract_by_index, archive, file_index)
 					if not err then
@@ -1052,25 +1008,133 @@ local function evaluate_button(button)
 					end
 					file_index = file_index - 1
 					if file_index < 0 then
-						zip.close(archive)
-						check_geomancer_meta()
-						G.update_navbar("Extracted "..extracted_count.." files, "..skip_count.." skipped.")
-						if MEM.level_data.sceneDisplayName then
-							G.update_navbar("Loaded scene: "..MEM.level_data.sceneDisplayName)
-							if MEM.level_data.mapper == "Klear" or MEM.level_data.mapper == "Klear_" or MEM.level_data.mapper == "kingklear" then
-								G.update_navbar("Hey, that's one of mine! Hope you like it")
-							end
-						else
-							G.update_navbar("Unknown scene name")
-						end
-						if UI.tab.tab_event.state then
-							msg.post("/event#tab_event", hash("detect_sample_rate"))
-						end
-						msg.post("/navbar#navbar", hash("update_tabs"))
+
 					else
 						timer.delay(0.01, false, extract_next)
 					end
 				end
+
+				local file_index = zip.get_number_of_entries(archive)
+				local extracted_files = {}
+
+				for i = 1, file_index do
+					local err, file = pcall(zip.extract_by_index, archive, i - 1)
+					if not err then
+						G.update_navbar("Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually.")
+						return
+					end
+					if file then
+						local emanelif = string.reverse(file.name)
+						local extension_index = string.find(emanelif, "%.")
+						if extension_index then
+							local extension = string.reverse(string.sub(emanelif, 1, extension_index - 1))
+							local skip = false
+							if not file.content then
+								skip = true
+							else
+								extracted_count = extracted_count + 1
+								extracted_files[file.name] = {extension = extension, content = file.content}
+							end
+							if skip then
+								G.update_navbar("Error extracting "..file.name.." The archive might be corrupted.")
+							end
+						end
+					else
+						G.update_navbar("Error extracting one of the files. Skipping.")
+					end
+				end
+
+				local filename_ogg, filename_sequence, filename_art, filename_poster
+				if extracted_files["level.pw"] then
+					local panel = MEM.load_file(nil, "level.pw", "pw", extracted_files["level.pw"].content) 
+					if panel then
+						G.update_navbar("Level data loaded.")
+						if not MEM.level_data.remixTarget then
+							filename_ogg = MEM.level_data.songLocation
+						end
+						filename_sequence = MEM.level_data.sequenceDictionary
+						filename_art = MEM.level_data.sharedLevelArt
+						filename_poster = MEM.level_data.art
+					end
+				else
+					G.update_navbar("level.pw not found")
+				end
+
+				local function load_data(expected_filename, extension)
+					if expected_filename then
+						if extracted_files[expected_filename] then
+							local panel = MEM.load_file(nil, expected_filename, extracted_files[expected_filename].extension, extracted_files[expected_filename].content)
+							if panel then
+								G.update_navbar(expected_filename.." loaded.")
+							end
+							return
+						end
+					end
+					for filename, tab in pairs(extracted_files) do
+						if tab.extension == extension then
+							local panel = MEM.load_file(nil, filename, extension, tab.content)
+							if panel then
+								G.update_navbar(filename.." loaded.")
+							end
+							return
+						end
+					end
+					if extension == "ogg" and not MEM.level_data.remixTarget then
+						G.update_navbar("Song file not found.")
+					elseif extension == "png" then
+						G.update_navbar("Poster not found. Placeholder \""..archive_name..".png\" added.")
+					else
+						G.update_navbar(extension.." file not found.")
+					end
+				end
+
+
+				load_data(filename_art, "pw_art")
+				load_data(filename_ogg, "ogg")
+				load_data(filename_sequence, "pw_seq")
+				load_data(filename_poster, "png")
+				load_data("do_not_ship", "pw_meta")
+				load_data(archive_name, "pw_beat")
+				load_data(archive_name, "pw_event")
+				load_data(archive_name, "pw_geo")
+				load_data(archive_name, "geomancer")
+				
+				
+
+
+				zip.close(archive)
+				check_geomancer_meta()
+				--G.update_navbar("Extracted "..extracted_count.." files, "..skip_count.." skipped.")
+				if MEM.level_data.sceneDisplayName then
+					G.update_navbar("Loaded scene: "..MEM.level_data.sceneDisplayName)
+					if MEM.level_data.mapper == "Klear" or MEM.level_data.mapper == "Klear_" or MEM.level_data.mapper == "kingklear" then
+						G.update_navbar("Hey, that's one of mine! Hope you like it")
+					end
+				else
+					G.update_navbar("Unknown scene name")
+				end
+				if UI.tab.tab_event.state then
+					msg.post("/event#tab_event", hash("detect_sample_rate"))
+				end
+				msg.post("/navbar#navbar", hash("update_tabs"))
+				
+
+				check_for_reset()
+				if true then return end
+				os.exit()
+
+				
+				if ext_list[extension] then
+					local panel = MEM.load_file(nil, file.name, extension, file.content) 
+					if panel then
+						ext_list[extension] = false
+
+					else
+						skip = true
+					end
+				end
+
+				
 				if file_index > -1 then
 					timer.delay(0.01, false, extract_next)
 				else
@@ -1140,6 +1204,8 @@ local function evaluate_button(button)
 				val.state = false
 			end
 		end
+		UI.tab.tab_options.state = true
+		UI.tab.tab_rotate.state = true
 		UI.tab.tab_file.state = true
 		MEM.level_data = {}
 		MEM.meta_data = {}
@@ -1148,6 +1214,7 @@ local function evaluate_button(button)
 		MEM.geo_data = {}
 		MEM.sequence_data = {}
 		MEM.art_data = {}
+		MOD.release_model_resources()
 
 		msg.post("/event#tab_event", hash("reset"))
 		G.update_navbar("All data unloaded.", true)

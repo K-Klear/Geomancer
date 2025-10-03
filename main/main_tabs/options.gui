@@ -1,0 +1,5319 @@
+script: "/main/main_tabs/options.gui_script"
+fonts {
+  name: "main_menu_button_small"
+  font: "/assets/fonts/final/main_menu_button_small.font"
+}
+fonts {
+  name: "status_text"
+  font: "/assets/fonts/final/status_text.font"
+}
+fonts {
+  name: "tab_caption"
+  font: "/assets/fonts/final/tab_caption.font"
+}
+fonts {
+  name: "logo_welcome"
+  font: "/assets/fonts/final/logo_welcome.font"
+}
+textures {
+  name: "UI"
+  texture: "/assets/gfx/UI.atlas"
+}
+nodes {
+  position {
+    x: 640.0
+    y: 781.0
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Settings"
+  font: "logo_welcome"
+  id: "settings_title"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    y: 46.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  id: "panel_paths"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: 74.0
+    y: 593.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Open map:"
+  font: "main_menu_button_small"
+  id: "lbl_default_path_zip"
+  pivot: PIVOT_W
+  parent: "panel_paths"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 291.0
+    y: 592.0
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "D:\\path\\Pistol Whip\\CustomLevels"
+  font: "status_text"
+  id: "default_path_zip"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  parent: "panel_paths"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 163.0
+    y: 541.0
+  }
+  type: TYPE_TEMPLATE
+  id: "change_path_zip"
+  parent: "panel_paths"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "change_path_zip/button_white"
+  parent: "change_path_zip"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Change"
+  id: "change_path_zip/text"
+  parent: "change_path_zip/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 336.0
+    y: 541.0
+  }
+  type: TYPE_TEMPLATE
+  id: "reset_path_zip"
+  parent: "panel_paths"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "reset_path_zip/button_white"
+  parent: "reset_path_zip"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Reset"
+  id: "reset_path_zip/text"
+  parent: "reset_path_zip/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 74.0
+    y: 482.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Load folder:"
+  font: "main_menu_button_small"
+  id: "lbl_default_path_directory"
+  pivot: PIVOT_W
+  parent: "panel_paths"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 291.0
+    y: 481.0
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "D:\\path\\Pistol Whip\\CustomLevels"
+  font: "status_text"
+  id: "default_path_directory"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  parent: "panel_paths"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 163.0
+    y: 430.0
+  }
+  type: TYPE_TEMPLATE
+  id: "change_path_directory"
+  parent: "panel_paths"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "change_path_directory/button_white"
+  parent: "change_path_directory"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Change"
+  id: "change_path_directory/text"
+  parent: "change_path_directory/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 336.0
+    y: 430.0
+  }
+  type: TYPE_TEMPLATE
+  id: "reset_path_directory"
+  parent: "panel_paths"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "reset_path_directory/button_white"
+  parent: "reset_path_directory"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Reset"
+  id: "reset_path_directory/text"
+  parent: "reset_path_directory/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 74.0
+    y: 376.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Load file:"
+  font: "main_menu_button_small"
+  id: "lbl_default_path_file"
+  pivot: PIVOT_W
+  parent: "panel_paths"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 291.0
+    y: 375.0
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "D:\\path\\Pistol Whip\\CustomLevels"
+  font: "status_text"
+  id: "default_path_file"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  parent: "panel_paths"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 163.0
+    y: 324.0
+  }
+  type: TYPE_TEMPLATE
+  id: "change_path_file"
+  parent: "panel_paths"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "change_path_file/button_white"
+  parent: "change_path_file"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Change"
+  id: "change_path_file/text"
+  parent: "change_path_file/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 336.0
+    y: 324.0
+  }
+  type: TYPE_TEMPLATE
+  id: "reset_path_file"
+  parent: "panel_paths"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "reset_path_file/button_white"
+  parent: "reset_path_file"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Reset"
+  id: "reset_path_file/text"
+  parent: "reset_path_file/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 74.0
+    y: 273.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Export with folder:"
+  font: "main_menu_button_small"
+  id: "lbl_default_path_export"
+  pivot: PIVOT_W
+  parent: "panel_paths"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 291.0
+    y: 272.0
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "D:\\path\\Pistol Whip\\CustomLevels"
+  font: "status_text"
+  id: "default_path_export"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  parent: "panel_paths"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 163.0
+    y: 221.0
+  }
+  type: TYPE_TEMPLATE
+  id: "change_path_export"
+  parent: "panel_paths"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "change_path_export/button_white"
+  parent: "change_path_export"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Change"
+  id: "change_path_export/text"
+  parent: "change_path_export/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 336.0
+    y: 221.0
+  }
+  type: TYPE_TEMPLATE
+  id: "reset_path_export"
+  parent: "panel_paths"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "reset_path_export/button_white"
+  parent: "reset_path_export"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Reset"
+  id: "reset_path_export/text"
+  parent: "reset_path_export/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 737.0
+    y: 596.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Export and overwrite:"
+  font: "main_menu_button_small"
+  id: "lbl_default_path_export_overwrite"
+  pivot: PIVOT_W
+  parent: "panel_paths"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 954.0
+    y: 595.0
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "D:\\path\\Pistol Whip\\CustomLevels"
+  font: "status_text"
+  id: "default_path_export_overwrite"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  parent: "panel_paths"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 826.0
+    y: 544.0
+  }
+  type: TYPE_TEMPLATE
+  id: "change_path_export_overwrite"
+  parent: "panel_paths"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "change_path_export_overwrite/button_white"
+  parent: "change_path_export_overwrite"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Change"
+  id: "change_path_export_overwrite/text"
+  parent: "change_path_export_overwrite/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 999.0
+    y: 544.0
+  }
+  type: TYPE_TEMPLATE
+  id: "reset_path_export_overwrite"
+  parent: "panel_paths"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "reset_path_export_overwrite/button_white"
+  parent: "reset_path_export_overwrite"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Reset"
+  id: "reset_path_export_overwrite/text"
+  parent: "reset_path_export_overwrite/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 740.0
+    y: 479.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Import models:"
+  font: "main_menu_button_small"
+  id: "lbl_default_path_import_models"
+  pivot: PIVOT_W
+  parent: "panel_paths"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 957.0
+    y: 478.0
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "D:\\path\\Pistol Whip\\CustomLevels"
+  font: "status_text"
+  id: "default_path_import_models"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  parent: "panel_paths"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 829.0
+    y: 427.0
+  }
+  type: TYPE_TEMPLATE
+  id: "change_path_import_models"
+  parent: "panel_paths"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "change_path_import_models/button_white"
+  parent: "change_path_import_models"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Change"
+  id: "change_path_import_models/text"
+  parent: "change_path_import_models/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1002.0
+    y: 427.0
+  }
+  type: TYPE_TEMPLATE
+  id: "reset_path_import_models"
+  parent: "panel_paths"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "reset_path_import_models/button_white"
+  parent: "reset_path_import_models"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Reset"
+  id: "reset_path_import_models/text"
+  parent: "reset_path_import_models/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 740.0
+    y: 379.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Save/load tweens:"
+  font: "main_menu_button_small"
+  id: "lbl_default_path_tween"
+  pivot: PIVOT_W
+  parent: "panel_paths"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 957.0
+    y: 378.0
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "D:\\path\\Pistol Whip\\CustomLevels"
+  font: "status_text"
+  id: "default_path_tween"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  parent: "panel_paths"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 829.0
+    y: 327.0
+  }
+  type: TYPE_TEMPLATE
+  id: "change_path_tween"
+  parent: "panel_paths"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "change_path_tween/button_white"
+  parent: "change_path_tween"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Change"
+  id: "change_path_tween/text"
+  parent: "change_path_tween/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1002.0
+    y: 327.0
+  }
+  type: TYPE_TEMPLATE
+  id: "reset_path_tween"
+  parent: "panel_paths"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "reset_path_tween/button_white"
+  parent: "reset_path_tween"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Reset"
+  id: "reset_path_tween/text"
+  parent: "reset_path_tween/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 737.0
+    y: 276.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Import changes:"
+  font: "main_menu_button_small"
+  id: "lbl_default_path_import_changes"
+  pivot: PIVOT_W
+  parent: "panel_paths"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 954.0
+    y: 275.0
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "D:\\path\\Pistol Whip\\CustomLevels"
+  font: "status_text"
+  id: "default_path_import_changes"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  parent: "panel_paths"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 826.0
+    y: 224.0
+  }
+  type: TYPE_TEMPLATE
+  id: "change_path_import_changes"
+  parent: "panel_paths"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "change_path_import_changes/button_white"
+  parent: "change_path_import_changes"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Change"
+  id: "change_path_import_changes/text"
+  parent: "change_path_import_changes/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 999.0
+    y: 224.0
+  }
+  type: TYPE_TEMPLATE
+  id: "reset_path_import_changes"
+  parent: "panel_paths"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "reset_path_import_changes/button_white"
+  parent: "reset_path_import_changes"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Reset"
+  id: "reset_path_import_changes/text"
+  parent: "reset_path_import_changes/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    y: 46.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  id: "panel_files"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: 151.0
+    y: 549.0
+  }
+  type: TYPE_TEMPLATE
+  id: "confirm_file_overwrite"
+  parent: "panel_files"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "confirm_file_overwrite/button_white"
+  parent: "confirm_file_overwrite"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "confirm_file_overwrite/text"
+  parent: "confirm_file_overwrite/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Ask before overwriting files"
+  font: "main_menu_button_small"
+  id: "confirm_file_overwrite/label"
+  line_break: true
+  parent: "confirm_file_overwrite/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 151.0
+    y: 500.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_create_folder_on_export"
+  parent: "panel_files"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "default_create_folder_on_export/button_white"
+  parent: "default_create_folder_on_export"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "default_create_folder_on_export/text"
+  parent: "default_create_folder_on_export/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Export into a newly-created folder"
+  font: "main_menu_button_small"
+  id: "default_create_folder_on_export/label"
+  line_break: true
+  parent: "default_create_folder_on_export/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 151.0
+    y: 448.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_import_changes_from_zip"
+  parent: "panel_files"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "default_import_changes_from_zip/button_white"
+  parent: "default_import_changes_from_zip"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "default_import_changes_from_zip/text"
+  parent: "default_import_changes_from_zip/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Import changes from zip rather than folder"
+  font: "main_menu_button_small"
+  id: "default_import_changes_from_zip/label"
+  line_break: true
+  parent: "default_import_changes_from_zip/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 151.0
+    y: 398.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_import_level_changes"
+  parent: "panel_files"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "default_import_level_changes/button_white"
+  parent: "default_import_level_changes"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "default_import_level_changes/text"
+  parent: "default_import_level_changes/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Include general level data when importing changes"
+  font: "main_menu_button_small"
+  id: "default_import_level_changes/label"
+  line_break: true
+  parent: "default_import_level_changes/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 151.0
+    y: 349.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_import_event_changes"
+  parent: "panel_files"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "default_import_event_changes/button_white"
+  parent: "default_import_event_changes"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "default_import_event_changes/text"
+  parent: "default_import_event_changes/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Include event data when importing changes"
+  font: "main_menu_button_small"
+  id: "default_import_event_changes/label"
+  line_break: true
+  parent: "default_import_event_changes/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 151.0
+    y: 300.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_import_model_changes"
+  parent: "panel_files"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "default_import_model_changes/button_white"
+  parent: "default_import_model_changes"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "default_import_model_changes/text"
+  parent: "default_import_model_changes/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Include model data when importing changes"
+  font: "main_menu_button_small"
+  id: "default_import_model_changes/label"
+  line_break: true
+  parent: "default_import_model_changes/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 151.0
+    y: 253.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_import_beat_changes"
+  parent: "panel_files"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "default_import_beat_changes/button_white"
+  parent: "default_import_beat_changes"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "default_import_beat_changes/text"
+  parent: "default_import_beat_changes/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Include enemy and obstacle data when importing changes"
+  font: "main_menu_button_small"
+  id: "default_import_beat_changes/label"
+  line_break: true
+  parent: "default_import_beat_changes/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 934.0
+    y: 515.0
+  }
+  size {
+    x: 540.0
+    y: 100.0
+  }
+  color {
+    x: 0.502
+    y: 0.502
+    z: 0.502
+  }
+  type: TYPE_TEXT
+  text: "Note: most of these options are setting the default values to use when geomancer is launched and as such won\'t change anything unless the settings are saved and Geomancer is restarted."
+  font: "tab_caption"
+  id: "text8"
+  line_break: true
+  parent: "panel_files"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    y: 46.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  id: "panel_colours"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: 283.0
+    y: 639.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Background colour"
+  font: "main_menu_button_small"
+  id: "label_background_colour"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 246.0
+    y: 638.0
+  }
+  type: TYPE_TEMPLATE
+  id: "background_colour"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "background_colour/button_white"
+  parent: "background_colour"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "background_colour/text"
+  parent: "background_colour/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 283.0
+    y: 579.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Active text field"
+  font: "main_menu_button_small"
+  id: "label_active_text_field"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 246.0
+    y: 578.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_active_text_field"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_active_text_field/button_white"
+  parent: "colour_active_text_field"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_active_text_field/text"
+  parent: "colour_active_text_field/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 283.0
+    y: 519.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Selected material"
+  font: "main_menu_button_small"
+  id: "label_colour_highlight_material"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 246.0
+    y: 518.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_highlight_material"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_highlight_material/button_white"
+  parent: "colour_highlight_material"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_highlight_material/text"
+  parent: "colour_highlight_material/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 283.0
+    y: 459.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Dynamic props"
+  font: "main_menu_button_small"
+  id: "label_colour_highlight_dynamic"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 246.0
+    y: 458.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_highlight_dynamic"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_highlight_dynamic/button_white"
+  parent: "colour_highlight_dynamic"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_highlight_dynamic/text"
+  parent: "colour_highlight_dynamic/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 283.0
+    y: 399.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Props with a tween"
+  font: "main_menu_button_small"
+  id: "label_colour_highlight_tween"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 246.0
+    y: 398.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_highlight_tween"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_highlight_tween/button_white"
+  parent: "colour_highlight_tween"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_highlight_tween/text"
+  parent: "colour_highlight_tween/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 283.0
+    y: 339.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Model import selection"
+  font: "main_menu_button_small"
+  id: "label_colour_model_import_selection"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 246.0
+    y: 338.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_model_import_selection"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_model_import_selection/button_white"
+  parent: "colour_model_import_selection"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_model_import_selection/text"
+  parent: "colour_model_import_selection/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 283.0
+    y: 279.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Highlight colour of model to be replaced"
+  font: "main_menu_button_small"
+  id: "label_colour_model_replace"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 246.0
+    y: 278.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_model_replace"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_model_replace/button_white"
+  parent: "colour_model_replace"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_model_replace/text"
+  parent: "colour_model_replace/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 283.0
+    y: 219.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Unsupported obstacle type"
+  font: "main_menu_button_small"
+  id: "label_colour_unsupported_obstacle"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 246.0
+    y: 218.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_unsupported_obstacle"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_unsupported_obstacle/button_white"
+  parent: "colour_unsupported_obstacle"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_unsupported_obstacle/text"
+  parent: "colour_unsupported_obstacle/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 829.0
+    y: 639.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Enemy set selection highlight"
+  font: "main_menu_button_small"
+  id: "label_colour_current_enemy_set"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 792.0
+    y: 638.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_current_enemy_set"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_current_enemy_set/button_white"
+  parent: "colour_current_enemy_set"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_current_enemy_set/text"
+  parent: "colour_current_enemy_set/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 829.0
+    y: 513.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Enemy type selection - new"
+  font: "main_menu_button_small"
+  id: "label_colour_selection_change_enemy_type"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 792.0
+    y: 512.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_selection_change_enemy_type"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_selection_change_enemy_type/button_white"
+  parent: "colour_selection_change_enemy_type"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_selection_change_enemy_type/text"
+  parent: "colour_selection_change_enemy_type/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 829.0
+    y: 455.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Bulk enemy type change highlight"
+  font: "main_menu_button_small"
+  id: "label_colour_highlight_replace_enemy"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 792.0
+    y: 454.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_highlight_replace_enemy"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_highlight_replace_enemy/button_white"
+  parent: "colour_highlight_replace_enemy"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_highlight_replace_enemy/text"
+  parent: "colour_highlight_replace_enemy/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 829.0
+    y: 576.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Enemy type selection - current"
+  font: "main_menu_button_small"
+  id: "label_colour_current_enemy_type"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 792.0
+    y: 575.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_current_enemy_type"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_current_enemy_type/button_white"
+  parent: "colour_current_enemy_type"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_current_enemy_type/text"
+  parent: "colour_current_enemy_type/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 829.0
+    y: 392.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Tween action Move"
+  font: "main_menu_button_small"
+  id: "label_colour_tween_move"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 792.0
+    y: 391.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_tween_move"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_tween_move/button_white"
+  parent: "colour_tween_move"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_tween_move/text"
+  parent: "colour_tween_move/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 829.0
+    y: 334.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Tween action Rotate"
+  font: "main_menu_button_small"
+  id: "label_colour_tween_rotate"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 792.0
+    y: 333.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_tween_rotate"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_tween_rotate/button_white"
+  parent: "colour_tween_rotate"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_tween_rotate/text"
+  parent: "colour_tween_rotate/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 829.0
+    y: 278.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Tween action Scale"
+  font: "main_menu_button_small"
+  id: "label_colour_tween_scale"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 792.0
+    y: 277.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_tween_scale"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_tween_scale/button_white"
+  parent: "colour_tween_scale"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_tween_scale/text"
+  parent: "colour_tween_scale/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 829.0
+    y: 217.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Tween action Wait"
+  font: "main_menu_button_small"
+  id: "label_colour_tween_wait"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 792.0
+    y: 216.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_tween_wait"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_tween_wait/button_white"
+  parent: "colour_tween_wait"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_tween_wait/text"
+  parent: "colour_tween_wait/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    y: 46.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  id: "panel_transform"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: 702.0
+    y: 510.0
+  }
+  type: TYPE_TEMPLATE
+  id: "allow_tweening_base_transform"
+  parent: "panel_transform"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "allow_tweening_base_transform/button_white"
+  parent: "allow_tweening_base_transform"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "allow_tweening_base_transform/text"
+  parent: "allow_tweening_base_transform/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  type: TYPE_TEXT
+  text: "Allow tweening of root transform"
+  font: "main_menu_button_small"
+  id: "allow_tweening_base_transform/label"
+  parent: "allow_tweening_base_transform/button_white"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 10
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 702.0
+    y: 449.0
+  }
+  type: TYPE_TEMPLATE
+  id: "allow_mesh_delete"
+  parent: "panel_transform"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "allow_mesh_delete/button_white"
+  parent: "allow_mesh_delete"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "allow_mesh_delete/text"
+  parent: "allow_mesh_delete/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  type: TYPE_TEXT
+  text: "Allow deletion of transforms with meshes"
+  font: "main_menu_button_small"
+  id: "allow_mesh_delete/label"
+  parent: "allow_mesh_delete/button_white"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 10
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 702.0
+    y: 370.0
+  }
+  type: TYPE_TEMPLATE
+  id: "confirm_transform_delete"
+  parent: "panel_transform"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "confirm_transform_delete/button_white"
+  parent: "confirm_transform_delete"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "confirm_transform_delete/text"
+  parent: "confirm_transform_delete/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 500.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Show confirmation dialog before deleting a transform"
+  font: "main_menu_button_small"
+  id: "confirm_transform_delete/label"
+  line_break: true
+  parent: "confirm_transform_delete/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 702.0
+    y: 288.0
+  }
+  type: TYPE_TEMPLATE
+  id: "show_transform_edit_warning"
+  parent: "panel_transform"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "show_transform_edit_warning/button_white"
+  parent: "show_transform_edit_warning"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "show_transform_edit_warning/text"
+  parent: "show_transform_edit_warning/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 500.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Show a warning text before allowing transform edits"
+  font: "main_menu_button_small"
+  id: "show_transform_edit_warning/label"
+  line_break: true
+  parent: "show_transform_edit_warning/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 173.0
+    y: 510.0
+  }
+  type: TYPE_TEMPLATE
+  id: "use_default_transform_name"
+  parent: "panel_transform"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "use_default_transform_name/button_white"
+  parent: "use_default_transform_name"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "use_default_transform_name/text"
+  parent: "use_default_transform_name/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 400.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Use default name when adding a new transform"
+  font: "main_menu_button_small"
+  id: "use_default_transform_name/label"
+  line_break: true
+  parent: "use_default_transform_name/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 193.0
+    y: 440.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_transform_name"
+  parent: "panel_transform"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 400.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "default_transform_name/box"
+  parent: "default_transform_name"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "12345678901234567890123456"
+  id: "default_transform_name/text"
+  parent: "default_transform_name/box"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 173.0
+    y: 366.0
+  }
+  type: TYPE_TEMPLATE
+  id: "add_root_transform_if_missing"
+  parent: "panel_transform"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "add_root_transform_if_missing/button_white"
+  parent: "add_root_transform_if_missing"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "add_root_transform_if_missing/text"
+  parent: "add_root_transform_if_missing/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 440.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Automatically add root transform if missing"
+  font: "main_menu_button_small"
+  id: "add_root_transform_if_missing/label"
+  line_break: true
+  parent: "add_root_transform_if_missing/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 193.0
+    y: 289.0
+  }
+  type: TYPE_TEMPLATE
+  id: "root_transform_default_name"
+  parent: "panel_transform"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 400.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "root_transform_default_name/box"
+  parent: "root_transform_default_name"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "root_transform_default_name/text"
+  parent: "root_transform_default_name/box"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 968.0
+    y: 582.0
+  }
+  size {
+    x: 540.0
+    y: 100.0
+  }
+  color {
+    x: 0.502
+    y: 0.502
+    z: 0.502
+  }
+  type: TYPE_TEXT
+  text: "Note: following options may allow destructive changes to your map. You should only change them if you know what you\'re doing"
+  font: "tab_caption"
+  id: "text4"
+  line_break: true
+  parent: "panel_transform"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    y: 46.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  id: "panel_tween"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: 109.0
+    y: 590.0
+  }
+  type: TYPE_TEMPLATE
+  id: "restrict_rotations_to_360"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "restrict_rotations_to_360/button_white"
+  parent: "restrict_rotations_to_360"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "restrict_rotations_to_360/text"
+  parent: "restrict_rotations_to_360/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 500.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Restrict rotations to 360 degrees"
+  font: "main_menu_button_small"
+  id: "restrict_rotations_to_360/label"
+  line_break: true
+  parent: "restrict_rotations_to_360/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 109.0
+    y: 534.0
+  }
+  type: TYPE_TEMPLATE
+  id: "tween_action_type_dialog"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "tween_action_type_dialog/button_white"
+  parent: "tween_action_type_dialog"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "tween_action_type_dialog/text"
+  parent: "tween_action_type_dialog/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 550.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Open a dialog when changing action type"
+  font: "main_menu_button_small"
+  id: "tween_action_type_dialog/label"
+  line_break: true
+  parent: "tween_action_type_dialog/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 109.0
+    y: 483.0
+  }
+  type: TYPE_TEMPLATE
+  id: "tween_part_dialog"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "tween_part_dialog/button_white"
+  parent: "tween_part_dialog"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "tween_part_dialog/text"
+  parent: "tween_part_dialog/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 600.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Open a dialog when changing an action\'s target"
+  font: "main_menu_button_small"
+  id: "tween_part_dialog/label"
+  line_break: true
+  parent: "tween_part_dialog/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 109.0
+    y: 430.0
+  }
+  type: TYPE_TEMPLATE
+  id: "tween_extra_add_buttons"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "tween_extra_add_buttons/button_white"
+  parent: "tween_extra_add_buttons"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "tween_extra_add_buttons/text"
+  parent: "tween_extra_add_buttons/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 550.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Show \"Add action\" buttons between actions"
+  font: "main_menu_button_small"
+  id: "tween_extra_add_buttons/label"
+  line_break: true
+  parent: "tween_extra_add_buttons/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 109.0
+    y: 385.0
+  }
+  type: TYPE_TEMPLATE
+  id: "ask_before_overwriting_tween_file"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "ask_before_overwriting_tween_file/button_white"
+  parent: "ask_before_overwriting_tween_file"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "ask_before_overwriting_tween_file/text"
+  parent: "ask_before_overwriting_tween_file/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 550.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Confirm before overwriting a tween file"
+  font: "main_menu_button_small"
+  id: "ask_before_overwriting_tween_file/label"
+  line_break: true
+  parent: "ask_before_overwriting_tween_file/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 88.0
+    y: 331.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Height of tween timeline bars"
+  font: "main_menu_button_small"
+  id: "label_tween_timeline_bar_height"
+  pivot: PIVOT_W
+  parent: "panel_tween"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 489.0
+    y: 327.0
+  }
+  type: TYPE_TEMPLATE
+  id: "tween_timeline_bar_height"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 60.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "tween_timeline_bar_height/box"
+  parent: "tween_timeline_bar_height"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "123"
+  id: "tween_timeline_bar_height/text"
+  parent: "tween_timeline_bar_height/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 109.0
+    y: 261.0
+  }
+  type: TYPE_TEMPLATE
+  id: "auto_set_tween_preview_prop"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "auto_set_tween_preview_prop/button_white"
+  parent: "auto_set_tween_preview_prop"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "auto_set_tween_preview_prop/text"
+  parent: "auto_set_tween_preview_prop/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 550.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Load the position of the first instance of the prop when opening tween preview"
+  font: "main_menu_button_small"
+  id: "auto_set_tween_preview_prop/label"
+  line_break: true
+  parent: "auto_set_tween_preview_prop/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 785.0
+    y: 583.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Node size"
+  font: "main_menu_button_small"
+  id: "lbl_easing_node_scale"
+  pivot: PIVOT_W
+  parent: "panel_tween"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1056.0
+    y: 579.0
+  }
+  type: TYPE_TEMPLATE
+  id: "easing_node_scale"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 60.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "easing_node_scale/box"
+  parent: "easing_node_scale"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "0.5"
+  id: "easing_node_scale/text"
+  parent: "easing_node_scale/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 785.0
+    y: 521.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Line thickness"
+  font: "main_menu_button_small"
+  id: "lbl_easing_curve_thickness"
+  pivot: PIVOT_W
+  parent: "panel_tween"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1056.0
+    y: 517.0
+  }
+  type: TYPE_TEMPLATE
+  id: "easing_curve_thickness"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 60.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "easing_curve_thickness/box"
+  parent: "easing_curve_thickness"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "123"
+  id: "easing_curve_thickness/text"
+  parent: "easing_curve_thickness/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 785.0
+    y: 447.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Node colour"
+  font: "main_menu_button_small"
+  id: "lbl_easing_node_colour"
+  pivot: PIVOT_W
+  parent: "panel_tween"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1085.0
+    y: 443.0
+  }
+  rotation {
+    x: -0.614
+  }
+  type: TYPE_TEMPLATE
+  id: "easing_node_colour"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "easing_node_colour/button_white"
+  parent: "easing_node_colour"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "easing_node_colour/text"
+  parent: "easing_node_colour/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 785.0
+    y: 383.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Node highlight"
+  font: "main_menu_button_small"
+  id: "lbl_easing_node_highlight_colour"
+  pivot: PIVOT_W
+  parent: "panel_tween"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1085.0
+    y: 379.0
+  }
+  type: TYPE_TEMPLATE
+  id: "easing_node_highlight_colour"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "easing_node_highlight_colour/button_white"
+  parent: "easing_node_highlight_colour"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "easing_node_highlight_colour/text"
+  parent: "easing_node_highlight_colour/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 785.0
+    y: 321.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Line colour"
+  font: "main_menu_button_small"
+  id: "lbl_easing_curve_colour"
+  pivot: PIVOT_W
+  parent: "panel_tween"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1085.0
+    y: 317.0
+  }
+  type: TYPE_TEMPLATE
+  id: "easing_curve_colour"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "easing_curve_colour/button_white"
+  parent: "easing_curve_colour"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "easing_curve_colour/text"
+  parent: "easing_curve_colour/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 316.0
+    y: 667.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Tweens"
+  font: "main_menu_button_small"
+  id: "lbl_tween"
+  pivot: PIVOT_W
+  parent: "panel_tween"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 944.0
+    y: 667.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Easing"
+  font: "main_menu_button_small"
+  id: "lbl_easing"
+  pivot: PIVOT_W
+  parent: "panel_tween"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 189.0
+    y: 195.0
+  }
+  size {
+    x: 400.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Default time units"
+  font: "main_menu_button_small"
+  id: "lbl_default_tween_time_in_beats"
+  line_break: true
+  parent: "panel_tween"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 389.0
+    y: 192.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_tween_time_in_beats"
+  parent: "panel_tween"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "default_tween_time_in_beats/button_white"
+  parent: "default_tween_time_in_beats"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Seconds"
+  id: "default_tween_time_in_beats/text"
+  parent: "default_tween_time_in_beats/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 18
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    y: 46.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  id: "panel_model_viewer"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: 165.0
+    y: 622.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Rotation sensitivity"
+  font: "main_menu_button_small"
+  id: "lbl_model_rotation_sensitivity"
+  pivot: PIVOT_W
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 482.0
+    y: 618.0
+  }
+  type: TYPE_TEMPLATE
+  id: "model_rotation_sensitivity"
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "model_rotation_sensitivity/box"
+  parent: "model_rotation_sensitivity"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "0.05"
+  id: "model_rotation_sensitivity/text"
+  parent: "model_rotation_sensitivity/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 165.0
+    y: 566.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Movement sensitivity"
+  font: "main_menu_button_small"
+  id: "lbl_model_move_sensitivity"
+  pivot: PIVOT_W
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 482.0
+    y: 562.0
+  }
+  type: TYPE_TEMPLATE
+  id: "model_move_sensitivity"
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "model_move_sensitivity/box"
+  parent: "model_move_sensitivity"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "0.05"
+  id: "model_move_sensitivity/text"
+  parent: "model_move_sensitivity/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 165.0
+    y: 501.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Zoom sensitivity"
+  font: "main_menu_button_small"
+  id: "lbl_model_zoom_sensitivity"
+  pivot: PIVOT_W
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 482.0
+    y: 497.0
+  }
+  type: TYPE_TEMPLATE
+  id: "model_zoom_sensitivity"
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "model_zoom_sensitivity/box"
+  parent: "model_zoom_sensitivity"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "0.05"
+  id: "model_zoom_sensitivity/text"
+  parent: "model_zoom_sensitivity/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 165.0
+    y: 439.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Default zoom level"
+  font: "main_menu_button_small"
+  id: "lbl_default_camera_zoom"
+  pivot: PIVOT_W
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 482.0
+    y: 435.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_camera_zoom"
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "default_camera_zoom/box"
+  parent: "default_camera_zoom"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "0.05"
+  id: "default_camera_zoom/text"
+  parent: "default_camera_zoom/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 165.0
+    y: 376.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Default camera rotation"
+  font: "main_menu_button_small"
+  id: "lbl_default_camera_rotation"
+  pivot: PIVOT_W
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 482.0
+    y: 372.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_camera_rotation"
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "default_camera_rotation/box"
+  parent: "default_camera_rotation"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "0.05"
+  id: "default_camera_rotation/text"
+  parent: "default_camera_rotation/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 165.0
+    y: 310.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Default camera pitch"
+  font: "main_menu_button_small"
+  id: "lbl_default_camera_pitch"
+  pivot: PIVOT_W
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 482.0
+    y: 306.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_camera_pitch"
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "default_camera_pitch/box"
+  parent: "default_camera_pitch"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "0.05"
+  id: "default_camera_pitch/text"
+  parent: "default_camera_pitch/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 165.0
+    y: 243.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Default model Z position"
+  font: "main_menu_button_small"
+  id: "lbl_default_model_z_position"
+  pivot: PIVOT_W
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 482.0
+    y: 239.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_model_z_position"
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "default_model_z_position/box"
+  parent: "default_model_z_position"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "0.05"
+  id: "default_model_z_position/text"
+  parent: "default_model_z_position/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 783.0
+    y: 624.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Default grid display"
+  font: "main_menu_button_small"
+  id: "lbl_model_show_grid"
+  pivot: PIVOT_W
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1119.0
+    y: 621.0
+  }
+  type: TYPE_TEMPLATE
+  id: "model_show_grid"
+  parent: "panel_model_viewer"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "model_show_grid/button_white"
+  parent: "model_show_grid"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Ground"
+  id: "model_show_grid/text"
+  parent: "model_show_grid/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 782.0
+    y: 554.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Grid type"
+  font: "main_menu_button_small"
+  id: "lbl_model_grid_dots"
+  pivot: PIVOT_W
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1119.0
+    y: 552.0
+  }
+  type: TYPE_TEMPLATE
+  id: "model_grid_dots"
+  parent: "panel_model_viewer"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "model_grid_dots/button_white"
+  parent: "model_grid_dots"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Grid"
+  id: "model_grid_dots/text"
+  parent: "model_grid_dots/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 783.0
+    y: 485.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Show transforms"
+  font: "main_menu_button_small"
+  id: "lbl_show_transform"
+  pivot: PIVOT_W
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1113.0
+    y: 484.0
+  }
+  type: TYPE_TEMPLATE
+  id: "show_transform"
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 50.0
+    y: 50.0
+  }
+  type: TYPE_BOX
+  id: "show_transform/button_white"
+  parent: "show_transform"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/button_transform_one"
+  id: "show_transform/text"
+  parent: "show_transform/button_white"
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 780.0
+    y: 419.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Default colour set index\n"
+  "(set to 0 for custom)"
+  font: "main_menu_button_small"
+  id: "lbl_default_colour_set"
+  pivot: PIVOT_W
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1088.0
+    y: 415.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_colour_set"
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 48.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "default_colour_set/box"
+  parent: "default_colour_set"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "00"
+  id: "default_colour_set/text"
+  parent: "default_colour_set/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 780.0
+    y: 343.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Custom colour set\n"
+  "Main / Fog / Glow / Enemy"
+  font: "main_menu_button_small"
+  id: "lbl_custom colour"
+  pivot: PIVOT_W
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 810.0
+    y: 275.0
+  }
+  type: TYPE_TEMPLATE
+  id: "custom_colour_main"
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_main/button_white"
+  parent: "custom_colour_main"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_main/text"
+  parent: "custom_colour_main/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 900.0
+    y: 275.0
+  }
+  type: TYPE_TEMPLATE
+  id: "custom_colour_fog"
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_fog/button_white"
+  parent: "custom_colour_fog"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_fog/text"
+  parent: "custom_colour_fog/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 990.0
+    y: 275.0
+  }
+  type: TYPE_TEMPLATE
+  id: "custom_colour_glow"
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_glow/button_white"
+  parent: "custom_colour_glow"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_glow/text"
+  parent: "custom_colour_glow/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1080.0
+    y: 275.0
+  }
+  type: TYPE_TEMPLATE
+  id: "custom_colour_enemy"
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_enemy/button_white"
+  parent: "custom_colour_enemy"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_enemy/text"
+  parent: "custom_colour_enemy/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    y: 46.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  id: "panel_events"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: 272.0
+    y: 667.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Events"
+  font: "main_menu_button_small"
+  id: "lbl_events"
+  pivot: PIVOT_W
+  parent: "panel_events"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 109.0
+    y: 590.0
+  }
+  type: TYPE_TEMPLATE
+  id: "autodetect_sample_rate"
+  parent: "panel_events"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "autodetect_sample_rate/button_white"
+  parent: "autodetect_sample_rate"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "autodetect_sample_rate/text"
+  parent: "autodetect_sample_rate/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 500.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Attempt to autodetect sample rate"
+  font: "main_menu_button_small"
+  id: "autodetect_sample_rate/label"
+  line_break: true
+  parent: "autodetect_sample_rate/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 86.0
+    y: 534.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Default sample rate"
+  font: "main_menu_button_small"
+  id: "lbl_default_sample_rate"
+  pivot: PIVOT_W
+  parent: "panel_events"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 368.0
+    y: 532.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_sample_rate"
+  parent: "panel_events"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "default_sample_rate/box"
+  parent: "default_sample_rate"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "480000"
+  id: "default_sample_rate/text"
+  parent: "default_sample_rate/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 86.0
+    y: 477.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Default sample offset"
+  font: "main_menu_button_small"
+  id: "lbl_new_event_sample_offset"
+  pivot: PIVOT_W
+  parent: "panel_events"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 366.0
+    y: 475.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_new_event_sample_offset"
+  parent: "panel_events"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "default_new_event_sample_offset/box"
+  parent: "default_new_event_sample_offset"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "4800000"
+  id: "default_new_event_sample_offset/text"
+  parent: "default_new_event_sample_offset/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 109.0
+    y: 403.0
+  }
+  type: TYPE_TEMPLATE
+  id: "add_opens_edit_box"
+  parent: "panel_events"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "add_opens_edit_box/button_white"
+  parent: "add_opens_edit_box"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "add_opens_edit_box/text"
+  parent: "add_opens_edit_box/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 500.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Open edit box after adding a new nobeat, event or tempo section"
+  font: "main_menu_button_small"
+  id: "add_opens_edit_box/label"
+  line_break: true
+  parent: "add_opens_edit_box/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 923.0
+    y: 667.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Models"
+  font: "main_menu_button_small"
+  id: "lbl_models"
+  pivot: PIVOT_W
+  parent: "panel_events"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 726.0
+    y: 590.0
+  }
+  type: TYPE_TEMPLATE
+  id: "hide_model_count"
+  parent: "panel_events"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "hide_model_count/button_white"
+  parent: "hide_model_count"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "hide_model_count/text"
+  parent: "hide_model_count/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 500.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Hide model count"
+  font: "main_menu_button_small"
+  id: "hide_model_count/label"
+  line_break: true
+  parent: "hide_model_count/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 703.0
+    y: 526.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Mesh flash time (s)\n"
+  "(0 to turn off flashing)"
+  font: "main_menu_button_small"
+  id: "lbl_mesh_flash_time"
+  pivot: PIVOT_W
+  parent: "panel_events"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1035.0
+    y: 524.0
+  }
+  type: TYPE_TEMPLATE
+  id: "mesh_flash_time"
+  parent: "panel_events"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "mesh_flash_time/box"
+  parent: "mesh_flash_time"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "10.5"
+  id: "mesh_flash_time/text"
+  parent: "mesh_flash_time/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 703.0
+    y: 444.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Mesh flash frequency (s)\n"
+  "(0 to stay highlighted)"
+  font: "main_menu_button_small"
+  id: "lbl_mesh_flash_frequency"
+  pivot: PIVOT_W
+  parent: "panel_events"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1033.0
+    y: 442.0
+  }
+  type: TYPE_TEMPLATE
+  id: "mesh_flash_frequency"
+  parent: "panel_events"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "mesh_flash_frequency/box"
+  parent: "mesh_flash_frequency"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "99.9"
+  id: "mesh_flash_frequency/text"
+  parent: "mesh_flash_frequency/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 703.0
+    y: 370.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Mesh flash colour\n"
+  "and alpha (%)"
+  font: "main_menu_button_small"
+  id: "lbl_mesh_flash_colour"
+  pivot: PIVOT_W
+  parent: "panel_events"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 993.0
+    y: 367.0
+  }
+  type: TYPE_TEMPLATE
+  id: "mesh_flash_colour"
+  parent: "panel_events"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "mesh_flash_colour/button_white"
+  parent: "mesh_flash_colour"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "mesh_flash_colour/text"
+  parent: "mesh_flash_colour/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1042.0
+    y: 368.0
+  }
+  type: TYPE_TEMPLATE
+  id: "mesh_flash_alpha"
+  parent: "panel_events"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 60.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "mesh_flash_alpha/box"
+  parent: "mesh_flash_alpha"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "100"
+  id: "mesh_flash_alpha/text"
+  parent: "mesh_flash_alpha/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 328.0
+    y: 311.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Rotate enemies"
+  font: "main_menu_button_small"
+  id: "lbl_rotate"
+  parent: "panel_events"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 197.0
+    y: 250.0
+  }
+  type: TYPE_TEMPLATE
+  id: "rotate_multiple_axes"
+  parent: "panel_events"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "rotate_multiple_axes/button_white"
+  parent: "rotate_multiple_axes"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "rotate_multiple_axes/text"
+  parent: "rotate_multiple_axes/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "If set, drag to change enemy pitch and rotation, hold ctrl to roll\n"
+  "Otherwise hold shift to pitch and ctrl to roll"
+  font: "main_menu_button_small"
+  id: "rotate_multiple_axes/label"
+  line_break: true
+  parent: "rotate_multiple_axes/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 367.0
+    y: 168.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Default rotation rounding"
+  font: "main_menu_button_small"
+  id: "lbl_default_rotation_rounding"
+  pivot: PIVOT_W
+  parent: "panel_events"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 699.0
+    y: 166.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_rotation_rounding"
+  parent: "panel_events"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "default_rotation_rounding/box"
+  parent: "default_rotation_rounding"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "10.5"
+  id: "default_rotation_rounding/text"
+  parent: "default_rotation_rounding/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    y: 46.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  id: "panel_sound"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    y: 46.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_BOX
+  id: "panel_misc"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: 151.0
+    y: 569.0
+  }
+  type: TYPE_TEMPLATE
+  id: "bulk_sequence_sort"
+  parent: "panel_misc"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "bulk_sequence_sort/button_white"
+  parent: "bulk_sequence_sort"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "bulk_sequence_sort/text"
+  parent: "bulk_sequence_sort/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 700.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Bulk replace sequence - sort existing sequences alphabetically rather than in order of appearance"
+  font: "main_menu_button_small"
+  id: "bulk_sequence_sort/label"
+  line_break: true
+  parent: "bulk_sequence_sort/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 151.0
+    y: 500.0
+  }
+  type: TYPE_TEMPLATE
+  id: "ignore_char_limit"
+  parent: "panel_misc"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "ignore_char_limit/button_white"
+  parent: "ignore_char_limit"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "ignore_char_limit/text"
+  parent: "ignore_char_limit/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Ignore character limit on text fields (text can and will spill out)"
+  font: "main_menu_button_small"
+  id: "ignore_char_limit/label"
+  line_break: true
+  parent: "ignore_char_limit/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 151.0
+    y: 231.0
+  }
+  type: TYPE_TEMPLATE
+  id: "confirm_degeomance"
+  parent: "panel_misc"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "confirm_degeomance/button_white"
+  parent: "confirm_degeomance"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "confirm_degeomance/text"
+  parent: "confirm_degeomance/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Confirm before degeomancing a map"
+  font: "main_menu_button_small"
+  id: "confirm_degeomance/label"
+  line_break: true
+  parent: "confirm_degeomance/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 240.0
+    y: 411.0
+  }
+  size {
+    x: 400.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Sequence to use when degeomancing"
+  font: "main_menu_button_small"
+  id: "lbl_degeomance_sequence"
+  line_break: true
+  parent: "panel_misc"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 226.0
+    y: 339.0
+  }
+  type: TYPE_TEMPLATE
+  id: "degeomance_sequence"
+  parent: "panel_misc"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  position {
+    x: 6.0
+  }
+  size {
+    x: 350.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "degeomance_sequence/button_white"
+  parent: "degeomance_sequence"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Change"
+  id: "degeomance_sequence/text"
+  parent: "degeomance_sequence/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 640.0
+    y: 411.0
+  }
+  size {
+    x: 400.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Glitched enemy replacement when degeomancing"
+  font: "main_menu_button_small"
+  id: "lbl_degeomance_glitched_enemy"
+  line_break: true
+  parent: "panel_misc"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 640.0
+    y: 341.0
+  }
+  type: TYPE_TEMPLATE
+  id: "degeomance_glitched_enemy"
+  parent: "panel_misc"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 300.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "degeomance_glitched_enemy/button_white"
+  parent: "degeomance_glitched_enemy"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Change"
+  id: "degeomance_glitched_enemy/text"
+  parent: "degeomance_glitched_enemy/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 18
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1057.0
+    y: 411.0
+  }
+  size {
+    x: 400.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Flying skull replacement when degeomancing"
+  font: "main_menu_button_small"
+  id: "lbl_degeomance_skull"
+  line_break: true
+  parent: "panel_misc"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1044.0
+    y: 335.0
+  }
+  type: TYPE_TEMPLATE
+  id: "degeomance_skull"
+  parent: "panel_misc"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 300.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "degeomance_skull/button_white"
+  parent: "degeomance_skull"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Change"
+  id: "degeomance_skull/text"
+  parent: "degeomance_skull/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 18
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 71.0
+    y: 60.0
+  }
+  size {
+    x: 142.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  texture: "UI/tab_normal"
+  id: "files"
+  slice9 {
+    x: 16.0
+    y: 10.0
+    z: 16.0
+    w: 10.0
+  }
+}
+nodes {
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Files"
+  font: "tab_caption"
+  id: "text"
+  parent: "files"
+  inherit_alpha: true
+  outline_alpha: 0.0
+  shadow_alpha: 0.25
+}
+nodes {
+  position {
+    x: 213.0
+    y: 60.0
+  }
+  size {
+    x: 142.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  texture: "UI/tab_normal"
+  id: "paths"
+  slice9 {
+    x: 16.0
+    y: 10.0
+    z: 16.0
+    w: 10.0
+  }
+}
+nodes {
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Default paths"
+  font: "tab_caption"
+  id: "text3"
+  parent: "paths"
+  inherit_alpha: true
+  outline_alpha: 0.0
+  shadow_alpha: 0.25
+}
+nodes {
+  position {
+    x: 355.0
+    y: 60.0
+  }
+  size {
+    x: 142.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  texture: "UI/tab_normal"
+  id: "events"
+  slice9 {
+    x: 16.0
+    y: 10.0
+    z: 16.0
+    w: 10.0
+  }
+}
+nodes {
+  scale {
+    x: 0.8
+    y: 0.8
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Events, Models,\n"
+  "Rotate"
+  font: "tab_caption"
+  id: "text7"
+  parent: "events"
+  inherit_alpha: true
+  outline_alpha: 0.0
+  shadow_alpha: 0.25
+}
+nodes {
+  position {
+    x: 497.0
+    y: 60.0
+  }
+  size {
+    x: 142.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  texture: "UI/tab_normal"
+  id: "model_viewer"
+  slice9 {
+    x: 16.0
+    y: 10.0
+    z: 16.0
+    w: 10.0
+  }
+}
+nodes {
+  scale {
+    x: 0.8
+    y: 0.8
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Model preview"
+  font: "tab_caption"
+  id: "text6"
+  parent: "model_viewer"
+  inherit_alpha: true
+  outline_alpha: 0.0
+  shadow_alpha: 0.25
+}
+nodes {
+  position {
+    x: 639.0
+    y: 60.0
+  }
+  size {
+    x: 142.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  texture: "UI/tab_normal"
+  id: "transform"
+  slice9 {
+    x: 16.0
+    y: 10.0
+    z: 16.0
+    w: 10.0
+  }
+}
+nodes {
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Transforms"
+  font: "tab_caption"
+  id: "text2"
+  parent: "transform"
+  inherit_alpha: true
+  outline_alpha: 0.0
+  shadow_alpha: 0.25
+}
+nodes {
+  position {
+    x: 781.0
+    y: 60.0
+  }
+  size {
+    x: 142.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  texture: "UI/tab_normal"
+  id: "tween"
+  slice9 {
+    x: 16.0
+    y: 10.0
+    z: 16.0
+    w: 10.0
+  }
+}
+nodes {
+  scale {
+    x: 0.9
+    y: 0.9
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Tween/easing"
+  font: "tab_caption"
+  id: "text5"
+  parent: "tween"
+  inherit_alpha: true
+  outline_alpha: 0.0
+  shadow_alpha: 0.25
+}
+nodes {
+  position {
+    x: 923.0
+    y: 60.0
+  }
+  size {
+    x: 142.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  texture: "UI/tab_normal"
+  id: "colours"
+  slice9 {
+    x: 16.0
+    y: 10.0
+    z: 16.0
+    w: 10.0
+  }
+}
+nodes {
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Colours"
+  font: "tab_caption"
+  id: "text1"
+  parent: "colours"
+  inherit_alpha: true
+  outline_alpha: 0.0
+  shadow_alpha: 0.25
+}
+nodes {
+  position {
+    x: 1065.0
+    y: 60.0
+  }
+  size {
+    x: 142.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  texture: "UI/tab_normal"
+  id: "sound"
+  slice9 {
+    x: 16.0
+    y: 10.0
+    z: 16.0
+    w: 10.0
+  }
+}
+nodes {
+  scale {
+    x: 0.9
+    y: 0.9
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Sound"
+  font: "tab_caption"
+  id: "text10"
+  parent: "sound"
+  inherit_alpha: true
+  outline_alpha: 0.0
+  shadow_alpha: 0.25
+}
+nodes {
+  position {
+    x: 1208.0
+    y: 60.0
+  }
+  size {
+    x: 144.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  texture: "UI/tab_normal"
+  id: "misc"
+  slice9 {
+    x: 16.0
+    y: 10.0
+    z: 16.0
+    w: 10.0
+  }
+}
+nodes {
+  scale {
+    x: 0.9
+    y: 0.9
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Miscellaneous"
+  font: "tab_caption"
+  id: "text9"
+  parent: "misc"
+  inherit_alpha: true
+  outline_alpha: 0.0
+  shadow_alpha: 0.25
+}
+nodes {
+  position {
+    x: 630.0
+    y: 146.0
+  }
+  type: TYPE_TEMPLATE
+  id: "save_changes"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 160.0
+    y: 90.0
+  }
+  type: TYPE_BOX
+  id: "save_changes/button_white"
+  parent: "save_changes"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "SAVE CHANGES"
+  id: "save_changes/text"
+  parent: "save_changes/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+layers {
+  name: "below"
+}
+layers {
+  name: "text"
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT
+materials {
+  name: "font-df"
+  material: "/builtins/fonts/font-df.material"
+}
+materials {
+  name: "rgb"
+  material: "/render/colour_picker.material"
+}
+materials {
+  name: "hue_picker"
+  material: "/render/hue_picker.material"
+}

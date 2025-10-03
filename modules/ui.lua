@@ -1,6 +1,6 @@
 local UI = {active = {}, text_fields = {}}
 local SET = require "modules.settings"
-local MOD = require "main.model_viewer.model"
+local MOD = require "modules.models"
 local G = require "modules.global"
 
 UI.COLOUR_DEFAULT = vmath.vector4(0.35, 0.75, 0.15, 1)
@@ -27,6 +27,7 @@ UI.tab = {
 	tab_rotate = {path = "/rotate#tab_rotate", state = true, render_order = 1, buttons = {}, fields = {}},
 	tab_art = {path = "/art#tab_art", state = false, render_order = 1, buttons = {}, fields = {}},
 	model_viewer = {path = "/model_viewer#model_viewer1", render_order = 2, buttons = {}, fields = {}},
+	tab_options = {path = "/options#options", state = true, render_order = 1, buttons = {}, fields = {}}
 }
 
 local mouse_held, r_ctr_held, l_ctr_held, l_shift_held, r_shift_held
@@ -412,7 +413,23 @@ function UI.update_list(tab, list_index, item_count)
 	UI.move_list_root(tab, list_index, true)
 end
 
-function UI.create_list(tab, stencil_node, item_features)
+function UI.destroy_list(tab, list_index)
+	UI.update_list(tab, list_index, 0)
+	local full_table = UI.tab[tab].scrolling_lists[list_index]
+	local items_to_delete = {"backgrounds", "exclusive_button", "labels", "buttons", "fields"}
+	for item_type in pairs(items_to_delete) do
+		if full_table[item_type] then
+			for key, val in ipairs(full_table[item_type]) do
+				for k, v in pairs(val.list) do
+					gui.delete_node(v)
+				end
+			end
+		end
+	end
+	gui.delete_node(full_table.root_node)
+end
+
+function UI.create_list(tab, stencil_node, item_features, list_index)
 	local list_tab = {
 		size_y = gui.get_size(stencil_node).y,
 		root_node = gui.new_box_node(vmath.vector3(0, 0, 0), vmath.vector3(1, 1, 1)),
@@ -501,6 +518,7 @@ function UI.create_list(tab, stencil_node, item_features)
 		gui.set_enabled(val.node, false)
 	end
 	list_tab.item_height = max_y - min_y
+	--	print(max_y, min_y)
 	list_tab.max_item_count = math.floor(list_tab.size_y / list_tab.item_height)
 	list_tab.size_y = list_tab.max_item_count * list_tab.item_height
 	gui.set(list_tab.stencil_node, "size.y", list_tab.size_y)
@@ -510,7 +528,6 @@ function UI.create_list(tab, stencil_node, item_features)
 	list_tab.scroll_down = gui.get_node(item_features.scroll_prefix.."scroll_down")
 	list_tab.scroll_background = gui.get_node(item_features.scroll_prefix.."scroll_background")
 	list_tab.scroll_grip = gui.get_node(item_features.scroll_prefix.."scroll_grip")
-
 	local grip_list = {"scroll_grip", "scroll_background", "scroll_up", "scroll_down"}
 	for key, val in ipairs(grip_list) do
 		gui.set(list_tab[val], "color.w", 0)
@@ -525,8 +542,8 @@ function UI.create_list(tab, stencil_node, item_features)
 	list_tab.scroll_grip_position = -48	
 	UI.tab[tab].scrolling_lists = UI.tab[tab].scrolling_lists or {}
 	UI.tab[tab].scrolling = UI.tab[tab].scrolling or {}
-	table.insert(UI.tab[tab].scrolling_lists, list_tab)
-	local list_index = #UI.tab[tab].scrolling_lists
+	list_index = list_index or #UI.tab[tab].scrolling_lists + 1
+	UI.tab[tab].scrolling_lists[list_index] = list_tab
 	UI.update_list(tab, list_index, item_features.item_count)
 	return list_index
 end
@@ -611,6 +628,11 @@ local function exit_text_field(text_field_fn)
 					end
 					if active_text_field.char_limit then	-- auto-rounding
 						rounded_text = shorten_number(text_field_text, active_text_field.char_limit)
+					end
+				elseif valid.hex then
+					local dec = tonumber("0x"..text_field_text)
+					if not (dec and dec < 16777216 and dec >= 0) or #text_field_text < 6 then
+						text_field_text = valid.default(active_text_field.item)
 					end
 				elseif valid.text then
 					if valid.not_empty then
@@ -719,7 +741,7 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_
 	end
 	if UI.tab[tab].scrolling_lists then
 		for key, list_tab in ipairs(UI.tab[tab].scrolling_lists) do
-			if gui.pick_node(list_tab.stencil_node, action.x, action.y) then
+			if action.x and gui.pick_node(list_tab.stencil_node, action.x, action.y) then
 				if action_id == hash("scroll_down") then
 					if action.value > 0 then
 						list_tab.scroll_target = math.min(list_tab.scroll_target + SET.scroll_speed, list_tab.target_max)

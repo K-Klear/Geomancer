@@ -1,5 +1,5 @@
 local MEM = require "modules.memory"
-local MOD = require "main.model_viewer.model"
+local MOD = require "modules.models"
 local UI = require "modules.ui"
 local G = require "modules.global"
 local DIALOG = UI.DIALOG
@@ -15,7 +15,11 @@ local function get_button_string(item)
 	str = str.." Rotation: "..prop_list[item].rotation.x.."/"..prop_list[item].rotation.y.."/"..prop_list[item].rotation.z
 	str = str.." Scale: "..prop_list[item].scale.x.."/"..prop_list[item].scale.y.."/"..prop_list[item].scale.z
 	if prop_list[item].signal_z then
-		str = str.." Signal Z: "..(prop_list[item].signal_z[1] or "")
+		local z = math.huge
+		for key, val in ipairs(prop_list[item].signal_z) do
+			z = math.min(z, val)
+		end
+		str = str.." Signal Z: "..(z or "")
 	end
 	return str
 end
@@ -45,6 +49,11 @@ function evaluate_button(button, item)
 	elseif button == "prop_accept" or button == "enter" then
 		if prop_list[1] then
 			MOD.prop_data = prop_list[selected_prop]
+			local lowest_z
+			for key, val in ipairs(prop_list[selected_prop].signal_z) do
+				lowest_z = math.min(lowest_z or math.huge, val)
+			end
+			MOD.prop_data.lowest_z = lowest_z
 			DIALOG.close(DIALOG_NAME, {prop_changed = true})
 		else
 			DIALOG.close(DIALOG_NAME)
@@ -108,28 +117,11 @@ function on_message(self, message_id, message, sender)
 			local consumers = {}
 			local function get_model_data(model_table)
 				if model_table.name == message.model then
-					local pos = {}
-					local rot = vmath.quat()
-					local scale = {}
-					local comma_1, comma_2, comma_3, comma_4, comma_5, comma_6
-					comma_1 = string.find(model_table.scale, ",")
-					comma_2 = string.find(model_table.scale, ",", comma_1 + 1)
-					scale.x = tonumber(string.sub(model_table.scale, 1, comma_1 - 1))
-					scale.y = tonumber(string.sub(model_table.scale, comma_1 + 1, comma_2 - 1))
-					scale.z = tonumber(string.sub(model_table.scale, comma_2 + 1))
-					comma_1 = string.find(model_table.point, ",")
-					comma_2 = string.find(model_table.point, ",", comma_1 + 1)
-					comma_3 = string.find(model_table.point, ",", comma_2 + 1)
-					comma_4 = string.find(model_table.point, ",", comma_3 + 1)
-					comma_5 = string.find(model_table.point, ",", comma_4 + 1)
-					comma_6 = string.find(model_table.point, ",", comma_5 + 1)
-					pos.x = tonumber(string.sub(model_table.point, 1, comma_1 - 1))
-					pos.y = tonumber(string.sub(model_table.point, comma_1 + 1, comma_2 - 1))
-					pos.z = tonumber(string.sub(model_table.point, comma_2 + 1, comma_3 - 1))
-					rot.x = tonumber(string.sub(model_table.point, comma_3 + 1, comma_4 - 1))
-					rot.y = tonumber(string.sub(model_table.point, comma_4 + 1, comma_5 - 1))
-					rot.z = tonumber(string.sub(model_table.point, comma_5 + 1, comma_6 - 1))
-					rot.w = tonumber(string.sub(model_table.point, comma_6 + 1))
+					local scale_vals = G.parse_values(model_table.scale)
+					local scale = {x = scale_vals[1], y = scale_vals[2], z = scale_vals[3]}
+					local point_vals = G.parse_values(model_table.point)
+					local pos = {x = point_vals[1], y = point_vals[2], z = point_vals[3]}
+					local rot = vmath.quat(point_vals[4], point_vals[5], point_vals[6], point_vals[7])
 					scale.x = G.round(scale.x, 2)
 					scale.y = G.round(scale.y, 2)
 					scale.z = G.round(scale.z, 2)
@@ -144,15 +136,12 @@ function on_message(self, message_id, message, sender)
 					rot.x = G.round(rot.x, 1)
 					rot.y = G.round(rot.y, 1)
 					rot.z = G.round(rot.z, 1)
+
 					table.insert(prop_list, {position = pos, rotation = rot, scale = scale})
 					table.insert(prop_list_general, {z = pos.z, name = model_table.name})
 				elseif consumers[model_table.name] then
-					local comma_1, comma_2, comma_3, comma_4, comma_5, comma_6
-					comma_1 = string.find(model_table.point, ",")
-					comma_2 = string.find(model_table.point, ",", comma_1 + 1)
-					comma_3 = string.find(model_table.point, ",", comma_2 + 1)
-					local z = tonumber(string.sub(model_table.point, comma_2 + 1, comma_3 - 1))
-					table.insert(prop_list_general, {z = z, name = model_table.name})
+					local vals = G.parse_values(model_table.point)
+					table.insert(prop_list_general, {z = vals[3], name = model_table.name})
 				end
 			end
 			if MOD.active_signals then
@@ -182,7 +171,6 @@ function on_message(self, message_id, message, sender)
 				end
 			end
 			table.sort(prop_list, function(a, b) return a.position.z < b.position.z end)
-
 			if #prop_list_general > 0 and next(consumers) then
 				table.sort(prop_list_general, function(a, b) return a.z < b.z end)
 				local prop_index = 1
@@ -219,6 +207,11 @@ function on_message(self, message_id, message, sender)
 		if message.autoclose then
 			if prop_list[1] then
 				MOD.prop_data = prop_list[1]
+				local lowest_z
+				for key, val in ipairs(prop_list[1].signal_z) do
+					lowest_z = math.min(lowest_z or math.huge, val)
+				end
+				MOD.prop_data.lowest_z = lowest_z
 				DIALOG.close(DIALOG_NAME, {prop_changed = true})
 			else
 				DIALOG.close(DIALOG_NAME)

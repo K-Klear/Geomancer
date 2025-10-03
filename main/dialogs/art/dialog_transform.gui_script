@@ -1,6 +1,6 @@
 local UI = require "modules.ui"
 local MEM = require "modules.memory"
-local MOD = require "main.model_viewer.model"
+local MOD = require "modules.models"
 local SET = require "modules.settings"
 local G = require "modules.global"
 local DIALOG = UI.DIALOG

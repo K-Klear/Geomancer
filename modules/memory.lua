@@ -1,6 +1,7 @@
 local UI = require "modules.ui"
 local G = require "modules.global"
 local SET = require "modules.settings"
+local MOD = require "modules.models"
 
 local MEM = {}
 
@@ -15,6 +16,9 @@ MEM.art_data = {}
 local load = {}
 
 local function read_file(path)
+	if not path then
+		return
+	end
 	local f = io.open(path, "rb")
 	if f then
 		local data = f:read("*a")
@@ -199,7 +203,7 @@ function MEM.parse_json(json_str)
 	handle_char[":"] = function() return end
 	handle_char[" "] = function() return end
 	handle_char[","] = get_value
-		
+	
 	repeat
 		char_pos = char_pos + 1
 		char = string.sub(json_str, char_pos, char_pos)
@@ -320,10 +324,107 @@ function load.pw_event(data, filename)
 	end
 end
 
+local function parse_vertex_data(str)
+	local comma_1 = string.find(str, ",")
+	local comma_2 = string.find(str, ",", comma_1 + 1)
+	local x = string.sub(str, 1, comma_1 - 1)
+	local y = string.sub(str, comma_1 + 1, comma_2 - 1)
+	local z = string.sub(str, comma_2 + 1)
+	return tonumber(x), tonumber(y), tonumber(z)
+end
+
+local function create_mesh(mesh_tab)
+	if not mesh_tab.triangles then
+		mesh_tab.triangles = {}
+		mesh_tab.normals_parsed = {}
+		for i = mesh_tab.IndexStart, mesh_tab.IndexEnd, 3 do
+			local function add_triangle(index)
+				index = index + 1
+				local x, y, z = parse_vertex_data(mesh_tab.verts[index])
+				table.insert(mesh_tab.triangles, x); table.insert(mesh_tab.triangles, y); table.insert(mesh_tab.triangles, z)
+				x, z, y = parse_vertex_data(mesh_tab.normals[index])
+				table.insert(mesh_tab.normals_parsed, x); table.insert(mesh_tab.normals_parsed, y); table.insert(mesh_tab.normals_parsed, z)
+			end
+			add_triangle(mesh_tab.tris[i])
+			add_triangle(mesh_tab.tris[i + 1])
+			add_triangle(mesh_tab.tris[i + 2])
+		end
+		mesh_tab.tris = nil
+		mesh_tab.normals = nil
+		mesh_tab.verts = nil
+	end
+
+	local buf = buffer.create(#mesh_tab.triangles / 3, {
+		{name = hash("position"), type = buffer.VALUE_TYPE_FLOAT32, count = 3},
+		{name = hash("normal"), type = buffer.VALUE_TYPE_FLOAT32, count = 3},
+		{name = hash("texcoord0"), type = buffer.VALUE_TYPE_FLOAT32, count = 2}
+	})
+
+	local positions = buffer.get_stream(buf, "position")
+	local normal = buffer.get_stream(buf, "normal")
+	local texcoord0 = buffer.get_stream(buf, "texcoord0")
+
+	local tex_index = 1
+	for i, value in ipairs(mesh_tab.triangles) do
+		positions[i] = mesh_tab.triangles[i]
+		normal[i] = mesh_tab.normals_parsed[i]
+		if not (i % 3 == 0) then
+			texcoord0[tex_index] = mesh_tab.triangles[i] * 0.25
+			tex_index = tex_index + 1
+		end
+	end
+	mesh_tab.buffer_resource = MOD.create_buffer(buf)
+end
+
 function load.pw_geo(data, filename)
 	local tab = MEM.parse_json(data)
+	local function parse_id(str)
+		local comma_1 = string.find(str, ",")
+		local comma_2 = string.find(str, ",", comma_1 + 1)
+		local v1 = string.sub(str, 1, comma_1 - 1)
+		local v2 = string.sub(str, comma_1 + 1, comma_2 - 1)
+		local v3 = string.sub(str, comma_2 + 1)
+		return tonumber(v1), tonumber(v2), tonumber(v3)
+	end
+	
+	if true then return end
+	
 	if MEM.check(tab, "pw_geo", filename) then
-		MEM.geo_data = {table = tab, filename = filename}
+		local chunks, slices = {}, {}
+		for key, val in ipairs(tab.chunkData) do
+			local v1, v2, v3 = parse_id(val.id)
+			if #val.verts > 0 then
+				table.insert(chunks, {
+					verts = val.verts,
+					tris = val.tris,
+					IndexStart = 1,
+					IndexEnd = #val.tris,
+					normals = val.verts,
+					id = {parse_id(val.id)}
+				})
+				create_mesh(chunks[#chunks])
+			else
+				table.insert(chunks, {empty = true})
+			end
+		end
+		for key, val in ipairs(tab.chunkSlices) do
+			if #val.verts > 0 then
+				table.insert(slices, {
+					verts = val.verts,
+					tris = val.tris,
+					IndexStart = 1,
+					IndexEnd = #val.tris,
+					normals = val.verts,
+					id = tonumber(val.id)
+				})
+				create_mesh(slices[#slices])
+			else
+				table.insert(slices, {empty = true})
+			end
+		end
+		
+		MEM.geo_data = {table = tab, filename = filename, chunks = chunks, slices = slices}
+		
 		UI.tab.tab_geo.state = true
 		return true
 	else
@@ -398,10 +499,6 @@ function MEM.parse_tween(tween_script)
 end
 
 
-
---{name or "[no name]", level = level, tween = tab.tween, mesh_count = mesh_count, part_index = _part_index, tab = tab.tab}
-
-
 local tween_count, part_list, transform_list
 local function explore_model_tree(source_tab, part_name, level, parent_tab)
 	if source_tab.name == "Colliders" then
@@ -433,6 +530,7 @@ local function explore_model_tree(source_tab, part_name, level, parent_tab)
 				local mesh_tab = {}
 				for key, val in ipairs(v.subMeshes) do
 					mesh_tab[key] = {IndexStart = val.IndexStart + 1, IndexEnd = val.IndexCount + val.IndexStart, verts = v.verts, tris = v.tris, normals = v.normals}
+					create_mesh(mesh_tab[key])
 				end
 				current_transform.meshes = {}
 				for key, val in ipairs(mesh_tab) do
@@ -465,16 +563,30 @@ function MEM.add_metadata(model_tab)
 	end
 end
 
+
 function load.pw_art(data, filename)
 	local tab = MEM.parse_json(data)
+	
 	if MEM.check(tab, "pw_art", filename) then
-		MEM.art_data = {table = tab, filename = filename}
+		MOD.release_model_resources()
+		MEM.art_data = {table = tab, filename = filename, prop_list = {}}
 		local dynamic_models = {}
 		local model_count = {}
+
+		local function add_to_prop_list(prop_tab)
+			local sc = G.parse_values(prop_tab.scale)
+			local point = G.parse_values(prop_tab.point)
+			local scale = vmath.vector3(sc[1], sc[2], sc[3])
+			local pos = vmath.vector3(point[1], point[2], point[3])
+			local rot = vmath.quat(point[4], point[5], point[6], point[7])
+			table.insert(MEM.art_data.prop_list, {scale = scale, position = pos, rotation = rot, name = prop_tab.name})
+		end
+		
 		if tab.dynamicProps then
 			for key, val in ipairs(tab.dynamicProps) do
 				dynamic_models[val.name] = true
 				model_count[val.name] = (model_count[val.name] or 0) + 1
+				add_to_prop_list(val)
 			end
 		end
 		if tab.dynamicCullingRanges then
@@ -482,18 +594,21 @@ function load.pw_art(data, filename)
 				for k, v in ipairs(val.members) do
 					dynamic_models[v.name] = true
 					model_count[v.name] = (model_count[v.name] or 0) + 1
+					add_to_prop_list(v)
 				end
 			end
 		end
 		if tab.staticProps then
 			for key, val in ipairs(tab.staticProps) do
 				model_count[val.name] = (model_count[val.name] or 0) + 1
+				add_to_prop_list(val)
 			end
 		end
 		if tab.staticCullingRanges then
 			for key, val in ipairs(tab.staticCullingRanges) do
 				for k, v in ipairs(val.members) do
 					model_count[v.name] = (model_count[v.name] or 0) + 1
+					add_to_prop_list(v)
 				end
 			end
 		end
@@ -561,6 +676,16 @@ end
 
 function MEM.load_geomancer_data(data, filename)
 	load.geomancer(data, filename)
+end
+
+local music_resource_index = 0
+function load.ogg(data, filename)
+	if music_resource_index > 0 then
+		resource.release("/music"..music_resource_index..".ogg")
+	end
+	music_resource_index = music_resource_index + 1
+	MEM.music = resource.create_sound_data("/music"..music_resource_index..".ogg", {data = data})
+	msg.post("/sound", hash("music_loaded"))
 end
 
 function MEM.load_file(path, filename, extension, data)

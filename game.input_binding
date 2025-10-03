@@ -86,6 +86,14 @@ key_trigger {
   input: KEY_F8
   action: "f8"
 }
+key_trigger {
+  input: KEY_F9
+  action: "f9"
+}
+key_trigger {
+  input: KEY_F10
+  action: "f10"
+}
 mouse_trigger {
   input: MOUSE_BUTTON_1
   action: "touch"

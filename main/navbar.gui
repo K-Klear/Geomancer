@@ -62,125 +62,11 @@ nodes {
 }
 nodes {
   position {
-    x: 400.0
+    x: 71.0
     y: 20.0
   }
   size {
-    x: 160.0
-    y: 40.0
-  }
-  type: TYPE_BOX
-  texture: "UI/tab_disabled"
-  id: "tab_event"
-  slice9 {
-    x: 16.0
-    y: 10.0
-    z: 16.0
-    w: 10.0
-  }
-}
-nodes {
-  size {
-    x: 200.0
-    y: 100.0
-  }
-  color {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-  }
-  type: TYPE_TEXT
-  text: "Events, BPM"
-  font: "tab_caption"
-  id: "text3"
-  parent: "tab_event"
-  inherit_alpha: true
-  outline_alpha: 0.0
-  shadow_alpha: 0.25
-}
-nodes {
-  position {
-    x: 560.0
-    y: 20.0
-  }
-  size {
-    x: 160.0
-    y: 40.0
-  }
-  type: TYPE_BOX
-  texture: "UI/tab_disabled"
-  id: "tab_art"
-  slice9 {
-    x: 16.0
-    y: 10.0
-    z: 16.0
-    w: 10.0
-  }
-}
-nodes {
-  size {
-    x: 200.0
-    y: 100.0
-  }
-  color {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-  }
-  type: TYPE_TEXT
-  text: "Models"
-  font: "tab_caption"
-  id: "text4"
-  parent: "tab_art"
-  inherit_alpha: true
-  outline_alpha: 0.0
-  shadow_alpha: 0.25
-}
-nodes {
-  position {
-    x: 1200.0
-    y: 20.0
-  }
-  size {
-    x: 160.0
-    y: 40.0
-  }
-  type: TYPE_BOX
-  texture: "UI/tab_normal"
-  id: "tab_rotate"
-  slice9 {
-    x: 16.0
-    y: 10.0
-    z: 16.0
-    w: 10.0
-  }
-}
-nodes {
-  size {
-    x: 200.0
-    y: 100.0
-  }
-  color {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-  }
-  type: TYPE_TEXT
-  text: "Rotate enemy"
-  font: "tab_caption"
-  id: "text8"
-  parent: "tab_rotate"
-  inherit_alpha: true
-  outline_alpha: 0.0
-  shadow_alpha: 0.25
-}
-nodes {
-  position {
-    x: 80.0
-    y: 20.0
-  }
-  size {
-    x: 160.0
+    x: 142.0
     y: 40.0
   }
   type: TYPE_BOX
@@ -194,6 +80,10 @@ nodes {
   }
 }
 nodes {
+  scale {
+    x: 0.9
+    y: 0.9
+  }
   size {
     x: 200.0
     y: 100.0
@@ -214,11 +104,11 @@ nodes {
 }
 nodes {
   position {
-    x: 240.0
+    x: 213.0
     y: 20.0
   }
   size {
-    x: 160.0
+    x: 142.0
     y: 40.0
   }
   type: TYPE_BOX
@@ -252,11 +142,129 @@ nodes {
 }
 nodes {
   position {
-    x: 880.0
+    x: 355.0
     y: 20.0
   }
   size {
-    x: 160.0
+    x: 142.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  texture: "UI/tab_disabled"
+  id: "tab_event"
+  slice9 {
+    x: 16.0
+    y: 10.0
+    z: 16.0
+    w: 10.0
+  }
+}
+nodes {
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Events, BPM"
+  font: "tab_caption"
+  id: "text3"
+  parent: "tab_event"
+  inherit_alpha: true
+  outline_alpha: 0.0
+  shadow_alpha: 0.25
+}
+nodes {
+  position {
+    x: 497.0
+    y: 20.0
+  }
+  size {
+    x: 142.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  texture: "UI/tab_disabled"
+  id: "tab_art"
+  slice9 {
+    x: 16.0
+    y: 10.0
+    z: 16.0
+    w: 10.0
+  }
+}
+nodes {
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Models"
+  font: "tab_caption"
+  id: "text4"
+  parent: "tab_art"
+  inherit_alpha: true
+  outline_alpha: 0.0
+  shadow_alpha: 0.25
+}
+nodes {
+  position {
+    x: 639.0
+    y: 20.0
+  }
+  size {
+    x: 142.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  texture: "UI/tab_disabled"
+  id: "tab_beat"
+  slice9 {
+    x: 16.0
+    y: 10.0
+    z: 16.0
+    w: 10.0
+  }
+}
+nodes {
+  scale {
+    y: 0.9
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Enemies\n"
+  "Obstacles"
+  font: "tab_caption"
+  id: "text5"
+  parent: "tab_beat"
+  inherit_alpha: true
+  outline_alpha: 0.0
+  shadow_alpha: 0.25
+}
+nodes {
+  position {
+    x: 781.0
+    y: 20.0
+  }
+  size {
+    x: 142.0
     y: 40.0
   }
   type: TYPE_BOX
@@ -270,6 +278,10 @@ nodes {
   }
 }
 nodes {
+  scale {
+    x: 0.8
+    y: 0.8
+  }
   size {
     x: 200.0
     y: 100.0
@@ -290,11 +302,11 @@ nodes {
 }
 nodes {
   position {
-    x: 1040.0
+    x: 923.0
     y: 20.0
   }
   size {
-    x: 160.0
+    x: 142.0
     y: 40.0
   }
   type: TYPE_BOX
@@ -328,16 +340,58 @@ nodes {
 }
 nodes {
   position {
-    x: 720.0
+    x: 1065.0
     y: 20.0
   }
   size {
-    x: 160.0
+    x: 142.0
     y: 40.0
   }
   type: TYPE_BOX
-  texture: "UI/tab_disabled"
-  id: "tab_beat"
+  texture: "UI/tab_normal"
+  id: "tab_rotate"
+  slice9 {
+    x: 16.0
+    y: 10.0
+    z: 16.0
+    w: 10.0
+  }
+}
+nodes {
+  scale {
+    x: 0.9
+    y: 0.9
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_TEXT
+  text: "Rotate enemy"
+  font: "tab_caption"
+  id: "text8"
+  parent: "tab_rotate"
+  inherit_alpha: true
+  outline_alpha: 0.0
+  shadow_alpha: 0.25
+}
+nodes {
+  position {
+    x: 1208.0
+    y: 20.0
+  }
+  size {
+    x: 144.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  texture: "UI/tab_normal"
+  id: "tab_options"
   slice9 {
     x: 16.0
     y: 10.0
@@ -359,11 +413,10 @@ nodes {
     z: 0.0
   }
   type: TYPE_TEXT
-  text: "Enemies\n"
-  "Obstacles"
+  text: "Options"
   font: "tab_caption"
-  id: "text5"
-  parent: "tab_beat"
+  id: "text"
+  parent: "tab_options"
   inherit_alpha: true
   outline_alpha: 0.0
   shadow_alpha: 0.25

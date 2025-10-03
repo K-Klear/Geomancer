@@ -4,6 +4,7 @@ local G = require "modules.global"
 local SET = require "modules.settings"
 local DIALOG = UI.DIALOG
 local TAB_NAME = "tab_event"
+local SND = require "modules.sound"
 
 local nobeat_list, event_list, tempo_list, events_aux
 local previous_signal
@@ -58,6 +59,7 @@ function init(self)
 	gui.set_render_order(1)
 	msg.post("#", hash("disable"))
 	UI.load_template({"sample_48000", "sample_44100", "nobeat_add", "event_add", "event_add_multiple", "tempo_add", "event_filter"}, TAB_NAME)
+	UI.load_template({"music_preview", "metronome_sound"}, TAB_NAME)
 	local validation = {
 		integer = true,
 		min = function() return 1 end,
@@ -170,6 +172,11 @@ function init(self)
 		scroll_prefix = "tempo_"
 	}
 	tempo_list = UI.create_list(TAB_NAME, gui.get_node("tempo_list"), tempo_list_tab)
+	if SND.music_is_playing then
+		gui.set_text(gui.get_node("music_preview/text"), "Stop music")
+	else
+		gui.set_text(gui.get_node("music_preview/text"), "Play music")
+	end
 end
 
 local function sort_f(a, b)
@@ -215,6 +222,7 @@ local function detect_sample_rate()
 		else
 			SET.sample_rate = SET.default_sample_rate
 		end
+		MEM.event_data.beat_in_seconds = MEM.event_data.table.tempoSections[1].samplesPerBeat / SET.sample_rate
 		UI.update_list(TAB_NAME, tempo_list)
 		gui.set_text(gui.get_node("sample_rate_field/text"), SET.sample_rate)
 	end
@@ -325,12 +333,14 @@ end
 local function evaluate_button(button, item)
 	if button == "sample_48000" then
 		SET.sample_rate = 48000
+		MEM.event_data.beat_in_seconds = MEM.event_data.table.tempoSections[1].samplesPerBeat / SET.sample_rate
 		gui.set_text(gui.get_node("sample_rate_field/text"), SET.sample_rate)
 		UI.update_list(TAB_NAME, nobeat_list)
 		update_event_list(true)
 		UI.update_list(TAB_NAME, tempo_list)
 	elseif button == "sample_44100" then
 		SET.sample_rate = 44100
+		MEM.event_data.beat_in_seconds = MEM.event_data.table.tempoSections[1].samplesPerBeat / SET.sample_rate
 		gui.set_text(gui.get_node("sample_rate_field/text"), SET.sample_rate)
 		UI.update_list(TAB_NAME, nobeat_list)
 		update_event_list(true)
@@ -391,6 +401,21 @@ local function evaluate_button(button, item)
 		end
 	elseif button == "event_filter" then
 		DIALOG.open(TAB_NAME, "dialog_filter", {event_track = MEM.event_data.event_track_index})
+	elseif button == "music_preview" then
+		if SND.music_is_playing then
+			msg.post("/sound", hash("stop_music"))
+			gui.set_text(gui.get_node("music_preview/text"), "Play music")
+		else
+			msg.post("/sound", hash("play_music"))
+			gui.set_text(gui.get_node("music_preview/text"), "Stop music")
+		end
+	elseif button == "metronome_sound" then
+		local met_text = {"nothing", "beep", "click"}
+		SET.metronome_sound = SET.metronome_sound + 1
+		if SET.metronome_sound > 2 then
+			SET.metronome_sound = 0
+		end
+		gui.set_text(gui.get_node("metronome_sound/text"), "Metronome: "..met_text[SET.metronome_sound + 1])
 	else
 		local div = string.find(button, ";")
 		local str = string.sub(button, 1, div)
@@ -421,6 +446,7 @@ end
 local function evaluate_input(field, text)
 	if field == "sample_rate_field" then
 		SET.sample_rate = text
+		MEM.event_data.beat_in_seconds = MEM.event_data.table.tempoSections[1].samplesPerBeat / SET.sample_rate
 		UI.update_list(TAB_NAME, nobeat_list)
 		update_event_list(true)
 		UI.update_list(TAB_NAME, tempo_list)

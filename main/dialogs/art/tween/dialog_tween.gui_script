@@ -1,5 +1,5 @@
 local MEM = require "modules.memory"
-local MOD = require "main.model_viewer.model"
+local MOD = require "modules.models"
 local UI = require "modules.ui"
 local SET = require "modules.settings"
 local G = require "modules.global"
@@ -9,6 +9,7 @@ local DIALOG_DATA
 
 local action_list, model_index, transform_list, transform_tab, model_name, tween_actions, evaluate_button, selected_transform
 local path_to_tween
+local vertical_fit_default
 
 local function calculate_tween_speed(action_index)
 	local action = tween_actions[action_index]
@@ -57,18 +58,18 @@ local function display_total_time()
 			time = time + val.time
 		end
 	end
-	time = G.round(time, 7)
-	gui.set_text(gui.get_node("lbl_tween_duration"), "Total duration:\n"..time.."\nseconds.")
+	if SET.tween_time_in_beats then
+		time = G.round(time / MEM.event_data.beat_in_seconds, 3)
+	else
+		time = G.round(time, 4)
+	end
+	gui.set_text(gui.get_node("lbl_tween_duration"), "Total duration:\n"..time)
 end
 
 local action_types = {T = "Move", R = "Rotate", S = "Scale", W = "Wait", X = "Repeat"}
+local list_offset = false
 
-function init(self)
-	DIALOG.setup(DIALOG_NAME)
-	DIALOG_DATA = UI.tab[DIALOG_NAME]
-	UI.load_template({"dialog_tween_close", "dialog_tween_add", "dialog_tween_copy", "dialog_tween_delete",
-		"dialog_tween_save", "dialog_tween_load", "dialog_tween_event", "dialog_tween_preview", "dialog_tween_transform"}, DIALOG_NAME)
-		UI.load_text_field("tween_signal", 20, DIALOG_NAME, {text = true, json_safe = true, not_empty = true, default = function() return transform_tab.tween.signal end})
+local function generate_list()
 	local function is_not_wait(i)
 		return not (tween_actions[i].type == "W" or tween_actions[i].type == "X")
 	end
@@ -128,7 +129,11 @@ function init(self)
 			node = gui.get_node("tween_time/box"),
 			text_node = gui.get_node("tween_time/text"),
 			value_fn = function(i)
-				return tween_actions[i].time or ""
+				if SET.tween_time_in_beats then
+					return G.round(tween_actions[i].time / (MEM.event_data.beat_in_seconds or 1), 3)
+				else
+					return tween_actions[i].time or ""
+				end
 			end,
 			template = "tween_time;",
 			enabled = function(i) return not (tween_actions[i].type == "X") end,
@@ -310,23 +315,45 @@ function init(self)
 		scroll_prefix = "tween_"
 	}
 	if SET.tween_extra_add_buttons then
-		table.insert(action_list_tab, 		{
+		if not list_offset then
+			for key, val in ipairs(action_list_tab) do
+				if val.node then
+					gui.set(val.node, "position.y", gui.get(val.node, "position.y") - 20)
+				end
+			end
+			list_offset = true
+		end
+		table.insert(action_list_tab, {
 			type = hash("button"),
 			node = gui.get_node("tween_add/button_white"),
 			text_node = gui.get_node("tween_add/text"),
 			value_fn = function() return "Add new action" end,
 			template = "tween_add;"
 		})
-		for key, val in ipairs(action_list_tab) do
-			if val.node then
-				gui.set(val.node, "position.y", gui.get(val.node, "position.y") - 20)
-			end
-		end
 	else
-		gui.delete_node(gui.get_node("tween_add/text"))
-		gui.delete_node(gui.get_node("tween_add/button_white"))
+		if list_offset then
+			for key, val in ipairs(action_list_tab) do
+				if val.node then
+					gui.set(val.node, "position.y", gui.get(val.node, "position.y") + 20)
+				end
+			end
+			list_offset = false
+		end
 	end
-	action_list = UI.create_list(DIALOG_NAME, gui.get_node("tween_list"), action_list_tab)
+	action_list = UI.create_list(DIALOG_NAME, gui.get_node("tween_list"), action_list_tab, action_list)
+end
+
+local original_list_height
+function init(self)
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+	UI.load_template({"dialog_tween_close", "dialog_tween_add", "dialog_tween_copy", "dialog_tween_delete", "dialog_tween_time_units",
+	"dialog_tween_save", "dialog_tween_load", "dialog_tween_event", "dialog_tween_preview", "dialog_tween_transform"}, DIALOG_NAME)
+	UI.load_text_field("tween_signal", 20, DIALOG_NAME, {text = true, json_safe = true, not_empty = true,
+	default = function() return transform_tab.tween.signal end})
+	original_list_height = gui.get(gui.get_node("tween_list"), "size.y")
+	vertical_fit_default = gui.get_screen_position(gui.get_node("title_tween")).y - gui.get_screen_position(gui.get_node("dialog_tween_close/text")).y
+	generate_list()
 end
 
 local function get_tween_defaults(action_type, current_action_index)
@@ -419,7 +446,11 @@ local function evaluate_field(field, text, item)
 		local div = string.find(field, ";")
 		local str = string.sub(field, 1, div)
 		if str == "tween_time;" then
-			tween_actions[item].time = text
+			if SET.tween_time_in_beats then
+				tween_actions[item].time = text * (MEM.event_data.beat_in_seconds or 1)
+			else
+				tween_actions[item].time = text
+			end
 			display_total_time()
 		elseif str == "tween_start_x;" then
 			if tween_actions[item].type == "R" and SET.restrict_rotations_to_360 then
@@ -571,6 +602,18 @@ function evaluate_button(button, item)
 		end
 		display_total_time()
 		UI.update_list(DIALOG_NAME, action_list, 0)
+	elseif button == "dialog_tween_time_units" then
+		SET.tween_time_in_beats = not SET.tween_time_in_beats
+		if not MEM.event_data.beat_in_seconds then
+			SET.tween_time_in_beats = false
+		end
+		if SET.tween_time_in_beats then
+			gui.set_text(gui.get_node("dialog_tween_time_units/text"), "Beats")
+		else
+			gui.set_text(gui.get_node("dialog_tween_time_units/text"), "Seconds")
+		end
+		display_total_time()
+		UI.update_list(DIALOG_NAME, action_list, #tween_actions)
 	else
 		local div = string.find(button, ";")
 		local str = string.sub(button, 1, div)
@@ -578,10 +621,18 @@ function evaluate_button(button, item)
 			local tab = table.remove(tween_actions, item)
 			table.insert(tween_actions, item - 1, tab)
 			UI.update_list(DIALOG_NAME, action_list)
+			local x, y = defos.get_cursor_pos()
+			local vertical_fit = gui.get_screen_position(gui.get_node("title_tween")).y - gui.get_screen_position(gui.get_node("dialog_tween_close/text")).y
+			y = y - (UI.tab[DIALOG_NAME].scrolling_lists[action_list].item_height * (vertical_fit / vertical_fit_default))
+			defos.set_cursor_pos(x, y)
 		elseif str == "tween_down;" then
 			local tab = table.remove(tween_actions, item)
 			table.insert(tween_actions, item + 1, tab)
 			UI.update_list(DIALOG_NAME, action_list)
+			local x, y = defos.get_cursor_pos()
+			local vertical_fit = gui.get_screen_position(gui.get_node("title_tween")).y - gui.get_screen_position(gui.get_node("dialog_tween_close/text")).y
+			y = y + (UI.tab[DIALOG_NAME].scrolling_lists[action_list].item_height * (vertical_fit / vertical_fit_default))
+			defos.set_cursor_pos(x, y)
 		elseif str == "tween_type;" then
 			if SET.tween_action_type_dialog then
 				DIALOG.open(DIALOG_NAME, "dialog_tween_action", {item = item})
@@ -684,6 +735,14 @@ function on_message(self, message_id, message, sender)
 		tween_actions = transform_tab.tween
 		gui.set_text(gui.get_node("title_tween"), model_name.." ("..transform_tab.name..")")
 		gui.set_text(gui.get_node("tween_signal/text"), transform_tab.tween.signal)
+		if not MEM.event_data.beat_in_seconds then
+			SET.tween_time_in_beats = false
+		end
+		if SET.tween_time_in_beats then
+			gui.set_text(gui.get_node("dialog_tween_time_units/text"), "Beats")
+		else
+			gui.set_text(gui.get_node("dialog_tween_time_units/text"), "Seconds")
+		end
 		UI.update_list(DIALOG_NAME, action_list, #tween_actions)
 		display_total_time()
 	elseif message_id == hash("hide") then
@@ -779,6 +838,10 @@ function on_message(self, message_id, message, sender)
 				path_to_tween = nil
 			end
 		end
+	elseif message_id == hash("regenerate_list") then
+		UI.destroy_list(DIALOG_NAME, action_list)
+		gui.set(gui.get_node("tween_list"), "size.y", original_list_height)
+		generate_list()
 	end
 end
 

@@ -23,35 +23,48 @@ To do:
 - Catch errors when running out of available gui nodes, maybe? Might be worth on the preview timeline.
 	- Alternatively just stop creating them when they're way too smooched together, but that sounds like work
 		- Definitely worth it to not make separate ones for easings. But still work.
+- Shift-click fields to delete contents
+- have validation check if the value is function or just a value and remove all the dumb anonymous functions returning always the same thing
+- Add a warning if no export happens before closing
+
 
 Bugs:
 - The check for Spooky and airdrop obstacle signals needs to be more robust
 	- That is to say, it needs to happen on every export, not just while degeomancing, plus it needs to be smarter
 - Had a dynamic model refuse to stay dynamic after switching tabs. No idea why.
+	- Actually saw a wrong model turn dynamic. Something's fishy
+
+
+
 
 Done:
 
 Features:
-- Enemy rotation tool
-- Easings are no longer shown on the timeline in tween preview
+- All map files are now loaded as well as exported. Exporting directly into customLevels/mix should now result in a working map now
+- If a poster is not present in the map, a placeholder graphic is generated (NOT ACTUALLY IMPLEMENTED YET)
+- Added an options screen
+- Added a button to test the music preview offset in the Level info tab
+- Added lobby colour selection to the Level info tab
+- You can now switch between seconds and beats as time units in tween editor
+	- This only works if event data is loaded
+	- The beat length is calculated using the first tempo section in the map only
 
 New shortcuts:
-F8 to go to the rotate tool
+F9 - options
 
 Fixes:
-- Swiching between tweens is now done by right-clicking the timeline, to prevent accidental switches
+- Moving tween actions up or down now also moves mouse cursor to the button's new position
+- Models with multiple tweens which don't start at the same time now have their animations properly offset
+- Props with multiple tweens are now positioned based on the earliest signal received rather than the singal of the first tween
 
 Bugs:
-- Fixed an error when attempting to import a model from another map
-- Fixed a bug causing transform editor to display wrong rotation values
-- Adjusting transform properties no longer changes which meshes are flashing
-- Closing the colour menu no longer forces transforms to appear
-- Event list no longer goes crazy when switching back to the event tab after scrolling to its end
-- Renaming a transform is reflected in the mesh list on the main model tab
+- Fixed an error when pressing enter on a panel with a scrolling list
+- Fixed an error when loading a partially corrupted zip
+- Custom easing graph line colour is now applied correctly
+- Unloading map data no longer disables the rotate tab
 
-New configs:
-rotate_multiple_axes
-default_rotation_rounding
+New options:
+metronome_sound = 1 (0 - nothing, 1 - beep, 2 - click)
 
 Notes:
 - See if "MEM.event_reloaded" and similar are necessary. Currently load error unloads previous data - is that a bad thing?

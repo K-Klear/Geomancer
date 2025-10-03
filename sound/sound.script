@@ -1,0 +1,106 @@
+local MEM = require "modules.memory"
+local SET = require "modules.settings"
+local SND = require "modules.sound"
+
+function init(self)
+
+end
+
+local metronome_initial_delay_timer
+local metronome_delay_timer
+local nobeat_delay_timer
+local beat_on = true
+local nobeat_delays = {}
+
+local function stop_music()
+	if SND.music_is_playing then
+		SND.music_is_playing = false
+		sound.stop("/sound#music")
+		if metronome_delay_timer then
+			timer.cancel(metronome_delay_timer)
+			metronome_delay_timer = nil
+		end
+		if metronome_initial_delay_timer then
+			timer.cancel(metronome_initial_delay_timer)
+			metronome_initial_delay_timer = nil
+		end
+		if nobeat_delay_timer then
+			timer.cancel(nobeat_delay_timer)
+			nobeat_delay_timer = nil
+		end
+		beat_on = true
+		nobeat_delays = {}
+	end
+end
+
+local metronome_sounds = {"/sound#beep", "/sound#click"}
+function on_message(self, message_id, message, sender)
+	if message_id == hash("play_music") and MEM.music then
+		stop_music()
+
+		SND.music_is_playing = true
+		sound.play("/sound#music", {delay = 0, start_time = message.start or 0})
+
+		if not message.beats then return end
+		
+
+		
+		local delay_adjust = {235, 1269}
+		delay_adjust[0] = 235
+		local beat = MEM.event_data.table.tempoSections[1].samplesPerBeat / SET.sample_rate
+		local delay = MEM.event_data.table.tempoSections[1].startSample / SET.sample_rate
+		if delay < 0 then
+			repeat
+				delay = delay + beat
+			until delay >= 0
+		end
+
+		local nobeat_current = 0
+		for key, val in ipairs(MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events) do
+			local start = tonumber(val.startSample) / SET.sample_rate - nobeat_current
+			local ending = tonumber(val.endSample) / SET.sample_rate - start - nobeat_current
+			table.insert(nobeat_delays, start)
+			table.insert(nobeat_delays, ending)
+			nobeat_current = ending
+		end
+
+		local nobeat_index = 1
+		local function next_nobeat()
+			if beat_on then
+				sound.set_group_gain("metronome", 1)
+			else
+				sound.set_group_gain("metronome", 0)
+			end
+			beat_on = not beat_on
+			if not nobeat_delays[nobeat_index + 1] then
+				nobeat_delay_timer = nil
+				return
+			end
+			nobeat_delay_timer = timer.delay(nobeat_delays[nobeat_index], false, next_nobeat)
+			nobeat_index = nobeat_index + 1
+		end
+
+		next_nobeat()
+		
+		SND.music_is_playing = true
+		sound.play("/sound#music", {delay = delay_adjust[SET.metronome_sound] / SET.sample_rate, start_time = message.start})
+		metronome_initial_delay_timer = timer.delay(delay, false, function()
+			metronome_delay_timer = timer.delay(beat, true, function()
+				if metronome_sounds[SET.metronome_sound] then
+					sound.play(metronome_sounds[SET.metronome_sound])
+				end
+			end)
+			metronome_initial_delay_timer = nil
+		end)
+	elseif message_id == hash("stop_music") then
+		stop_music()
+	elseif message_id == hash("music_loaded") then
+		stop_music()
+		go.set("/sound#music", "sound", MEM.music)
+		SND.music_loaded = true
+	end
+end
+
+function on_input(self, action_id, action)
+
+end

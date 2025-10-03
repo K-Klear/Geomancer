@@ -352,6 +352,147 @@ nodes {
   alpha: 0.5
   size_mode: SIZE_MODE_AUTO
 }
+nodes {
+  position {
+    x: 508.0
+    y: 187.0
+  }
+  type: TYPE_TEMPLATE
+  id: "preview_test"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "preview_test/button_white"
+  parent: "preview_test"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  type: TYPE_BOX
+  texture: "UI/play"
+  id: "preview_test/text"
+  parent: "preview_test/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 820.0
+    y: 157.0
+  }
+  type: TYPE_TEMPLATE
+  id: "lobby_main"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "lobby_main/button_white"
+  parent: "lobby_main"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "lobby_main/text"
+  parent: "lobby_main/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 910.0
+    y: 157.0
+  }
+  type: TYPE_TEMPLATE
+  id: "lobby_fog"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "lobby_fog/button_white"
+  parent: "lobby_fog"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "lobby_fog/text"
+  parent: "lobby_fog/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1000.0
+    y: 157.0
+  }
+  type: TYPE_TEMPLATE
+  id: "lobby_glow"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "lobby_glow/button_white"
+  parent: "lobby_glow"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "lobby_glow/text"
+  parent: "lobby_glow/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1090.0
+    y: 157.0
+  }
+  type: TYPE_TEMPLATE
+  id: "lobby_enemy"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "lobby_enemy/button_white"
+  parent: "lobby_enemy"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "lobby_enemy/text"
+  parent: "lobby_enemy/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 958.0
+    y: 227.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Lobby colours\n"
+  "Main / Fog / Glow / Enemy"
+  font: "main_menu_button_small"
+  id: "lbl_lobby_colour"
+  inherit_alpha: true
+}
 layers {
   name: "below"
 }
