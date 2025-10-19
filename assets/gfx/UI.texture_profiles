@@ -6,13 +6,18 @@ path_settings {
   path: "**/assets/images/UI/UI.atlas"
   profile: "UI"
 }
+path_settings {
+  path: "**/assets/gfx/textures"
+  profile: "Default"
+}
 profiles {
   name: "Default"
   platforms {
     os: OS_ID_GENERIC
     formats {
       format: TEXTURE_FORMAT_RGBA
-      compression_level: BEST
+      compressor: "Uncompressed"
+      compressor_preset: "UNCOMPRESSED"
     }
     mipmaps: true
   }
@@ -23,8 +28,21 @@ profiles {
     os: OS_ID_GENERIC
     formats {
       format: TEXTURE_FORMAT_RGBA
-      compression_level: BEST
+      compressor: "Uncompressed"
+      compressor_preset: "UNCOMPRESSED"
     }
     mipmaps: false
+  }
+}
+profiles {
+  name: "grid"
+  platforms {
+    os: OS_ID_GENERIC
+    formats {
+      format: TEXTURE_FORMAT_LUMINANCE_ALPHA
+      compressor: "Uncompressed"
+      compressor_preset: "UNCOMPRESSED"
+    }
+    mipmaps: true
   }
 }

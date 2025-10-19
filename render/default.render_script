@@ -145,7 +145,7 @@ local function create_state()
 end
 
 function init(self)
-    self.predicates = create_predicates("tile", "gui", "preview", "text", "particle", "model", "model_inv", "model_background", "model_flash", "model_flash_inv", "transform")
+    self.predicates = create_predicates("tile", "gui", "preview", "text", "particle", "model", "model_transparent", "model_flash", "transform")
 
     self.invert_preview = render.constant_buffer()
     self.invert_preview.invert = vmath.vector4(0, 0, 0, 0)
@@ -200,22 +200,22 @@ function update(self)
     -- render `model` predicate for default 3D material
     --
     render.set_camera(self.camera)
-    render.enable_state(render.STATE_CULL_FACE)
-    render.set_cull_face(render.FACE_FRONT)
+
     render.set_blend_func(render.BLEND_ONE, render.BLEND_ONE_MINUS_SRC_ALPHA)
-    render.draw(predicates.model_background)--, camera_world.frustum)
     render.enable_state(render.STATE_DEPTH_TEST)
+
+
+    render.disable_state(render.STATE_CULL_FACE)
+
     render.draw(predicates.model)--, camera_world.frustum)
-    render.set_cull_face(render.FACE_BACK)
-    render.draw(predicates.model_inv)--, camera_world.frustum)
-    --render.set_depth_mask(false)
+    render.set_depth_mask(false)
+    render.draw(predicates.model_transparent)--, camera_world.frustum)
     render.disable_state(render.STATE_DEPTH_TEST)
-    render.draw(predicates.model_flash_inv)--, camera_world.frustum)
-    render.set_cull_face(render.FACE_FRONT)
+    
     render.draw(predicates.model_flash)--, camera_world.frustum)
+    
     render.clear({[graphics.BUFFER_TYPE_DEPTH_BIT] = 1})
     render.enable_state(render.STATE_DEPTH_TEST)
-    render.disable_state(render.STATE_CULL_FACE)
     render.draw(predicates.transform)
     render.disable_state(render.STATE_DEPTH_TEST)
     render.set_camera()

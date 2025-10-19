@@ -22,7 +22,7 @@ textures {
 nodes {
   position {
     x: 640.0
-    y: 781.0
+    y: 789.0
   }
   size {
     x: 200.0
@@ -986,9 +986,6 @@ nodes {
   template_node_child: true
 }
 nodes {
-  position {
-    y: 46.0
-  }
   size {
     x: 200.0
     y: 100.0
@@ -1002,7 +999,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 549.0
+    y: 718.0
   }
   type: TYPE_TEMPLATE
   id: "confirm_file_overwrite"
@@ -1055,7 +1052,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 500.0
+    y: 669.0
   }
   type: TYPE_TEMPLATE
   id: "default_create_folder_on_export"
@@ -1108,7 +1105,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 448.0
+    y: 617.0
   }
   type: TYPE_TEMPLATE
   id: "default_import_changes_from_zip"
@@ -1161,7 +1158,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 398.0
+    y: 567.0
   }
   type: TYPE_TEMPLATE
   id: "default_import_level_changes"
@@ -1214,7 +1211,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 349.0
+    y: 518.0
   }
   type: TYPE_TEMPLATE
   id: "default_import_event_changes"
@@ -1267,7 +1264,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 300.0
+    y: 469.0
   }
   type: TYPE_TEMPLATE
   id: "default_import_model_changes"
@@ -1320,7 +1317,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 253.0
+    y: 422.0
   }
   type: TYPE_TEMPLATE
   id: "default_import_beat_changes"
@@ -1372,8 +1369,61 @@ nodes {
 }
 nodes {
   position {
+    x: 151.0
+    y: 375.0
+  }
+  type: TYPE_TEMPLATE
+  id: "preload_models"
+  parent: "panel_files"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "preload_models/button_white"
+  parent: "preload_models"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "preload_models/text"
+  parent: "preload_models/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Preload all models when opening a map"
+  font: "main_menu_button_small"
+  id: "preload_models/label"
+  line_break: true
+  parent: "preload_models/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
     x: 934.0
-    y: 515.0
+    y: 684.0
   }
   size {
     x: 540.0
@@ -1391,6 +1441,165 @@ nodes {
   line_break: true
   parent: "panel_files"
   inherit_alpha: true
+}
+nodes {
+  position {
+    x: 177.0
+    y: 326.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Map preview timeline segment length"
+  font: "main_menu_button_small"
+  id: "lbl_map_preview_partition_size"
+  pivot: PIVOT_W
+  parent: "panel_files"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 668.0
+    y: 322.0
+  }
+  type: TYPE_TEMPLATE
+  id: "map_preview_partition_size"
+  parent: "panel_files"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 60.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "map_preview_partition_size/box"
+  parent: "map_preview_partition_size"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "1.5"
+  id: "map_preview_partition_size/text"
+  parent: "map_preview_partition_size/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 151.0
+    y: 273.0
+  }
+  type: TYPE_TEMPLATE
+  id: "unload_data_before_loading_zip"
+  parent: "panel_files"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "unload_data_before_loading_zip/button_white"
+  parent: "unload_data_before_loading_zip"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "unload_data_before_loading_zip/text"
+  parent: "unload_data_before_loading_zip/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Unload map data before opening a zip"
+  font: "main_menu_button_small"
+  id: "unload_data_before_loading_zip/label"
+  line_break: true
+  parent: "unload_data_before_loading_zip/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 151.0
+    y: 226.0
+  }
+  type: TYPE_TEMPLATE
+  id: "unload_data_before_loading_folder"
+  parent: "panel_files"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "unload_data_before_loading_folder/button_white"
+  parent: "unload_data_before_loading_folder"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "unload_data_before_loading_folder/text"
+  parent: "unload_data_before_loading_folder/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Unload map data before loading a folder"
+  font: "main_menu_button_small"
+  id: "unload_data_before_loading_folder/label"
+  line_break: true
+  parent: "unload_data_before_loading_folder/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
 }
 nodes {
   position {
@@ -2559,7 +2768,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 590.0
+    y: 653.0
   }
   type: TYPE_TEMPLATE
   id: "restrict_rotations_to_360"
@@ -2612,7 +2821,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 534.0
+    y: 597.0
   }
   type: TYPE_TEMPLATE
   id: "tween_action_type_dialog"
@@ -2665,7 +2874,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 483.0
+    y: 546.0
   }
   type: TYPE_TEMPLATE
   id: "tween_part_dialog"
@@ -2718,7 +2927,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 430.0
+    y: 493.0
   }
   type: TYPE_TEMPLATE
   id: "tween_extra_add_buttons"
@@ -2771,7 +2980,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 385.0
+    y: 448.0
   }
   type: TYPE_TEMPLATE
   id: "ask_before_overwriting_tween_file"
@@ -2824,7 +3033,7 @@ nodes {
 nodes {
   position {
     x: 88.0
-    y: 331.0
+    y: 394.0
   }
   size {
     x: 200.0
@@ -2841,7 +3050,7 @@ nodes {
 nodes {
   position {
     x: 489.0
-    y: 327.0
+    y: 390.0
   }
   type: TYPE_TEMPLATE
   id: "tween_timeline_bar_height"
@@ -2877,7 +3086,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 261.0
+    y: 324.0
   }
   type: TYPE_TEMPLATE
   id: "auto_set_tween_preview_prop"
@@ -2930,7 +3139,7 @@ nodes {
 nodes {
   position {
     x: 785.0
-    y: 583.0
+    y: 625.0
   }
   size {
     x: 200.0
@@ -2947,7 +3156,7 @@ nodes {
 nodes {
   position {
     x: 1056.0
-    y: 579.0
+    y: 621.0
   }
   type: TYPE_TEMPLATE
   id: "easing_node_scale"
@@ -2983,7 +3192,7 @@ nodes {
 nodes {
   position {
     x: 785.0
-    y: 521.0
+    y: 563.0
   }
   size {
     x: 200.0
@@ -3000,7 +3209,7 @@ nodes {
 nodes {
   position {
     x: 1056.0
-    y: 517.0
+    y: 559.0
   }
   type: TYPE_TEMPLATE
   id: "easing_curve_thickness"
@@ -3036,7 +3245,7 @@ nodes {
 nodes {
   position {
     x: 785.0
-    y: 447.0
+    y: 489.0
   }
   size {
     x: 200.0
@@ -3053,7 +3262,7 @@ nodes {
 nodes {
   position {
     x: 1085.0
-    y: 443.0
+    y: 485.0
   }
   rotation {
     x: -0.614
@@ -3079,7 +3288,7 @@ nodes {
 nodes {
   position {
     x: 785.0
-    y: 383.0
+    y: 425.0
   }
   size {
     x: 200.0
@@ -3096,7 +3305,7 @@ nodes {
 nodes {
   position {
     x: 1085.0
-    y: 379.0
+    y: 421.0
   }
   type: TYPE_TEMPLATE
   id: "easing_node_highlight_colour"
@@ -3119,7 +3328,7 @@ nodes {
 nodes {
   position {
     x: 785.0
-    y: 321.0
+    y: 363.0
   }
   size {
     x: 200.0
@@ -3136,7 +3345,7 @@ nodes {
 nodes {
   position {
     x: 1085.0
-    y: 317.0
+    y: 359.0
   }
   type: TYPE_TEMPLATE
   id: "easing_curve_colour"
@@ -3159,7 +3368,7 @@ nodes {
 nodes {
   position {
     x: 316.0
-    y: 667.0
+    y: 692.0
   }
   size {
     x: 200.0
@@ -3176,7 +3385,7 @@ nodes {
 nodes {
   position {
     x: 944.0
-    y: 667.0
+    y: 692.0
   }
   size {
     x: 200.0
@@ -3192,8 +3401,8 @@ nodes {
 }
 nodes {
   position {
-    x: 189.0
-    y: 195.0
+    x: 198.0
+    y: 258.0
   }
   size {
     x: 400.0
@@ -3209,8 +3418,8 @@ nodes {
 }
 nodes {
   position {
-    x: 389.0
-    y: 192.0
+    x: 398.0
+    y: 255.0
   }
   type: TYPE_TEMPLATE
   id: "default_tween_time_in_beats"
@@ -3239,6 +3448,95 @@ nodes {
   overridden_fields: 8
   overridden_fields: 18
   overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 88.0
+    y: 203.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Time padding before and after tween preview:"
+  font: "main_menu_button_small"
+  id: "label_tween_padding_start"
+  pivot: PIVOT_W
+  parent: "panel_tween"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 688.0
+    y: 199.0
+  }
+  type: TYPE_TEMPLATE
+  id: "tween_padding_start"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 60.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "tween_padding_start/box"
+  parent: "tween_padding_start"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "123"
+  id: "tween_padding_start/text"
+  parent: "tween_padding_start/box"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 764.0
+    y: 199.0
+  }
+  type: TYPE_TEMPLATE
+  id: "tween_padding_end"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 60.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "tween_padding_end/box"
+  parent: "tween_padding_end"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "123"
+  id: "tween_padding_end/text"
+  parent: "tween_padding_end/box"
+  overridden_fields: 4
+  overridden_fields: 8
   template_node_child: true
 }
 nodes {
@@ -3371,9 +3669,9 @@ nodes {
     y: 100.0
   }
   type: TYPE_TEXT
-  text: "Zoom sensitivity"
+  text: "\"Run\" speed multiplier"
   font: "main_menu_button_small"
-  id: "lbl_model_zoom_sensitivity"
+  id: "lbl_run_speed_multiplier"
   pivot: PIVOT_W
   parent: "panel_model_viewer"
   inherit_alpha: true
@@ -3384,7 +3682,7 @@ nodes {
     y: 497.0
   }
   type: TYPE_TEMPLATE
-  id: "model_zoom_sensitivity"
+  id: "run_speed_multiplier"
   parent: "panel_model_viewer"
   inherit_alpha: true
   template: "/templates/text_field.gui"
@@ -3395,8 +3693,8 @@ nodes {
     y: 40.0
   }
   type: TYPE_BOX
-  id: "model_zoom_sensitivity/box"
-  parent: "model_zoom_sensitivity"
+  id: "run_speed_multiplier/box"
+  parent: "run_speed_multiplier"
   overridden_fields: 1
   overridden_fields: 4
   template_node_child: true
@@ -3408,61 +3706,8 @@ nodes {
   }
   type: TYPE_TEXT
   text: "0.05"
-  id: "model_zoom_sensitivity/text"
-  parent: "model_zoom_sensitivity/box"
-  overridden_fields: 4
-  overridden_fields: 8
-  template_node_child: true
-}
-nodes {
-  position {
-    x: 165.0
-    y: 439.0
-  }
-  size {
-    x: 200.0
-    y: 100.0
-  }
-  type: TYPE_TEXT
-  text: "Default zoom level"
-  font: "main_menu_button_small"
-  id: "lbl_default_camera_zoom"
-  pivot: PIVOT_W
-  parent: "panel_model_viewer"
-  inherit_alpha: true
-}
-nodes {
-  position {
-    x: 482.0
-    y: 435.0
-  }
-  type: TYPE_TEMPLATE
-  id: "default_camera_zoom"
-  parent: "panel_model_viewer"
-  inherit_alpha: true
-  template: "/templates/text_field.gui"
-}
-nodes {
-  size {
-    x: 80.0
-    y: 40.0
-  }
-  type: TYPE_BOX
-  id: "default_camera_zoom/box"
-  parent: "default_camera_zoom"
-  overridden_fields: 1
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  size {
-    x: 60.0
-    y: 60.0
-  }
-  type: TYPE_TEXT
-  text: "0.05"
-  id: "default_camera_zoom/text"
-  parent: "default_camera_zoom/box"
+  id: "run_speed_multiplier/text"
+  parent: "run_speed_multiplier/box"
   overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
@@ -3678,58 +3923,8 @@ nodes {
 }
 nodes {
   position {
-    x: 782.0
-    y: 554.0
-  }
-  size {
-    x: 200.0
-    y: 100.0
-  }
-  type: TYPE_TEXT
-  text: "Grid type"
-  font: "main_menu_button_small"
-  id: "lbl_model_grid_dots"
-  pivot: PIVOT_W
-  parent: "panel_model_viewer"
-  inherit_alpha: true
-}
-nodes {
-  position {
-    x: 1119.0
-    y: 552.0
-  }
-  type: TYPE_TEMPLATE
-  id: "model_grid_dots"
-  parent: "panel_model_viewer"
-  template: "/templates/button_white_small.gui"
-}
-nodes {
-  size {
-    x: 80.0
-    y: 48.0
-  }
-  type: TYPE_BOX
-  id: "model_grid_dots/button_white"
-  parent: "model_grid_dots"
-  layer: "below"
-  overridden_fields: 4
-  overridden_fields: 20
-  template_node_child: true
-}
-nodes {
-  type: TYPE_TEXT
-  text: "Grid"
-  id: "model_grid_dots/text"
-  parent: "model_grid_dots/button_white"
-  layer: "text"
-  overridden_fields: 8
-  overridden_fields: 20
-  template_node_child: true
-}
-nodes {
-  position {
     x: 783.0
-    y: 485.0
+    y: 561.0
   }
   size {
     x: 200.0
@@ -3746,7 +3941,7 @@ nodes {
 nodes {
   position {
     x: 1113.0
-    y: 484.0
+    y: 560.0
   }
   type: TYPE_TEMPLATE
   id: "show_transform"
@@ -3777,7 +3972,7 @@ nodes {
 nodes {
   position {
     x: 780.0
-    y: 419.0
+    y: 495.0
   }
   size {
     x: 200.0
@@ -3795,7 +3990,7 @@ nodes {
 nodes {
   position {
     x: 1088.0
-    y: 415.0
+    y: 491.0
   }
   type: TYPE_TEMPLATE
   id: "default_colour_set"
@@ -3831,7 +4026,7 @@ nodes {
 nodes {
   position {
     x: 780.0
-    y: 343.0
+    y: 419.0
   }
   size {
     x: 200.0
@@ -3849,7 +4044,7 @@ nodes {
 nodes {
   position {
     x: 810.0
-    y: 275.0
+    y: 351.0
   }
   type: TYPE_TEMPLATE
   id: "custom_colour_main"
@@ -3872,7 +4067,7 @@ nodes {
 nodes {
   position {
     x: 900.0
-    y: 275.0
+    y: 351.0
   }
   type: TYPE_TEMPLATE
   id: "custom_colour_fog"
@@ -3895,7 +4090,7 @@ nodes {
 nodes {
   position {
     x: 990.0
-    y: 275.0
+    y: 351.0
   }
   type: TYPE_TEMPLATE
   id: "custom_colour_glow"
@@ -3918,7 +4113,7 @@ nodes {
 nodes {
   position {
     x: 1080.0
-    y: 275.0
+    y: 351.0
   }
   type: TYPE_TEMPLATE
   id: "custom_colour_enemy"
@@ -3936,6 +4131,46 @@ nodes {
   type: TYPE_BOX
   id: "custom_colour_enemy/text"
   parent: "custom_colour_enemy/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 783.0
+    y: 239.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Collider colour"
+  font: "main_menu_button_small"
+  id: "lbl_collider_colour"
+  pivot: PIVOT_W
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1016.0
+    y: 237.0
+  }
+  type: TYPE_TEMPLATE
+  id: "collider_colour"
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "collider_colour/button_white"
+  parent: "collider_colour"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "collider_colour/text"
+  parent: "collider_colour/button_white"
   template_node_child: true
 }
 nodes {
@@ -5055,7 +5290,7 @@ nodes {
     z: 0.0
   }
   type: TYPE_TEXT
-  text: "Model preview"
+  text: "Map preview"
   font: "tab_caption"
   id: "text6"
   parent: "model_viewer"

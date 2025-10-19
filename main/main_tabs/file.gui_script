@@ -1,10 +1,12 @@
 local UI = require "modules.ui"
 local MEM = require "modules.memory"
 local G = require "modules.global"
+local COL = require "modules.colours"
 local SET = require "modules.settings"
 local DIALOG = UI.DIALOG
 local TAB_NAME = "tab_file"
 local MOD = require "modules.models"
+local SND = require "modules.sound"
 
 local files_to_export
 
@@ -20,7 +22,7 @@ function init(self)
 	gui.set_render_order(1)
 	gui.set_text(gui.get_node("version_label"), "Version "..sys.get_config("project.version"))
 	UI.load_template({"exit", "load_dir", "load_file", "load_zip", "unload_all", "export_all", "export_folder_checkbox", "import_changes",
-	"import_checkbox", "degeomance", "import_level", "import_events", "import_beat", "import_models", "help"}, TAB_NAME)
+	"import_checkbox", "degeomance", "import_level", "import_events", "import_beat", "import_models", "help", "map_preview"}, TAB_NAME)
 	if SET.I_am_Klear then
 		UI.load_template("klear_button", TAB_NAME)
 	else
@@ -35,14 +37,28 @@ function init(self)
 end
 
 local function run_export_fn()
+	local export_count, expected_count = 0, 10
 	for key, val in ipairs(files_to_export) do
 		if val.fn(val.path) then
 			G.update_navbar(val.text_fail)
+			expected_count = expected_count - 1
 		else
+			export_count = export_count + 1
 			G.update_navbar(val.text)
 		end
 	end
-	G.update_navbar("Files exported")
+	if MEM.level_data and MEM.level_data.remixTarget then
+		expected_count = expected_count - 1
+	end
+	if MEM.level_data and not MEM.level_data.art then
+		expected_count = expected_count - 1
+	end
+	if export_count < expected_count then
+		G.update_navbar(export_count.." files exported")
+	else
+		G.update_navbar(export_count.." files exported")
+		G.update_navbar("The export is a full map.")
+	end
 	files_to_export = nil
 end
 
@@ -296,17 +312,32 @@ local function export_geomancer_meta(path)
 	MEM.geomancer_meta = nil
 end
 
+local function export_sequences(path)
+	local f = G.safe_output(path)
+	if f then
+		io.write(MEM.sequence_data.string)
+		io.close(f)
+	end
+end
+
+local function export_binary(path, data)
+	local file = io.open(path, "wb")
+	local f = G.safe_output(file)
+	if f then
+		io.write(data)
+		io.close(f)
+	end
+end
+
 local function export_all(overwrite)
 	if UI.tab.tab_level.state or UI.tab.tab_event.state or UI.tab.tab_geo.state or UI.tab.tab_beat.state or UI.tab.tab_meta.state or UI.tab.tab_art.state then
-		local num, path
+		local _, path
 		if overwrite then
-			num, path = diags.open_folder(SET.default_path_export)
+			_, path = diags.open_folder(SET.default_path_export)
 		else
-			num, path = diags.open_folder(SET.default_path_export_overwrite)
+			_, path = diags.open_folder(SET.default_path_export_overwrite)
 		end
 		if path then
-			local filenames = {}
-			local common_filename = "map"
 			local function get_name(s)
 				if s then
 					local ext = string.find(s, "%.")
@@ -319,22 +350,33 @@ local function export_all(overwrite)
 					return string.sub(MEM.art_data.filename, 1, shared - 1)
 				end
 			end
-			filenames.beat = get_name(MEM.beat_data.filename)
-			filenames.event = get_name(MEM.event_data.filename)
-			filenames.geo = get_name(MEM.geo_data.filename)
-			filenames.art = get_art_name(MEM.art_data.filename)
-			if next(filenames) then
-				common_filename = filenames[next(filenames)]
-				for key, val in pairs(filenames) do
-					if not (val == common_filename) then
-						common_filename = get_art_name(MEM.level_data.sharedLevelArt) or filenames.art or filenames.event or filenames.beat or filenames.geo
-						break
-					end
+			local filename_sequence, filename_art, filename_poster, filename_ogg
+			local filename_common
+			if MEM.level_data then
+				if not MEM.level_data.remixTarget then
+					filename_ogg = MEM.level_data.songLocation
+				end
+				filename_sequence = MEM.level_data.sequenceDictionary
+				filename_art = MEM.level_data.sharedLevelArt
+				filename_poster = MEM.level_data.art
+				if filename_art then
+					local ext = string.find(filename_art, "%.")
+					filename_common = string.sub(filename_art, 1, ext - 11)
 				end
 			end
+			filename_common = filename_common or get_name(MEM.beat_data.filename) or get_name(MEM.event_data.filename) or get_name(MEM.geo_data.filename) or get_art_name(MEM.art_data.filename) or "map"
+			filename_sequence = filename_sequence or filename_common.."_sequenceDictionary.pw_seq"
+			filename_art = filename_art or filename_common.."_SharedArt.pw_art"
+			filename_poster = filename_poster or filename_common..".png"
+			filename_ogg = filename_ogg or filename_common..".ogg"
+			
 			MEM.geomancer_meta = {version = sys.get_config("project.version"), props = {}}
+
+
+			
 			if not overwrite then
-				path = path.."\\"..common_filename.."_geomanced"
+				local export_count, expected_count = 0, 10
+				path = path.."\\"..filename_common.."_geomanced"
 				if not lfs.mkdir(path) then
 					local index = 0
 					repeat
@@ -350,34 +392,69 @@ local function export_all(overwrite)
 				if next(MEM.level_data) then
 					export_level(path.."\\level.pw")
 					G.update_navbar("Level settings exported")
+					export_count = export_count + 1
 				end
 				if MEM.event_data.table then
-					export_event(path.."\\"..common_filename..".pw_event")
+					export_event(path.."\\"..filename_common..".pw_event")
 					G.update_navbar("Events exported")
+					export_count = export_count + 1
 				end
 				if MEM.art_data.table then
-					export_art(path.."\\"..common_filename.."_SharedArt.pw_art")
+					export_art(path.."\\"..filename_art)
 					G.update_navbar("Model data exported")
+					export_count = export_count + 1
 				end
 				if MEM.beat_data.table then
-					export_beat(path.."\\"..common_filename..".pw_beat")
+					export_beat(path.."\\"..filename_common..".pw_beat")
 					G.update_navbar("Enemies exported")
+					export_count = export_count + 1
 				end
 				if MEM.geo_data.table then
-					export_geo(path.."\\"..common_filename..".pw_geo")
+					export_geo(path.."\\"..filename_common..".pw_geo")
 					G.update_navbar("Geo exported")
+					export_count = export_count + 1
 				end
 				if next(MEM.meta_data) then
 					export_pw_meta(path.."\\do_not_ship.pw_meta")
+					G.update_navbar("Editor metadata exported")
+					export_count = export_count + 1
 				end
-
-				if export_geomancer_meta(path.."\\"..common_filename..".geomancer") then
-					G.update_navbar("Failed to generate metadata", false)
+				if MEM.sequence_data.string then
+					export_sequences(path.."\\"..filename_sequence)
+					G.update_navbar("Sequences exported")
+					export_count = export_count + 1
+				end
+				if MEM.music and MEM.music_raw then
+					export_binary(path.."\\"..filename_ogg, MEM.music_raw)
+					G.update_navbar("Music exported")
+					export_count = export_count + 1
 				else
-					G.update_navbar("Metadata exported", false)
+					if MEM.level_data and MEM.level_data.remixTarget then
+						expected_count = expected_count - 1
+					end
 				end
-				
-				G.update_navbar("Files exported to "..path)
+				if MEM.poster then
+					export_binary(path.."\\"..filename_poster, MEM.poster)
+					G.update_navbar("Poster exported")
+					export_count = export_count + 1
+				else
+					if MEM.level_data and not MEM.level_data.art then
+						expected_count = expected_count - 1
+					end
+				end
+				if export_geomancer_meta(path.."\\"..filename_common..".geomancer") then
+					G.update_navbar("Failed to generate metadata", false)
+					expected_count = expected_count - 1
+				else
+					G.update_navbar("Geomancer metadata exported", false)
+					export_count = export_count + 1
+				end
+				if export_count < expected_count then
+					G.update_navbar(export_count.." files exported to "..path)
+				else
+					G.update_navbar(export_count.." files exported to "..path)
+					G.update_navbar("The export is a full map.")
+				end
 			else
 				G.update_navbar("Starting export", true)
 				files_to_export = {}
@@ -387,27 +464,38 @@ local function export_all(overwrite)
 					table.insert(files_to_export, {fn = export_level, path = full_path, exists = sys.exists(full_path), text = "Level settings exported"})
 				end
 				if MEM.event_data.table then
-					full_path = path.."\\"..common_filename..".pw_event"
+					full_path = path.."\\"..filename_common..".pw_event"
 					table.insert(files_to_export, {fn = export_event, path = full_path, exists = sys.exists(full_path), text = "Events exported"})
 				end
 				if MEM.art_data.table then
-					full_path = path.."\\"..common_filename.."_SharedArt.pw_art"
+					full_path = path.."\\"..filename_art
 					table.insert(files_to_export, {fn = export_art, path = full_path, exists = sys.exists(full_path), text = "Model data exported"})
 				end
 				if MEM.beat_data.table then
-					full_path = path.."\\"..common_filename..".pw_beat"
+					full_path = path.."\\"..filename_common..".pw_beat"
 					table.insert(files_to_export, {fn = export_beat, path = full_path, exists = sys.exists(full_path), text = "Enemies exported"})
 				end
 				if MEM.geo_data.table then
-					full_path = path.."\\"..common_filename..".pw_geo"
+					full_path = path.."\\"..filename_common..".pw_geo"
 					table.insert(files_to_export, {fn = export_geo, path = full_path, exists = sys.exists(full_path), text = "Geo exported"})
+				end
+				if MEM.poster then
+					full_path = path.."\\"..filename_poster
+					table.insert(files_to_export, {fn = function(_path) export_binary(_path, MEM.poster) end, path = full_path, exists = sys.exists(full_path), text = "Poster exported"})
+				end
+				if MEM.music and MEM.music_raw then
+					full_path = path.."\\"..filename_ogg
+					table.insert(files_to_export, {fn = function(_path) export_binary(_path, MEM.music_raw) end, path = full_path, exists = sys.exists(full_path), text = "Music exported"})
+				end
+				if MEM.sequence_data.string then
+					full_path = path.."\\"..filename_sequence
+					table.insert(files_to_export, {fn = export_sequences, path = full_path, exists = sys.exists(full_path), text = "Sequences exported"})
 				end
 				if next(MEM.meta_data) then
 					full_path = path.."\\do_not_ship.pw_meta"
 					table.insert(files_to_export, {fn = export_pw_meta, path = full_path, exists = sys.exists(full_path), text = "do_not_ship.pw_meta exported."})
 				end
-
-				full_path = path.."\\"..common_filename..".geomancer"
+				full_path = path.."\\"..filename_common..".geomancer"
 				table.insert(files_to_export, {fn = export_geomancer_meta, path = full_path, exists = sys.exists(full_path), text = "Geomancer metadata exported", text_fail = "Failed to generate metadata"})
 				
 				local overwrite_count = 0
@@ -909,11 +997,287 @@ local function import_changes()
 	end
 end
 
+local function cleanup_after_loading_files()
+	MEM.setup_culling_ranges()
+	COL.setup_colours()
+
+	check_geomancer_meta()
+
+	if MEM.level_data.sceneDisplayName then
+		G.update_navbar("Loaded scene: "..MEM.level_data.sceneDisplayName)
+		if MEM.level_data.mapper == "Klear" or MEM.level_data.mapper == "Klear_" or MEM.level_data.mapper == "kingklear" then
+			G.update_navbar("Hey, that's one of mine! Hope you like it")
+		end
+	else
+		G.update_navbar("Unknown scene name")
+	end
+	if UI.tab.tab_event.state then
+		msg.post("/event#tab_event", hash("detect_sample_rate"))
+	end
+	msg.post("/navbar#navbar", hash("update_tabs"))
+
+	check_for_reset()
+end
+
+local function load_data(expected_filename, extension, file_list)
+	if expected_filename then
+		if file_list[expected_filename] then
+			local panel = MEM.load_file(file_list[expected_filename].path, expected_filename, file_list[expected_filename].extension, file_list[expected_filename].content)
+			if panel then
+				G.update_navbar(expected_filename.." loaded.")
+			end
+			return true
+		end
+	end
+	for filename, tab in pairs(file_list) do
+		if tab.extension == extension then
+			local panel = MEM.load_file(tab.path, filename, extension, tab.content)
+			if panel then
+				G.update_navbar(filename.." loaded.")
+			end
+			return true
+		end
+	end
+	if extension == "ogg" then
+		if MEM.level_data.remixTarget then
+			G.update_navbar("Map uses built-in music. Preview will be unavailable.")
+			return false
+		else
+			G.update_navbar("Music file not found.")
+		end
+	elseif extension == "png" then
+		G.update_navbar("Poster not found.") -- Placeholder \""..archive_name..".png\" added.")
+		return false
+	elseif extension == "geomancer" then
+		return false
+	else
+		G.update_navbar(extension.." file not found.")
+	end
+end
+
+local function load_zip(path)
+	SND.stop_music()
+	local f = io.open(path, "rb")
+	if f then
+		G.update_navbar("Extracting files from "..path, true)
+		local zip_data = f:read("*a")
+		local archive = zip.open(zip_data)
+		local htap = string.reverse(path)
+		local archive_name = string.reverse(string.sub(htap, string.find(htap, "%.") + 1, string.find(htap, "\\") - 1))
+
+		if not archive then
+			G.update_navbar("Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually.")
+			return
+		end
+		local loaded_count, expected_count = 0, 10
+		local file_index = zip.get_number_of_entries(archive)
+		if file_index < 0 then
+			G.update_navbar("Archive is empty.")
+			return
+		end
+		local extracted_files = {}
+		for i = 1, file_index do
+			local err, file = pcall(zip.extract_by_index, archive, i - 1)
+			if not err then
+				G.update_navbar("Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually.")
+				return
+			end
+			if file then
+				local emanelif = string.reverse(file.name)
+				local extension_index = string.find(emanelif, "%.")
+				if extension_index then
+					local extension = string.reverse(string.sub(emanelif, 1, extension_index - 1))
+					if not file.content then
+						G.update_navbar("Error extracting "..file.name.." The archive might be corrupted.")
+					else
+						extracted_files[file.name] = {extension = extension, content = file.content}
+					end
+				end
+			else
+				G.update_navbar("Error extracting one of the files. Skipping.")
+			end
+		end
+		local filename_ogg, filename_sequence, filename_art, filename_poster
+		if extracted_files["level.pw"] then
+			local panel = MEM.load_file(nil, "level.pw", "pw", extracted_files["level.pw"].content) 
+			if panel then
+				G.update_navbar("Level data loaded.")
+				if not MEM.level_data.remixTarget then
+					filename_ogg = MEM.level_data.songLocation
+				end
+				filename_sequence = MEM.level_data.sequenceDictionary
+				filename_art = MEM.level_data.sharedLevelArt
+				filename_poster = MEM.level_data.art
+				loaded_count = loaded_count + 1
+			end
+		else
+			G.update_navbar("level.pw not found")
+		end
+
+		local function get_file_count(expected_filename, extension, file_list)
+			local result = load_data(expected_filename, extension, file_list)
+			if result then
+				loaded_count = loaded_count + 1
+			elseif result == false then
+				expected_count = expected_count - 1
+			end
+		end
+
+		get_file_count(filename_art, "pw_art", extracted_files)
+		get_file_count(filename_ogg, "ogg", extracted_files)
+		get_file_count(filename_sequence, "pw_seq", extracted_files)
+		get_file_count(filename_poster, "png", extracted_files)
+		get_file_count("do_not_ship", "pw_meta", extracted_files)
+		get_file_count(archive_name..".pw_beat", "pw_beat", extracted_files)
+		get_file_count(archive_name..".pw_event", "pw_event", extracted_files)
+		get_file_count(archive_name..".pw_geo", "pw_geo", extracted_files)
+		get_file_count(archive_name..".geomancer", "geomancer", extracted_files)
+		zip.close(archive)
+
+		if loaded_count < expected_count then
+			G.update_navbar("Loaded "..loaded_count.." files.")
+		else
+			G.update_navbar("Loaded "..loaded_count.." files. Export should produce a working map.")
+		end
+
+		cleanup_after_loading_files()
+	end
+end
+
+local function load_file(path)
+	local htap = string.reverse(path)
+	local filename = string.reverse(string.sub(htap, 1, string.find(htap, "\\") - 1))
+	local extension = string.find(htap, "%.")
+	extension = string.reverse(string.sub(htap, 1, extension - 1))
+	if extension == "ogg" then
+		SND.stop_music()
+	end
+	G.update_navbar("Loading "..filename, true)
+	timer.delay(0.01, false, function()
+		local panel = MEM.load_file(path, filename, extension)
+		if panel then
+			G.update_navbar("File loaded successfully")
+			msg.post("/navbar#navbar", hash("update_tabs"))
+			check_for_reset()
+			if extension == "pw_event" then
+				msg.post("/event#tab_event", hash("detect_sample_rate"))
+			elseif extension == "pw_art" then
+				MEM.setup_culling_ranges()
+				COL.setup_colours()
+			end
+		else
+			G.update_navbar("File not loaded")
+		end
+	end)
+end
+
+local function load_dir(path)
+	SND.stop_music()
+	G.update_navbar("Loading files from "..path, true)
+	local file_list = {}
+	local ext_list = {pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = true, geomancer = true, ogg = true, png = true}
+	for filename in lfs.dir(path) do
+		if not (filename == "." or filename == "..") then
+			local extension_pos = string.find(filename, "%.")
+			if extension_pos then
+				local extension = string.sub(filename, extension_pos + 1)
+				if ext_list[extension] then
+					file_list[filename] = {path = path.."/"..filename, extension = extension}
+				end
+			end
+		end
+	end
+
+	if next(file_list) then
+		local loaded_count, expected_count = 0, 10
+		local filename_ogg, filename_sequence, filename_art, filename_poster, common_name
+		if file_list["level.pw"] then
+			local panel = MEM.load_file(file_list["level.pw"].path, "level.pw", "pw") 
+			if panel then
+				G.update_navbar("Level data loaded.")
+				if not MEM.level_data.remixTarget then
+					filename_ogg = MEM.level_data.songLocation
+				end
+				filename_sequence = MEM.level_data.sequenceDictionary
+				filename_art = MEM.level_data.sharedLevelArt
+				filename_poster = MEM.level_data.art
+				loaded_count = loaded_count + 1
+				if filename_art then
+					local ext = string.find(filename_art, "%.")
+					common_name = string.sub(filename_art, 1, ext - 11)
+				end
+			end
+		end
+		
+		local function get_file_count(expected_filename, extension, _file_list)
+			local result = load_data(expected_filename, extension, _file_list)
+			if result then
+				loaded_count = loaded_count + 1
+			elseif result == false then
+				expected_count = expected_count - 1
+			end
+		end
+
+		get_file_count(filename_art, "pw_art", file_list)
+		get_file_count(filename_ogg, "ogg", file_list)
+		get_file_count(filename_sequence, "pw_seq", file_list)
+		get_file_count(filename_poster, "png", file_list)
+		get_file_count("do_not_ship", "pw_meta", file_list)
+		get_file_count(common_name..".pw_beat", "pw_beat", file_list)
+		get_file_count(common_name..".pw_event", "pw_event", file_list)
+		get_file_count(common_name..".pw_geo", "pw_geo", file_list)
+		get_file_count(common_name..".geomancer", "geomancer", file_list)
+
+		if loaded_count < expected_count then
+			G.update_navbar("Loaded "..loaded_count.." files.")
+		else
+			G.update_navbar("Loaded "..loaded_count.." files. Export should produce a working map.")
+		end
+		cleanup_after_loading_files()
+	else
+		G.update_navbar("No valid files found.")
+	end
+end
+
+local function unload_all()
+	for key, val in pairs(UI.tab) do
+		if not (val.state == nil) then
+			val.state = false
+		end
+	end
+	UI.tab.tab_options.state = true
+	UI.tab.tab_rotate.state = true
+	UI.tab.tab_file.state = true
+	MEM.level_data = {}
+	MEM.meta_data = {}
+	MEM.beat_data = {}
+	MEM.event_data = {}
+	MEM.geo_data = {}
+	MEM.sequence_data = {}
+	MEM.art_data = {}
+	MOD.release_model_resources()
+	SND.unload_music()
+	MEM.music = nil
+	MEM.music_raw = nil
+	MEM.poster = nil
+	msg.post("/event#tab_event", hash("reset"))
+	msg.post("/navbar#navbar", hash("update_tabs"))
+end
+
 local function evaluate_button(button)
 	if button == "exit" then
 		os.exit(1)
 	elseif button == "klear_button" then
 
+	elseif button == "map_preview" then
+		if MEM.art_data.table then
+			G.update_navbar("", true)
+			msg.post("#", hash("disable"))
+			msg.post("#", hash("release_input_focus"))
+			msg.post("/model_viewer", hash("tween_preview"), {preview_map = true})
+		else
+			G.update_navbar("Map data not loaded", true)
+		end
 	elseif button == "help" then
 		sys.open_url("https://mod.io/g/pistol-whip/r/geomancer")
 	elseif button == "import_checkbox" then
@@ -945,280 +1309,31 @@ local function evaluate_button(button)
 	elseif button == "load_file" then
 		local num, path = diags.open("pw_meta,pw,pw_beat,pw_event,pw_geo,pw_art,pw_seq", SET.default_path_load_file)
 		if path then
-			local htap = string.reverse(path)
-			local filename = string.reverse(string.sub(htap, 1, string.find(htap, "\\") - 1))
-			local extension = string.find(htap, "%.")
-			extension = string.reverse(string.sub(htap, 1, extension - 1))
-			G.update_navbar("Loading "..filename, true)
-			timer.delay(0.02, false, function()
-				local panel = MEM.load_file(path, filename, extension)
-				if panel then
-					G.update_navbar("File loaded successfully")
-					msg.post("/navbar#navbar", hash("update_tabs"))
-					check_for_reset()
-					if extension == "pw_event" then
-						msg.post("/event#tab_event", hash("detect_sample_rate"))
-					end
-				else
-					G.update_navbar("File not loaded")
-				end
-			end)
+			load_file(path)
 		end
 	elseif button == "load_zip" then
-		local num, path = diags.open("zip", SET.default_path_load_zip)
+		local _, path = diags.open("zip", SET.default_path_load_zip)
 		if path then
-			local f = io.open(path, "rb")
-			if f then
-				G.update_navbar("Extracting files from "..path, true)
-				local zip_data = f:read("*a")
-				local archive = zip.open(zip_data)
-				local htap = string.reverse(path)
-				local archive_name = string.reverse(string.sub(htap, string.find(htap, "%.") + 1, string.find(htap, "\\") - 1))
-
-				if not archive then
-					G.update_navbar("Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually.")
-					return
-				end
-				local file_index = zip.get_number_of_entries(archive) - 1
-				local skip_count, extracted_count = 0, 0
-				local ext_list = {ogg = true, pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = true, geomancer = true}
-				local function extract_next()
-					local err, file = pcall(zip.extract_by_index, archive, file_index)
-					if not err then
-						G.update_navbar("Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually.")
-						return
-					end
-					
-					local emanelif = string.reverse(file.name)
-					local extension_index = string.find(emanelif, "%.")
-					if extension_index then
-						local extension = string.reverse(string.sub(emanelif, 1, extension_index - 1))
-						if ext_list[extension] then
-							local panel = MEM.load_file(nil, file.name, extension, file.content) 
-							if panel then
-								ext_list[extension] = false
-								G.update_navbar(file.name)
-								extracted_count = extracted_count + 1
-							else
-								skip_count = skip_count + 1
-							end
-						else
-							skip_count = skip_count + 1
-						end
-					end
-					file_index = file_index - 1
-					if file_index < 0 then
-
-					else
-						timer.delay(0.01, false, extract_next)
-					end
-				end
-
-				local file_index = zip.get_number_of_entries(archive)
-				local extracted_files = {}
-
-				for i = 1, file_index do
-					local err, file = pcall(zip.extract_by_index, archive, i - 1)
-					if not err then
-						G.update_navbar("Error extracting files. Try resaving the map with the current Pistol Mix version or extract the files manually.")
-						return
-					end
-					if file then
-						local emanelif = string.reverse(file.name)
-						local extension_index = string.find(emanelif, "%.")
-						if extension_index then
-							local extension = string.reverse(string.sub(emanelif, 1, extension_index - 1))
-							local skip = false
-							if not file.content then
-								skip = true
-							else
-								extracted_count = extracted_count + 1
-								extracted_files[file.name] = {extension = extension, content = file.content}
-							end
-							if skip then
-								G.update_navbar("Error extracting "..file.name.." The archive might be corrupted.")
-							end
-						end
-					else
-						G.update_navbar("Error extracting one of the files. Skipping.")
-					end
-				end
-
-				local filename_ogg, filename_sequence, filename_art, filename_poster
-				if extracted_files["level.pw"] then
-					local panel = MEM.load_file(nil, "level.pw", "pw", extracted_files["level.pw"].content) 
-					if panel then
-						G.update_navbar("Level data loaded.")
-						if not MEM.level_data.remixTarget then
-							filename_ogg = MEM.level_data.songLocation
-						end
-						filename_sequence = MEM.level_data.sequenceDictionary
-						filename_art = MEM.level_data.sharedLevelArt
-						filename_poster = MEM.level_data.art
-					end
-				else
-					G.update_navbar("level.pw not found")
-				end
-
-				local function load_data(expected_filename, extension)
-					if expected_filename then
-						if extracted_files[expected_filename] then
-							local panel = MEM.load_file(nil, expected_filename, extracted_files[expected_filename].extension, extracted_files[expected_filename].content)
-							if panel then
-								G.update_navbar(expected_filename.." loaded.")
-							end
-							return
-						end
-					end
-					for filename, tab in pairs(extracted_files) do
-						if tab.extension == extension then
-							local panel = MEM.load_file(nil, filename, extension, tab.content)
-							if panel then
-								G.update_navbar(filename.." loaded.")
-							end
-							return
-						end
-					end
-					if extension == "ogg" and not MEM.level_data.remixTarget then
-						G.update_navbar("Song file not found.")
-					elseif extension == "png" then
-						G.update_navbar("Poster not found. Placeholder \""..archive_name..".png\" added.")
-					else
-						G.update_navbar(extension.." file not found.")
-					end
-				end
-
-
-				load_data(filename_art, "pw_art")
-				load_data(filename_ogg, "ogg")
-				load_data(filename_sequence, "pw_seq")
-				load_data(filename_poster, "png")
-				load_data("do_not_ship", "pw_meta")
-				load_data(archive_name, "pw_beat")
-				load_data(archive_name, "pw_event")
-				load_data(archive_name, "pw_geo")
-				load_data(archive_name, "geomancer")
-				
-				
-
-
-				zip.close(archive)
-				check_geomancer_meta()
-				--G.update_navbar("Extracted "..extracted_count.." files, "..skip_count.." skipped.")
-				if MEM.level_data.sceneDisplayName then
-					G.update_navbar("Loaded scene: "..MEM.level_data.sceneDisplayName)
-					if MEM.level_data.mapper == "Klear" or MEM.level_data.mapper == "Klear_" or MEM.level_data.mapper == "kingklear" then
-						G.update_navbar("Hey, that's one of mine! Hope you like it")
-					end
-				else
-					G.update_navbar("Unknown scene name")
-				end
-				if UI.tab.tab_event.state then
-					msg.post("/event#tab_event", hash("detect_sample_rate"))
-				end
-				msg.post("/navbar#navbar", hash("update_tabs"))
-				
-
-				check_for_reset()
-				if true then return end
-				os.exit()
-
-				
-				if ext_list[extension] then
-					local panel = MEM.load_file(nil, file.name, extension, file.content) 
-					if panel then
-						ext_list[extension] = false
-
-					else
-						skip = true
-					end
-				end
-
-				
-				if file_index > -1 then
-					timer.delay(0.01, false, extract_next)
-				else
-					G.update_navbar("Archive is empty.")
-				end
-				check_for_reset()
+			if SET.unload_data_before_loading_zip then
+				unload_all()
 			end
+			timer.delay(0.01, false, function()
+				load_zip(path)
+			end)
 		end
 	elseif button == "load_dir" then
 		local num, path = diags.open_folder(SET.default_path_load_directory)
 		if path then
-			G.update_navbar("Loading files from "..path, true)
-			local files_to_load = {}
-			local skip_count = 0
-			local ext_list = {pw_meta = true, pw = true, pw_beat = true, pw_event = true, pw_geo = true, pw_art = true, pw_seq = false, geomancer = true}
-			for filename in lfs.dir(path) do
-				if not (filename == "." or filename == "..") then
-					local extension = string.find(filename, "%.")
-					if extension then
-						extension = string.sub(filename, extension + 1)
-						if ext_list[extension] then
-							table.insert(files_to_load, {path = path.."/"..filename, filename = filename, extension = extension})
-							ext_list[extension] = false
-						else
-							skip_count = skip_count + 1
-						end
-					end
-				end
+			if SET.unload_data_before_loading_folder then
+				unload_all()
 			end
-			if #files_to_load > 0 then
-				local function load_next_file()
-					local _file = table.remove(files_to_load)
-					local panel = MEM.load_file(_file.path, _file.filename, _file.extension)
-					if panel then
-						G.update_navbar(_file.filename)
-						msg.post("/navbar#navbar", hash("update_tabs"))
-					else
-						G.update_navbar("Error loading ".._file.filename)
-					end
-					if #files_to_load > 0 then
-						timer.delay(0.01, false, load_next_file)
-					else
-						if UI.tab.tab_event.state then
-							msg.post("/event#tab_event", hash("detect_sample_rate"))
-						end
-						check_geomancer_meta()
-						if MEM.level_data.sceneDisplayName then
-							G.update_navbar("Done. Loaded scene: "..MEM.level_data.sceneDisplayName)
-							if MEM.level_data.mapper == "Klear" or MEM.level_data.mapper == "Klear_" or MEM.level_data.mapper == "kingklear" then
-								G.update_navbar("Hey, that's one of mine! Hope you like it")
-							end
-						else
-							G.update_navbar("Done. Unknown scene name")
-						end
-					end
-				end
-				G.update_navbar("Loading "..#files_to_load.." files, "..skip_count.." skipped.")
-				timer.delay(0.01, false, load_next_file)
-				check_for_reset()
-			else
-				G.update_navbar("No valid files found.")
-			end
+			timer.delay(0.01, false, function()
+				load_dir(path)
+			end)
 		end
 	elseif button == "unload_all" then
-		for key, val in pairs(UI.tab) do
-			if not (val.state == nil) then
-				val.state = false
-			end
-		end
-		UI.tab.tab_options.state = true
-		UI.tab.tab_rotate.state = true
-		UI.tab.tab_file.state = true
-		MEM.level_data = {}
-		MEM.meta_data = {}
-		MEM.beat_data = {}
-		MEM.event_data = {}
-		MEM.geo_data = {}
-		MEM.sequence_data = {}
-		MEM.art_data = {}
-		MOD.release_model_resources()
-
-		msg.post("/event#tab_event", hash("reset"))
+		unload_all()
 		G.update_navbar("All data unloaded.", true)
-		msg.post("/navbar#navbar", hash("update_tabs"))
 	elseif button == "export_all" then
 		export_all(not SET.create_folder_on_export)
 	end

@@ -94,6 +94,30 @@ key_trigger {
   input: KEY_F10
   action: "f10"
 }
+key_trigger {
+  input: KEY_W
+  action: "w"
+}
+key_trigger {
+  input: KEY_A
+  action: "a"
+}
+key_trigger {
+  input: KEY_S
+  action: "s"
+}
+key_trigger {
+  input: KEY_D
+  action: "d"
+}
+key_trigger {
+  input: KEY_E
+  action: "e"
+}
+key_trigger {
+  input: KEY_Q
+  action: "q"
+}
 mouse_trigger {
   input: MOUSE_BUTTON_1
   action: "touch"
@@ -109,6 +133,10 @@ mouse_trigger {
 mouse_trigger {
   input: MOUSE_BUTTON_RIGHT
   action: "r_click"
+}
+mouse_trigger {
+  input: MOUSE_BUTTON_MIDDLE
+  action: "mid_click"
 }
 text_trigger {
   input: TEXT

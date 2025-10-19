@@ -37,7 +37,6 @@ local metronome_sounds = {"/sound#beep", "/sound#click"}
 function on_message(self, message_id, message, sender)
 	if message_id == hash("play_music") and MEM.music then
 		stop_music()
-
 		SND.music_is_playing = true
 		sound.play("/sound#music", {delay = 0, start_time = message.start or 0})
 

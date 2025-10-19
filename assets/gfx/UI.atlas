@@ -112,6 +112,39 @@ images {
 images {
   image: "/assets/gfx/model_viewer/button_transform_none.png"
 }
+images {
+  image: "/assets/gfx/model_viewer/playback_icons/double_speed.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/playback_icons/half_speed.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/playback_icons/normal_speed.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/playback_icons/quadruple_speed.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/button_visibility.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/button_hide_grid.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/button_show_grid_normal.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/hide_beatcubes.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/hide_fog.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/hide_props.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/show_beatcubes.png"
+}
 animations {
   id: "button_white_down"
   images {

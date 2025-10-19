@@ -1,0 +1,41 @@
+attribute mediump vec2 texcoord0;
+attribute mediump vec3 normal;
+attribute highp vec4 position;
+
+uniform mediump mat4 mtx_worldview;
+uniform mediump mat4 mtx_world;
+uniform mediump mat4 mtx_proj;
+
+varying mediump vec4 var_normal;
+varying mediump vec2 var_texcoord0;
+varying mediump vec4 pos_worldview;
+varying mediump vec4 pos_world;
+
+
+
+void main()
+{
+    
+    vec4 p = mtx_worldview * vec4(position.xyz, 1.0);
+
+    var_normal = normalize(mtx_world * vec4(normal.xyz, 0.0));
+
+    vec4 pos = mtx_world * vec4(position.xyz, 1.0);
+
+    vec4 up = vec4(0.0, 1.0, 0.0, 0.0);
+    vec4 right = vec4(normalize(cross(var_normal.xyz, up.xyz)), 0.0);
+    up = vec4((cross(right.xyz, var_normal.xyz)), 0.0);
+    mat4 rot = mat4(right, up, var_normal, vec4(0.0, 0.0, 0.0, 1.0));
+
+    var_texcoord0 = (pos * rot).xy * 0.25;
+    if (abs(var_normal.y) > 0.9999)
+    {
+        var_texcoord0 = pos.xz * 0.25;
+    }
+    
+    pos_worldview = p;
+    pos_world = pos;
+    
+    gl_Position = mtx_proj * p;
+}
+

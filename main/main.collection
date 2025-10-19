@@ -2,9 +2,9 @@ name: "main"
 instances {
   id: "model_viewer"
   prototype: "/main/model_viewer/model_viewer.go"
-  children: "camera_target"
   children: "colours"
   children: "ground"
+  children: "ground_former"
   children: "pick_prop"
 }
 instances {
@@ -246,11 +246,6 @@ embedded_instances {
   ""
 }
 embedded_instances {
-  id: "camera_target"
-  children: "model_camera"
-  data: ""
-}
-embedded_instances {
   id: "colours"
   data: "components {\n"
   "  id: \"dialog_colour\"\n"
@@ -275,38 +270,6 @@ embedded_instances {
   ""
 }
 embedded_instances {
-  id: "model_camera"
-  data: "embedded_components {\n"
-  "  id: \"background\"\n"
-  "  type: \"sprite\"\n"
-  "  data: \"default_animation: \\\"white_pixel\\\"\\n"
-  "material: \\\"/render/sprite_viewer.material\\\"\\n"
-  "size {\\n"
-  "  x: 400.0\\n"
-  "  y: 507.0\\n"
-  "}\\n"
-  "size_mode: SIZE_MODE_MANUAL\\n"
-  "textures {\\n"
-  "  sampler: \\\"texture_sampler\\\"\\n"
-  "  texture: \\\"/assets/gfx/UI.atlas\\\"\\n"
-  "}\\n"
-  "\"\n"
-  "  position {\n"
-  "    z: -10.0\n"
-  "  }\n"
-  "}\n"
-  "embedded_components {\n"
-  "  id: \"camera\"\n"
-  "  type: \"camera\"\n"
-  "  data: \"aspect_ratio: 0.701754\\n"
-  "fov: 0.7854\\n"
-  "near_z: 0.001\\n"
-  "far_z: 300.0\\n"
-  "\"\n"
-  "}\n"
-  ""
-}
-embedded_instances {
   id: "pick_prop"
   data: "components {\n"
   "  id: \"dialog_props\"\n"
@@ -315,7 +278,7 @@ embedded_instances {
   ""
 }
 embedded_instances {
-  id: "ground"
+  id: "ground_former"
   children: "geo_base"
   children: "grid"
   children: "prop_offset"
@@ -331,10 +294,10 @@ embedded_instances {
   "name: \\\"{{NAME}}\\\"\\n"
   "materials {\\n"
   "  name: \\\"default\\\"\\n"
-  "  material: \\\"/render/no_light_inv.material\\\"\\n"
+  "  material: \\\"/render/grid_repeat.material\\\"\\n"
   "  textures {\\n"
   "    sampler: \\\"tex0\\\"\\n"
-  "    texture: \\\"/assets/gfx/textures/default_floor.png\\\"\\n"
+  "    texture: \\\"/assets/gfx/textures/grid_dots.png\\\"\\n"
   "  }\\n"
   "}\\n"
   "\"\n"
@@ -344,13 +307,15 @@ embedded_instances {
   "  }\n"
   "}\n"
   ""
-  rotation {
-    y: 0.70710677
-    w: 0.70710677
+  position {
+    x: 4.5
+    y: 0.03
+    z: -580.5
   }
   scale3 {
-    x: 32.0
-    z: 32.0
+    x: 640.0
+    y: 640.0
+    z: 640.0
   }
 }
 embedded_instances {
@@ -415,7 +380,7 @@ embedded_instances {
   "name: \\\"{{NAME}}\\\"\\n"
   "materials {\\n"
   "  name: \\\"default\\\"\\n"
-  "  material: \\\"/render/model.material\\\"\\n"
+  "  material: \\\"/render/old_mats/model.material\\\"\\n"
   "  textures {\\n"
   "    sampler: \\\"tex0\\\"\\n"
   "    texture: \\\"/assets/gfx/white_pixel.png\\\"\\n"
@@ -458,4 +423,83 @@ embedded_instances {
   "  component: \"/main/dialogs/colour_picker.gui\"\n"
   "}\n"
   ""
+}
+embedded_instances {
+  id: "ground"
+  children: "camera_target"
+  children: "player_capsule"
+  data: ""
+}
+embedded_instances {
+  id: "camera_target"
+  children: "model_camera"
+  data: ""
+}
+embedded_instances {
+  id: "model_camera"
+  children: "fog"
+  data: "embedded_components {\n"
+  "  id: \"camera\"\n"
+  "  type: \"camera\"\n"
+  "  data: \"aspect_ratio: 0.701754\\n"
+  "fov: 1.0471976\\n"
+  "near_z: 0.001\\n"
+  "far_z: 128.0\\n"
+  "\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "fog"
+  data: "embedded_components {\n"
+  "  id: \"fog\"\n"
+  "  type: \"model\"\n"
+  "  data: \"mesh: \\\"/builtins/assets/meshes/quad.dae\\\"\\n"
+  "name: \\\"{{NAME}}\\\"\\n"
+  "materials {\\n"
+  "  name: \\\"default\\\"\\n"
+  "  material: \\\"/render/prop_materials/fog.material\\\"\\n"
+  "  textures {\\n"
+  "    sampler: \\\"tex0\\\"\\n"
+  "    texture: \\\"/assets/gfx/white_pixel.png\\\"\\n"
+  "  }\\n"
+  "}\\n"
+  "create_go_bones: false\\n"
+  "\"\n"
+  "  rotation {\n"
+  "    y: 1.0\n"
+  "    w: 6.123234E-17\n"
+  "  }\n"
+  "}\n"
+  ""
+  position {
+    z: -48.0
+  }
+  scale3 {
+    x: 200.0
+    y: 200.0
+  }
+}
+embedded_instances {
+  id: "player_capsule"
+  data: "embedded_components {\n"
+  "  id: \"model\"\n"
+  "  type: \"model\"\n"
+  "  data: \"mesh: \\\"/assets/models/player_capsule.dae\\\"\\n"
+  "name: \\\"{{NAME}}\\\"\\n"
+  "materials {\\n"
+  "  name: \\\"default\\\"\\n"
+  "  material: \\\"/render/player_capsule.material\\\"\\n"
+  "}\\n"
+  "\"\n"
+  "}\n"
+  ""
+  position {
+    y: 0.1
+  }
+  scale3 {
+    x: 0.8
+    y: 0.9
+    z: 0.8
+  }
 }

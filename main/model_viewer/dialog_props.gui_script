@@ -43,69 +43,29 @@ function init(self)
 	prop_scroll_list = UI.create_list(DIALOG_NAME, gui.get_node("prop_list"), props)
 end
 
-function evaluate_button(button, item)
-	if button == "prop_cancel" then
-		DIALOG.close(DIALOG_NAME)
-	elseif button == "prop_accept" or button == "enter" then
-		if prop_list[1] then
-			MOD.prop_data = prop_list[selected_prop]
+local function accept_selection()
+	if prop_list[1] then
+		MOD.prop_data = prop_list[selected_prop]
+		if prop_list[selected_prop].signal_z then
 			local lowest_z
 			for key, val in ipairs(prop_list[selected_prop].signal_z) do
 				lowest_z = math.min(lowest_z or math.huge, val)
 			end
 			MOD.prop_data.lowest_z = lowest_z
-			DIALOG.close(DIALOG_NAME, {prop_changed = true})
-		else
-			DIALOG.close(DIALOG_NAME)
 		end
+		DIALOG.close(DIALOG_NAME, {prop_changed = true})
+	else
+		DIALOG.close(DIALOG_NAME)
+	end
+end
+
+function evaluate_button(button, item)
+	if button == "prop_cancel" then
+		DIALOG.close(DIALOG_NAME)
+	elseif button == "prop_accept" or button == "enter" then
+		accept_selection()
 	elseif button == prop_scroll_list then
 		selected_prop = item
-	end
-end
-
-local two_pi = 2 * math.pi
-local half_pi = math.pi * 0.5
-local negative_flip = -0.0001
-local positive_flip = two_pi - 0.0001
-
-local function sanitise_euler(euler)
-	if euler.x < negative_flip then
-		euler.x = euler.x + two_pi
-	elseif euler.x > positive_flip then
-		euler.x = euler.x - two_pi
-	end
-	if euler.y < negative_flip then
-		euler.y = euler.y + two_pi
-	elseif euler.y > positive_flip then
-		euler.y = euler.y - two_pi
-	end
-	if euler.z < negative_flip then
-		euler.z = euler.z + two_pi
-	elseif euler.z > positive_flip then
-		euler.z = euler.z + two_pi
-	end
-	return euler
-end
-
-local function quat_to_euler(q)
-	local x = q.x
-	local y = q.y
-	local z = q.z
-	local w = q.w
-	local check = 2 * (y * z - w * x)
-	if check < 0.999 then
-		if check > -0.999 then
-			local v = vmath.vector3(-math.asin(check),
-			math.atan2(2 * (x * z + w * y), 1 - 2 * (x * x + y * y)),
-			math.atan2(2 * (x * y + w * z), 1 - 2 * (x * x + z * z)))
-			return v
-		else
-			local v = vmath.vector3(half_pi, math.atan2(2 * (x * y - w * z), 1 - 2 * (y * y + z * z)), 0)
-			return v
-		end
-	else
-		local v = vmath.vector3(-half_pi, math.atan2(-2 * (x * y - w * z), 1 - 2 * (y * y + z * z)), 0)
-		return v
 	end
 end
 
@@ -129,9 +89,8 @@ function on_message(self, message_id, message, sender)
 					pos.y = G.round(pos.y, 2)
 					pos.z = G.round(pos.z, 2)
 
-					local v = quat_to_euler(rot)
-					--v.x = -v.x; v.y = -v.y
-					local euler = math.deg(sanitise_euler(v))
+					local x, y, z = vmath.quat_to_euler(rot)
+					local euler = vmath.vector3(x, y, z) -- sanitise, maybe? 
 					rot = {x = euler.x, y = euler.y, z = euler.z}
 					rot.x = G.round(rot.x, 1)
 					rot.y = G.round(rot.y, 1)
@@ -205,17 +164,8 @@ function on_message(self, message_id, message, sender)
 			UI.select_exclusive_button(DIALOG_NAME, prop_scroll_list, selected_prop, true)
 		end
 		if message.autoclose then
-			if prop_list[1] then
-				MOD.prop_data = prop_list[1]
-				local lowest_z
-				for key, val in ipairs(prop_list[1].signal_z) do
-					lowest_z = math.min(lowest_z or math.huge, val)
-				end
-				MOD.prop_data.lowest_z = lowest_z
-				DIALOG.close(DIALOG_NAME, {prop_changed = true})
-			else
-				DIALOG.close(DIALOG_NAME)
-			end
+			selected_prop = 1
+			accept_selection()
 		end
 	end
 end

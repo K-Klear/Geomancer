@@ -5,7 +5,7 @@ local DIALOG_DATA
 
 local G = require "modules.global"
 
-local mouse_held_hue, mouse_held_colour = false
+local mouse_held_hue, mouse_held_colour = false, false
 local red, green, blue, hue, saturation, value = 1, 1, 1, 0, 0, 1
 local picked_colour = vmath.vector4(red, green, blue, 1)
 local colour_id

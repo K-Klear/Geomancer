@@ -33,17 +33,11 @@ local validation_model_move_sensitivity = {
 	max = function() return 2 end,
 	default = function() return SET.model_move_sensitivity end
 }
-local validation_model_zoom_sensitivity = {
+local validation_run_speed_multiplier = {
 	number = true,
 	min = function() return 0.01 end,
 	max = function() return 10 end,
-	default = function() return SET.model_zoom_sensitivity end
-}
-local validation_zoom = {
-	number = true,
-	min = function() return 0.5 end,
-	max = function() return 100 end,
-	default = function() return SET.default_camera_zoom end
+	default = function() return SET.run_speed_multiplier end
 }
 local validation_camera_rotation = {
 	number = true,
@@ -105,13 +99,32 @@ local validation_default_rotation_rounding = {
 	max = function() return 90 end,
 	default = function() return SET.default_rotation_rounding end
 }
+local validation_tween_padding_start = {
+	number = true,
+	min = function() return 0 end, max = function() return 10 end,
+	default = function() return SET.tween_padding_start end
+}
+local validation_tween_padding_end = {
+	number = true,
+	min = function() return 0 end, max = function() return 10 end,
+	default = function() return SET.tween_padding_end end
+}
 
+local validation_map_preview_partition_size = {
+	number = true,
+	min = function() return 0 end,
+	max = function() return 999 end,
+	default = function() return SET.map_preview_partition_size end
+}
 
 local active_tab = "paths"
 local tab_list = {}
 tab_list.paths = {buttons = {}, fields = {}}
-tab_list.files = {buttons = {"confirm_file_overwrite", "default_create_folder_on_export", "default_import_changes_from_zip",
-"default_import_level_changes", "default_import_event_changes", "default_import_model_changes", "default_import_beat_changes"}, fields = {}}
+tab_list.files = {buttons = {"confirm_file_overwrite", "default_create_folder_on_export", "default_import_changes_from_zip", "preload_models",
+"default_import_level_changes", "default_import_event_changes", "default_import_model_changes", "default_import_beat_changes",
+"unload_data_before_loading_zip", "unload_data_before_loading_folder"}, fields = {
+	{name = "map_preview_partition_size", char_limit = 3, validation = validation_map_preview_partition_size},
+}}
 tab_list.colours = {buttons = {
 	"background_colour", "colour_active_text_field", "colour_highlight_material", "colour_highlight_dynamic", "colour_highlight_tween",
 	"colour_model_import_selection", "colour_model_replace", "colour_unsupported_obstacle", "colour_current_enemy_set",
@@ -123,8 +136,10 @@ tab_list.tween = {buttons = {
 	"auto_set_tween_preview_prop", "easing_node_colour", "easing_node_highlight_colour", "easing_curve_colour", "default_tween_time_in_beats"},
 	fields = {{name = "tween_timeline_bar_height", char_limit = 3, validation = validation_bar},
 	{name = "easing_node_scale", char_limit = 3, validation = validation_node_scale},
-	{name = "easing_curve_thickness", char_limit = 3, validation = validation_curve_thickness}}
-}
+	{name = "easing_curve_thickness", char_limit = 3, validation = validation_curve_thickness},
+	{name = "tween_padding_start", char_limit = 3, validation = validation_tween_padding_start},
+	{name = "tween_padding_end", char_limit = 3, validation = validation_tween_padding_end}
+}}
 tab_list.transform = {buttons = {
 	"use_default_transform_name", "add_root_transform_if_missing", "allow_tweening_base_transform", "allow_tweening_base_transform",
 	"allow_mesh_delete", "confirm_transform_delete", "show_transform_edit_warning"
@@ -132,12 +147,11 @@ tab_list.transform = {buttons = {
 	{name = "default_transform_name", char_limit = 26, validation = validation_transform_name},
 	{name = "root_transform_default_name", char_limit = 26, validation = validation_root_transform_name}}
 }
-tab_list.model_viewer = {buttons = {"model_show_grid", "model_grid_dots", "show_transform", "custom_colour_main", "custom_colour_fog",
-"custom_colour_glow", "custom_colour_enemy"}, fields = {
+tab_list.model_viewer = {buttons = {"model_show_grid", "show_transform", "custom_colour_main", "custom_colour_fog",
+"custom_colour_glow", "custom_colour_enemy", "collider_colour"}, fields = {
 	{name = "model_rotation_sensitivity", char_limit = 4, validation = validation_model_rotation_sensitivity},
 	{name = "model_move_sensitivity", char_limit = 4, validation = validation_model_move_sensitivity},
-	{name = "model_zoom_sensitivity", char_limit = 4, validation = validation_model_zoom_sensitivity},
-	{name = "default_camera_zoom", char_limit = 3, validation = validation_zoom},
+	{name = "run_speed_multiplier", char_limit = 4, validation = validation_run_speed_multiplier},
 	{name = "default_camera_rotation", char_limit = 3, validation = validation_camera_rotation},
 	{name = "default_camera_pitch", char_limit = 3, validation = validation_camera_pitch},
 	{name = "default_model_z_position", char_limit = 4, validation = validation_model_z_position},
@@ -242,6 +256,7 @@ function init(self)
 	for key, val in ipairs(tab_list.files.buttons) do
 		set_checkbox(val, SET[val])
 	end
+	gui.set_text(gui.get_node("map_preview_partition_size/text"), SET.map_preview_partition_size)
 	-- paths
 	gui.set_text(gui.get_node("default_path_zip"), SET.default_path_load_zip)
 	gui.set_text(gui.get_node("default_path_directory"), SET.default_path_load_directory)
@@ -282,11 +297,12 @@ function init(self)
 	else
 		gui.set_text(gui.get_node("default_tween_time_in_beats/text"), "Seconds")
 	end
+	gui.set_text(gui.get_node("tween_padding_start/text"), SET.tween_padding_start)
+	gui.set_text(gui.get_node("tween_padding_end/text"), SET.tween_padding_end)
 	-- model viewer
 	gui.set_text(gui.get_node("model_rotation_sensitivity/text"), SET.model_rotation_sensitivity)
 	gui.set_text(gui.get_node("model_move_sensitivity/text"), SET.model_move_sensitivity)
-	gui.set_text(gui.get_node("model_zoom_sensitivity/text"), SET.model_zoom_sensitivity)
-	gui.set_text(gui.get_node("default_camera_zoom/text"), SET.default_camera_zoom)
+	gui.set_text(gui.get_node("run_speed_multiplier/text"), SET.run_speed_multiplier)
 	gui.set_text(gui.get_node("default_camera_rotation/text"), SET.default_camera_rotation)
 	gui.set_text(gui.get_node("default_camera_pitch/text"), SET.default_camera_pitch)
 	gui.set_text(gui.get_node("default_model_z_position/text"), SET.default_model_z_position)
@@ -295,17 +311,13 @@ function init(self)
 	gui.set_color(gui.get_node("custom_colour_fog/text"), COL.str_to_colour(SET.custom_colour_fog))
 	gui.set_color(gui.get_node("custom_colour_glow/text"), COL.str_to_colour(SET.custom_colour_glow))
 	gui.set_color(gui.get_node("custom_colour_enemy/text"), COL.str_to_colour(SET.custom_colour_enemy))
+	gui.set_color(gui.get_node("collider_colour/text"), SET.collider_colour)
 	if SET.default_model_show_grid == 1 then
 		gui.set_text(gui.get_node("model_show_grid/text"), "Ground")
 	elseif SET.default_model_show_grid == 2 then
 		gui.set_text(gui.get_node("model_show_grid/text"), "Grid")
 	else
 		gui.set_text(gui.get_node("model_show_grid/text"), "Hide")
-	end
-	if SET.model_grid_dots then
-		gui.set_text(gui.get_node("model_grid_dots/text"), "Dots")
-	else
-		gui.set_text(gui.get_node("model_grid_dots/text"), "Grid")
 	end
 	if SET.default_show_transform == 0 then
 		gui.play_flipbook(gui.get_node("show_transform/text"), "button_transform_none")
@@ -454,18 +466,11 @@ local function evaluate_button(button)
 				SET.default_model_show_grid = 1
 			end
 			if SET.default_model_show_grid == 1 then
-				gui.set_text(gui.get_node("model_show_grid/text"), "Ground")
+				gui.set_text(gui.get_node("model_show_grid/text"), "Overdraw")
 			elseif SET.default_model_show_grid == 2 then
-				gui.set_text(gui.get_node("model_show_grid/text"), "Grid")
+				gui.set_text(gui.get_node("model_show_grid/text"), "Normal")
 			else
 				gui.set_text(gui.get_node("model_show_grid/text"), "Hide")
-			end
-		elseif button == "model_grid_dots" then
-			SET.model_grid_dots = not SET.model_grid_dots
-			if SET.model_grid_dots then
-				gui.set_text(gui.get_node("model_grid_dots/text"), "Dots")
-			else
-				gui.set_text(gui.get_node("model_grid_dots/text"), "Grid")
 			end
 		elseif button == "show_transform" then
 			SET.default_show_transform = SET.default_show_transform + 1
@@ -479,6 +484,8 @@ local function evaluate_button(button)
 			else
 				gui.play_flipbook(gui.get_node("show_transform/text"), "button_transform_all")
 			end
+		elseif button == "collider_colour" then
+			UI.DIALOG.open(TAB_NAME, "colour_picker", {rgb = SET.collider_colour, colour_id = button})
 		else
 			local colour = COL.str_to_colour(SET[button])
 			UI.DIALOG.open(TAB_NAME, "colour_picker", {rgb = colour, colour_id = button})

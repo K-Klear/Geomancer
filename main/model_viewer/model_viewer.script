@@ -10,31 +10,81 @@ local BASE_TRANSFORM = "/base_transform"
 local PROP_OFFSET = "/prop_offset"
 local GROUND_GO = "/ground"
 
-go.property("prop_material", resource.material("/render/model.material"))
-go.property("glow_material", resource.material("/render/glow.material"))
-go.property("no_light_material", resource.material("/render/no_light.material"))
-go.property("flash_material", resource.material("/render/flash.material"))
-go.property("flash_inv", resource.material("/render/flash_inv.material"))
+local TWEEN_ACTION_MOVE = hash("T")
+local TWEEN_ACTION_SCALE = hash("S")
+local TWEEN_ACTION_ROTATE = hash("R")
+local TWEEN_ACTIONS = {T = TWEEN_ACTION_MOVE, S = TWEEN_ACTION_SCALE, R = TWEEN_ACTION_ROTATE}
 
-go.property("prop_inv", resource.material("/render/model_inv.material"))
-go.property("glow_inv", resource.material("/render/glow_inv.material"))
-go.property("no_light_inv", resource.material("/render/no_light_inv.material"))
+local material_list = {}
 
-go.property("glow_tex", resource.texture("/assets/gfx/white_pixel.png"))
+go.property("geo_material", resource.material("/render/prop_materials/geo.material"))
+
+go.property("shader_prop", resource.material("/render/prop_materials/prop.material"))
+go.property("shader_glow", resource.material("/render/prop_materials/glow.material"))
+go.property("shader_pure_colour", resource.material("/render/prop_materials/pure_colour.material"))
+go.property("shader_transparent", resource.material("/render/prop_materials/transparent.material"))
+go.property("shader_geo_simple", resource.material("/render/prop_materials/geo_simple.material"))
+go.property("shader_dissolve", resource.material("/render/prop_materials/dissolve.material"))
+go.property("shader_ped", resource.material("/render/prop_materials/pedestrian.material"))
+go.property("shader_beatcubes", resource.material("/render/prop_materials/beatcubes.material"))
+go.property("shader_geo_complex", resource.material("/render/prop_materials/geo_complex.material"))
+go.property("shader_ring", resource.material("/render/prop_materials/ring.material"))
+go.property("shader_gunmat", resource.material("/render/prop_materials/gunmat.material"))
+go.property("shader_megahit", resource.material("/render/prop_materials/megahit.material"))
+go.property("shader_boss", resource.material("/render/prop_materials/boss.material"))
+go.property("shader_enemy", resource.material("/render/prop_materials/enemy.material"))
+go.property("shader_shield", resource.material("/render/prop_materials/shield.material"))
+go.property("shader_dead_body", resource.material("/render/prop_materials/dead_body.material"))
+go.property("shader_continental", resource.material("/render/prop_materials/continental.material"))
+go.property("shader_mr_obstacle", resource.material("/render/prop_materials/mr_obstacle.material"))
+go.property("shader_glow_mult", resource.material("/render/prop_materials/glow_mult.material"))
+go.property("shader_targets", resource.material("/render/prop_materials/targets.material"))
+
+go.property("geo_floor_tex", resource.texture("/assets/gfx/textures/default_floor.png"))
 go.property("prop_tex", resource.texture("/assets/gfx/textures/prop.png"))
 go.property("cont_1_tex", resource.texture("/assets/gfx/textures/continental_1.png"))
 go.property("cont_2_tex", resource.texture("/assets/gfx/textures/continental_2.png"))
 go.property("shield_tex", resource.texture("/assets/gfx/textures/shielded.png"))
+go.property("ped_tex", resource.texture("/assets/gfx/textures/peds.png"))
 
-go.property("grid_tex_dots", resource.texture("/assets/gfx/textures/grid_dots.png"))
-go.property("grid_tex", resource.texture("/assets/gfx/textures/grid.png"))
 go.property("floor_tex", resource.texture("/assets/gfx/textures/default_floor.png"))
+
+go.property("grid_mat", resource.material("/render/grid_repeat.material"))
+go.property("grid_mat_overdraw", resource.material("/render/grid_repeat_overdraw.material"))
+
+
+-- to be removed:
+go.property("glow_tex", resource.texture("/assets/gfx/white_pixel.png"))
+
+go.property("prop_material", resource.material("/render/old_mats/model.material"))
+go.property("glow_material", resource.material("/render/old_mats/glow.material"))
+go.property("no_light_material", resource.material("/render/old_mats/no_light.material"))
+go.property("flash_material", resource.material("/render/old_mats/flash.material"))
+go.property("flash_inv", resource.material("/render/old_mats/flash_inv.material"))
+
+go.property("prop_inv", resource.material("/render/old_mats/model_inv.material"))
+go.property("glow_inv", resource.material("/render/old_mats/glow_inv.material"))
+go.property("no_light_inv", resource.material("/render/old_mats/no_light_inv.material"))
+
+
+
 
 local created_meshes = {}
 local created_transforms = {}
 local geo_meshes = {}
-local geo_collider_meshes = {}
+local chunk_meshes = {}
 local static_meshes = {}
+local beatcubes = {}
+
+local current_culling_range, previous_culling_range = 0, nil
+local current_colour = 1
+local c1, c2 = {}, {}
+local colour_transition, ct_clamped
+
+local whiteout_in_progress, beat_in_progress = false, false
+local beat_duration = 0.2
+
+local active_tweens = {}
 
 local show_fog = true
 
@@ -43,39 +93,78 @@ local CAMERA_POSITION = vmath.vector3(0, 0, 0)
 local function reset_view()
 	MOD.is_dragged = false
 	MOD.camera_is_dragged = false
-	MOD.target_x = SET.default_camera_rotation
-	MOD.target_y = -SET.default_camera_pitch
+	MOD.target_x = 0
+	MOD.target_y = 0
 	MOD.cam_target_x = 0
 	MOD.cam_target_y = 0
-	MOD.cam_target_z = SET.default_camera_zoom
-	CAMERA_POSITION = vmath.vector3(0, 0, 0)
+	MOD.cam_target_z = 0
+	CAMERA_POSITION = vmath.vector3(0, 1.75, 0)
+	if MOD.pov_lock then
+		msg.post("/player_capsule", hash("disable"))
+	end
 end
 
 local function show_grid(self)
 	if SET.model_show_grid == 1 then
-		go.set("/grid#grid", "texture0", self.floor_tex)
-		go.set("/grid#grid", "tint", COL.get_current("main"))
 		msg.post("/grid#grid", hash("enable"))
+		go.set("/grid#grid", "material", self.grid_mat_overdraw)
 	elseif SET.model_show_grid == 2 then
-		if SET.model_grid_dots then
-			go.set("/grid#grid", "texture0", self.grid_tex_dots)
-		else
-			go.set("/grid#grid", "texture0", self.grid_tex)
-		end
-		go.set("/grid#grid", "tint", vmath.vector4(1, 1, 1, 1))
-		msg.post("/grid#grid", hash("enable"))
+		go.set("/grid#grid", "material", self.grid_mat)
 	else
 		msg.post("/grid#grid", hash("disable"))
 	end
 end
 
+local function fill_material_list(self)
+	material_list = {
+		-- default
+		["(DoNotEdit)LiveMat_Props"] = {colour = "main", texture = self.ped_tex, shader = self.shader_prop, fog = true, whiteout = true},
+		["(DoNotEdit)LiveMat_LevelGeoSimple"] = {colour = "main", texture = self.prop_tex, shader = self.shader_geo_simple, fog = true},
+		["(DoNotEdit)LiveMat_Glow"] = {colour = "glow", shader = self.shader_glow, fog = true},
+		["(DoNotEdit)LiveMat_GlowInvert"] = {colour = "glow_inv", shader = self.shader_glow, fog = true},
+		--variants of standard
+		["(DoNotEdit)LiveMat_Pedestrians_Dissolve"] = {colour = "fog", shader = self.shader_dissolve},
+		["(DoNotEdit)LiveMat_Continental Interior 1"] = {colour = "main", texture = self.cont_1_tex, shader = self.shader_continental, fog = true},
+		["(DoNotEdit)LiveMat_Continental Interior 2"] = {colour = "main", texture = self.cont_2_tex, shader = self.shader_continental, fog = true},
+		["(DoNotEdit)LiveMat_FrontEnd_Building"] = {colour = "main", texture = self.cont_1_tex, shader = self.shader_continental, flash = true, fog = true},
+		["(DoNotEdit)LiveMat_LevelGeoComplex"] = {colour = "main", texture = self.prop_tex, texture_2 = self.geo_floor_tex, shader = self.shader_geo_complex, fog = true, flash = true},
+		["(DoNotEdit)LiveMat_Enemies_Targets"] = {colour = "enemy", texture = self.ped_tex, shader = self.shader_targets, flash = true},
+		--white
+		["(DoNotEdit)LiveMat_EnemyGlow"] = {colour = vmath.vector4(1, 1, 1, 1), shader = self.shader_pure_colour},
+		["(DoNotEdit)LiveMat_EnemyGlow_Gun"] = {colour = vmath.vector4(1, 1, 1, 1), shader = self.shader_pure_colour},
+		["(DoNotEdit)LiveMat_ParticleMesh_EnviroColor"] = {colour = vmath.vector4(1, 1, 1, 1), shader = self.shader_pure_colour},
+		["(DoNotEdit)LiveMat_ParticleMesh_Glow"] = {colour = vmath.vector4(1, 1, 1, 1), shader = self.shader_pure_colour},
+		--black
+		["(DoNotEdit)LiveMat_MegaHitTrail"] = {colour = "glow", shader = self.shader_megahit},
+		["(DoNotEdit)LiveMat_Gunmat New Three Color"] = {shader = self.shader_gunmat},
+		--transparent
+		["(DoNotEdit)LiveMat_Player_MuzzleFlashSquirtgun"] = {colour = "fog", shader = self.shader_transparent},
+		["(DoNotEdit)LiveMat_Squirtgun_drops"] = {colour = "fog", shader = self.shader_transparent},
+		-- combinations
+		["(DoNotEdit)LiveMat_Obstacles"] = {colour = "main", texture = self.ped_tex, shader = self.shader_prop, fog = true, flash = true},
+		["(DoNotEdit)LiveMat_MRObstacles"] = {colour = "main", texture = self.ped_tex, shader = self.shader_mr_obstacle, fog = true, flash = true},
+		["(DoNotEdit)LiveMat_Props_NoDistortion"] = {colour = "main", texture = self.ped_tex, shader = self.shader_prop, fog = true, flash = true},
+		["(DoNotEdit)LiveMat_ParticleMesh_GlowMultiply"] = {colour = "glow", shader = self.shader_glow_mult, fog = true},
+		["(DoNotEdit)LiveMat_Pedestrians"] = {colour = "main", texture = self.ped_tex, shader = self.shader_ped, flash = true, fog = true},
+		["(DoNotEdit)LiveMat_PedestriansAlt"] = {colour = "enemy", texture = self.ped_tex, shader = self.shader_ped, fog = true},
+		-- unique
+		["(DoNotEdit)LiveMat_Enemies_Shielded"] = {texture = self.shield_tex, shader = self.shader_shield, flash = true},
+		["(DoNotEdit)LiveMat_Beatcubes_mat"] = {colour = "glow", shader = self.shader_beatcubes, fog = true, flash = true},
+		["(DoNotEdit)LiveMat_Enemies_DeadBody"] = {colour = "enemy", texture = self.ped_tex, shader = self.shader_dead_body, fog = true},
+
+		-- chaotic
+		["(DoNotEdit)LiveMat_Enemies"] = {colour = "enemy", texture = self.ped_tex, shader = self.shader_enemy, flash = true},
+		["(DoNotEdit)LiveMat_Boss"] = {colour = "enemy", texture = self.ped_tex, shader = self.shader_boss, flash = true, fog = true},
+		["(DoNotEdit)LiveMat_PlayerRingOuter2"] = {texture = self.ped_tex, shader = self.shader_ring, flash = true},
+	}
+end
+
 function init(self)
 	msg.post(".", hash("disable"))
-	go.set("/model_camera#background", "tint", COL.get_current("fog"))
-	msg.post("/model_camera#background", hash("disable"))
+	msg.post("/fog#fog", hash("disable"))
 	msg.post("/grid#grid", hash("disable"))
 	reset_view()
-	--show_grid(self)
+	fill_material_list(self)
 end
 
 local tex_glow = hash("glow")
@@ -155,19 +244,10 @@ local function flash(self, list)
 	end
 end
 
-
-local function set_material(self, part_index, model_index, flip, static)
+local function set_material(self, part_index, model_index, flip)
 	local model_url, invert
-	if static then
-		model_url = msg.url(nil, static_meshes[part_index].mesh, "mesh")
-		invert = static_meshes[part_index].invert
-	else
-		model_url = msg.url(nil, created_meshes[part_index].mesh, "mesh")
-		invert = created_meshes[part_index].invert
-	end
-	if MOD.inverted then
-		invert = not invert
-	end
+	model_url = msg.url(nil, created_meshes[part_index].mesh, "mesh")
+	invert = created_meshes[part_index].invert
 	if flip then
 		invert = not invert
 	end
@@ -226,11 +306,10 @@ end
 
 local function reset_tween(self)
 	go.set(GROUND_GO, "position.z", 0)
-	if not MOD.inverted then
-		MOD.inverted = false
-		for i = 1, #created_meshes do
-			set_material(self, i, MOD.model_index)
-		end
+	previous_culling_range, MOD.previous_colour = nil, nil
+	if MOD.map_preview then return end
+	for i = 1, #created_meshes do
+		set_material(self, i, MOD.model_index)
 	end
 	for key, val in pairs(MOD.tweenable_transforms) do
 		if val.used then
@@ -241,130 +320,41 @@ local function reset_tween(self)
 	end
 end
 
-function update(self, dt)
-	if MOD.viewer_active then
-		local pitch = vmath.quat_rotation_x(math.rad(MOD.target_y))
-		local yaw = vmath.quat_rotation_y(math.rad(MOD.target_x))
-		local rot = yaw * pitch
-		go.set_rotation(rot, MODEL_CAMERA)
-		if MOD.pov_lock and MOD.tween_preview then
-			go.set_position(vmath.vector3(0, 0, 0), CAMERA_TARGET)
-			go.set_position(vmath.vector3(0, 1.75, 0), MODEL_CAMERA)
-		else
-			if MOD.find_prop then
-				MOD.find_prop = false
-				CAMERA_POSITION = go.get_world_position(created_meshes[1].mesh)
-			else
-				local move_vector = vmath.vector3(MOD.cam_target_x, MOD.cam_target_y, 0)
-				CAMERA_POSITION = CAMERA_POSITION + vmath.rotate(rot, move_vector)
-			end
-			go.set_position(CAMERA_POSITION, CAMERA_TARGET)
-			local pos = vmath.rotate(rot, vmath.vector3(0, 0, MOD.cam_target_z))
-			go.set_position(pos, MODEL_CAMERA)
-		end
-		MOD.cam_target_x, MOD.cam_target_y = 0, 0
-		if MOD.tween_preview then
-			local scale = go.get_scale(PROP_OFFSET)
-			local inverted = scale.x * scale.y * scale.z * -1 > 0
-			if not (inverted == MOD.inverted) then
-				MOD.inverted = inverted
-				for i = 1, #created_meshes do
-					set_material(self, i, MOD.model_index)
-				end
-			end
-
-			for key, val in pairs(MOD.tweenable_transforms) do
-				if val.used then
-					val.position = vmath.vector3(val.transform_tab.position)
-					val.rotation = vmath.quat(val.transform_tab.rotation)
-					val.scale = vmath.vector3(val.transform_tab.scale)
-				end
-			end
-			
-			local current_time = MOD.total_time * MOD.scrubber_progress
-			for tween_index, v in ipairs(MOD.tween_table) do
-				local action_end_time = v.time_offset
-				for key, val in ipairs(v) do
-					action_end_time = action_end_time + val.time
-					if current_time >= action_end_time then
-						if val.type == "T" then
-							MOD.tweenable_transforms[val.part].position = vmath.vector3(val.end_state.x, val.end_state.y, val.end_state.z)
-						elseif val.type == "R" then
-							MOD.tweenable_transforms[val.part].rotation = G.euler_to_quat(vmath.vector3(val.end_state.x, val.end_state.y, val.end_state.z))
-						elseif val.type == "S" then
-							MOD.tweenable_transforms[val.part].scale = vmath.vector3(val.end_state.x, val.end_state.y, val.end_state.z)
-						end
-					else
-						local action_start = action_end_time - val.time
-						local action_progress = (current_time - action_start) / val.time
-						if not (action_progress == action_progress) then
-							action_progress = 0		-- this shouldn't be necessary, but keeping it to be safe
-						end
-						local function get_state()
-							local start_state = vmath.vector3(val.start_state.x, val.start_state.y, val.start_state.z)
-							local end_state = vmath.vector3(val.end_state.x, val.end_state.y, val.end_state.z)
-							return vmath.lerp(action_progress, start_state, end_state)
-						end
-						if val.type == "T" then
-							MOD.tweenable_transforms[val.part].position = get_state()
-						elseif val.type == "R" then
-							local start_quat = G.euler_to_quat(val.start_state)
-							local end_quat = G.euler_to_quat(val.end_state)
-							MOD.tweenable_transforms[val.part].rotation = vmath.slerp(action_progress, start_quat, end_quat)
-						elseif val.type == "S" then
-							MOD.tweenable_transforms[val.part].scale = get_state()
-						end
-						break
-					end
-				end
-			end
-
-			for key, val in pairs(MOD.tweenable_transforms) do
-				local sc
-				if val.used then
-					go.set_position(val.position, val.url)
-					sc = vmath.vector3(val.scale.x, val.scale.y, val.scale.z)
-					go.set(val.url, "scale", sc)
-					go.set_rotation(val.rotation, val.url)
-					val.flip = sc.x * sc.y * sc.z < 0
-				end
-			end
-			for key, val in ipairs(created_meshes) do
-				local inv = 1
-				for k, v in ipairs(val.check_scale) do
-					local sc = MOD.tweenable_transforms[v].scale
-					inv = inv * sc.x * sc.y * sc.z * MOD.tweenable_transforms[v].base_inv
-				end
-				set_material(self, key, MOD.model_index, inv < 0)
-			end
-			
-			if MOD.move_terrain then
-				go.set(GROUND_GO, "position.z", current_time * 3)
-			else
-				go.set(GROUND_GO, "position.z", 0)
-			end
-		end
+local function create_chunk_model(self, chunk_tab)
+	local new_mesh = factory.create("#create_mesh")
+	if not (SET.hide_geo == 2) then
+		msg.post(new_mesh, hash("disable"))
 	end
+	table.insert(chunk_meshes, new_mesh)
+	go.set_parent(new_mesh, "/geo_base")
+	local _url = msg.url(nil, new_mesh, "mesh")
+	go.set(_url, "vertices", chunk_tab.buffer_resource)
+	go.set(_url, "material", self.shader_pure_colour)
+	go.set(_url, "tint1", SET.collider_colour)
+
+	MOD.buffer_resource_used(chunk_tab.buffer_resource)
+
+	go.set_position(vmath.vector3(16 * chunk_tab.id[1], 16 * chunk_tab.id[2], 16 * chunk_tab.id[3]), new_mesh)
+	return new_mesh
 end
 
-
-local function delete_model(self)
-	stop_flash(self)
-	for key, val in ipairs(created_meshes) do
-		go.delete(val.mesh)
-		MOD.mesh_deleted(val.buffer)
+local function create_slice_model(self, slice_tab)
+	local new_mesh = factory.create("#create_mesh")
+	if SET.hide_geo > 1 then
+		msg.post(new_mesh, hash("disable"))
 	end
-	for key, val in ipairs(created_transforms) do
-		go.delete(val)
-	end
-	created_meshes, created_transforms = {}, {}
-end
+	table.insert(geo_meshes, new_mesh)
+	go.set_parent(new_mesh, "/geo_base")
+	local _url = msg.url(nil, new_mesh, "mesh")
+	go.set(_url, "vertices", slice_tab.buffer_resource)
+	go.set(_url, "texture0", self.prop_tex)
+	go.set(_url, "texture1", self.geo_floor_tex)
+	go.set(_url, "material", self.geo_material)
+	
+	MOD.buffer_resource_used(slice_tab.buffer_resource)
 
-local function adjust_transform_positions()
-	go.set_position(MOD.offset_position, PROP_OFFSET)
-	go.set(PROP_OFFSET, "position.z", -MOD.offset_position.z)
-	go.set(PROP_OFFSET, "scale", MOD.offset_scale)
-	go.set_rotation(MOD.offset_rotation, PROP_OFFSET)
+	go.set_position(vmath.vector3(0, 0, 16 * slice_tab.id), new_mesh)
+	return new_mesh
 end
 
 local function get_parent(transform_index, transform_list)
@@ -375,6 +365,518 @@ local function get_parent(transform_index, transform_list)
 			return i
 		end
 	end
+end
+
+local function create_static_prop(self, prop_tab)
+	local new_base = factory.create("#create_transform_invisible", prop_tab.position, prop_tab.rotation, nil, prop_tab.scale)
+	table.insert(static_meshes, new_base)
+	go.set_parent(new_base, "/static_prop_base")
+	local mesh_count = 0
+	local transform_list = MEM.art_data.table.propsDictionary[prop_tab.model_index].model_data.transform_list
+	local meta_table = {}
+	local mesh_list = {}
+	local transform_go_list = {}
+	
+	for key, val in ipairs(transform_list) do
+		if key == 1 then
+			val.scale = vmath.vector3(1)
+			val.position = vmath.vector3(0)
+			val.rotation = vmath.quat(0, 0, 0, 1)
+		end
+		local new_transform = factory.create("#create_transform_invisible", val.position, val.rotation, nil, val.scale)
+		table.insert(static_meshes, new_transform)
+		table.insert(transform_go_list, {url = new_transform, position = val.position, rotation = val.rotation, scale = val.scale})
+		if val.parent_tab then
+			go.set_parent(new_transform, meta_table[val.parent_tab])
+			go.set_position(val.position, new_transform)
+		else
+			go.set_parent(new_transform, new_base)
+		end
+		meta_table[val] = new_transform
+		if val.meshes then
+			for k, v in ipairs(val.meshes) do
+				mesh_count = mesh_count + 1
+				local new_mesh = factory.create("#create_mesh")
+				if SET.hide_props then
+					msg.post(new_mesh, hash("disable"))
+				end
+				table.insert(static_meshes, new_mesh)
+				go.set_parent(new_mesh, new_transform)
+				local _url = msg.url(nil, new_mesh, "mesh")
+				if not v.buffer_resource then
+					MOD.create_mesh(v)
+				end
+				go.set(_url, "vertices", v.buffer_resource)
+				MOD.buffer_resource_used(v.buffer_resource)
+				
+				local part_tab = MEM.art_data.table.propsDictionary[prop_tab.model_index].model_data.parts[mesh_count]
+				local material_name = part_tab.tab[part_tab.index]
+				local mat_props = material_list[material_name]
+				go.set(_url, "material", mat_props.shader)
+				if type(mat_props.colour) == "string" then
+					go.set(_url, "tint1", c1[mat_props.colour])
+					go.set(_url, "tint1.w", ct_clamped)
+					go.set(_url, "tint2", c2[mat_props.colour])
+					if mat_props.fog then
+						go.set(_url, "fog1", c1.fog)
+						go.set(_url, "fog2", c2.fog)
+						if SET.hide_fog then
+							go.set(_url, "fog2.w", 0)
+						end
+					end
+					table.insert(mesh_list, {mesh = new_mesh, url = _url, colour = mat_props.colour, fog = mat_props.fog, flash = mat_props.flash, whiteout = mat_props.whiteout})
+				elseif mat_props.colour then
+					go.set(_url, "tint1", mat_props.colour)
+					table.insert(mesh_list, {mesh = new_mesh, url = _url, fog = mat_props.fog, flash = mat_props.flash, whiteout = mat_props.whiteout})
+				else
+					table.insert(mesh_list, {mesh = new_mesh, url = _url, fog = mat_props.fog, flash = mat_props.flash, whiteout = mat_props.whiteout})
+				end
+				if mat_props.texture then 
+					go.set(_url, "texture0", mat_props.texture)
+				end
+				if mat_props.texture_2 then
+					go.set(_url, "texture1", self.geo_floor_tex)
+				end
+			end
+		end
+	end
+	for key, val in ipairs(prop_tab.signal or {}) do
+		val.signal_tab.transforms = transform_go_list
+	end
+	return mesh_list
+end
+
+local function apply_colour_section(colour_key, t)
+	local val = MEM.art_data.colour_list[colour_key]
+	current_colour = colour_key
+	colour_transition = 1 - ((t - val.time) / val.duration)
+	ct_clamped = math.max(colour_transition, 0)
+	if not (current_colour == MOD.previous_colour) then
+		c1.main = vmath.vector4(val.main)
+		c1.main.w = ct_clamped
+		c2.main = vmath.vector4(MEM.art_data.colour_list[colour_key - 1].main)
+		c1.fog = vmath.vector4(val.fog)
+		c1.fog.w = ct_clamped
+		c2.fog = vmath.vector4(MEM.art_data.colour_list[colour_key - 1].fog)
+		c1.glow = vmath.vector4(val.glow)
+		c1.glow.w = ct_clamped
+		c2.glow = vmath.vector4(MEM.art_data.colour_list[colour_key - 1].glow)
+		c1.enemy = vmath.vector4(val.enemy)
+		c1.enemy.w = ct_clamped
+		c2.enemy = vmath.vector4(MEM.art_data.colour_list[colour_key - 1].enemy)
+		c1.glow_inv = vmath.vector4(val.glow_inv)
+		c1.glow_inv.w = ct_clamped
+		c2.glow_inv = vmath.vector4(MEM.art_data.colour_list[colour_key - 1].glow_inv)
+		for _key in pairs(MOD.culling_ranges.visible_slices) do
+			go.set(msg.url(nil, _key.model, "mesh"), "tint1", c1.main)
+			go.set(msg.url(nil, _key.model, "mesh"), "tint2", c2.main)
+			if SET.hide_fog then
+				go.set(msg.url(nil, _key.model, "mesh"), "fog2.w", 0)
+			else
+				go.set(msg.url(nil, _key.model, "mesh"), "fog1", c1.fog)
+				go.set(msg.url(nil, _key.model, "mesh"), "fog2", c2.fog)
+			end
+		end
+		for _key in pairs(MOD.culling_ranges.visible_props) do
+			for k, v in ipairs(_key.models) do
+				if v.colour then
+					go.set(v.url, "tint1", c1[v.colour])
+					go.set(v.url, "tint2", c2[v.colour])
+					if v.fog then
+						if SET.hide_fog then
+							go.set(v.url, "fog2.w", 0)
+						else
+							go.set(v.url, "fog1", c1.fog)
+							go.set(v.url, "fog2", c2.fog)
+						end
+					end
+				end
+			end
+		end
+		for k, v in ipairs(beatcubes) do
+			local url = msg.url(nil, v, "model")
+			go.set(url, "tint1", c1.glow)
+			go.set(url, "tint2", c2.glow)
+			if SET.hide_fog then
+				go.set(url, "fog2.w", 0)
+			else
+				go.set(url, "fog1", c1.fog)
+				go.set(url, "fog2", c2.fog)
+			end
+		end
+		go.set("/fog#fog", "tint1", c1.fog)
+		go.set("/fog#fog", "tint2", c2.fog)
+	elseif colour_transition >= 0 then
+		for _key in pairs(MOD.culling_ranges.visible_slices) do
+			go.set(msg.url(nil, _key.model, "mesh"), "tint1.w", ct_clamped)
+		end
+		for _key in pairs(MOD.culling_ranges.visible_props) do
+			for k, v in ipairs(_key.models) do
+				if v.colour then
+					go.set(v.url, "tint1.w", ct_clamped)
+				end
+			end
+		end
+		for k, v in ipairs(beatcubes) do
+			go.set(msg.url(nil, v, "model"), "tint1.w", ct_clamped)
+		end
+		go.set("/fog#fog", "tint1.w", ct_clamped)
+	end
+end
+
+local function show_culling_range(self, range)
+	for key, val in ipairs(MOD.culling_ranges[range].slices) do
+		if not val.model then
+			val.model = create_slice_model(self, val)
+			val.enabled = true
+			MOD.culling_ranges.visible_slices[val] = true
+			go.set(msg.url(nil, val.model, "mesh"), "tint1", vmath.vector4(c1.main.x, c1.main.y, c1.main.z, ct_clamped))
+			go.set(msg.url(nil, val.model, "mesh"), "tint2", c2.main)
+			if SET.hide_fog then
+				go.set(msg.url(nil, val.model, "mesh"), "fog2.w", 0)
+			else
+				go.set(msg.url(nil, val.model, "mesh"), "fog1", c1.fog)
+				go.set(msg.url(nil, val.model, "mesh"), "fog2", c2.fog)
+			end
+		elseif not val.enabled then
+			if SET.hide_geo == 1 then
+				msg.post(val.model, hash("enable"))
+			end
+			val.enabled = true
+			MOD.culling_ranges.visible_slices[val] = true
+			go.set(msg.url(nil, val.model, "mesh"), "tint1", vmath.vector4(c1.main.x, c1.main.y, c1.main.z, ct_clamped))
+			go.set(msg.url(nil, val.model, "mesh"), "tint2", c2.main)
+			if SET.hide_fog then
+				go.set(msg.url(nil, val.model, "mesh"), "fog2.w", 0)
+			else
+				go.set(msg.url(nil, val.model, "mesh"), "fog1", c1.fog)
+				go.set(msg.url(nil, val.model, "mesh"), "fog2", c2.fog)
+			end
+		end
+	end
+
+	for key, val in pairs(MOD.culling_ranges[range].chunks) do
+		if not val.model then
+			val.model = create_chunk_model(self, val)
+			val.enabled = true
+			MOD.culling_ranges.visible_chunks[val] = true
+		elseif not val.enabled then
+			if SET.hide_geo == 2 then
+				msg.post(val.model, hash("enable"))
+			end
+			val.enabled = true
+			MOD.culling_ranges.visible_chunks[val] = true
+		end
+	end
+
+
+	
+	for key, val in ipairs(MOD.culling_ranges[range].props) do
+		if not val.models then
+			val.models = create_static_prop(self, val)
+			val.enabled = true
+			MOD.culling_ranges.visible_props[val] = true
+		elseif not val.enabled then
+			for k, v in ipairs(val.models) do
+				if not SET.hide_props then
+					msg.post(v.mesh, hash("enable"))
+				end
+				if v.colour then
+					go.set(v.url, "tint1", c1[v.colour])
+					go.set(v.url, "tint1.w", ct_clamped)
+					go.set(v.url, "tint2", c2[v.colour])
+					if v.fog then
+						if SET.hide_fog then
+							go.set(v.url, "fog2.w", 0)
+						else
+							go.set(v.url, "fog1", c1.fog)
+							go.set(v.url, "fog2", c2.fog)
+						end
+					end
+				end
+			end
+			val.enabled = true
+			MOD.culling_ranges.visible_props[val] = true
+		end
+	end
+end
+
+local function undo_tween(signal_tab)
+	local changes = {[TWEEN_ACTION_MOVE] = {}, [TWEEN_ACTION_SCALE] = {}, [TWEEN_ACTION_ROTATE] = {}}
+	for k, v in ipairs(signal_tab.tween.actions) do
+		changes[v.type][v.part] = true
+	end
+	for k, v in pairs(changes[TWEEN_ACTION_MOVE]) do
+		go.set_position(signal_tab.transforms[k].position, signal_tab.transforms[k].url)
+	end
+	for k, v in pairs(changes[TWEEN_ACTION_SCALE]) do
+		go.set(signal_tab.transforms[k].url, "scale", signal_tab.transforms[k].scale)
+	end
+	for k, v in pairs(changes[TWEEN_ACTION_ROTATE]) do
+		go.set_rotation(signal_tab.transforms[k].rotation, signal_tab.transforms[k].url)
+	end
+end
+
+local function apply_tween(signal_tab, time, full_reset)
+	local changes = {[TWEEN_ACTION_MOVE] = {}, [TWEEN_ACTION_SCALE] = {}, [TWEEN_ACTION_ROTATE] = {}}
+	if time - (signal_tab.time + signal_tab.tween.total_time) > 0 then
+		for k, v in ipairs(signal_tab.tween.actions) do
+			changes[v.type][v.part] = v.end_state
+		end
+		for k, v in pairs(changes[TWEEN_ACTION_MOVE]) do
+			go.set_position(v, signal_tab.transforms[k].url)
+		end
+		for k, v in pairs(changes[TWEEN_ACTION_SCALE]) do
+			go.set(signal_tab.transforms[k].url, "scale", v)
+		end
+		for k, v in pairs(changes[TWEEN_ACTION_ROTATE]) do
+			go.set_rotation(v, signal_tab.transforms[k].url)
+		end
+		signal_tab.used_up = true
+		active_tweens[signal_tab] = nil
+	elseif time - signal_tab.time > 0 then
+		if full_reset then
+			undo_tween(signal_tab)
+		end
+		for k, v in ipairs(signal_tab.tween.actions) do
+			if time - (signal_tab.time + v.end_time) > 0 then
+				changes[v.type][v.part] = v.end_state
+			elseif time - (signal_tab.time + v.start_time) > 0 then
+				local action_progress = (time - (signal_tab.time + v.start_time)) / (v.end_time - v.start_time)
+				if v.type == TWEEN_ACTION_ROTATE then
+					changes[v.type][v.part] = vmath.slerp(action_progress, v.start_state, v.end_state)
+				else
+					changes[v.type][v.part] = vmath.lerp(action_progress, v.start_state, v.end_state)
+				end
+			else
+				break
+			end
+		end
+		for k, v in pairs(changes[TWEEN_ACTION_MOVE]) do
+			go.set_position(v, signal_tab.transforms[k].url)
+		end
+		for k, v in pairs(changes[TWEEN_ACTION_SCALE]) do
+			go.set(signal_tab.transforms[k].url, "scale", v)
+		end
+		for k, v in pairs(changes[TWEEN_ACTION_ROTATE]) do
+			go.set_rotation(v, signal_tab.transforms[k].url)
+		end
+	else
+		undo_tween(signal_tab)
+	end
+end
+
+function update(self, dt)
+	if MOD.viewer_active then
+		local pitch = vmath.quat_rotation_x(math.rad(MOD.target_y))
+		local yaw = vmath.quat_rotation_y(math.rad(MOD.target_x))
+		local rot = yaw * pitch
+		go.set_rotation(rot, MODEL_CAMERA)
+
+		if MOD.find_prop then
+			MOD.find_prop = false
+			CAMERA_POSITION = go.get_world_position(created_meshes[1].mesh)
+		else
+			local move_vector = vmath.vector3(MOD.cam_target_x, 0, MOD.cam_target_z)
+			CAMERA_POSITION = CAMERA_POSITION + vmath.rotate(rot, move_vector)
+			CAMERA_POSITION.y = CAMERA_POSITION.y + MOD.cam_target_y
+			if MOD.pov_lock then
+				CAMERA_POSITION.x = G.clamp(CAMERA_POSITION.x, -2, 2)
+				CAMERA_POSITION.y = G.clamp(CAMERA_POSITION.y, 0.5, 2.5)
+				CAMERA_POSITION.z = G.clamp(CAMERA_POSITION.z, -2, 2)
+			end
+			go.set_position(CAMERA_POSITION, MODEL_CAMERA)
+		end
+		MOD.cam_target_x, MOD.cam_target_y, MOD.cam_target_z = 0, 0, 0
+		if MOD.tween_preview then
+			local current_time = MOD.total_time * MOD.scrubber_progress
+			if MOD.move_terrain then
+				go.set(GROUND_GO, "position.z", -(current_time - SET.tween_padding_start) * 3)
+				go.set("/player_capsule", "position.z", 0)
+			elseif not MOD.stationary then
+				local pos_z = -(current_time - SET.tween_padding_start) * 3 - go.get(GROUND_GO, "position.z")
+				go.set("/player_capsule", "position.z", pos_z)
+			end
+			for key, val in pairs(MOD.tweenable_transforms) do
+				if val.used then
+					val.position = vmath.vector3(val.transform_tab.position)
+					val.rotation = vmath.quat(val.transform_tab.rotation)
+					val.scale = vmath.vector3(val.transform_tab.scale)
+				end
+			end
+			if MOD.prop_data.lowest_z then
+				local z = MOD.prop_data.lowest_z + current_time * 3 - SET.tween_padding_start * 3
+				local t = z / 3
+				local beat_time = (t - MOD.beat_start_time + beat_duration * 0.5) % MOD.seconds_per_beat
+				local whiteout_time = (t - MOD.beat_start_time) % MOD.whiteout_delay
+				local beat_flash, whiteout_flash
+				if whiteout_time <= MOD.whiteout_duration then
+					whiteout_in_progress = true
+					local whiteout_z = -3 * (t - whiteout_time)
+					if MOD.stationary then
+						whiteout_z = 0
+					end
+					whiteout_flash = whiteout_z - 128 * (whiteout_time / MOD.whiteout_duration)
+				end
+				if beat_time <= beat_duration then
+					beat_in_progress = true
+					beat_flash = 1 - math.abs(beat_time - beat_duration * 0.5) / (beat_duration * 0.5)
+				end
+				if beat_flash or whiteout_flash or whiteout_in_progress or beat_in_progress then
+					if beat_flash then
+						for key, val in pairs(MOD.culling_ranges.visible_slices) do
+							go.set(msg.url(nil, key.model, "mesh"), "tint2.w", beat_flash)
+						end
+						for k, v in ipairs(beatcubes) do
+							go.set(msg.url(nil, v, "model"), "flash.x", beat_flash)
+						end
+					elseif beat_in_progress then
+						for key, val in pairs(MOD.culling_ranges.visible_slices) do
+							go.set(msg.url(nil, key.model, "mesh"), "tint2.w", 0)
+						end
+						for k, v in ipairs(beatcubes) do
+							go.set(msg.url(nil, v, "model"), "flash.x", 0)
+						end
+					end
+					for key, val in pairs(MOD.culling_ranges.visible_props) do
+						for k, v in ipairs(key.models) do
+							if v.flash then
+								if beat_flash then
+									go.set(v.url, "flash.x", beat_flash)
+								end
+							elseif v.whiteout then
+								if beat_flash then
+									go.set(v.url, "flash.x", beat_flash)
+								elseif beat_in_progress then
+									go.set(v.url, "flash.x", 0)
+								end
+								if whiteout_flash then
+									go.set(v.url, "flash.w", 1)
+									go.set(v.url, "flash.z", whiteout_flash)
+								elseif whiteout_in_progress then
+									go.set(v.url, "flash.w", 0)
+								end
+							end
+						end
+					end
+					if not whiteout_flash then
+						whiteout_in_progress = false
+					end
+					if not beat_flash then
+						beat_in_progress = false
+					end
+				end
+				for key, val in ipairs(MEM.art_data.colour_list) do
+					if ((t >= val.time) and (not val.end_time or (t < val.end_time))) or (key == #MEM.art_data.colour_list) then
+						apply_colour_section(key, t)
+						break
+					end
+				end
+				MOD.previous_colour = current_colour
+				current_culling_range = G.clamp(math.floor((z + 6) / 16), 0, MOD.max_culling_range)
+				if not (current_culling_range == previous_culling_range or MOD.stationary) then
+					for key, val in pairs(MOD.culling_ranges.visible_slices) do
+						if val and (not key.ranges[current_culling_range]) then
+							msg.post(key.model, hash("disable"))
+							key.enabled = false
+							MOD.culling_ranges.visible_slices[key] = false
+						end
+					end
+					for key, val in pairs(MOD.culling_ranges.visible_props) do
+						if val and (not key.ranges[current_culling_range]) then
+							for k, v in ipairs(key.models) do
+								msg.post(v.mesh, hash("disable"))
+							end
+							key.enabled = false
+							MOD.culling_ranges.visible_props[key] = false
+						end
+					end
+					show_culling_range(self, current_culling_range)
+					previous_culling_range = current_culling_range
+				end
+				for key, val in ipairs(MOD.culling_ranges[current_culling_range - 1].signals or {}) do
+					if not (val.used_up or active_tweens[val]) then
+						if t - val.time > 0 then
+							if (t - (val.time + val.tween.total_time) < 0) or (t - (val.time + val.tween.total_time) > 0) then
+								active_tweens[val] = true
+							end
+						end
+					end
+				end
+				for key, val in ipairs(MOD.culling_ranges[current_culling_range].signals or {}) do
+					if not (val.used_up or active_tweens[val]) then
+						if t - val.time > 0 then
+							if (t - (val.time + val.tween.total_time) < 0) or (t - (val.time + val.tween.total_time) > 0) then
+								active_tweens[val] = true
+							end
+						end
+					end
+				end
+				for key, val in pairs(active_tweens) do
+					apply_tween(key, t)
+				end
+			end
+		end
+	end
+end
+
+local function delete_model(self)
+	stop_flash(self)
+	for key, val in ipairs(created_meshes) do
+		go.delete(val.mesh)
+		MOD.buffer_resource_released(val.buffer)
+	end
+	for key, val in ipairs(created_transforms) do
+		go.delete(val)
+	end
+	created_meshes, created_transforms = {}, {}
+end
+
+local function delete_static()
+	for key, val in ipairs(static_meshes) do
+		go.delete(val)
+	end
+	static_meshes = {}
+	MOD.culling_ranges.visible_props = {}
+	for key, val in pairs(MOD.culling_ranges) do
+		for k, v in ipairs(val.props or {}) do
+			v.enabled = nil
+			v.models = nil
+		end
+	end
+end
+
+local function delete_geo()
+	for key, val in ipairs(geo_meshes) do
+		go.delete(val)
+	end
+	geo_meshes = {}
+	MOD.culling_ranges.visible_slices = {}
+	for key, val in pairs(MOD.culling_ranges) do
+		for k, v in ipairs(val.slices or {}) do
+			v.model = nil
+			v.enabled = nil
+		end
+	end
+end
+
+local function reset_signals()
+	active_tweens = {}
+	for range, range_tab in pairs(MOD.culling_ranges) do
+		if range_tab.signals then
+			for key, val in ipairs(range_tab.signals) do
+				val.used_up = false
+				val.transforms = nil
+			end
+		end
+	end
+end
+
+local function adjust_transform_positions()
+	go.set_position(MOD.offset_position, PROP_OFFSET)
+	go.set(PROP_OFFSET, "position.z", -MOD.offset_position.z)
+	go.set(PROP_OFFSET, "scale", MOD.offset_scale)
+	go.set_rotation(MOD.offset_rotation, PROP_OFFSET)
 end
 
 local function show_transforms()
@@ -393,130 +895,17 @@ local function show_transforms()
 	end
 end
 
-local function create_mesh(mesh_tab, parent, invert, transform_index, mesh_type)
+local function create_mesh(mesh_tab, parent, invert, transform_index)
 	local new_mesh = factory.create("#create_mesh")
 	msg.post(new_mesh, hash("disable"))
 	go.set_parent(new_mesh, parent)
 	local _url = msg.url(nil, new_mesh, "mesh")
+	if not mesh_tab.buffer_resource then
+		MOD.create_mesh(mesh_tab)
+	end
 	go.set(_url, "vertices", mesh_tab.buffer_resource)
-
-	MOD.mesh_created(mesh_tab.buffer_resource)
-	
-	if mesh_type == "geo" then
-		table.insert(geo_meshes, {mesh = new_mesh})
-	elseif mesh_type == "collider" then
-		table.insert(geo_collider_meshes, {mesh = new_mesh})
-	elseif mesh_type == "static" then
-		table.insert(static_meshes, {mesh = new_mesh, invert = invert})
-	else
-		table.insert(created_meshes, {mesh = new_mesh, invert = invert, parent_transform = transform_index, buffer = mesh_tab.buffer_resource})
-	end
-end
-
-local function delete_geo()
-	for key, val in ipairs(geo_meshes) do
-		if not val.empty then
-			go.delete(val.mesh)
-		end
-	end
-	geo_meshes = {}
-end
-
-local function show_geo(self)
-	delete_geo()
-	if true then return end
-	for key, val in ipairs(MEM.geo_data.slices) do
-		if not val.empty then
-			create_mesh(val, nil, false, 1, "geo")
-			local new_mesh = geo_meshes[#geo_meshes].mesh
-			go.set_parent(new_mesh, "/geo_base")
-			go.set_position(vmath.vector3(0, 0, 16.1 * val.id), new_mesh)
-			local model_url = msg.url(nil, new_mesh, "mesh")
-			go.set(model_url, "tint", COL.geo())
-			go.set(model_url, "texture0", self.prop_tex)
-			go.set(model_url, "material", self.prop_material)
-			msg.post(new_mesh, hash("enable"))
-		end
-	end
-	if true then return end
-	for key, val in ipairs(MEM.geo_data.chunks) do
-		if not val.empty then
-			create_mesh(val, nil, false, 1, "collider")
-			local new_mesh = geo_collider_meshes[#geo_collider_meshes].mesh
-			go.set_parent(new_mesh, "/geo_base")
-			go.set_position(vmath.vector3(16 * val.id[1], 16 * val.id[2], 16 * val.id[3]), new_mesh)
-			local model_url = msg.url(nil, new_mesh, "mesh")
-			go.set(model_url, "tint", COL.geo())
-			go.set(model_url, "texture0", self.prop_tex)
-			go.set(model_url, "material", self.prop_material)
-			msg.post(new_mesh, hash("enable"))
-		end
-	end
-end
-
-local static_prop_transforms = {}
-
-
-local function create_static_models(self)
-	for _k, _v in ipairs(MEM.art_data.prop_list) do
-		local model_index
-		for key, val in ipairs(MEM.art_data.table.propsDictionary) do
-			if val.key == _v.name then
-				model_index = key
-				break
-			end
-		end
-		if model_index then
-			local new_base = factory.create("#create_transform_invisible")
-			table.insert(static_prop_transforms, new_base)
-			go.set_parent(new_base, "/static_prop_base")
-			
-			local mesh_count = 0
-			local transform_list = MEM.art_data.table.propsDictionary[model_index].model_data.transform_list
-			local meta_table = {}
-			for key, val in ipairs(transform_list) do
-				local invert = false
-				local new_transform = factory.create("#create_transform_invisible")
-				table.insert(static_prop_transforms, new_transform)
-				if val.parent_tab then
-					go.set_parent(new_transform, meta_table[val.parent_tab])
-					go.set_position(val.position, new_transform)
-				else
-					go.set_parent(new_transform, new_base)
-				end
-				local sc = val.scale.x * val.scale.y * val.scale.z
-				local parent = get_parent(key, transform_list)
-				if parent then
-					local safety = 10000
-					repeat
-						sc = sc * transform_list[parent].scale.x * transform_list[parent].scale.y * transform_list[parent].scale.z
-						parent = get_parent(parent, transform_list)
-						safety = safety - 1
-					until (not parent) or (safety < 0)
-				end
-				if sc < 0 then
-					invert = true
-				end
-				go.set_rotation(val.rotation, new_transform)
-				go.set(new_transform, "scale", val.scale)
-				meta_table[val] = new_transform
-				if val.meshes then
-					for k, v in ipairs(val.meshes) do
-						mesh_count = mesh_count + 1
-						create_mesh(v, new_transform, invert, key, "static")
-						set_material(self, mesh_count, model_index, nil, true)
-					end
-				end
-			end
-			go.set_position(_v.position, new_base)
-			--go.set(new_base, "position.z", -_v.position.z)
-			go.set(new_base, "scale", _v.scale)
-			go.set_rotation(_v.rotation, new_base)
-		end
-	end
-	for key, val in ipairs(static_meshes) do
-		msg.post(val.mesh, hash("enable"))
-	end
+	MOD.buffer_resource_used(mesh_tab.buffer_resource)
+	table.insert(created_meshes, {mesh = new_mesh, invert = invert, parent_transform = transform_index, buffer = mesh_tab.buffer_resource})
 end
 
 local function show_model(self, model_index)
@@ -563,7 +952,7 @@ local function show_model(self, model_index)
 		if val.meshes then
 			for k, v in ipairs(val.meshes) do
 				mesh_count = mesh_count + 1
-				create_mesh(v, new_transform, invert, key, "model")
+				create_mesh(v, new_transform, invert, key)
 				set_material(self, mesh_count, model_index)
 			end
 		end
@@ -573,6 +962,245 @@ local function show_model(self, model_index)
 		msg.post(val.mesh, hash("enable"))
 	end
 	show_transforms()
+end
+
+local function prepare_tween_data()
+	local tween_list = {}
+	active_tweens = {}
+	for key, val in pairs(MOD.culling_ranges) do
+		if val.props then
+			for k, v in ipairs(val.props) do
+				v.signal = nil
+			end
+		end
+	end
+	if MEM.event_data.table then
+		for key, val in ipairs(MEM.art_data.table.propsDictionary) do
+			if (val.tween or 0) > 0 then
+				local transform_names = {}
+				local tween_list_small = {}
+				for k, v in ipairs(val.model_data.transform_list) do
+					if not transform_names[v.name] then
+						transform_names[v.name] = k
+					end
+					if v.tween then
+						local expanded = G.expand_repeat_actions(v.tween)
+						expanded.signal = v.tween.signal
+						expanded.housing_transform = k
+						table.insert(tween_list_small, expanded)
+					end
+				end
+				for _k, tween_actions in ipairs(tween_list_small) do
+					tween_list[val.key] = tween_list[val.key] or {}
+					local t = {}
+					local time_offset = 0
+					for i = #tween_actions, 1, -1 do
+						if tween_actions[i].easing then
+							local old_action = tween_actions[i]
+							local node_values = G.separate_easing(old_action)
+							for _key, _val in ipairs(node_values) do
+								local tab = {
+									type = old_action.type,
+									part = old_action.part,
+									time = _val.t,
+									start_state = _val.s,
+									end_state = _val.e
+								}
+								table.insert(tween_actions, i + _key, tab)
+							end
+							table.remove(tween_actions, i)
+						end
+					end
+					for k, v in ipairs(tween_actions) do
+						if not (v.type == "W") then
+							local start_state = vmath.vector3(tonumber(v.start_state.x), tonumber(v.start_state.y), tonumber(v.start_state.z))
+							local end_state = vmath.vector3(tonumber(v.end_state.x), tonumber(v.end_state.y), tonumber(v.end_state.z))
+							if v.type == "R" then
+								start_state = G.euler_to_quat(start_state)
+								end_state = G.euler_to_quat(end_state)
+							end
+							table.insert(t, {
+								start_time = time_offset,
+								end_time = time_offset + v.time,
+								part = transform_names[v.part],
+								start_state = start_state,
+								end_state = end_state,
+								type = TWEEN_ACTIONS[v.type]
+							})
+						end
+						time_offset = time_offset + tonumber(v.time)
+					end
+					table.insert(tween_list[val.key], {actions = t, total_time = time_offset, signal = tween_actions.signal, housing_transform = tween_actions.housing_transform})
+				end
+			end
+		end
+		for _, event_val in pairs(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events) do
+			local start = event_val.startSample / SET.sample_rate
+			local range = math.min(math.floor((start * 3 + 6) / 16), MOD.max_culling_range)
+			MOD.culling_ranges[range] = MOD.culling_ranges[range] or {slices = {}, props = {}, signals = {}}
+			local target_prop, target_transform
+			local target_table
+			local range_to_search = range
+			if MOD.stationary then range_to_search = 0 end
+			for k, v in ipairs(MOD.culling_ranges[range_to_search].props) do
+				if (MEM.art_data.table.propsDictionary[v.model_index].tween or 0) > 0 then
+					local trans_list = MEM.art_data.table.propsDictionary[v.model_index].model_data.transform_list
+					for key, val in ipairs(trans_list) do
+						if val.tween then
+							if val.tween.signal == event_val.payload then
+								v.signal = v.signal or {}
+								local already_done
+								for _k, _v in ipairs(v.signal) do
+									if _v.target_transform == key then
+										already_done = true
+										break
+									end
+								end
+								if not already_done then
+									target_prop = v.name
+									target_transform = key
+									target_table = v.signal
+									break
+								end
+							end
+						end
+					end
+					if target_prop then break end
+				end
+			end
+			table.insert(MOD.culling_ranges[range].signals, {time = start, signal = event_val.payload, target_prop = target_prop, target_transform = target_transform, prop_found = not not target_table})
+			if target_table then
+				table.insert(target_table, {signal_tab = MOD.culling_ranges[range].signals[#MOD.culling_ranges[range].signals], time = start, signal = event_val.payload, target_transform = target_transform})
+			end
+		end
+	end
+	for key, val in pairs(MOD.culling_ranges) do
+		if val.signals then
+			for i = #val.signals, 1, -1 do
+				if val.signals[i].prop_found then
+					val.signals[i].prop_found = nil
+					for k, v in ipairs(tween_list[val.signals[i].target_prop]) do
+						if v.housing_transform == val.signals[i].target_transform then
+							val.signals[i].tween = v
+						end
+					end
+				else
+					table.remove(val.signals, i)
+				end
+			end
+		end
+	end
+	MOD.culling_ranges[-1] = MOD.culling_ranges[-1] or {}
+	MOD.culling_ranges[-1].signals = {}
+end
+
+local function get_beats()
+	if not MEM.event_data.table then return end
+	MOD.seconds_per_beat = MEM.event_data.table.tempoSections[1].samplesPerBeat / SET.sample_rate
+	MOD.beat_start_time = MEM.event_data.table.tempoSections[1].startSample / SET.sample_rate
+	local beats_per_measure = MEM.event_data.table.tempoSections[1].beatsPerMeasure
+	if beats_per_measure < 4 then
+		beats_per_measure = 4 / (MEM.event_data.table.tempoSections[1].beatsPerMeasure / 4)
+	end
+	MOD.whiteout_delay = MOD.seconds_per_beat * beats_per_measure * 2
+	MOD.whiteout_duration = MOD.seconds_per_beat * beats_per_measure * 2
+	-- 21.33333
+end
+
+local function apply_all_tweens()
+	active_tweens = {}
+	local current_time = MOD.total_time * MOD.scrubber_progress
+	local z = MOD.prop_data.lowest_z + current_time * 3 - SET.tween_padding_start * 3
+	local t = z / 3
+	for range, range_tab in pairs(MOD.culling_ranges) do
+		if range_tab.signals then
+			for key, val in ipairs(range_tab.signals) do
+				val.used_up = false
+				if val.transforms then
+					apply_tween(val, t, true)
+				end
+				if (not val.used_up) and (t - val.time > 0) then
+					if (t - (val.time + val.tween.total_time) < 0) or (t - (val.time + val.tween.total_time) > 0) then
+						if val.transforms then
+							active_tweens[val] = true
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+local function hide_fog()
+	SET.hide_fog = not SET.hide_fog
+	if SET.hide_fog then
+		msg.post("/fog#fog", hash("disable"))
+	else
+		msg.post("/fog#fog", hash("enable"))
+	end
+	local t = (MOD.prop_data.lowest_z / 3) + MOD.total_time * MOD.scrubber_progress - SET.tween_padding_start
+	for key, val in ipairs(MEM.art_data.colour_list) do
+		if ((t >= val.time) and (not val.end_time or (t < val.end_time))) or (key == #MEM.art_data.colour_list) then
+			MOD.previous_colour = nil
+			apply_colour_section(key, t)
+			break
+		end
+	end
+end
+
+local function hide_props()
+	SET.hide_props = not SET.hide_props
+	if SET.hide_props then
+		for key in pairs(MOD.culling_ranges.visible_props) do
+			for k, v in ipairs(key.models) do
+				msg.post(v.url, hash("disable"))
+			end
+		end
+	else
+		for key in pairs(MOD.culling_ranges.visible_props) do
+			for k, v in ipairs(key.models) do
+				msg.post(v.url, hash("enable"))
+			end
+		end
+	end
+end
+
+local function hide_geo()
+	SET.hide_geo = SET.hide_geo + 1
+	if SET.hide_geo > 3 then
+		SET.hide_geo = 1
+	end
+	if SET.hide_geo == 1 then
+		for key in pairs(MOD.culling_ranges.visible_slices) do
+			msg.post(key.model, hash("enable"))
+		end
+	else
+		for key in pairs(MOD.culling_ranges.visible_slices) do
+			msg.post(key.model, hash("disable"))
+		end
+	end
+	if SET.hide_geo == 2 then
+		for key in pairs(MOD.culling_ranges.visible_chunks) do
+			msg.post(key.model, hash("enable"))
+		end
+	else
+		for key in pairs(MOD.culling_ranges.visible_chunks) do
+			msg.post(key.model, hash("disable"))
+		end
+	end
+end
+
+local function hide_beatcubes()
+	SET.hide_beatcubes = not SET.hide_beatcubes
+	if SET.hide_beatcubes then
+		for key, val in ipairs(beatcubes) do
+			msg.post(val, hash("disable"))
+		end
+	else
+		for key, val in ipairs(beatcubes) do
+			msg.post(val, hash("enable"))
+		end
+	end
 end
 
 function on_message(self, message_id, message, sender)
@@ -600,36 +1228,75 @@ function on_message(self, message_id, message, sender)
 		msg.post(".", hash("acquire_input_focus"))
 		--msg.post("/grid#grid", hash("enable"))
 		show_grid(self)
-		msg.post("/model_camera#background", hash("enable"))
+		msg.post("/fog#fog", hash("enable"))
 		show_transforms()
-	elseif message_id == hash("geo_preview") then
-		msg.post(".", hash("enable"))
-		MOD.viewer_active = true
-		msg.post(".", hash("acquire_input_focus"))
-		--msg.post("/grid#grid", hash("enable"))
-		show_geo(self)
-		show_grid(self)
-		msg.post("/model_camera#background", hash("enable"))
 	elseif message_id == hash("move_geo") then
-		show_geo(self)
 		go.set("/geo_base", "position.z", message.z)
-		--create_static_models(self)
 		go.set("/static_prop_base", "position.z", message.z)
+	elseif message_id == hash("scrubber_moved") then
+		apply_all_tweens()
+		if message.resume_afterwards then
+			msg.post(".", hash("resume_playback"))
+		end
 	elseif message_id == hash("prepare_tweens") then
+		prepare_tween_data()
+		get_beats()
+		reset_tween(self)
+
+		local num = math.floor((MOD.total_time * 3) / 7) - 1
+		local start = 0
+		repeat
+			local z, fac
+			if num > 31 then
+				fac = "#beatcubes_224"; z = 224
+			elseif num > 15 then
+				fac = "#beatcubes_112"; z = 112
+			elseif num > 7 then
+				fac = "#beatcubes_56"; z = 56
+			elseif num > 3 then
+				fac = "#beatcubes_28"; z = 28
+			elseif num > 1 then
+				fac = "#beatcubes_14"; z = 14
+			elseif num > 0 then
+				fac = "#beatcubes_7"; z = 7
+			else
+				break
+			end
+			local cube = factory.create(fac, vmath.vector3(0, 0, start + 9.5))
+			start = start + z
+			num = num - (z / 7)
+			go.set_parent(cube, "/geo_base")
+			table.insert(beatcubes, cube)
+		until num < 1
+
+		if MOD.stationary then
+			apply_colour_section(1, 0)
+			show_culling_range(self, 0)
+		end
+		if MOD.move_terrain then
+			go.set(GROUND_GO, "position.z", -3 * SET.tween_padding_start)
+		else
+			go.set(GROUND_GO, "position.z", 0)
+		end
+		if MOD.map_preview then return end
 		for key, val in pairs(MOD.tweenable_transforms) do
 			val.used = false
 		end
 		for key, val in ipairs(MOD.tween_table) do
 			for k, v in ipairs(val) do
-				if v.part and MOD.tweenable_transforms[v.part] then
-					MOD.tweenable_transforms[v.part].used = true
-					local sc = MOD.tweenable_transforms[v.part].scale
+				local tweenable_transform_tab = MOD.tweenable_transforms[v.part]
+				if v.part and tweenable_transform_tab then
+					tweenable_transform_tab.used = true
+					tweenable_transform_tab.position = vmath.vector3(tweenable_transform_tab.transform_tab.position)
+					tweenable_transform_tab.rotation = vmath.quat(tweenable_transform_tab.transform_tab.rotation)
+					tweenable_transform_tab.scale = vmath.vector3(tweenable_transform_tab.transform_tab.scale)
+					local sc = tweenable_transform_tab.scale
 					if sc.x * sc.y * sc.z > 0 then
 						sc = 1
 					else
 						sc = -1
 					end
-					MOD.tweenable_transforms[v.part].base_inv = sc
+					tweenable_transform_tab.base_inv = sc
 				end
 			end
 		end
@@ -672,6 +1339,7 @@ function on_message(self, message_id, message, sender)
 		msg.post(".", hash("release_input_focus"))
 		msg.post(".", hash("disable"))
 		msg.post("/grid#grid", hash("disable"))
+		msg.post("/player_capsule", hash("disable"))
 		for key, val in ipairs(created_meshes) do
 			msg.post(val.mesh, hash("disable"))
 		end
@@ -679,14 +1347,30 @@ function on_message(self, message_id, message, sender)
 			msg.post(val, hash("disable"))
 		end
 		stop_flash(self)
-		msg.post("/model_camera#background", hash("disable"))
+		msg.post("/fog#fog", hash("disable"))
 	elseif message_id == hash("reset_tween") then
+		for key, val in pairs(MOD.culling_ranges.visible_slices) do
+			msg.post(key.model, hash("disable"))
+			key.enabled = false
+			MOD.culling_ranges.visible_slices[key] = false
+		end
+		for key, val in ipairs(geo_meshes) do
+			msg.post(val, hash("disable"))
+		end
+		delete_static()
+		delete_geo()
+		reset_signals()
+		for key, val in ipairs(beatcubes) do
+			go.delete(val)
+		end
+		beatcubes = {}
 		reset_tween(self)
 	elseif message_id == hash("remove_model") then
 		delete_model(self)
 	elseif message_id == hash("colours_changed") then
 		if show_fog then
-			go.set("/model_camera#background", "tint", COL.get_current("fog"))
+			go.set("/fog#fog", "tint1", COL.get_current("fog"))
+			go.set("/fog#fog", "tint2", COL.get_current("fog"))
 		end
 		if SET.model_show_grid == 1 then
 			go.set("/grid#grid", "tint", COL.get_current("main"))
@@ -699,20 +1383,19 @@ function on_message(self, message_id, message, sender)
 				set_material(self, key, message.model_index)
 			end
 		end
-	elseif message_id == hash("switch_background") then
-		show_fog = not show_fog
-		if show_fog then
-			go.set("/model_camera#background", "tint", COL.get_current("fog"))
-		else
-			go.set("/model_camera#background", "tint", vmath.vector4(0))
-		end
+	elseif message_id == hash("hide_fog") then
+		hide_fog()
+	elseif message_id == hash("hide_props") then
+		hide_props()
+	elseif message_id == hash("hide_geo") then
+		hide_geo()
+	elseif message_id == hash("hide_beatcubes") then
+		hide_beatcubes()
 	elseif message_id == hash("reset_view") then
 		reset_view()
+	elseif message_id == hash("show_capsule") then
+		msg.post("/player_capsule", hash("enable"))
 	elseif message_id == hash("show_grid") then
-		SET.model_show_grid = SET.model_show_grid + 1
-		if SET.model_show_grid > 3 then
-			SET.model_show_grid = 1
-		end
 		show_grid(self)
 	elseif message_id == hash("show_transforms") then
 		show_transforms()

@@ -4,6 +4,11 @@ SET.I_am_Klear = false
 SET.debug = false
 
 local configurable = {
+	"unload_data_before_loading_zip",
+	"unload_data_before_loading_folder",
+	"map_preview_partition_size",
+	"tween_padding_start",
+	"tween_padding_end",
 	"default_tween_time_in_beats",
 	"default_create_folder_on_export",
 	"default_import_changes_from_zip",
@@ -65,12 +70,12 @@ local configurable = {
 	"default_camera_rotation",
 	"default_camera_pitch",
 	"default_model_z_position",
-	"model_grid_dots",
 	"default_colour_set",
 	"custom_colour_main",
 	"custom_colour_fog",
 	"custom_colour_glow",
 	"custom_colour_enemy",
+	"collider_colour",
 	"autodetect_sample_rate",
 	"default_sample_rate",
 	"add_opens_edit_box",
@@ -119,7 +124,6 @@ SET.default_show_transform_edit_warning = true
 SET.default_model_show_grid = 1
 SET.default_show_transform = 1
 SET.default_new_event_sample_offset = 0
-
 SET.default_create_folder_on_export = true
 SET.default_import_changes_from_zip = false
 SET.default_import_level_changes = true
@@ -141,6 +145,12 @@ SET.default_path_save_tween = ""
 SET.confirm_file_overwrite = true
 SET.import_changes_from_zip = false
 SET.create_folder_on_export = true
+
+SET.unload_data_before_loading_zip = true
+SET.unload_data_before_loading_folder = true
+
+SET.preload_models = false
+SET.recalculate_normals = false
 
 SET.import_level_changes = true
 SET.import_event_changes = true
@@ -189,10 +199,10 @@ SET.hide_model_count = false
 SET.restrict_rotations_to_360 = true
 
 -- model viewer
-SET.model_rotation_sensitivity = 0.5
-SET.model_move_sensitivity = 0.01
-SET.model_zoom_sensitivity = 1
-SET.default_camera_zoom = 8
+SET.run_speed_multiplier = 3.5
+
+SET.model_rotation_sensitivity = 1
+SET.model_move_sensitivity = 1
 SET.default_camera_pitch = 25
 SET.default_camera_rotation = 0
 
@@ -203,17 +213,21 @@ SET.custom_colour_main = "471537"
 SET.custom_colour_fog = "C9C3C1"
 SET.custom_colour_glow = "FCC69D"
 SET.custom_colour_enemy = "000000"
+SET.collider_colour = vmath.vector4(0.5, 0.5, 1, 1)
 
 SET.model_show_grid = 1
-SET.model_grid_dots = false
 
 SET.show_transform = 1
+
+SET.hide_geo = 1
 
 SET.tween_timeline_bar_height = 20 -- make this 6+
 
 SET.mesh_flash_time = 0.3
 SET.mesh_flash_frequency = 1
 SET.mesh_flash_colour = vmath.vector4(1, 0, 0, 0.4)
+
+SET.map_preview_partition_size = 10
 
 -- transform
 
@@ -233,6 +247,8 @@ SET.tween_extra_add_buttons = false
 SET.ask_before_overwriting_tween_file = true
 SET.auto_set_tween_preview_prop = true
 SET.tween_time_in_beats = false
+SET.tween_padding_start = 0.5
+SET.tween_padding_end = 0.5
 
 -- easing  													ALL IS NEW!!!
 SET.easing_node_scale = 0.5

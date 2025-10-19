@@ -3,11 +3,12 @@ local SET = require "modules.settings"
 local COL = {}
 
 COL.current_colours = {main = SET.custom_colour_main, fog = SET.custom_colour_fog, glow = SET.custom_colour_glow, enemy = SET.custom_colour_enemy}
+COL.current_hsv = {}
 
 local colour_function = {}
 
-local function rgb_to_hsv(colour)
-	local r, g, b = colour.x, colour.y, colour.z
+local function rgb_to_hsv(colour, r, g, b)
+	r, g, b = r or colour.x, g or colour.y, b or colour.z
 	local M, m = math.max(r, g, b), math.min(r, g, b)
 	local C = M - m
 	local K = 1.0/(6.0 * C)
@@ -50,8 +51,17 @@ function COL.str_to_colour(str)
 	return vmath.vector4(hex_to_num(r), hex_to_num(g), hex_to_num(b), 1)
 end
 
+function COL.str_to_hsv(str)
+	local r, g, b = string.sub(str, 1, 2), string.sub(str, 3, 4), string.sub(str, 5, 6)
+	local h, s, v = rgb_to_hsv(nil, hex_to_num(r), hex_to_num(g), hex_to_num(b))
+	return {h = h, s = s, v = v}
+end
+
 function COL.set_current(tab)
 	COL.current_colours = {main = tab.main, fog = tab.fog, glow = tab.glow, enemy = tab.enemy}
+	for key, val in pairs(COL.current_colours) do
+		COL.current_hsv[key] = COL.str_to_hsv(val)
+	end
 	msg.post("/model_viewer", hash("colours_changed"))
 end
 
@@ -88,6 +98,7 @@ function colour_function.fog() return COL.str_to_colour(COL.current_colours.fog)
 function colour_function.enemy() return COL.str_to_colour(COL.current_colours.enemy) end
 function colour_function.shields() return vmath.vector4(0.654, 1, 1, 1) end
 function colour_function.dead() return vmath.vector4(0.827, 0, 0.459, 1) end
+
 
 local tex_glow = hash("glow")
 local tex_prop = hash("prop")
@@ -144,6 +155,17 @@ COL.materials = {
 	["(DoNotEdit)LiveMat_PlayerRingOuter2"] = {tint = colour_function.main, texture = tex_funky},
 }
 
-
+function COL.setup_colours()
+	for key, val in ipairs(MEM.art_data.colour_list) do
+		val.main = COL.str_to_colour(val.main)
+		val.fog = COL.str_to_colour(val.fog)
+		val.glow = COL.str_to_colour(val.glow)
+		val.enemy = COL.str_to_colour(val.enemy)
+		local h, s, v = rgb_to_hsv(val.glow)
+		h = (h - 0.5) % 1
+		val.glow_inv = hsv_to_rgb(h, s, v)
+	end
+	MEM.art_data.colour_list[0] = MEM.art_data.colour_list[1]
+end
 
 return COL

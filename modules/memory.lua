@@ -2,6 +2,7 @@ local UI = require "modules.ui"
 local G = require "modules.global"
 local SET = require "modules.settings"
 local MOD = require "modules.models"
+local SND = require "modules.sound"
 
 local MEM = {}
 
@@ -256,6 +257,9 @@ function load.pw_meta(data)
 		local fix_applied = false
 		for key, val in ipairs(tab.Volume) do
 			local index_num = tonumber(val.groupIndex)
+			if not index_num then
+				break
+			end
 			if index_num > expected_group_index then
 				val.groupIndex = expected_group_index
 				fix_applied = true
@@ -324,107 +328,78 @@ function load.pw_event(data, filename)
 	end
 end
 
-local function parse_vertex_data(str)
-	local comma_1 = string.find(str, ",")
-	local comma_2 = string.find(str, ",", comma_1 + 1)
-	local x = string.sub(str, 1, comma_1 - 1)
-	local y = string.sub(str, comma_1 + 1, comma_2 - 1)
-	local z = string.sub(str, comma_2 + 1)
-	return tonumber(x), tonumber(y), tonumber(z)
-end
-
-local function create_mesh(mesh_tab)
-	if not mesh_tab.triangles then
-		mesh_tab.triangles = {}
-		mesh_tab.normals_parsed = {}
-		for i = mesh_tab.IndexStart, mesh_tab.IndexEnd, 3 do
-			local function add_triangle(index)
-				index = index + 1
-				local x, y, z = parse_vertex_data(mesh_tab.verts[index])
-				table.insert(mesh_tab.triangles, x); table.insert(mesh_tab.triangles, y); table.insert(mesh_tab.triangles, z)
-				x, z, y = parse_vertex_data(mesh_tab.normals[index])
-				table.insert(mesh_tab.normals_parsed, x); table.insert(mesh_tab.normals_parsed, y); table.insert(mesh_tab.normals_parsed, z)
-			end
-			add_triangle(mesh_tab.tris[i])
-			add_triangle(mesh_tab.tris[i + 1])
-			add_triangle(mesh_tab.tris[i + 2])
-		end
-		mesh_tab.tris = nil
-		mesh_tab.normals = nil
-		mesh_tab.verts = nil
-	end
-
-	local buf = buffer.create(#mesh_tab.triangles / 3, {
-		{name = hash("position"), type = buffer.VALUE_TYPE_FLOAT32, count = 3},
-		{name = hash("normal"), type = buffer.VALUE_TYPE_FLOAT32, count = 3},
-		{name = hash("texcoord0"), type = buffer.VALUE_TYPE_FLOAT32, count = 2}
-	})
-
-	local positions = buffer.get_stream(buf, "position")
-	local normal = buffer.get_stream(buf, "normal")
-	local texcoord0 = buffer.get_stream(buf, "texcoord0")
-
-	local tex_index = 1
-	for i, value in ipairs(mesh_tab.triangles) do
-		positions[i] = mesh_tab.triangles[i]
-		normal[i] = mesh_tab.normals_parsed[i]
-		if not (i % 3 == 0) then
-			texcoord0[tex_index] = mesh_tab.triangles[i] * 0.25
-			tex_index = tex_index + 1
-		end
-	end
-	mesh_tab.buffer_resource = MOD.create_buffer(buf)
-end
-
 function load.pw_geo(data, filename)
 	local tab = MEM.parse_json(data)
-	local function parse_id(str)
-		local comma_1 = string.find(str, ",")
-		local comma_2 = string.find(str, ",", comma_1 + 1)
-		local v1 = string.sub(str, 1, comma_1 - 1)
-		local v2 = string.sub(str, comma_1 + 1, comma_2 - 1)
-		local v3 = string.sub(str, comma_2 + 1)
-		return tonumber(v1), tonumber(v2), tonumber(v3)
-	end
-	
-	if true then return end
-	
 	if MEM.check(tab, "pw_geo", filename) then
 		local chunks, slices = {}, {}
 		for key, val in ipairs(tab.chunkData) do
-			local v1, v2, v3 = parse_id(val.id)
+			local id = G.parse_values(val.id)
 			if #val.verts > 0 then
-				table.insert(chunks, {
-					verts = val.verts,
-					tris = val.tris,
+				local verts_parsed, triangles, normals = {}, {}, {}
+				for k, v in ipairs(val.verts) do
+					verts_parsed[k] = G.parse_values(v)
+				end
+				for i = 1, #val.tris, 3 do
+					local vec_a = vmath.vector3(verts_parsed[val.tris[i + 0] + 1][1], verts_parsed[val.tris[i + 0] + 1][2], verts_parsed[val.tris[i + 0] + 1][3])
+					local vec_b = vmath.vector3(verts_parsed[val.tris[i + 1] + 1][1], verts_parsed[val.tris[i + 1] + 1][2], verts_parsed[val.tris[i + 1] + 1][3])
+					local vec_c = vmath.vector3(verts_parsed[val.tris[i + 2] + 1][1], verts_parsed[val.tris[i + 2] + 1][2], verts_parsed[val.tris[i + 2] + 1][3])
+					local norm = vmath.normalize(vmath.cross(vec_b - vec_a, vec_c - vec_a))
+					for j = 0, 2 do
+						local vertex = val.tris[i + j] + 1
+						table.insert(triangles, verts_parsed[vertex][1])
+						table.insert(triangles, verts_parsed[vertex][2])
+						table.insert(triangles, verts_parsed[vertex][3])
+						table.insert(normals, norm.x)
+						table.insert(normals, norm.y)
+						table.insert(normals, norm.z)
+					end
+				end
+				local t = {
+					triangles = triangles,
+					normals_parsed = normals,
 					IndexStart = 1,
 					IndexEnd = #val.tris,
-					normals = val.verts,
-					id = {parse_id(val.id)}
-				})
-				create_mesh(chunks[#chunks])
+				}
+				MOD.create_mesh(t)
+				table.insert(chunks, {buffer_resource = t.buffer_resource, id = id})
 			else
-				table.insert(chunks, {empty = true})
+				table.insert(chunks, {id = id, empty = true})
 			end
 		end
 		for key, val in ipairs(tab.chunkSlices) do
 			if #val.verts > 0 then
-				table.insert(slices, {
-					verts = val.verts,
-					tris = val.tris,
+				local verts_parsed, triangles, normals = {}, {}, {}
+				for k, v in ipairs(val.verts) do
+					verts_parsed[k] = G.parse_values(v)
+				end
+				for i = 1, #val.tris, 3 do
+					local vec_a = vmath.vector3(verts_parsed[val.tris[i + 0] + 1][1], verts_parsed[val.tris[i + 0] + 1][2], verts_parsed[val.tris[i + 0] + 1][3])
+					local vec_b = vmath.vector3(verts_parsed[val.tris[i + 1] + 1][1], verts_parsed[val.tris[i + 1] + 1][2], verts_parsed[val.tris[i + 1] + 1][3])
+					local vec_c = vmath.vector3(verts_parsed[val.tris[i + 2] + 1][1], verts_parsed[val.tris[i + 2] + 1][2], verts_parsed[val.tris[i + 2] + 1][3])
+					local norm = vmath.normalize(vmath.cross(vec_b - vec_a, vec_c - vec_a))
+					for j = 0, 2 do
+						local vertex = val.tris[i + j] + 1
+						table.insert(triangles, verts_parsed[vertex][1])
+						table.insert(triangles, verts_parsed[vertex][2])
+						table.insert(triangles, verts_parsed[vertex][3])
+						table.insert(normals, norm.x)
+						table.insert(normals, norm.y)
+						table.insert(normals, norm.z)
+					end
+				end
+				local t = {
+					triangles = triangles,
+					normals_parsed = normals,
 					IndexStart = 1,
 					IndexEnd = #val.tris,
-					normals = val.verts,
-					id = tonumber(val.id)
-				})
-				create_mesh(slices[#slices])
+				}
+				MOD.create_mesh(t)
+				table.insert(slices, {buffer_resource = t.buffer_resource, id = tonumber(val.id)})
 			else
-				table.insert(slices, {empty = true})
+				table.insert(slices, {id = tonumber(val.id), empty = true})
 			end
 		end
-		
 		MEM.geo_data = {table = tab, filename = filename, chunks = chunks, slices = slices}
-		
 		UI.tab.tab_geo.state = true
 		return true
 	else
@@ -434,10 +409,9 @@ function load.pw_geo(data, filename)
 end
 
 function load.pw_seq(data, filename)
-	--MEM.sequence_data.string = data
-	--MEM.sequence_data.filename = filename
-	--UI.tab.tab_sequence.state = true
-	--return true
+	MEM.sequence_data.string = data
+	MEM.sequence_data.filename = filename
+	return true
 end
 
 local function parse_tween_action(script)
@@ -530,7 +504,9 @@ local function explore_model_tree(source_tab, part_name, level, parent_tab)
 				local mesh_tab = {}
 				for key, val in ipairs(v.subMeshes) do
 					mesh_tab[key] = {IndexStart = val.IndexStart + 1, IndexEnd = val.IndexCount + val.IndexStart, verts = v.verts, tris = v.tris, normals = v.normals}
-					create_mesh(mesh_tab[key])
+					if SET.preload_models then
+						MOD.create_mesh(mesh_tab[key])
+					end
 				end
 				current_transform.meshes = {}
 				for key, val in ipairs(mesh_tab) do
@@ -563,13 +539,12 @@ function MEM.add_metadata(model_tab)
 	end
 end
 
-
 function load.pw_art(data, filename)
 	local tab = MEM.parse_json(data)
 	
 	if MEM.check(tab, "pw_art", filename) then
 		MOD.release_model_resources()
-		MEM.art_data = {table = tab, filename = filename, prop_list = {}}
+		MEM.art_data = {table = tab, filename = filename, prop_list = {}, signal_consumers = {}}
 		local dynamic_models = {}
 		local model_count = {}
 
@@ -579,59 +554,95 @@ function load.pw_art(data, filename)
 			local scale = vmath.vector3(sc[1], sc[2], sc[3])
 			local pos = vmath.vector3(point[1], point[2], point[3])
 			local rot = vmath.quat(point[4], point[5], point[6], point[7])
-			table.insert(MEM.art_data.prop_list, {scale = scale, position = pos, rotation = rot, name = prop_tab.name})
-		end
-		
-		if tab.dynamicProps then
-			for key, val in ipairs(tab.dynamicProps) do
-				dynamic_models[val.name] = true
-				model_count[val.name] = (model_count[val.name] or 0) + 1
-				add_to_prop_list(val)
-			end
-		end
-		if tab.dynamicCullingRanges then
-			for key, val in ipairs(tab.dynamicCullingRanges) do
-				for k, v in ipairs(val.members) do
-					dynamic_models[v.name] = true
-					model_count[v.name] = (model_count[v.name] or 0) + 1
-					add_to_prop_list(v)
-				end
-			end
-		end
-		if tab.staticProps then
-			for key, val in ipairs(tab.staticProps) do
-				model_count[val.name] = (model_count[val.name] or 0) + 1
-				add_to_prop_list(val)
-			end
-		end
-		if tab.staticCullingRanges then
-			for key, val in ipairs(tab.staticCullingRanges) do
-				for k, v in ipairs(val.members) do
-					model_count[v.name] = (model_count[v.name] or 0) + 1
-					add_to_prop_list(v)
-				end
-			end
+			return {position = pos, rotation = rot, scale = scale, name = prop_tab.name}
 		end
 
+		for key, val in ipairs(tab.staticProps or {}) do
+			model_count[val.name] = (model_count[val.name] or 0) + 1
+			local t = add_to_prop_list(val)
+			local base_range = math.floor(t.position.z / 16)
+			t.spawn_range = base_range - 3
+			t.despawn_range = base_range + 3
+			table.insert(MEM.art_data.prop_list, t)
+		end
+		for key, val in ipairs(MEM.art_data.table.dynamicProps or {}) do
+			model_count[val.name] = (model_count[val.name] or 0) + 1
+			local t = add_to_prop_list(val)
+			local base_range = math.floor(t.position.z / 16)
+			t.spawn_range = base_range - 3
+			t.despawn_range = base_range + 3
+			t.dynamic = true
+			dynamic_models[val.name] = true
+			table.insert(MEM.art_data.prop_list, t)
+		end
+
+		for key, val in ipairs(MEM.art_data.table.staticCullingRanges or {}) do
+			local range = G.parse_values(val.range)
+			for k, v in ipairs(val.members) do
+				model_count[v.name] = (model_count[v.name] or 0) + 1
+				local t = add_to_prop_list(v)
+				t.spawn_range = range[1] - 3
+				t.despawn_range = range[2] + 3
+				table.insert(MEM.art_data.prop_list, t)
+			end
+		end
+		for key, val in ipairs(MEM.art_data.table.dynamicCullingRanges or {}) do
+			local range = G.parse_values(val.range)
+			for k, v in ipairs(val.members) do
+				model_count[v.name] = (model_count[v.name] or 0) + 1
+				local t = add_to_prop_list(v)
+				t.spawn_range = range[1] - 3
+				t.despawn_range = range[2] + 3
+				t.dynamic = true
+				dynamic_models[v.name] = true
+				table.insert(MEM.art_data.prop_list, t)
+			end
+		end
+		table.sort(MEM.art_data.prop_list, function(a, b) return a.position.z < b.position.z end)
+		
 		if tab.propsDictionary[1] and tab.propsDictionary[1].object.name == "Placeholder" then
 			MEM.art_data.placeholder = table.remove(tab.propsDictionary, 1)
 		end
 
+		local model_index_list = {}
 		for key, val in ipairs(tab.propsDictionary) do
 			if not (val.object.name == val.key) then
 				val.object.name = val.key
 				G.update_navbar("Found key/name mismatch is prop "..val.key..". It has been fixed.")
 			end
+			model_index_list[val.key] = key
 			MEM.add_metadata(val)
 			if dynamic_models[val.key] or (val.tween > 0) then
 				val.dynamic = true
+				if val.tween > 0 then
+					local count = val.tween
+					for k, v in ipairs(val.model_data.transform_list) do
+						if v.tween then
+							MEM.art_data.signal_consumers[val.key] = MEM.art_data.signal_consumers[val.key] or {}
+							table.insert(MEM.art_data.signal_consumers[val.key], v.tween.signal)
+							count = count - 1
+							if count < 1 then break end
+						end
+					end
+				end
 			end
 			val.model_data.model_count = model_count[val.key] or 0
 		end
 
+		for key, val in ipairs(MEM.art_data.prop_list) do
+			val.model_index = model_index_list[val.name]
+		end
+
 		MEM.art_data.colours = {}
+		MEM.art_data.colour_list = {}
 		local colour_check = {}
 		for key, val in ipairs(tab.colors) do
+			local time, end_time, duration = tonumber(val.secondsStart), tonumber(val.secondsEnd), tonumber(val.transitionTime)
+			if time == end_time then end_time = nil end
+			if duration < 0 then duration = 1 end
+			table.insert(MEM.art_data.colour_list, {main = val.mainColor, fog = val.fogColor, glow = val.glowColor, enemy = val.enemyColor,
+			time = time, end_time = end_time, duration = duration})
+			
 			local all_colours = val.mainColor..val.fogColor..val.glowColor..val.enemyColor
 			local add_this_colour = true
 			for k, v in ipairs(colour_check) do
@@ -678,14 +689,13 @@ function MEM.load_geomancer_data(data, filename)
 	load.geomancer(data, filename)
 end
 
-local music_resource_index = 0
 function load.ogg(data, filename)
-	if music_resource_index > 0 then
-		resource.release("/music"..music_resource_index..".ogg")
-	end
-	music_resource_index = music_resource_index + 1
-	MEM.music = resource.create_sound_data("/music"..music_resource_index..".ogg", {data = data})
-	msg.post("/sound", hash("music_loaded"))
+	MEM.music_raw = data
+	MEM.music = SND.load_music(data)
+end
+
+function load.png(data, filename)
+	MEM.poster = data
 end
 
 function MEM.load_file(path, filename, extension, data)
@@ -697,6 +707,55 @@ function MEM.load_file(path, filename, extension, data)
 			end
 		end
 	end
+end
+
+function MEM.setup_culling_ranges()
+	MOD.culling_ranges = {visible_slices = {}, visible_props = {}, visible_chunks = {}}
+	if MEM.geo_data.slices then
+		for key, val in ipairs(MEM.geo_data.slices) do
+			if not val.empty then
+				local range_spawn = math.max(val.id - 3, 0)
+				local range_despawn = math.max(val.id + 3, 0)
+				val.ranges = {}
+				for i = range_spawn, range_despawn do
+					MOD.culling_ranges[i] = MOD.culling_ranges[i] or {slices = {}, props = {}, signals = {}, chunks = {}}
+					table.insert(MOD.culling_ranges[i].slices, val)
+					val.ranges[i] = true
+				end
+			end
+		end
+	end
+	if MEM.geo_data.chunks then
+		for key, val in ipairs(MEM.geo_data.chunks) do
+			if not val.empty then
+				local range_spawn = math.max(val.id[3] - 3, 0)
+				local range_despawn = math.max(val.id[3] + 3, 0)
+				val.ranges = {}
+				for i = range_spawn, range_despawn do
+					MOD.culling_ranges[i] = MOD.culling_ranges[i] or {slices = {}, props = {}, signals = {}, chunks = {}}
+					table.insert(MOD.culling_ranges[i].chunks, val)
+					val.ranges[i] = true
+				end
+			end
+		end
+	end
+	if MEM.art_data.prop_list then
+		for key, val in ipairs(MEM.art_data.prop_list) do
+			val.ranges = {}
+			for i = math.max(val.spawn_range, 0), math.max(val.despawn_range, 0) do
+				MOD.culling_ranges[i] = MOD.culling_ranges[i] or {slices = {}, props = {}, signals = {}, chunks = {}}
+				table.insert(MOD.culling_ranges[i].props, val)
+				val.ranges[i] = true
+			end
+		end
+	end
+	local max_range = 0
+	for k, v in pairs(MOD.culling_ranges) do
+		if type(k) == "number" then
+			max_range = math.max(max_range, k)
+		end
+	end
+	MOD.max_culling_range = max_range
 end
 
 return MEM

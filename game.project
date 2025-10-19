@@ -8,15 +8,16 @@ shared_state = 1
 [display]
 width = 1280
 height = 840
-samples = 4
+samples = 8
 
 [android]
 input_method = HiddenInputField
 
 [project]
 title = Geomancer
-version = 0.97
+version = 0.97a
 developer = Klear
+write_log_file = 2
 dependencies#0 = https://github.com/britzl/defold-png/archive/master.zip
 dependencies#1 = https://github.com/andsve/def-diags/archive/master.zip
 dependencies#2 = https://github.com/Car3man/extension-zip/archive/refs/tags/1.0.1.zip
@@ -30,7 +31,9 @@ default_texture_mag_filter = nearest
 texture_profiles = /assets/gfx/UI.texture_profiles
 max_characters = 16384
 max_font_batches = 256
-max_draw_calls = 2048
+max_draw_calls = 4096
+memory_size = 2048
+verify_graphics_calls = 0
 
 [input]
 game_binding = /game.input_bindingc
@@ -41,10 +44,10 @@ repeat_interval = 0.1
 app_icon = /geomancer.ico
 
 [mesh]
-max_count = 4096
+max_count = 16384
 
 [collection]
-max_instances = 8192
+max_instances = 32768
 
 [model]
 max_count = 4096

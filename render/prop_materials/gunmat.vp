@@ -1,0 +1,38 @@
+attribute highp vec4 position;
+attribute highp vec4 normal;
+
+uniform mediump mat4 mtx_worldview;
+uniform mediump mat4 mtx_proj;
+uniform mediump mat4 mtx_normal;
+
+varying mediump float d;
+varying mediump vec4 var_normal;
+varying mediump float var_dist;
+
+float determinant(mat4 m) {
+    float
+    b00 = m[0][0] * m[1][1] - m[0][1] * m[1][0],
+    b01 = m[0][0] * m[1][2] - m[0][2] * m[1][0],
+    b02 = m[0][0] * m[1][3] - m[0][3] * m[1][0],
+    b03 = m[0][1] * m[1][2] - m[0][2] * m[1][1],
+    b04 = m[0][1] * m[1][3] - m[0][3] * m[1][1],
+    b05 = m[0][2] * m[1][3] - m[0][3] * m[1][2],
+    b06 = m[2][0] * m[3][1] - m[2][1] * m[3][0],
+    b07 = m[2][0] * m[3][2] - m[2][2] * m[3][0],
+    b08 = m[2][0] * m[3][3] - m[2][3] * m[3][0],
+    b09 = m[2][1] * m[3][2] - m[2][2] * m[3][1],
+    b10 = m[2][1] * m[3][3] - m[2][3] * m[3][1],
+    b11 = m[2][2] * m[3][3] - m[2][3] * m[3][2];
+    return b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+}
+
+void main()
+{
+    vec4 p = mtx_worldview * vec4(position.xyz, 1.0);
+    d = determinant(mtx_worldview);
+
+    var_normal = mtx_normal * normal;
+
+    gl_Position = mtx_proj * p;
+}
+

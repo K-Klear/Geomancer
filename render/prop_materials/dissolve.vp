@@ -1,0 +1,15 @@
+attribute highp vec4 position;
+
+uniform mediump mat4 mtx_worldview;
+uniform mediump mat4 mtx_proj;
+
+varying mediump float d;
+varying mediump float var_dist;
+
+void main()
+{
+    vec4 p = mtx_worldview * vec4(position.xyz, 1.0);
+
+    gl_Position = mtx_proj * p;
+}
+

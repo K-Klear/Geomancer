@@ -85,7 +85,7 @@ function UI.unload_template(tab, template)
 	if template then
 		if type(template) == "table" then
 			for key, val in ipairs(template) do
-				UI.unload_template(val, tab)
+				UI.unload_template(tab, val)
 			end
 			return
 		else

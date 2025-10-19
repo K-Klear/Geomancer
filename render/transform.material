@@ -1,7 +1,7 @@
 name: "transform"
 tags: "transform"
-vertex_program: "/render/model.vp"
-fragment_program: "/render/model.fp"
+vertex_program: "/render/old_mats/model.vp"
+fragment_program: "/render/old_mats/model.fp"
 vertex_space: VERTEX_SPACE_LOCAL
 vertex_constants {
   name: "mtx_worldview"

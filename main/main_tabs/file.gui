@@ -736,6 +736,30 @@ nodes {
   overridden_fields: 8
   template_node_child: true
 }
+nodes {
+  position {
+    x: 640.0
+    y: 280.0
+  }
+  type: TYPE_TEMPLATE
+  id: "map_preview"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "map_preview/button_white"
+  parent: "map_preview"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Map preview"
+  id: "map_preview/text"
+  parent: "map_preview/button_white"
+  overridden_fields: 3
+  overridden_fields: 8
+  template_node_child: true
+}
 layers {
   name: "below"
 }

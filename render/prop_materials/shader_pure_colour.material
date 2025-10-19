@@ -1,0 +1,23 @@
+name: "model"
+tags: "model"
+vertex_program: "/render/prop_materials/fog.vp"
+fragment_program: "/render/prop_materials/pure_colour.fp"
+vertex_space: VERTEX_SPACE_LOCAL
+vertex_constants {
+  name: "mtx_worldview"
+  type: CONSTANT_TYPE_WORLDVIEW
+}
+vertex_constants {
+  name: "mtx_proj"
+  type: CONSTANT_TYPE_PROJECTION
+}
+fragment_constants {
+  name: "tint"
+  type: CONSTANT_TYPE_USER
+  value {
+    x: 0.5
+    y: 1.0
+    z: 1.0
+    w: 1.0
+  }
+}
