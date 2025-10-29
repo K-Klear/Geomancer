@@ -179,53 +179,6 @@ nodes {
 }
 nodes {
   position {
-    x: -53.0
-    y: 25.0
-  }
-  type: TYPE_TEMPLATE
-  id: "button_colour"
-  parent: "button_box"
-  inherit_alpha: true
-  template: "/templates/button_colour.gui"
-}
-nodes {
-  type: TYPE_BOX
-  id: "button_colour/button_white"
-  parent: "button_colour"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  id: "button_colour/text"
-  parent: "button_colour/button_white"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  id: "button_colour/main"
-  parent: "button_colour/text"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  id: "button_colour/fog"
-  parent: "button_colour/text"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  id: "button_colour/glow"
-  parent: "button_colour/text"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  id: "button_colour/enemy"
-  parent: "button_colour/text"
-  template_node_child: true
-}
-nodes {
-  position {
     x: -339.0
     y: 25.0
   }
@@ -1432,10 +1385,10 @@ nodes {
     y: -84.0
   }
   type: TYPE_TEMPLATE
-  id: "hide_colour"
+  id: "button_colour"
   parent: "visibility_box_buttons"
   inherit_alpha: true
-  template: "/templates/button_enemy.gui"
+  template: "/templates/button_colour.gui"
 }
 nodes {
   size {
@@ -1443,26 +1396,40 @@ nodes {
     y: 56.0
   }
   type: TYPE_BOX
-  id: "hide_colour/button_white"
-  parent: "hide_colour"
-  overridden_fields: 3
+  id: "button_colour/button_white"
+  parent: "button_colour"
   overridden_fields: 4
   template_node_child: true
 }
 nodes {
-  scale {
-    x: 0.5
-    y: 0.5
-  }
   type: TYPE_BOX
-  texture: "UI/stop"
-  id: "hide_colour/text"
-  parent: "hide_colour/button_white"
-  overridden_fields: 3
-  overridden_fields: 9
-  overridden_fields: 38
+  id: "button_colour/text"
+  parent: "button_colour/button_white"
   template_node_child: true
-  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  type: TYPE_BOX
+  id: "button_colour/main"
+  parent: "button_colour/text"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "button_colour/fog"
+  parent: "button_colour/text"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "button_colour/glow"
+  parent: "button_colour/text"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "button_colour/enemy"
+  parent: "button_colour/text"
+  template_node_child: true
 }
 nodes {
   position {

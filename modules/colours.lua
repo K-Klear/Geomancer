@@ -62,7 +62,8 @@ function COL.set_current(tab)
 	for key, val in pairs(COL.current_colours) do
 		COL.current_hsv[key] = COL.str_to_hsv(val)
 	end
-	msg.post("/model_viewer", hash("colours_changed"))
+	print("This thing is still active somewher?!")
+	--msg.post("/model_viewer", hash("colours_changed"))
 end
 
 function COL.set_current_to_default()

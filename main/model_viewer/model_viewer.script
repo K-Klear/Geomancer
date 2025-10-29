@@ -446,27 +446,39 @@ local function create_static_prop(self, prop_tab)
 	return mesh_list
 end
 
-local function apply_colour_section(colour_key, t)
+local function apply_colour_section(colour_key, t, check_override)
+	if MOD.colour_override and (not check_override) then return end
 	local val = MEM.art_data.colour_list[colour_key]
 	current_colour = colour_key
 	colour_transition = 1 - ((t - val.time) / val.duration)
 	ct_clamped = math.max(colour_transition, 0)
-	if not (current_colour == MOD.previous_colour) then
-		c1.main = vmath.vector4(val.main)
-		c1.main.w = ct_clamped
-		c2.main = vmath.vector4(MEM.art_data.colour_list[colour_key - 1].main)
-		c1.fog = vmath.vector4(val.fog)
-		c1.fog.w = ct_clamped
-		c2.fog = vmath.vector4(MEM.art_data.colour_list[colour_key - 1].fog)
-		c1.glow = vmath.vector4(val.glow)
-		c1.glow.w = ct_clamped
-		c2.glow = vmath.vector4(MEM.art_data.colour_list[colour_key - 1].glow)
-		c1.enemy = vmath.vector4(val.enemy)
-		c1.enemy.w = ct_clamped
-		c2.enemy = vmath.vector4(MEM.art_data.colour_list[colour_key - 1].enemy)
-		c1.glow_inv = vmath.vector4(val.glow_inv)
-		c1.glow_inv.w = ct_clamped
-		c2.glow_inv = vmath.vector4(MEM.art_data.colour_list[colour_key - 1].glow_inv)
+	if not (current_colour == MOD.previous_colour) or check_override then
+		if MOD.colour_override then
+			c1.main = MOD.colour_override_main
+			c2.main = MOD.colour_override_main
+			c1.fog = MOD.colour_override_fog
+			c2.fog = MOD.colour_override_fog
+			c1.glow = MOD.colour_override_glow
+			c2.glow = MOD.colour_override_glow
+			c1.enemy = MOD.colour_override_enemy
+			c2.enemy = MOD.colour_override_enemy
+		else
+			c1.main = vmath.vector4(val.main)
+			c1.main.w = ct_clamped
+			c2.main = vmath.vector4(MEM.art_data.colour_list[colour_key - 1].main)
+			c1.fog = vmath.vector4(val.fog)
+			c1.fog.w = ct_clamped
+			c2.fog = vmath.vector4(MEM.art_data.colour_list[colour_key - 1].fog)
+			c1.glow = vmath.vector4(val.glow)
+			c1.glow.w = ct_clamped
+			c2.glow = vmath.vector4(MEM.art_data.colour_list[colour_key - 1].glow)
+			c1.enemy = vmath.vector4(val.enemy)
+			c1.enemy.w = ct_clamped
+			c2.enemy = vmath.vector4(MEM.art_data.colour_list[colour_key - 1].enemy)
+			c1.glow_inv = vmath.vector4(val.glow_inv)
+			c1.glow_inv.w = ct_clamped
+			c2.glow_inv = vmath.vector4(MEM.art_data.colour_list[colour_key - 1].glow_inv)
+		end
 		for _key in pairs(MOD.culling_ranges.visible_slices) do
 			go.set(msg.url(nil, _key.model, "mesh"), "tint1", c1.main)
 			go.set(msg.url(nil, _key.model, "mesh"), "tint2", c2.main)
@@ -1368,12 +1380,13 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("remove_model") then
 		delete_model(self)
 	elseif message_id == hash("colours_changed") then
-		if show_fog then
-			go.set("/fog#fog", "tint1", COL.get_current("fog"))
-			go.set("/fog#fog", "tint2", COL.get_current("fog"))
-		end
-		if SET.model_show_grid == 1 then
-			go.set("/grid#grid", "tint", COL.get_current("main"))
+		local t = (MOD.prop_data.lowest_z / 3) + MOD.total_time * MOD.scrubber_progress - SET.tween_padding_start
+		for key, val in ipairs(MEM.art_data.colour_list) do
+			if ((t >= val.time) and (not val.end_time or (t < val.end_time))) or (key == #MEM.art_data.colour_list) then
+				MOD.previous_colour = nil
+				apply_colour_section(key, t, MOD.colour_override)
+				break
+			end
 		end
 	elseif message_id == hash("change_material") then
 		if message.part_index then

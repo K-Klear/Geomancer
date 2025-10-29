@@ -597,8 +597,6 @@ function on_message(self, message_id, message, sender)
 		msg.post("/model_viewer", hash("remove_model"))
 	elseif message_id == hash("check_tweens") then
 		check_tweens()
-	elseif message_id == hash("open_colour_picker") then
-		open_dialog("dialog_colours", {current_dialog = message.current_dialog})
 	elseif message_id == hash("dialog_closed") then
 		msg.post("#", hash("acquire_input_focus"))
 		msg.post("/model_viewer", hash("show"))
@@ -641,15 +639,6 @@ function on_message(self, message_id, message, sender)
 			update_lists()
 			check_tweens()
 			msg.post("/model_viewer", hash("show"), {model = get_selected_model(), selected_part = get_selected_part()})
-		elseif message.dialog == "dialog_colours" then
-			if message.current_dialog == hash("art") then
-				msg.post("/model_viewer", hash("show"), {model = get_selected_model(), selected_part = get_selected_part()})
-			elseif message.current_dialog == hash("transform") then
-				msg.post(UI.tab.dialog_transform.path, hash("acquire_input_focus"))
-				msg.post("#", hash("release_input_focus"))
-			elseif message.current_dialog == hash("tween_preview") then
-				msg.post("#", hash("release_input_focus"))
-			end
 		elseif message.dialog == "dialog_confirm" then
 			if message.button == 1 then	-- 1 is delete, 3 is cancel
 				delete_model(get_selected_model())

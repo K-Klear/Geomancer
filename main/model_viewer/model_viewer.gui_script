@@ -127,7 +127,7 @@ function init(self)
 	gui.set_enabled(time_display, false)
 	gui.set_enabled(gui.get_node("offset_box"), false)
 	gui.set_render_order(1)
-	UI.load_template({"button_colour", "reset_view", "show_transforms"}, TAB_NAME)
+	UI.load_template({"reset_view", "show_transforms"}, TAB_NAME)
 	set_button_colours()
 	--msg.post("#", hash("disable"))
 end
@@ -432,9 +432,9 @@ local function show_visibility_box(state)
 	end
 	gui.set_enabled(gui.get_node("visibility_box_buttons"), SET.show_visibility_buttons)
 	if SET.show_visibility_buttons then
-		UI.load_template({"hide_geo", "hide_props", "hide_beatcubes", "hide_grid", "hide_fog", "hide_beat", "hide_colour"}, TAB_NAME)
+		UI.load_template({"hide_geo", "hide_props", "hide_beatcubes", "hide_grid", "hide_fog", "hide_beat", "button_colour"}, TAB_NAME)
 	else
-		UI.unload_template(TAB_NAME, {"hide_geo", "hide_props", "hide_beatcubes", "hide_grid", "hide_fog", "hide_beat", "hide_colour"})
+		UI.unload_template(TAB_NAME, {"hide_geo", "hide_props", "hide_beatcubes", "hide_grid", "hide_fog", "hide_beat", "button_colour"})
 	end
 end
 
@@ -461,6 +461,8 @@ function on_message(self, message_id, message, sender)
 				create_tween_sections()
 				msg.post(".", hash("prepare_tweens"))
 			end
+		elseif message.dialog == "dialog_colours" then
+			msg.post(".", "colours_changed")
 		end
 	elseif message_id == hash("resize_base") then
 		change_bounds(bounding_node)
@@ -735,8 +737,8 @@ local function evaluate_button(button)
 		else
 			current_dialog = hash("art")
 		end
-		msg.post("/art", hash("open_colour_picker"), {current_dialog = current_dialog})
-		msg.post("#", hash("release_input_focus"))
+		DIALOG.open(TAB_NAME, "dialog_colours")
+		--msg.post("#", hash("release_input_focus"))
 		MOD.is_dragged = false
 		MOD.camera_is_dragged = false
 	elseif button == "pick_model" then

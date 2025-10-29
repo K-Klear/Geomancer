@@ -19,6 +19,10 @@ fonts {
   name: "event_label"
   font: "/assets/fonts/final/event_label.font"
 }
+fonts {
+  name: "main_menu_button_small"
+  font: "/assets/fonts/final/main_menu_button_small.font"
+}
 textures {
   name: "UI"
   texture: "/assets/gfx/UI.atlas"
@@ -53,7 +57,7 @@ nodes {
     y: 60.0
   }
   type: TYPE_TEXT
-  text: "Pick colours from the map"
+  text: "Colour sections"
   font: "main_menu_button"
   id: "title_colours"
   pivot: PIVOT_N
@@ -75,45 +79,12 @@ nodes {
 }
 nodes {
   position {
-    y: -317.0
-  }
-  type: TYPE_TEMPLATE
-  id: "colour_cancel"
-  parent: "edit_box"
-  template: "/templates/button_white_small.gui"
-}
-nodes {
-  size {
-    x: 180.0
-    y: 64.0
-  }
-  type: TYPE_BOX
-  id: "colour_cancel/button_white"
-  parent: "colour_cancel"
-  layer: "below"
-  overridden_fields: 1
-  overridden_fields: 4
-  overridden_fields: 20
-  template_node_child: true
-}
-nodes {
-  type: TYPE_TEXT
-  text: "Close"
-  id: "colour_cancel/text"
-  parent: "colour_cancel/button_white"
-  layer: "text"
-  overridden_fields: 8
-  overridden_fields: 20
-  template_node_child: true
-}
-nodes {
-  position {
     x: -216.0
-    y: 292.0
+    y: 297.0
   }
   size {
     x: 417.0
-    y: 572.0
+    y: 400.0
   }
   type: TYPE_BOX
   texture: "UI/empty_pixel"
@@ -340,6 +311,218 @@ nodes {
   pivot: PIVOT_NW
   parent: "colour_list"
   layer: "dialog"
+}
+nodes {
+  position {
+    x: -245.0
+    y: -149.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Custom colour set\n"
+  "Main / Fog / Glow / Enemy"
+  font: "main_menu_button_small"
+  id: "lbl_custom colour"
+  pivot: PIVOT_W
+  parent: "edit_box"
+  layer: "text"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: -215.0
+    y: -217.0
+  }
+  type: TYPE_TEMPLATE
+  id: "custom_colour_main"
+  parent: "edit_box"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_main/button_white"
+  parent: "custom_colour_main"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_main/text"
+  parent: "custom_colour_main/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -125.0
+    y: -217.0
+  }
+  type: TYPE_TEMPLATE
+  id: "custom_colour_fog"
+  parent: "edit_box"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_fog/button_white"
+  parent: "custom_colour_fog"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_fog/text"
+  parent: "custom_colour_fog/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -35.0
+    y: -217.0
+  }
+  type: TYPE_TEMPLATE
+  id: "custom_colour_glow"
+  parent: "edit_box"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_glow/button_white"
+  parent: "custom_colour_glow"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_glow/text"
+  parent: "custom_colour_glow/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 55.0
+    y: -217.0
+  }
+  type: TYPE_TEMPLATE
+  id: "custom_colour_enemy"
+  parent: "edit_box"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_enemy/button_white"
+  parent: "custom_colour_enemy"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_enemy/text"
+  parent: "custom_colour_enemy/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -177.0
+    y: -298.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_pick_section"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 160.0
+    y: 72.0
+  }
+  type: TYPE_BOX
+  id: "colour_pick_section/button_white"
+  parent: "colour_pick_section"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Use section"
+  id: "colour_pick_section/text"
+  parent: "colour_pick_section/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    y: -298.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_pick_custom"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 160.0
+    y: 72.0
+  }
+  type: TYPE_BOX
+  id: "colour_pick_custom/button_white"
+  parent: "colour_pick_custom"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Use custom"
+  id: "colour_pick_custom/text"
+  parent: "colour_pick_custom/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 179.0
+    y: -298.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_cancel"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 160.0
+    y: 72.0
+  }
+  type: TYPE_BOX
+  id: "colour_cancel/button_white"
+  parent: "colour_cancel"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Cancel override"
+  id: "colour_cancel/text"
+  parent: "colour_cancel/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
 }
 layers {
   name: "list_background"
