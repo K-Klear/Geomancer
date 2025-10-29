@@ -49,6 +49,18 @@ fragment_constants {
   value {
   }
 }
+fragment_constants {
+  name: "glow1"
+  type: CONSTANT_TYPE_USER
+  value {
+  }
+}
+fragment_constants {
+  name: "glow2"
+  type: CONSTANT_TYPE_USER
+  value {
+  }
+}
 samplers {
   name: "tex0"
   wrap_u: WRAP_MODE_REPEAT

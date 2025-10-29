@@ -89,7 +89,3 @@ materials {
   name: "font-df"
   material: "/builtins/fonts/font-df.material"
 }
-materials {
-  name: "preview"
-  material: "/render/preview.material"
-}

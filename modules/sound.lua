@@ -1,4 +1,5 @@
 local SND = {}
+local SET = require "modules.settings"
 
 SND.music_is_playing = false
 SND.music_loaded = false

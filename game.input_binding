@@ -118,6 +118,10 @@ key_trigger {
   input: KEY_Q
   action: "q"
 }
+key_trigger {
+  input: KEY_F
+  action: "f"
+}
 mouse_trigger {
   input: MOUSE_BUTTON_1
   action: "touch"

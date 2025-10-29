@@ -228,7 +228,7 @@ nodes {
 }
 nodes {
   position {
-    x: -150.0
+    x: -250.0
     y: -317.0
   }
   type: TYPE_TEMPLATE
@@ -262,8 +262,11 @@ nodes {
 }
 nodes {
   position {
-    x: 150.0
+    x: 250.0
     y: -317.0
+  }
+  rotation {
+    z: -0.033
   }
   type: TYPE_TEMPLATE
   id: "prop_cancel"
@@ -293,6 +296,72 @@ nodes {
   overridden_fields: 8
   overridden_fields: 20
   template_node_child: true
+}
+nodes {
+  position {
+    y: -317.0
+  }
+  rotation {
+    z: -0.033
+  }
+  type: TYPE_TEMPLATE
+  id: "prop_vacuum"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 240.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  id: "prop_vacuum/button_white"
+  parent: "prop_vacuum"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Show tween only"
+  id: "prop_vacuum/text"
+  parent: "prop_vacuum/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 18
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    y: 6.0
+  }
+  size {
+    x: 250.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "No instances with a valid signal found!"
+  font: "main_menu_button"
+  id: "label_no_props"
+  pivot: PIVOT_N
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  parent: "edit_box"
+  layer: "text"
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+  material: "font-df"
 }
 layers {
   name: "list_background"

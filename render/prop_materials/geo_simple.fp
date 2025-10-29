@@ -21,6 +21,10 @@ void main()
     vec3 fog_combined = vec3(fog1 - (fog1 - fog2) * tint1.w);
 
     vec4 texture0 = texture2D(tex0, var_texcoord0.xy);
+
+    //float glow_dir = max(var_normal.x + var_normal.y + var_normal.z * 0.45 - 0.8, 0) * 3;
+    //rgb_combined = (rgb_combined + glow_dir) / (1.0 + glow_dir);
+    
     float darken = (var_normal.x + var_normal.y + var_normal.z) / 3.0;
     float v = max(rgb_combined.x, max(rgb_combined.y, rgb_combined.z));
     darken = darken * (1.0 - v) + v;

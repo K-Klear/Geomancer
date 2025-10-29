@@ -1,7 +1,7 @@
 name: "model"
 tags: "model_transparent"
-vertex_program: "/render/player_capsule.vp"
-fragment_program: "/render/player_capsule.fp"
+vertex_program: "/render/other_materials/player_capsule.vp"
+fragment_program: "/render/other_materials/player_capsule.fp"
 vertex_space: VERTEX_SPACE_LOCAL
 vertex_constants {
   name: "mtx_worldview"

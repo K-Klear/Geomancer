@@ -38,18 +38,14 @@ nodes {
 }
 nodes {
   position {
-    y: 300.0
-  }
-  scale {
-    x: 0.75
-    y: 0.75
+    y: 284.0
   }
   size {
     x: 1180.0
     y: 60.0
   }
   type: TYPE_TEXT
-  text: "PF_pedcluster_chilliung2.verison2.pw_tween already exitsts. Overwrite?"
+  text: "Colour picker"
   font: "main_menu_button"
   id: "dialog_confirm_title"
   pivot: PIVOT_N
@@ -167,7 +163,6 @@ nodes {
   pivot: PIVOT_SW
   parent: "colour_bounds"
   layer: "below"
-  inherit_alpha: true
   clipping_mode: CLIPPING_MODE_STENCIL
   size_mode: SIZE_MODE_AUTO
   material: "colour_picker"
@@ -184,7 +179,6 @@ nodes {
   id: "colour_cursor"
   parent: "colour"
   layer: "text"
-  inherit_alpha: true
   innerRadius: 4.0
   perimeterVertices: 12
   size_mode: SIZE_MODE_AUTO
@@ -201,7 +195,6 @@ nodes {
   type: TYPE_BOX
   id: "colour_aux"
   parent: "colour_bounds"
-  inherit_alpha: true
   size_mode: SIZE_MODE_AUTO
   visible: false
 }
@@ -233,7 +226,6 @@ nodes {
   id: "hue"
   pivot: PIVOT_N
   parent: "hue_bounds"
-  inherit_alpha: true
   clipping_mode: CLIPPING_MODE_STENCIL
   size_mode: SIZE_MODE_AUTO
   material: "hue_picker"
@@ -246,7 +238,6 @@ nodes {
   type: TYPE_BOX
   id: "hue_cursor"
   parent: "hue"
-  inherit_alpha: true
   size_mode: SIZE_MODE_AUTO
 }
 nodes {
@@ -260,7 +251,6 @@ nodes {
   type: TYPE_BOX
   id: "hue_aux"
   parent: "hue_bounds"
-  inherit_alpha: true
   size_mode: SIZE_MODE_AUTO
   visible: false
 }
@@ -277,7 +267,6 @@ nodes {
   id: "preview"
   parent: "edit_box"
   layer: "text"
-  inherit_alpha: true
   size_mode: SIZE_MODE_AUTO
 }
 nodes {
@@ -593,9 +582,9 @@ materials {
 }
 materials {
   name: "colour_picker"
-  material: "/render/colour_picker.material"
+  material: "/render/other_materials/colour_picker.material"
 }
 materials {
   name: "hue_picker"
-  material: "/render/hue_picker.material"
+  material: "/render/other_materials/hue_picker.material"
 }

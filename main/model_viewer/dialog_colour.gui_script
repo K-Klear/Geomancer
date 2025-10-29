@@ -11,6 +11,8 @@ local DIALOG_DATA
 local colour_list, evaluate_button, current_dialog
 local button_text = " MAIN     FOG    GLOW  ENEMY"
 
+local custom_main, custom_fog, custom_glow, custom_enemy
+
 local selected_colour_index = 1
 
 function init(self)
@@ -30,27 +32,31 @@ function init(self)
 		{
 			type = hash("background"),
 			node = gui.get_node("main"),
-			tint = function(i) return COL.str_to_colour(MEM.art_data.colours[i].main) end
+			tint = function(i) return MEM.art_data.colours[i].main end
 		},
 		{
 			type = hash("background"),
 			node = gui.get_node("fog"),
-			tint = function(i) return COL.str_to_colour(MEM.art_data.colours[i].fog) end
+			tint = function(i) return MEM.art_data.colours[i].fog end
 		},
 		{
 			type = hash("background"),
 			node = gui.get_node("glow"),
-			tint = function(i) return COL.str_to_colour(MEM.art_data.colours[i].glow) end
+			tint = function(i) return MEM.art_data.colours[i].glow end
 		},
 		{
 			type = hash("background"),
 			node = gui.get_node("enemy"),
-			tint = function(i) return COL.str_to_colour(MEM.art_data.colours[i].enemy) end
+			tint = function(i) return MEM.art_data.colours[i].enemy end
 		},
 		item_count = 0,
 		scroll_prefix = "colour_"
 	}
 	colour_list = UI.create_list(DIALOG_NAME, gui.get_node("colour_list"), colours)
+	custom_main = SET.custom_colour_main
+	custom_fog = SET.custom_colour_fog
+	custom_glow = SET.custom_colour_glow
+	custom_enemy = SET.custom_colour_enemy
 end
 
 function evaluate_button(button, item)
@@ -59,48 +65,39 @@ function evaluate_button(button, item)
 		DIALOG.close(DIALOG_NAME)
 	elseif button == "colour_pick_section" then
 		MOD.colour_override = true
-		MOD.colour_override_main = MEM.art_data.colour_list[selected_colour_index].main
-		MOD.colour_override_fog = MEM.art_data.colour_list[selected_colour_index].fog
-		MOD.colour_override_glow = MEM.art_data.colour_list[selected_colour_index].glow
-		MOD.colour_override_enemy = MEM.art_data.colour_list[selected_colour_index].enemy
+		MOD.colour_override_main = MEM.art_data.colours[selected_colour_index].main
+		MOD.colour_override_fog = MEM.art_data.colours[selected_colour_index].fog
+		MOD.colour_override_glow = MEM.art_data.colours[selected_colour_index].glow
+		MOD.colour_override_enemy = MEM.art_data.colours[selected_colour_index].enemy
 		DIALOG.close(DIALOG_NAME)
 	elseif button == "colour_pick_custom" then
 		MOD.colour_override = true
-		MOD.colour_override_main = MOD.custom_colour_main
-		MOD.colour_override_fog = MOD.custom_colour_fog
-		MOD.colour_override_glow = MOD.custom_colour_glow
-		MOD.colour_override_enemy = MOD.custom_colour_enemy
+		MOD.colour_override_main = custom_main
+		MOD.colour_override_fog = custom_fog
+		MOD.colour_override_glow = custom_glow
+		MOD.colour_override_enemy = custom_enemy
 		DIALOG.close(DIALOG_NAME)
 	elseif button == colour_list then
 		selected_colour_index = item
 	elseif button == "custom_colour_main" then
-		UI.DIALOG.open(DIALOG_NAME, "colour_picker", {rgb = MOD.colour_override_main, colour_id = button})
+		UI.DIALOG.open(DIALOG_NAME, "colour_picker", {rgb = custom_main, colour_id = button})
 	elseif button == "custom_colour_fog" then
-		UI.DIALOG.open(DIALOG_NAME, "colour_picker", {rgb = MOD.colour_override_fog, colour_id = button})
+		UI.DIALOG.open(DIALOG_NAME, "colour_picker", {rgb = custom_fog, colour_id = button})
 	elseif button == "custom_colour_glow" then
-		UI.DIALOG.open(DIALOG_NAME, "colour_picker", {rgb = MOD.colour_override_glow, colour_id = button})
+		UI.DIALOG.open(DIALOG_NAME, "colour_picker", {rgb = custom_glow, colour_id = button})
 	elseif button == "custom_colour_enemy" then
-		UI.DIALOG.open(DIALOG_NAME, "colour_picker", {rgb = MOD.colour_override_enemy, colour_id = button})
+		UI.DIALOG.open(DIALOG_NAME, "colour_picker", {rgb = custom_enemy, colour_id = button})
 	end
 end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		current_dialog = message.current_dialog
-		MOD.colour_override_main = MOD.colour_override_main or COL.str_to_colour(SET.custom_colour_main)
-		MOD.colour_override_fog = MOD.colour_override_fog or COL.str_to_colour(SET.custom_colour_fog)
-		MOD.colour_override_glow = MOD.colour_override_glow or COL.str_to_colour(SET.custom_colour_glow)
-		MOD.colour_override_enemy = MOD.colour_override_enemy or COL.str_to_colour(SET.custom_colour_enemy)
 
-		MOD.custom_colour_main = MOD.colour_override_main
-		MOD.custom_colour_fog = MOD.colour_override_fog
-		MOD.custom_colour_glow = MOD.colour_override_glow
-		MOD.custom_colour_enemy = MOD.colour_override_enemy
-
-		gui.set_color(gui.get_node("custom_colour_main/text"), MOD.custom_colour_main)
-		gui.set_color(gui.get_node("custom_colour_fog/text"), MOD.custom_colour_fog)
-		gui.set_color(gui.get_node("custom_colour_glow/text"), MOD.custom_colour_glow)
-		gui.set_color(gui.get_node("custom_colour_enemy/text"), MOD.custom_colour_enemy)
+		gui.set_color(gui.get_node("custom_colour_main/text"), custom_main)
+		gui.set_color(gui.get_node("custom_colour_fog/text"), custom_fog)
+		gui.set_color(gui.get_node("custom_colour_glow/text"), custom_glow)
+		gui.set_color(gui.get_node("custom_colour_enemy/text"), custom_enemy)
 		
 		DIALOG.show(DIALOG_DATA, sender)
 		UI.update_list(DIALOG_NAME, colour_list, #MEM.art_data.colours)
@@ -111,17 +108,17 @@ function on_message(self, message_id, message, sender)
 		if message.dialog == "colour_picker" then
 			if message.colour then
 				if message.colour_id == "custom_colour_main" then
-					MOD.custom_colour_main = message.colour
-					gui.set_color(gui.get_node(message.colour_id.."/text"), MOD.custom_colour_main)
+					custom_main = message.colour
+					gui.set_color(gui.get_node(message.colour_id.."/text"), custom_main)
 				elseif message.colour_id == "custom_colour_fog" then
-					MOD.custom_colour_fog = message.colour
-					gui.set_color(gui.get_node(message.colour_id.."/text"), MOD.custom_colour_fog)
+					custom_fog = message.colour
+					gui.set_color(gui.get_node(message.colour_id.."/text"), custom_fog)
 				elseif message.colour_id == "custom_colour_glow" then
-					MOD.custom_colour_glow = message.colour
-					gui.set_color(gui.get_node(message.colour_id.."/text"), MOD.custom_colour_glow)
+					custom_glow = message.colour
+					gui.set_color(gui.get_node(message.colour_id.."/text"), custom_glow)
 				elseif message.colour_id == "custom_colour_enemy" then
-					MOD.custom_colour_enemy = message.colour
-					gui.set_color(gui.get_node(message.colour_id.."/text"), MOD.custom_colour_enemy)
+					custom_enemy = message.colour
+					gui.set_color(gui.get_node(message.colour_id.."/text"), custom_enemy)
 				end
 			end
 		end

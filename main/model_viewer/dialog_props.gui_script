@@ -2,32 +2,32 @@ local MEM = require "modules.memory"
 local MOD = require "modules.models"
 local UI = require "modules.ui"
 local G = require "modules.global"
+
 local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_props"
 local DIALOG_DATA
 
 local prop_scroll_list, evaluate_button
-local prop_list, prop_list_general = {}, {}
 local selected_prop
 
 local function get_button_string(item)
-	local str = "Position: "..prop_list[item].position.x.."/"..prop_list[item].position.y.."/"..prop_list[item].position.z
-	str = str.." Rotation: "..prop_list[item].rotation.x.."/"..prop_list[item].rotation.y.."/"..prop_list[item].rotation.z
-	str = str.." Scale: "..prop_list[item].scale.x.."/"..prop_list[item].scale.y.."/"..prop_list[item].scale.z
-	if prop_list[item].signal_z then
-		local z = math.huge
-		for key, val in ipairs(prop_list[item].signal_z) do
-			z = math.min(z, val)
-		end
-		str = str.." Signal Z: "..(z or "")
-	end
+	local prop_index = MOD.props_for_preview[item][1].target_prop_list_index
+	local pos = MEM.art_data.prop_list[prop_index].position
+	local rot = G.quat_to_euler(MEM.art_data.prop_list[prop_index].rotation)
+	local sc = MEM.art_data.prop_list[prop_index].scale
+	local tween_count = #MOD.props_for_preview[item]
+
+	local str = "Position: "..G.round(pos.x, 2).."/"..G.round(pos.y, 2).."/"..G.round(pos.z, 2)
+	str = str.." Rotation: "..G.round(rot.x, 2).."/"..G.round(rot.y, 2).."/"..G.round(rot.z, 2)
+	str = str.." Scale: "..G.round(sc.x, 2).."/"..G.round(sc.y, 2).."/"..G.round(sc.z, 2)
+	str = str.." Tweens: "..tween_count
 	return str
 end
 
 function init(self)
 	DIALOG.setup(DIALOG_NAME)
 	DIALOG_DATA = UI.tab[DIALOG_NAME]
-	UI.load_template({"prop_cancel", "prop_accept"}, DIALOG_NAME)
+	UI.load_template({"prop_cancel", "prop_accept", "prop_vacuum"}, DIALOG_NAME)
 	local props = {
 		{
 			type = hash("exclusive_button"),
@@ -43,27 +43,13 @@ function init(self)
 	prop_scroll_list = UI.create_list(DIALOG_NAME, gui.get_node("prop_list"), props)
 end
 
-local function accept_selection()
-	if prop_list[1] then
-		MOD.prop_data = prop_list[selected_prop]
-		if prop_list[selected_prop].signal_z then
-			local lowest_z
-			for key, val in ipairs(prop_list[selected_prop].signal_z) do
-				lowest_z = math.min(lowest_z or math.huge, val)
-			end
-			MOD.prop_data.lowest_z = lowest_z
-		end
-		DIALOG.close(DIALOG_NAME, {prop_changed = true})
-	else
-		DIALOG.close(DIALOG_NAME)
-	end
-end
-
 function evaluate_button(button, item)
 	if button == "prop_cancel" then
 		DIALOG.close(DIALOG_NAME)
 	elseif button == "prop_accept" or button == "enter" then
-		accept_selection()
+		DIALOG.close(DIALOG_NAME, {selected_prop = selected_prop})
+	elseif button == "prop_vacuum" then
+		DIALOG.close(DIALOG_NAME, {vacuum = true})
 	elseif button == prop_scroll_list then
 		selected_prop = item
 	end
@@ -72,100 +58,17 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		DIALOG.show(DIALOG_DATA, sender)
-		if not MOD.prop_list_generated then
-			prop_list, prop_list_general = {}, {}
-			local consumers = {}
-			local function get_model_data(model_table)
-				if model_table.name == message.model then
-					local scale_vals = G.parse_values(model_table.scale)
-					local scale = {x = scale_vals[1], y = scale_vals[2], z = scale_vals[3]}
-					local point_vals = G.parse_values(model_table.point)
-					local pos = {x = point_vals[1], y = point_vals[2], z = point_vals[3]}
-					local rot = vmath.quat(point_vals[4], point_vals[5], point_vals[6], point_vals[7])
-					scale.x = G.round(scale.x, 2)
-					scale.y = G.round(scale.y, 2)
-					scale.z = G.round(scale.z, 2)
-					pos.x = G.round(pos.x, 2)
-					pos.y = G.round(pos.y, 2)
-					pos.z = G.round(pos.z, 2)
-
-					local x, y, z = vmath.quat_to_euler(rot)
-					local euler = vmath.vector3(x, y, z) -- sanitise, maybe? 
-					rot = {x = euler.x, y = euler.y, z = euler.z}
-					rot.x = G.round(rot.x, 1)
-					rot.y = G.round(rot.y, 1)
-					rot.z = G.round(rot.z, 1)
-
-					table.insert(prop_list, {position = pos, rotation = rot, scale = scale})
-					table.insert(prop_list_general, {z = pos.z, name = model_table.name})
-				elseif consumers[model_table.name] then
-					local vals = G.parse_values(model_table.point)
-					table.insert(prop_list_general, {z = vals[3], name = model_table.name})
-				end
-			end
-			if MOD.active_signals then
-				for key, val in ipairs(MEM.art_data.table.propsDictionary) do
-					for k, v in ipairs(val.model_data.transform_list) do
-						if v.tween and MOD.active_signals[v.tween.signal] then
-							consumers[val.key] = consumers[val.key] or {}
-							table.insert(consumers[val.key], v.tween.signal)
-						end
-					end
-				end
-			end
-			for key, val in ipairs(MEM.art_data.table.staticProps or {}) do
-				get_model_data(val)
-			end
-			for key, val in ipairs(MEM.art_data.table.dynamicProps or {}) do
-				get_model_data(val)
-			end
-			for key, val in ipairs(MEM.art_data.table.staticCullingRanges or {}) do
-				for k, v in ipairs(val.members) do
-					get_model_data(v)
-				end
-			end
-			for key, val in ipairs(MEM.art_data.table.dynamicCullingRanges or {}) do
-				for k, v in ipairs(val.members) do
-					get_model_data(v)
-				end
-			end
-			table.sort(prop_list, function(a, b) return a.position.z < b.position.z end)
-			if #prop_list_general > 0 and next(consumers) then
-				table.sort(prop_list_general, function(a, b) return a.z < b.z end)
-				local prop_index = 1
-				for key, val in ipairs(prop_list_general) do
-					if val.name == message.model then
-						prop_list[prop_index].signal_z = {}
-						for k, v in ipairs(consumers[val.name]) do
-							local signal_z = table.remove(MOD.active_signals[v], 1)
-							if signal_z then
-								prop_list[prop_index].signal_z[k] = G.round(signal_z * 3, 2)
-							end
-						end
-						prop_index = prop_index + 1
-						if prop_index > #prop_list then
-							break
-						end
-					else
-						for k, v in ipairs(consumers[val.name]) do
-							table.remove(MOD.active_signals[v], 1)
-						end
-					end
-				end
-			end
-			MOD.prop_list_generated = true
-		end
-		
-		UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
-		if not selected_prop or selected_prop < 1 or selected_prop > #prop_list then
-			UI.select_exclusive_button(DIALOG_NAME, prop_scroll_list, 1, true)
-			selected_prop = 1
+		if #MOD.props_for_preview < 1 then
+			gui.set_enabled(gui.get_node("label_no_props"), true)
+			UI.update_list(DIALOG_NAME, prop_scroll_list, 0)
+			selected_prop = nil
 		else
-			UI.select_exclusive_button(DIALOG_NAME, prop_scroll_list, selected_prop, true)
-		end
-		if message.autoclose then
-			selected_prop = 1
-			accept_selection()
+			if (not selected_prop) or selected_prop > #MOD.props_for_preview then
+				selected_prop = 1
+			end
+			gui.set_enabled(gui.get_node("label_no_props"), false)
+			UI.update_list(DIALOG_NAME, prop_scroll_list, #MOD.props_for_preview)
+			UI.select_exclusive_button(DIALOG_NAME, prop_scroll_list, selected_prop, false, true)
 		end
 	end
 end

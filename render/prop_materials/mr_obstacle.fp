@@ -10,12 +10,17 @@ uniform lowp vec4 tint1;
 uniform lowp vec4 tint2;
 uniform lowp vec4 fog1;
 uniform lowp vec4 fog2;
-
+uniform lowp vec4 glow1;
+uniform lowp vec4 glow2;
 
 void main()
 {
     vec3 rgb_combined = vec3(tint1 - (tint1 - tint2) * tint1.w);
     vec3 fog_combined = vec3(fog1 - (fog1 - fog2) * tint1.w);
+    vec3 glow_combined = vec3(glow1 - (glow1 - glow2) * tint1.w);
+
+    float glow_dir = max(var_normal.x + var_normal.y + var_normal.z * 0.45 - 0.8, 0) * 3;
+    rgb_combined = (rgb_combined + glow_combined * glow_dir) / (1.0 + glow_dir);
 
     float darken = -(abs(var_normal.x) - var_normal.y + abs(var_normal.z)) / 6.0;
     float v = max(rgb_combined.x, max(rgb_combined.y, rgb_combined.z)) * 4.0;

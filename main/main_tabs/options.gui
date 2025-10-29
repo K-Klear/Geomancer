@@ -1618,7 +1618,7 @@ nodes {
 nodes {
   position {
     x: 283.0
-    y: 639.0
+    y: 674.0
   }
   scale {
     x: 0.75
@@ -1641,7 +1641,7 @@ nodes {
 nodes {
   position {
     x: 246.0
-    y: 638.0
+    y: 673.0
   }
   type: TYPE_TEMPLATE
   id: "background_colour"
@@ -1664,7 +1664,7 @@ nodes {
 nodes {
   position {
     x: 283.0
-    y: 579.0
+    y: 614.0
   }
   scale {
     x: 0.75
@@ -1687,7 +1687,7 @@ nodes {
 nodes {
   position {
     x: 246.0
-    y: 578.0
+    y: 613.0
   }
   type: TYPE_TEMPLATE
   id: "colour_active_text_field"
@@ -1710,7 +1710,7 @@ nodes {
 nodes {
   position {
     x: 283.0
-    y: 519.0
+    y: 554.0
   }
   scale {
     x: 0.75
@@ -1733,7 +1733,7 @@ nodes {
 nodes {
   position {
     x: 246.0
-    y: 518.0
+    y: 553.0
   }
   type: TYPE_TEMPLATE
   id: "colour_highlight_material"
@@ -1756,7 +1756,7 @@ nodes {
 nodes {
   position {
     x: 283.0
-    y: 459.0
+    y: 494.0
   }
   scale {
     x: 0.75
@@ -1779,7 +1779,7 @@ nodes {
 nodes {
   position {
     x: 246.0
-    y: 458.0
+    y: 493.0
   }
   type: TYPE_TEMPLATE
   id: "colour_highlight_dynamic"
@@ -1802,7 +1802,7 @@ nodes {
 nodes {
   position {
     x: 283.0
-    y: 399.0
+    y: 434.0
   }
   scale {
     x: 0.75
@@ -1825,7 +1825,7 @@ nodes {
 nodes {
   position {
     x: 246.0
-    y: 398.0
+    y: 433.0
   }
   type: TYPE_TEMPLATE
   id: "colour_highlight_tween"
@@ -1848,7 +1848,7 @@ nodes {
 nodes {
   position {
     x: 283.0
-    y: 339.0
+    y: 374.0
   }
   scale {
     x: 0.75
@@ -1871,7 +1871,7 @@ nodes {
 nodes {
   position {
     x: 246.0
-    y: 338.0
+    y: 373.0
   }
   type: TYPE_TEMPLATE
   id: "colour_model_import_selection"
@@ -1894,7 +1894,7 @@ nodes {
 nodes {
   position {
     x: 283.0
-    y: 279.0
+    y: 314.0
   }
   scale {
     x: 0.75
@@ -1917,7 +1917,7 @@ nodes {
 nodes {
   position {
     x: 246.0
-    y: 278.0
+    y: 313.0
   }
   type: TYPE_TEMPLATE
   id: "colour_model_replace"
@@ -1940,7 +1940,7 @@ nodes {
 nodes {
   position {
     x: 283.0
-    y: 219.0
+    y: 254.0
   }
   scale {
     x: 0.75
@@ -1963,7 +1963,7 @@ nodes {
 nodes {
   position {
     x: 246.0
-    y: 218.0
+    y: 253.0
   }
   type: TYPE_TEMPLATE
   id: "colour_unsupported_obstacle"
@@ -1986,7 +1986,7 @@ nodes {
 nodes {
   position {
     x: 829.0
-    y: 639.0
+    y: 674.0
   }
   scale {
     x: 0.75
@@ -2009,7 +2009,7 @@ nodes {
 nodes {
   position {
     x: 792.0
-    y: 638.0
+    y: 673.0
   }
   type: TYPE_TEMPLATE
   id: "colour_current_enemy_set"
@@ -2032,7 +2032,7 @@ nodes {
 nodes {
   position {
     x: 829.0
-    y: 513.0
+    y: 548.0
   }
   scale {
     x: 0.75
@@ -2055,7 +2055,7 @@ nodes {
 nodes {
   position {
     x: 792.0
-    y: 512.0
+    y: 547.0
   }
   type: TYPE_TEMPLATE
   id: "colour_selection_change_enemy_type"
@@ -2078,7 +2078,7 @@ nodes {
 nodes {
   position {
     x: 829.0
-    y: 455.0
+    y: 490.0
   }
   scale {
     x: 0.75
@@ -2101,7 +2101,7 @@ nodes {
 nodes {
   position {
     x: 792.0
-    y: 454.0
+    y: 489.0
   }
   type: TYPE_TEMPLATE
   id: "colour_highlight_replace_enemy"
@@ -2124,7 +2124,7 @@ nodes {
 nodes {
   position {
     x: 829.0
-    y: 576.0
+    y: 611.0
   }
   scale {
     x: 0.75
@@ -2147,7 +2147,7 @@ nodes {
 nodes {
   position {
     x: 792.0
-    y: 575.0
+    y: 610.0
   }
   type: TYPE_TEMPLATE
   id: "colour_current_enemy_type"
@@ -2170,7 +2170,7 @@ nodes {
 nodes {
   position {
     x: 829.0
-    y: 392.0
+    y: 427.0
   }
   scale {
     x: 0.75
@@ -2193,7 +2193,7 @@ nodes {
 nodes {
   position {
     x: 792.0
-    y: 391.0
+    y: 426.0
   }
   type: TYPE_TEMPLATE
   id: "colour_tween_move"
@@ -2216,7 +2216,7 @@ nodes {
 nodes {
   position {
     x: 829.0
-    y: 334.0
+    y: 369.0
   }
   scale {
     x: 0.75
@@ -2239,7 +2239,7 @@ nodes {
 nodes {
   position {
     x: 792.0
-    y: 333.0
+    y: 368.0
   }
   type: TYPE_TEMPLATE
   id: "colour_tween_rotate"
@@ -2262,7 +2262,7 @@ nodes {
 nodes {
   position {
     x: 829.0
-    y: 278.0
+    y: 313.0
   }
   scale {
     x: 0.75
@@ -2285,7 +2285,7 @@ nodes {
 nodes {
   position {
     x: 792.0
-    y: 277.0
+    y: 312.0
   }
   type: TYPE_TEMPLATE
   id: "colour_tween_scale"
@@ -2308,7 +2308,7 @@ nodes {
 nodes {
   position {
     x: 829.0
-    y: 217.0
+    y: 252.0
   }
   scale {
     x: 0.75
@@ -2331,7 +2331,7 @@ nodes {
 nodes {
   position {
     x: 792.0
-    y: 216.0
+    y: 251.0
   }
   type: TYPE_TEMPLATE
   id: "colour_tween_wait"
@@ -2349,6 +2349,52 @@ nodes {
   type: TYPE_BOX
   id: "colour_tween_wait/text"
   parent: "colour_tween_wait/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 283.0
+    y: 195.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "Hidden props"
+  font: "main_menu_button_small"
+  id: "label_colour_hidden_model"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  layer: "text"
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 246.0
+    y: 194.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_hidden_model"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_hidden_model/button_white"
+  parent: "colour_hidden_model"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "colour_hidden_model/text"
+  parent: "colour_hidden_model/button_white"
   template_node_child: true
 }
 nodes {
@@ -3556,7 +3602,7 @@ nodes {
 nodes {
   position {
     x: 165.0
-    y: 622.0
+    y: 651.0
   }
   size {
     x: 200.0
@@ -3573,7 +3619,7 @@ nodes {
 nodes {
   position {
     x: 482.0
-    y: 618.0
+    y: 647.0
   }
   type: TYPE_TEMPLATE
   id: "model_rotation_sensitivity"
@@ -3609,7 +3655,7 @@ nodes {
 nodes {
   position {
     x: 165.0
-    y: 566.0
+    y: 595.0
   }
   size {
     x: 200.0
@@ -3626,7 +3672,7 @@ nodes {
 nodes {
   position {
     x: 482.0
-    y: 562.0
+    y: 591.0
   }
   type: TYPE_TEMPLATE
   id: "model_move_sensitivity"
@@ -3662,7 +3708,7 @@ nodes {
 nodes {
   position {
     x: 165.0
-    y: 501.0
+    y: 530.0
   }
   size {
     x: 200.0
@@ -3679,7 +3725,7 @@ nodes {
 nodes {
   position {
     x: 482.0
-    y: 497.0
+    y: 526.0
   }
   type: TYPE_TEMPLATE
   id: "run_speed_multiplier"
@@ -3715,7 +3761,7 @@ nodes {
 nodes {
   position {
     x: 165.0
-    y: 376.0
+    y: 429.0
   }
   size {
     x: 200.0
@@ -3732,7 +3778,7 @@ nodes {
 nodes {
   position {
     x: 482.0
-    y: 372.0
+    y: 425.0
   }
   type: TYPE_TEMPLATE
   id: "default_camera_rotation"
@@ -3768,7 +3814,7 @@ nodes {
 nodes {
   position {
     x: 165.0
-    y: 310.0
+    y: 363.0
   }
   size {
     x: 200.0
@@ -3785,7 +3831,7 @@ nodes {
 nodes {
   position {
     x: 482.0
-    y: 306.0
+    y: 359.0
   }
   type: TYPE_TEMPLATE
   id: "default_camera_pitch"
@@ -3821,7 +3867,7 @@ nodes {
 nodes {
   position {
     x: 165.0
-    y: 243.0
+    y: 296.0
   }
   size {
     x: 200.0
@@ -3838,7 +3884,7 @@ nodes {
 nodes {
   position {
     x: 482.0
-    y: 239.0
+    y: 292.0
   }
   type: TYPE_TEMPLATE
   id: "default_model_z_position"
@@ -4171,6 +4217,59 @@ nodes {
   type: TYPE_BOX
   id: "collider_colour/text"
   parent: "collider_colour/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 165.0
+    y: 201.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Maximum allowed desync"
+  font: "main_menu_button_small"
+  id: "lbl_max_desync"
+  pivot: PIVOT_W
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 489.0
+    y: 197.0
+  }
+  type: TYPE_TEMPLATE
+  id: "max_desync"
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 80.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "max_desync/box"
+  parent: "max_desync"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 60.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "0.001"
+  id: "max_desync/text"
+  parent: "max_desync/box"
+  overridden_fields: 4
+  overridden_fields: 8
   template_node_child: true
 }
 nodes {
@@ -5546,9 +5645,9 @@ materials {
 }
 materials {
   name: "rgb"
-  material: "/render/colour_picker.material"
+  material: "/render/other_materials/colour_picker.material"
 }
 materials {
   name: "hue_picker"
-  material: "/render/hue_picker.material"
+  material: "/render/other_materials/hue_picker.material"
 }

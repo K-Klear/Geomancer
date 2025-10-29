@@ -3,6 +3,7 @@ local G = require "modules.global"
 local SET = require "modules.settings"
 local MOD = require "modules.models"
 local SND = require "modules.sound"
+local COL = require "modules.colours"
 
 local MEM = {}
 
@@ -631,6 +632,7 @@ function load.pw_art(data, filename)
 
 		for key, val in ipairs(MEM.art_data.prop_list) do
 			val.model_index = model_index_list[val.name]
+			val.prop_list_index = key
 		end
 
 		MEM.art_data.colours = {}
@@ -640,25 +642,24 @@ function load.pw_art(data, filename)
 			local time, end_time, duration = tonumber(val.secondsStart), tonumber(val.secondsEnd), tonumber(val.transitionTime)
 			if time == end_time then end_time = nil end
 			if duration < 0 then duration = 1 end
-			table.insert(MEM.art_data.colour_list, {main = val.mainColor, fog = val.fogColor, glow = val.glowColor, enemy = val.enemyColor,
-			time = time, end_time = end_time, duration = duration})
-			
+			local main = COL.str_to_colour(val.mainColor)
+			local fog = COL.str_to_colour(val.fogColor)
+			local glow = COL.str_to_colour(val.glowColor)
+			local enemy = COL.str_to_colour(val.enemyColor)
+			local h, s, v = COL.rgb_to_hsv(glow)
+			h = (h - 0.5) % 1
+			local glow_inv = COL.hsv_to_rgb(h, s, v)
+			table.insert(MEM.art_data.colour_list, {
+				main = main, fog = fog, glow = glow, enemy = enemy, glow_inv = glow_inv, time = time, end_time = end_time, duration = duration
+			})
 			local all_colours = val.mainColor..val.fogColor..val.glowColor..val.enemyColor
-			local add_this_colour = true
-			for k, v in ipairs(colour_check) do
-				if v == all_colours then
-					add_this_colour = false
-					break
-				end
-			end
-			if add_this_colour then
-				local t = {main = val.mainColor, fog = val.fogColor, glow = val.glowColor, enemy = val.enemyColor}
+			if not colour_check[all_colours] then
+				local t = {main = main, fog = fog, glow = glow, enemy = enemy}
 				table.insert(MEM.art_data.colours, t)
-				table.insert(colour_check, all_colours)
+				colour_check[all_colours] = true
 			end
 		end
-		local t = {main = SET.custom_colour_main, fog = SET.custom_colour_fog, glow = SET.custom_colour_glow, enemy = SET.custom_colour_enemy}
-		table.insert(MEM.art_data.colours, t)
+		table.insert(MEM.art_data.colour_list, {time = math.huge})
 		UI.tab.tab_art.state = true
 		MEM.art_reloaded = true
 		return true
@@ -673,7 +674,7 @@ function load.geomancer(data, filename)
 	if tab then
 		if tab.props then
 			for key, val in pairs(tab.props) do
-				for k, v in pairs(val.tweens) do
+				for k, v in pairs(val.tweens or {}) do
 					v.table.signal = v.signal
 				end
 			end

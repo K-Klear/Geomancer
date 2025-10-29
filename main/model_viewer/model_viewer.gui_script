@@ -16,6 +16,8 @@ local colour_unselected_timeline = vmath.vector4(0.6, 0.6, 0.6, 1)
 local move_scrubber
 local mouse_wheel_scroll_target = 0
 
+local tween_padding_start, tween_padding_end = 0, 0
+
 local TAB_NAME = "model_viewer"
 
 local SET_MODEL_VIEWPORT = hash("set_model_viewport")
@@ -30,26 +32,23 @@ local BUTTON_BOX_SIZE_PREVIEW = vmath.vector3(350, 322, 0)
 
 local ACTIVE_BUTTON_COLOUR = vmath.vector4(1, 1, 0.5, 1)
 
-MOD.offset_position = vmath.vector3(0, 0, 0)
-MOD.offset_rotation = vmath.quat(0, 0, 0, 1)
-MOD.offset_scale = vmath.vector3(1, 1, 1)
-MOD.offset_euler = vmath.vector3(0, 0, 0)
+local TWEEN_ACTION_MOVE = hash("T")
+local TWEEN_ACTION_SCALE = hash("S")
+local TWEEN_ACTION_ROTATE = hash("R")
+local TWEEN_ACTION_WAIT = hash("W")
+local TWEEN_ACTIONS = {T = TWEEN_ACTION_MOVE, S = TWEEN_ACTION_SCALE, R = TWEEN_ACTION_ROTATE, W = TWEEN_ACTION_WAIT}
+
+local TEMPO_SECTION = hash("tempo_section")
+local NOBEAT_START = hash("nobeat_start")
+local NOBEAT_END = hash("nobeat_end")
+
+local set_ui
 
 local function set_button_colours()
-	gui.set_color(gui.get_node("button_colour/main"), COL.get_current("main"))
-	gui.set_color(gui.get_node("button_colour/fog"), COL.get_current("fog"))
-	gui.set_color(gui.get_node("button_colour/glow"), COL.get_current("glow"))
-	gui.set_color(gui.get_node("button_colour/enemy"), COL.get_current("enemy"))
-end
-
-local function update_offset_fields()
-	local xyz = {"x", "y", "z"}
-	for key, val in pairs(xyz) do
-		gui.set_text(gui.get_node("position_"..val.."/text"), G.round(MOD.offset_position[val], 1))
-		gui.set_text(gui.get_node("rotation_"..val.."/text"), G.round(MOD.offset_euler[val], 1))
-		gui.set_text(gui.get_node("scale_"..val.."/text"), G.round(MOD.offset_scale[val], 2))
-	end
-	msg.post(".", hash("offsets_changed"))
+	gui.set_color(gui.get_node("button_colour/main"), MOD.colour_override_main or SET.custom_colour_main)
+	gui.set_color(gui.get_node("button_colour/fog"), MOD.colour_override_fog or SET.custom_colour_fog)
+	gui.set_color(gui.get_node("button_colour/glow"), MOD.colour_override_glow or SET.custom_colour_glow)
+	gui.set_color(gui.get_node("button_colour/enemy"), MOD.colour_override_enemy or SET.custom_colour_enemy)
 end
 
 local function get_viewport()
@@ -100,36 +99,26 @@ end
 
 function init(self)
 	MOD.map_preview = false
-	update_offset_fields()
 	set_transform_button()
 	set_hide_grid()
 	bounding_node = gui.get_node("model_viewer")
 	bounding_node_preview = gui.get_node("model_viewer_preview")
 	bounding_node_transform = gui.get_node("model_viewer_transform")
-	aux_node = gui.new_box_node(vmath.vector3(0), vmath.vector3(1))
-	gui.set_pivot(aux_node, gui.PIVOT_NW)
-	gui.set_visible(aux_node, false)
-	gui.set_enabled(gui.get_node("visibility_box"), false)
-	gui.set_enabled(gui.get_node("visibility_box_buttons"), false)
-	change_bounds(bounding_node)
 	button_box = gui.get_node("button_box")
 	playback_box = gui.get_node("playback_box")
 	close_button = gui.get_node("close_preview/button_white")
-	gui.set_position(button_box, BUTTON_BOX_POSITION)
-	gui.set_size(button_box, BUTTON_BOX_SIZE)
 	timeline = gui.get_node("timeline_box")
 	scrubber = gui.get_node("scrubber")
 	time_display = gui.get_node("label_time")
+	aux_node = gui.new_box_node(vmath.vector3(0), vmath.vector3(1))
+	gui.set_pivot(aux_node, gui.PIVOT_NW)
+	gui.set_visible(aux_node, false)
+	gui.set_render_order(1)
 	gui.set_enabled(timeline, false)
 	gui.set_visible(timeline, false)
-	gui.set_enabled(playback_box, false)
-	gui.set_enabled(close_button, false)
-	gui.set_enabled(time_display, false)
-	gui.set_enabled(gui.get_node("offset_box"), false)
-	gui.set_render_order(1)
+	set_ui(hash("model"))
 	UI.load_template({"reset_view", "show_transforms"}, TAB_NAME)
 	set_button_colours()
-	--msg.post("#", hash("disable"))
 end
 
 local action_bars, timelines = {}, {}
@@ -143,7 +132,7 @@ local function delete_timeline()
 		gui.delete_node(val)
 	end
 	timelines = {}
-	for key, val in ipairs(action_bars) do
+	for key, val in pairs(action_bars) do
 		for k, v in ipairs(val) do
 			gui.delete_node(v.bar)
 			gui.delete_node(v.ending)
@@ -161,7 +150,7 @@ local function update_view(update_scubber)
 		MOD.scrubber_progress = (pos.x - min_x) / (max_x - min_x)
 		get_current_transform()
 	end
-	local time_to_display = (MOD.total_time * MOD.scrubber_progress) - SET.tween_padding_start
+	local time_to_display = MOD.preview_start + (MOD.total_time * MOD.scrubber_progress)
 	if selected_timeline and MOD.tween_table and MOD.tween_table[selected_timeline].time_offset then
 		time_to_display = time_to_display - MOD.tween_table[selected_timeline].time_offset
 	end
@@ -180,13 +169,8 @@ local function select_timeline(selection)
 end
 
 local function create_tween_sections()
-	MOD.total_time = 0
 	delete_timeline()
 	for tween_index, tween_table in ipairs(MOD.tween_table) do
-		tween_table.time_offset = 0
-		if MOD.prop_data.lowest_z then
-			tween_table.time_offset = ((MOD.prop_data.signal_z[tween_index] or MOD.prop_data.lowest_z) - MOD.prop_data.lowest_z) / 3
-		end
 		action_bars[tween_index] = {}
 		local new_timeline = gui.clone(gui.get_node("timeline"))
 		gui.set(new_timeline, "position.y", SET.tween_timeline_bar_height * (tween_index - 0.5))
@@ -196,36 +180,29 @@ local function create_tween_sections()
 		if not (tween_index == selected_timeline) then
 			gui.set_color(new_timeline, colour_unselected_timeline)
 		end
-		
-		local tween_time = tween_table.time_offset + SET.tween_padding_start
 		for key, val in ipairs(tween_table) do
-			if val.type == "X" then
-
-			else
-				local function add_bar(time)
-					local new_bar = gui.clone(gui.get_node("action_bar"))
-					local new_bar_end = gui.clone(gui.get_node("action_end"))
-					gui.set_parent(new_bar, new_timeline)
-					gui.set_parent(new_bar_end, new_timeline)
-					gui.set_enabled(new_bar, true)
-					gui.set_enabled(new_bar_end, true)
-					if val.type == "T" then
-						gui.set_color(new_bar, SET.colour_tween_move)
-					elseif val.type == "R" then
-						gui.set_color(new_bar, SET.colour_tween_rotate)
-					elseif val.type == "S" then
-						gui.set_color(new_bar, SET.colour_tween_scale)
-					elseif val.type == "W" then
-						gui.set_color(new_bar, SET.colour_tween_wait)
-					else
-						gui.set_color(new_bar, vmath.vector4(0.5, 0, 0, 1))
-					end
-					table.insert(action_bars[tween_index], {bar = new_bar, ending = new_bar_end, time = time})
-					tween_time = tween_time + time
+			local function add_bar(time)
+				local new_bar = gui.clone(gui.get_node("action_bar"))
+				local new_bar_end = gui.clone(gui.get_node("action_end"))
+				gui.set_parent(new_bar, new_timeline)
+				gui.set_parent(new_bar_end, new_timeline)
+				gui.set_enabled(new_bar, true)
+				gui.set_enabled(new_bar_end, true)
+				if val.type == TWEEN_ACTION_MOVE then
+					gui.set_color(new_bar, SET.colour_tween_move)
+				elseif val.type == TWEEN_ACTION_ROTATE then
+					gui.set_color(new_bar, SET.colour_tween_rotate)
+				elseif val.type == TWEEN_ACTION_SCALE then
+					gui.set_color(new_bar, SET.colour_tween_scale)
+				elseif val.type == TWEEN_ACTION_WAIT then
+					gui.set_color(new_bar, SET.colour_tween_wait)
+				else
+					gui.set_color(new_bar, vmath.vector4(0.5, 0, 0, 1))
 				end
-				if not (val.easing_mid or val.easing_end) then
-					add_bar(val.easing_start or val.time)
-				end
+				table.insert(action_bars[tween_index], {bar = new_bar, ending = new_bar_end, time = time})
+			end
+			if not (val.easing_mid or val.easing_end) then
+				add_bar(val.easing_start or val.duration)
 			end
 		end
 		local new_bar_end = gui.clone(gui.get_node("action_end"))
@@ -233,22 +210,19 @@ local function create_tween_sections()
 		gui.set_enabled(new_bar_end, true)
 		gui.set(new_bar_end, "size.y", SET.tween_timeline_bar_height)
 		action_bars[tween_index][0] = new_bar_end
-		MOD.total_time = math.max(MOD.total_time, tween_time - SET.tween_padding_start)
 	end
-	MOD.total_time = MOD.total_time + SET.tween_padding_start + SET.tween_padding_end
 	local box_y = 10 + (#MOD.tween_table * SET.tween_timeline_bar_height)
 	gui.set_size(gui.get_node("timeline_box"), vmath.vector3(1200, box_y, 0))
 	gui.set(gui.get_node("controls"), "position.y", box_y)
 	gui.set(gui.get_node("scrubber"), "scale.y", #MOD.tween_table * SET.tween_timeline_bar_height)
-	for tween_index, action_bar in ipairs(action_bars) do
-		local time = MOD.tween_table[tween_index].time_offset + SET.tween_padding_start
+	for tween_index, action_bar in pairs(action_bars) do
+		local time = MOD.tween_table.signals[tween_index] - MOD.preview_start
 		for key, val in ipairs(action_bar) do
 			local start_pos = percent_to_position(time / MOD.total_time)
 			local length = (val.time / MOD.total_time) * POSITION_MAX
 			local end_pos = start_pos + length
 			gui.set(val.bar, "position.x", start_pos)
 			gui.set_size(val.bar, vmath.vector3(length, SET.tween_timeline_bar_height * 0.5, 0))
-			--gui.set(val.bar, "size.x", length)
 			gui.set(val.ending, "position.x", end_pos)
 			gui.set(val.ending, "size.y", SET.tween_timeline_bar_height)
 			if key == 1 then
@@ -261,6 +235,7 @@ end
 
 local function stop_playback(go_to_end)
 	MOD.playback = false
+	MOD.desync_check_start = nil
 	gui.cancel_animation(scrubber, "position.x")
 	if go_to_end then
 		move_scrubber(1)
@@ -274,37 +249,32 @@ local function start_playback()
 	local duration = (1 - MOD.scrubber_progress) * (MOD.total_time * (1 / SND.playback_speed))
 	gui.play_flipbook(gui.get_node("playback_play/text"), "pause")
 	gui.animate(scrubber, "position.x", POSITION_MAX + POSITION_MIN, gui.EASING_LINEAR, duration, 0, stop_playback)
-	if MOD.prop_data.signal_z then
-		local start = (MOD.prop_data.lowest_z / 3) + MOD.total_time * MOD.scrubber_progress - SET.tween_padding_start
+
+	if MOD.play_music and SET.play_music then
+		local start = MOD.preview_start + MOD.total_time * MOD.scrubber_progress
 		SND.play_music(start)
+		if SET.max_desync > 0 then
+			timer.delay(0.01, false, function()
+				msg.post(".", hash("playback_started"))
+			end)
+		end
 	end
 end
 
 local function close_preview()
-	MOD.offset_position = vmath.vector3(0, 0, 0)
-	MOD.offset_rotation = vmath.quat(0, 0, 0, 1)
-	MOD.offset_scale = vmath.vector3(1, 1, 1)
-	MOD.offset_euler = vmath.vector3(0, 0, 0)
-	update_offset_fields()
-	stop_playback()
+	if MOD.map_preview then
+		msg.post(".", hash("reset_tween"))
+		MOD.map_preview = false
+		set_ui(hash("map_preview"))
+	else
+		set_ui(hash("transform"))
+	end
 	MOD.tween_preview = false
-	set_button_colours()
+	MOD.vacuum_preview = false
+	stop_playback()
 	msg.post("#", hash("release_input_focus"))
-	msg.post(".", hash("reset_tween"))
-	change_bounds(bounding_node_transform)
-	gui.set_enabled(gui.get_node("offset_box"), false)
-	gui.set(gui.get_node("controls"), "position.y", 0)
-	UI.unload_template(TAB_NAME)
-	UI.load_template({"button_colour", "reset_view", "show_transforms"}, TAB_NAME)
-	gui.set_enabled(gui.get_node("playback_box"), false)
-	gui.set_enabled(gui.get_node("visibility_box"), false)
 	delete_timeline()
-	gui.set_enabled(gui.get_node("close_preview/button_white"), false)
-	gui.set_enabled(time_display, false)
-	gui.set_enabled(scrubber, false)
-	gui.set_enabled(gui.get_node("label_model"), false)
-	gui.set_position(button_box, BUTTON_BOX_POSITION)
-	gui.set_size(button_box, BUTTON_BOX_SIZE)
+	set_button_colours()
 	MOD.tween_table = nil
 end
 
@@ -319,48 +289,6 @@ function move_scrubber(progress)
 	if MOD.playback then
 		stop_playback()
 	end
-end
-
-local function handle_euler()
-	local euler_rad = math.rad(vmath.vector3(-MOD.offset_euler.x, -MOD.offset_euler.y, MOD.offset_euler.z))
-	MOD.offset_euler = math.deg(G.sanitise_euler(euler_rad))
-	MOD.offset_rotation = G.euler_to_quat(MOD.offset_euler)
-	MOD.offset_euler = G.quat_to_euler(MOD.offset_rotation)
-	MOD.offset_euler.x = -MOD.offset_euler.x
-	MOD.offset_euler.y = -MOD.offset_euler.y
-	MOD.offset_euler = math.deg(G.sanitise_euler(math.rad(MOD.offset_euler)))
-end
-
-local function apply_prop_transform()
-	local geo_z = 0
-	MOD.offset_position.x = MOD.prop_data.position.x
-	MOD.offset_position.y = MOD.prop_data.position.y
-	if MOD.stationary then
-		MOD.offset_position.z = MOD.prop_data.position.z
-	else
-		local z = math.huge
-		local z_found = false
-		for key, val in ipairs(MOD.prop_data.signal_z or {}) do
-			z_found = true
-			z = math.min(z, val)
-		end
-		if z_found then
-			MOD.offset_position.z = MOD.prop_data.position.z - z
-			geo_z = z
-		else
-			MOD.offset_position.z = SET.default_model_z_position
-		end
-	end
-	MOD.offset_euler.x = MOD.prop_data.rotation.x
-	MOD.offset_euler.y = MOD.prop_data.rotation.y
-	MOD.offset_euler.z = MOD.prop_data.rotation.z
-	MOD.offset_scale.x = MOD.prop_data.scale.x
-	MOD.offset_scale.y = MOD.prop_data.scale.y
-	MOD.offset_scale.z = MOD.prop_data.scale.z
-	
-	handle_euler()
-	update_offset_fields()
-	msg.post(".", hash("move_geo"), {z = geo_z})
 end
 
 local set_move_terrain
@@ -378,10 +306,12 @@ local function set_pov_lock(state)
 		MOD.target_x = 0
 		MOD.target_y = 0
 		MOD.target_z = 0
-		msg.post(".", hash("reset_view"))
+		msg.post(".", hash("reset_view"), {mode = hash("preview")})
 	else
 		gui.set_color(gui.get_node("lock_cam/button_white"), vmath.vector4(1, 1, 1, 1))
-		msg.post(".", hash("show_capsule"))
+		if not MOD.vacuum_preview then
+			msg.post(".", hash("show_capsule"))
+		end
 	end
 end
 
@@ -432,245 +362,540 @@ local function show_visibility_box(state)
 	end
 	gui.set_enabled(gui.get_node("visibility_box_buttons"), SET.show_visibility_buttons)
 	if SET.show_visibility_buttons then
-		UI.load_template({"hide_geo", "hide_props", "hide_beatcubes", "hide_grid", "hide_fog", "hide_beat", "button_colour"}, TAB_NAME)
+		UI.load_template({"hide_geo", "hide_props", "hide_beatcubes", "hide_grid", "hide_fog", "toggle_music", "button_colour"}, TAB_NAME)
 	else
-		UI.unload_template(TAB_NAME, {"hide_geo", "hide_props", "hide_beatcubes", "hide_grid", "hide_fog", "hide_beat", "button_colour"})
+		UI.unload_template(TAB_NAME, {"hide_geo", "hide_props", "hide_beatcubes", "hide_grid", "hide_fog", "toggle_music", "button_colour"})
 	end
+end
+
+local function prepare_tween_data(selected_model_index)
+	local tween_list = {}
+	for key, val in pairs(MOD.culling_ranges) do
+		if val.props then
+			for k, v in ipairs(val.props) do
+				v.signal = nil
+				v.hide = MEM.art_data.table.propsDictionary[v.model_index].hide
+			end
+		end
+	end
+	if MEM.event_data.table then
+		for key, val in ipairs(MEM.art_data.table.propsDictionary) do
+			if (val.tween or 0) > 0 then
+				local transform_names = {}
+				local tween_list_small = {}
+				for k, v in ipairs(val.model_data.transform_list) do
+					if not transform_names[v.name] then
+						transform_names[v.name] = k
+					end
+					if v.tween then
+						local expanded = G.expand_repeat_actions(v.tween)
+						expanded.signal = v.tween.signal
+						expanded.housing_transform = k
+						table.insert(tween_list_small, expanded)
+					end
+				end
+				for _k, tween_actions in ipairs(tween_list_small) do
+					tween_list[val.key] = tween_list[val.key] or {}
+					local t = {}
+					local time_offset = 0
+					for i = #tween_actions, 1, -1 do
+						if tween_actions[i].easing then
+							local old_action = tween_actions[i]
+							local node_values = G.separate_easing(old_action)
+							local start_tab
+							local easing_duration = 0
+							for _key, _val in ipairs(node_values) do
+								local tab = {
+									type = old_action.type,
+									part = old_action.part,
+									time = _val.t,
+									start_state = _val.s,
+									end_state = _val.e
+								}
+								easing_duration = easing_duration + _val.t
+								if _key == 1 then
+									start_tab = tab
+								elseif _key == #node_values then
+									tab.easing_end = true
+								else
+									tab.easing_mid = true
+								end
+								table.insert(tween_actions, i + _key, tab)
+							end
+							start_tab.easing_start = easing_duration
+							table.remove(tween_actions, i)
+						end
+					end
+					for k, v in ipairs(tween_actions) do
+						if v.type == "W" then
+							table.insert(t, {
+								start_time = time_offset,
+								end_time = time_offset + v.time,
+								duration = tonumber(v.time),
+								type = TWEEN_ACTIONS[v.type]
+							})
+						else
+							local start_state = vmath.vector3(tonumber(v.start_state.x), tonumber(v.start_state.y), tonumber(v.start_state.z))
+							local end_state = vmath.vector3(tonumber(v.end_state.x), tonumber(v.end_state.y), tonumber(v.end_state.z))
+							if v.type == "R" then
+								start_state = G.euler_to_quat(start_state)
+								end_state = G.euler_to_quat(end_state)
+							end
+							table.insert(t, {
+								start_time = time_offset,
+								end_time = time_offset + v.time,
+								duration = tonumber(v.time),
+								part = transform_names[v.part],
+								start_state = start_state,
+								end_state = end_state,
+								type = TWEEN_ACTIONS[v.type],
+								easing_start = v.easing_start,
+								easing_end = v.easing_end,
+								easing_mid = v.easing_mid
+							})
+						end
+						time_offset = time_offset + tonumber(v.time)
+					end
+					table.insert(tween_list[val.key], {
+						actions = t, total_time = time_offset, signal = tween_actions.signal, housing_transform = tween_actions.housing_transform
+					})
+				end
+			end
+		end
+		for _, event_val in pairs(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events) do
+			local start = event_val.startSample / SET.sample_rate
+			local range = math.min(math.floor((start * 3 + 6) / 16), MOD.max_culling_range)
+			MOD.culling_ranges[range] = MOD.culling_ranges[range] or {slices = {}, props = {}, signals = {}}
+			local target_prop, target_transform, target_model_index, target_prop_list_index
+			local target_table
+			local range_to_search = range
+			if MOD.stationary then range_to_search = 0 end
+			for k, v in ipairs(MOD.culling_ranges[range_to_search].props) do
+				if (MEM.art_data.table.propsDictionary[v.model_index].tween or 0) > 0 then
+					local trans_list = MEM.art_data.table.propsDictionary[v.model_index].model_data.transform_list
+					for key, val in ipairs(trans_list) do
+						if val.tween then
+							if val.tween.signal == event_val.payload then
+								v.signal = v.signal or {}
+								local already_done
+								for _k, _v in ipairs(v.signal) do
+									if _v.target_transform == key then
+										already_done = true
+										break
+									end
+								end
+								if not already_done then
+									target_prop = v.name
+									target_model_index = v.model_index
+									target_prop_list_index = v.prop_list_index
+									target_transform = key
+									target_table = v.signal
+									break
+								end
+							end
+						end
+					end
+					if target_prop then break end
+				end
+			end
+			table.insert(MOD.culling_ranges[range].signals, {
+				time = start, signal = event_val.payload, target_prop = target_prop, target_transform = target_transform,
+				prop_found = not not target_table, target_model_index = target_model_index, target_prop_list_index = target_prop_list_index})
+			if target_table then
+				table.insert(target_table, {signal_tab = MOD.culling_ranges[range].signals[#MOD.culling_ranges[range].signals], time = start, signal = event_val.payload, target_transform = target_transform})
+			end
+		end
+	end
+	for key, val in pairs(MOD.culling_ranges) do
+		if val.signals then
+			for i = #val.signals, 1, -1 do
+				if val.signals[i].prop_found then
+					val.signals[i].prop_found = nil
+					if MEM.art_data.table.propsDictionary[val.signals[i].target_model_index].hide then
+						table.remove(val.signals, i)
+					else
+						for k, v in ipairs(tween_list[val.signals[i].target_prop]) do
+							if v.housing_transform == val.signals[i].target_transform then
+								val.signals[i].tween = v
+							end
+						end
+					end
+				else
+					table.remove(val.signals, i)
+				end
+			end
+		end
+	end
+	MOD.culling_ranges[-1] = MOD.culling_ranges[-1] or {}
+	MOD.culling_ranges[-1].signals = {}
+	MEM.event_track = {}
+
+	if MEM.event_data.table then
+		for key, val in ipairs(MEM.event_data.table.eventsData[MEM.event_data.nobeat_track_index].events) do
+			table.insert(MEM.event_track, {type = NOBEAT_START, time = tonumber(val.startSample) / SET.sample_rate})
+			table.insert(MEM.event_track, {type = NOBEAT_END, time = tonumber(val.endSample) / SET.sample_rate})
+		end
+		for key, val in ipairs(MEM.event_data.table.tempoSections) do
+			local t = {
+				type = TEMPO_SECTION, time = tonumber(val.startSample) / SET.sample_rate, spb = tonumber(val.samplesPerBeat) / SET.sample_rate, beats_per_measure = tonumber(val.beatsPerMeasure)
+			}
+			table.insert(MEM.event_track, t)
+		end
+		table.sort(MEM.event_track, function(a, b) return a.time < b.time end)
+	end
+	table.insert(MEM.event_track, {time = math.huge})
+	if selected_model_index then
+		return tween_list[MEM.art_data.table.propsDictionary[selected_model_index].key]
+	end
+end
+
+local function preview_setup_map()
+	MOD.map_preview = true
+	tween_padding_start = 0
+	tween_padding_end = 0
+	selected_timeline = 1
+	set_move_terrain(true)
+
+	local song_length = 0
+	if MEM.level_data then
+		if MEM.level_data.songLength then
+			song_length = tonumber(MEM.level_data.songLength) or 0
+		elseif MOD.culling_ranges then
+			song_length = (MOD.max_culling_range - 3) * 16 / 3
+		end
+	end
+	if song_length < 1 then song_length = 300 end
+	
+	local t = {}
+	local size = SET.map_preview_partition_size
+	if size == 0 then size = 999 end
+	local start_time = 0
+	for i = 1, math.floor(song_length / size) do
+		table.insert(t, {type = TWEEN_ACTION_WAIT, start_time = start_time, end_time = start_time + size, duration = size})
+		start_time = start_time + size
+	end
+	table.insert(t, {type = TWEEN_ACTION_WAIT, start_time = start_time, end_time = start_time + song_length % size, duration = song_length % size})
+	MOD.tween_table = {t}
+	MOD.tween_table.signals = {0}
+
+	MOD.preview_start = 0
+	MOD.preview_end = song_length
+	MOD.total_time = song_length
+	
+	create_tween_sections()
+	if not MOD.scrubber_progress then
+		move_scrubber(0)
+	end
+	prepare_tween_data()
+	set_ui(hash("map_preview"))
+	msg.post(".", hash("prepare_preview"))
+end
+
+local function setup_tween_contex(picked_transform, selected_prop)
+	MOD.vacuum_preview = false
+	local tween_start = math.huge
+	MOD.total_time = 0
+	local timeline_count = 0
+	MOD.tween_table = {signals = {}}
+
+	for key, val in ipairs(MOD.props_for_preview[selected_prop]) do
+		tween_start = math.min(tween_start, val.time)
+		timeline_count = timeline_count + 1
+		MOD.total_time = math.max(MOD.total_time, val.tween.total_time)
+		table.insert(MOD.tween_table, val.tween.actions)
+		table.insert(MOD.tween_table.signals, val.time)
+	end
+
+	MOD.total_time = MOD.total_time + SET.tween_padding_start + SET.tween_padding_end
+	MOD.preview_start = tween_start - SET.tween_padding_start
+	MOD.preview_end = tween_start + MOD.total_time + SET.tween_padding_end
+
+	if picked_transform then
+		selected_timeline = 0
+	else
+		picked_transform = -1
+	end
+	local current_timeline = 0
+	local existing_timeline = 0
+	for i = 1, #MEM.art_data.table.propsDictionary[MOD.model_index].model_data.transform_list do
+		if MEM.art_data.table.propsDictionary[MOD.model_index].model_data.transform_list[i].tween then
+			current_timeline = current_timeline + 1
+			if i <= picked_transform then
+				selected_timeline = selected_timeline + 1
+			end
+			if not MOD.props_for_preview[selected_prop][current_timeline] then
+				table.remove(MOD.tween_table, current_timeline)
+				table.remove(MOD.tween_table.signals, current_timeline)
+			else
+				existing_timeline = existing_timeline + 1
+				MOD.tween_table[existing_timeline].timeline_id = current_timeline
+			end
+		end
+	end
+	if selected_timeline > existing_timeline then
+		selected_timeline = 1
+	end
+
+	create_tween_sections()
+
+	MOD.active_signals = {}
+
+	move_scrubber(0)
+	set_ui(hash("tween_context"))
+	msg.post(".", hash("prepare_preview"))
+end
+
+local function setup_tween_vacuum(picked_transform, selected_model_tweens)
+	MOD.vacuum_preview = true
+	MOD.play_music = false
+	MOD.tween_table = {signals = {}}
+	MOD.vacuum_signal_tabs = {}
+	
+	if picked_transform then
+		selected_timeline = 0
+	else
+		picked_transform = -1
+	end
+	local longest_tween = 0
+	for key, val in ipairs(selected_model_tweens) do
+		longest_tween = math.max(longest_tween, val.total_time)
+		if val.housing_transform == picked_transform then
+			selected_timeline = key
+		end
+		table.insert(MOD.tween_table, val.actions)
+		table.insert(MOD.tween_table.signals, 0)
+		local t = {
+			time = 0,
+			tween = {total_time = val.total_time, actions = val.actions},
+			transforms = {},
+		}
+		table.insert(MOD.vacuum_signal_tabs, t)
+	end
+	
+	MOD.total_time = longest_tween + SET.tween_padding_start + SET.tween_padding_end
+	MOD.preview_start = -SET.tween_padding_start
+	MOD.preview_end = MOD.total_time + SET.tween_padding_end
+
+	create_tween_sections()
+
+	
+	MOD.active_signals = {}
+
+	move_scrubber(0)
+	get_current_transform(1)
+	set_ui(hash("tween_vacuum"))
+	msg.post(".", hash("prepare_preview"))
+end
+
+local function preview_setup_tween(message, force_vacuum)
+	if message then
+		MOD.model_index = message.model or MOD.model_index
+	end
+	tween_padding_start = SET.tween_padding_start
+	tween_padding_end = SET.tween_padding_end
+	gui.set_text(gui.get_node("label_model"), MEM.art_data.table.propsDictionary[MOD.model_index].key)
+
+	local selected_model_tweens = prepare_tween_data(MOD.model_index)
+
+	MOD.props_for_preview = {}
+	local repeat_props = {}
+	
+	for key, val in pairs(MOD.culling_ranges) do
+		for k, v in ipairs(val.signals or {})  do
+			if v.target_model_index == MOD.model_index then
+				local t = {
+					transforms = v.transforms,
+					time = v.time,
+					tween = v.tween,
+					target_prop_list_index = v.target_prop_list_index,
+					target_transform = v.target_transform
+				}
+				if repeat_props[v.target_prop_list_index] then
+					table.insert(MOD.props_for_preview[repeat_props[v.target_prop_list_index]], t)
+				else
+					table.insert(MOD.props_for_preview, {t})
+					repeat_props[v.target_prop_list_index] = #MOD.props_for_preview
+				end
+			end
+		end
+	end
+	table.sort(MOD.props_for_preview, function(a, b) return a[1].target_prop_list_index < b[1].target_prop_list_index end)
+	for key, val in ipairs(MOD.props_for_preview) do
+		table.sort(val, function(a, b) return a.target_transform < b.target_transform end)
+	end
+	if force_vacuum or (#MOD.props_for_preview < 1) then
+		if not message then
+			setup_tween_vacuum(nil, selected_model_tweens)
+		else
+			setup_tween_vacuum(message.selected_transform, selected_model_tweens)
+		end
+	else
+		setup_tween_contex(message.selected_transform, 1)
+	end
+end
+
+local function preview_setup_shared(message)
+	MOD.play_music = SND.music_loaded
+	MOD.tween_preview = true
+	MOD.vacuum_signal_tabs = nil
+	MOD.stationary = MEM.level_data.moveMode and MEM.level_data.moveMode == "Stationary"
+	
+	set_playback_speed(1)
+	set_pov_lock(false)
+	previous_transform_name = nil
+	msg.post("#", hash("acquire_input_focus"))
+
+	if message.preview_map then
+		preview_setup_map()
+	else
+		preview_setup_tween(message)
+	end
+end
+
+function set_ui(mode)
+	show_visibility_box(false)
+	UI.unload_template(TAB_NAME)
+	UI.load_template({"reset_view"}, TAB_NAME)	
+	if mode == hash("model") or mode == hash("rotate") or mode == hash("transform") then
+		gui.set_enabled(gui.get_node("toggle_visibility/button_white"), false)
+		gui.set_enabled(gui.get_node("label_model"), false)
+		gui.set_enabled(time_display, false)
+		gui.set_enabled(gui.get_node("pick_model/button_white"), false)
+		gui.set_enabled(scrubber, false)
+		gui.set_enabled(gui.get_node("playback_box"), false)
+		gui.set_enabled(gui.get_node("visibility_box"), false)
+		gui.set_enabled(gui.get_node("close_preview/button_white"), false)
+		gui.set_enabled(gui.get_node("move_terrain/button_white"), false)
+		gui.set_enabled(gui.get_node("lock_cam/button_white"), false)
+		if mode == hash("rotate") then
+			change_bounds(gui.get_node("rotate_box"))
+			gui.set_enabled(gui.get_node("find_prop/button_white"), false)
+			gui.set_enabled(gui.get_node("show_transforms/button_white"), false)
+		else
+			UI.load_template({"find_prop", "show_transforms"}, TAB_NAME)
+			gui.set_enabled(gui.get_node("show_transforms/button_white"), true)
+			gui.set_enabled(gui.get_node("find_prop/button_white"), true)
+			gui.set(gui.get_node("controls"), "position.y", 0)
+			gui.set_position(button_box, BUTTON_BOX_POSITION)
+			gui.set_size(button_box, BUTTON_BOX_SIZE)
+			if mode == hash("model") then
+				change_bounds(bounding_node)
+			elseif mode == hash("transform") then
+				change_bounds(bounding_node_transform)
+				msg.post(".", hash("show_transforms"))
+			end
+		end
+	elseif mode == hash("tween_vacuum") or mode == hash("tween_context") or mode == hash("map_preview") then
+		UI.load_template({"playback_back", "playback_forward", "playback_play", "playback_stop", "playback_slow", 
+		"playback_normal", "playback_fast", "playback_fastest", "close_preview"}, TAB_NAME)
+		gui.set_enabled(timeline, true)
+		gui.set_enabled(gui.get_node("close_preview/button_white"), true)
+		gui.set_enabled(time_display, true)
+		change_bounds(bounding_node_preview)
+		gui.set_enabled(scrubber, true)
+		gui.set_position(button_box, BUTTON_BOX_POSITION_PREVIEW)
+		gui.set_size(button_box, BUTTON_BOX_SIZE_PREVIEW)
+		gui.set_enabled(gui.get_node("playback_box"), true)
+		gui.set_enabled(gui.get_node("visibility_box"), true)
+		if mode == hash("tween_vacuum") then
+			UI.load_template({"find_prop", "show_transforms"}, TAB_NAME)
+			gui.set_enabled(gui.get_node("find_prop/button_white"), true)
+			gui.set_enabled(gui.get_node("label_model"), true)
+			gui.set_enabled(gui.get_node("pick_model/button_white"), false)
+			gui.set_enabled(gui.get_node("show_transforms/button_white"), true)
+			gui.set_enabled(gui.get_node("move_terrain/button_white"), false)
+			gui.set_enabled(gui.get_node("lock_cam/button_white"), false)
+		elseif mode == hash("tween_context") then
+			UI.load_template({"pick_model", "lock_cam", "move_terrain"}, TAB_NAME)
+			UI.load_template({"toggle_visibility"}, TAB_NAME)
+			gui.set_enabled(gui.get_node("find_prop/button_white"), false)
+			gui.set_enabled(gui.get_node("toggle_visibility/button_white"), true)
+			gui.set_enabled(gui.get_node("label_model"), true)
+			gui.set_enabled(gui.get_node("pick_model/button_white"), true)
+			gui.set_enabled(gui.get_node("show_transforms/button_white"), false)
+			gui.set_enabled(gui.get_node("move_terrain/button_white"), true)
+			gui.set_enabled(gui.get_node("lock_cam/button_white"), true)
+		elseif mode == hash("map_preview") then
+			UI.load_template({"toggle_visibility", "lock_cam", "move_terrain"}, TAB_NAME)
+			gui.set_enabled(gui.get_node("find_prop/button_white"), false)
+			gui.set_enabled(gui.get_node("toggle_visibility/button_white"), true)
+			gui.set_enabled(gui.get_node("label_model"), false)
+			gui.set_enabled(gui.get_node("pick_model/button_white"), false)
+			gui.set_enabled(gui.get_node("show_transforms/button_white"), false)
+			gui.set_enabled(gui.get_node("move_terrain/button_white"), true)
+			gui.set_enabled(gui.get_node("lock_cam/button_white"), true)
+		end
+	end
+
+	--[[  this stuff was in init, probably not needed at all 
+	gui.set_enabled(gui.get_node("visibility_box"), false)
+	gui.set_enabled(gui.get_node("visibility_box_buttons"), false)
+	change_bounds(bounding_node)
+	gui.set_position(button_box, BUTTON_BOX_POSITION)
+	gui.set_size(button_box, BUTTON_BOX_SIZE)
+	gui.set_enabled(timeline, false)
+	gui.set_visible(timeline, false)
+	gui.set_enabled(playback_box, false)
+	gui.set_enabled(close_button, false)
+	gui.set_enabled(time_display, false)
+	--]]
 end
 
 function on_message(self, message_id, message, sender)
 	if message_id == GET_MODEL_VIEWPORT then
 		get_viewport()
-	elseif message_id == hash("show") then
+	elseif message_id == hash("show") or message_id == hash("show_model_preview") then
 		get_viewport()
 		set_button_colours()
 		msg.post("#", hash("acquire_input_focus"))
-	elseif message_id == hash("hide") and MOD.tween_preview then
-		close_preview()
+	elseif message_id == hash("hide") then
+		if MOD.tween_preview then
+			close_preview()
+		end
 	elseif message_id == hash("disable_input") then
 		msg.post("#", hash("release_input_focus"))
 	elseif message_id == hash("dialog_closed") then
 		msg.post("#", hash("acquire_input_focus"))
 		if message.dialog == "dialog_props" then
-			if message.prop_changed then
+			if message.selected_prop then
 				stop_playback()
-				move_scrubber(0)
-				previous_transform_name = nil
-				get_current_transform(1)
-				apply_prop_transform()
-				create_tween_sections()
-				msg.post(".", hash("prepare_tweens"))
+				msg.post(".", hash("reset_tween"))
+				setup_tween_contex(nil, message.selected_prop)
+				--msg.post(".", hash("tween_preview"), {model = MOD.model_index, selected_transform = 1})
+			elseif message.vacuum then
+				stop_playback()
+				msg.post(".", hash("hide_context"))
+				preview_setup_tween(nil, true)
+				UI.load_template({"pick_model"}, TAB_NAME)
+				gui.set_enabled(gui.get_node("pick_model/button_white"), true)
 			end
 		elseif message.dialog == "dialog_colours" then
+			set_button_colours()
 			msg.post(".", "colours_changed")
 		end
-	elseif message_id == hash("resize_base") then
-		change_bounds(bounding_node)
-	elseif message_id == hash("resize_transform") then
-		change_bounds(bounding_node_transform)
+	elseif message_id == hash("set_ui") then
+		set_ui(message.mode)
 	elseif message_id == hash("update_transform_button") then
 		set_transform_button()
-	elseif message_id == hash("resize_rotate") then
-		change_bounds(gui.get_node("rotate_box"))
 	elseif message_id == hash("resume_playback") then
 		start_playback()
+	elseif message_id == hash("move_scrubber") then
+		move_scrubber(message.time)
 	elseif message_id == hash("tween_preview") then
-		MOD.tween_preview = true
-		MOD.map_preview = message.preview_map
-		MOD.total_time = 0
-		set_playback_speed(1)
-		MOD.stationary = MEM.level_data.moveMode and MEM.level_data.moveMode == "Stationary"
-		set_pov_lock(false)
-		msg.post(".", hash("reset_view"))
-		move_scrubber(0)
-		previous_transform_name = nil
-		get_current_transform(1)
-		gui.set_position(button_box, BUTTON_BOX_POSITION_PREVIEW)
-		gui.set_size(button_box, BUTTON_BOX_SIZE_PREVIEW)
-		msg.post("#", hash("acquire_input_focus"))
-		change_bounds(bounding_node_preview)
-		gui.set_enabled(gui.get_node("offset_box"), true)
-		gui.set_enabled(gui.get_node("offset_box_2"), not MOD.map_preview)
-		gui.set_enabled(scrubber, true)
-		if MOD.prop_data then
-			apply_prop_transform()
-		elseif MOD.map_preview then
-			msg.post(".", hash("move_geo"), {z = 0})
-			MOD.tweenable_transforms = {}
-		else
-			MOD.offset_position.z = SET.default_model_z_position
-		end
-		gui.set_enabled(gui.get_node("playback_box"), true)
-		gui.set_enabled(gui.get_node("visibility_box"), true)
-		show_visibility_box(false)
-		UI.load_template({"toggle_visibility"}, TAB_NAME)
-		gui.set_enabled(timeline, true)
-		gui.set_enabled(gui.get_node("close_preview/button_white"), true)
-		gui.set_enabled(time_display, true)
-		gui.set_enabled(gui.get_node("label_model"), true)
-		
-		MOD.model_index = message.model
-		MOD.tween_table = {}
-		selected_timeline = 1
-		if not MOD.map_preview then
-			update_offset_fields()
-			gui.set_text(gui.get_node("position_z/text"), MOD.offset_position.z)
-			local validation = {
-				number = true,
-				min = function() return -999 end,
-				max = function() return 999 end,
-				default = function() return 0 end
-			}
-			UI.load_text_field("position_x", 5, TAB_NAME, validation)
-			UI.load_text_field("position_y", 5, TAB_NAME, validation)
-			UI.load_text_field("position_z", 5, TAB_NAME, validation)
-			UI.load_text_field("rotation_x", 5, TAB_NAME, validation)
-			UI.load_text_field("rotation_y", 5, TAB_NAME, validation)
-			UI.load_text_field("rotation_z", 5, TAB_NAME, validation)
-			UI.load_text_field("scale_x", 5, TAB_NAME, validation)
-			UI.load_text_field("scale_y", 5, TAB_NAME, validation)
-			UI.load_text_field("scale_z", 5, TAB_NAME, validation)
-			UI.load_template({"playback_back", "playback_forward", "playback_play", "playback_stop", "close_preview", "pick_model",
-			"lock_cam", "find_prop", "move_terrain"}, TAB_NAME)
-			selected_timeline = 0
-			gui.set_text(gui.get_node("label_model"), MEM.art_data.table.propsDictionary[message.model].key)
-			for i = 1, message.selected_transform do
-				if MEM.art_data.table.propsDictionary[message.model].model_data.transform_list[i].tween then
-					selected_timeline = selected_timeline + 1
-				end
-			end
-			MOD.active_signals = {}
-			MOD.prop_list_generated = false
-
-			for key, val in ipairs(MEM.art_data.table.propsDictionary[MOD.model_index].model_data.transform_list) do
-				if val.tween then
-					table.insert(MOD.tween_table, val.tween)
-					MOD.active_signals[val.tween.signal] = {}
-				end
-			end
-
-
-			local signal_found
-			if MEM.event_data.table then
-				for key, val in ipairs(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events) do
-					if MOD.active_signals[val.payload] then
-						local signal_time = tonumber(val.startSample) / SET.sample_rate
-						table.insert(MOD.active_signals[val.payload], signal_time)
-						signal_found = true
-					end
-				end
-			end
-
-			if not signal_found then
-				MOD.active_signals = nil
-			end
-
-			for k, v in ipairs(MOD.tween_table) do
-				MOD.tween_table[k] = G.expand_repeat_actions(v)
-				local tween_table = MOD.tween_table[k]
-				for key = #tween_table, 1, -1 do
-					local val = tween_table[key]
-					if val.time then
-						val.time = tonumber(val.time)
-					end
-					if val.easing then
-						local easing_tab = {}
-						local x_diff = val.end_state.x - val.start_state.x
-						local y_diff = val.end_state.y - val.start_state.y
-						local z_diff = val.end_state.z - val.start_state.z
-						if val.type == "R" then
-							if x_diff > 180 then
-								x_diff = x_diff - 360
-							elseif x_diff < -180 then
-								x_diff = x_diff + 360
-							end
-							if y_diff > 180 then
-								y_diff = y_diff - 360
-							elseif y_diff < -180 then
-								y_diff = y_diff + 360
-							end
-							if z_diff > 180 then
-								z_diff = z_diff - 360
-							elseif z_diff < -180 then
-								z_diff = z_diff + 360
-							end
-						end
-						local node_tab = val.easing.nodes
-						for i = 1, #node_tab - 1 do
-							local s_x = val.start_state.x + (node_tab[i].comp * x_diff)
-							local s_y = val.start_state.y + (node_tab[i].comp * y_diff)
-							local s_z = val.start_state.z + (node_tab[i].comp * z_diff)
-							local e_x = val.start_state.x + (node_tab[i + 1].comp * x_diff)
-							local e_y = val.start_state.y + (node_tab[i + 1].comp * y_diff)
-							local e_z = val.start_state.z + (node_tab[i + 1].comp * z_diff)
-							local t = val.time * (node_tab[i + 1].time - node_tab[i].time)
-							table.insert(easing_tab, {time = t, type = val.type, part = val.part, start_state = {x = s_x, y = s_y, z = s_z}, end_state = {x = e_x, y = e_y, z = e_z}})
-						end
-						table.remove(tween_table, key)
-						for i = #easing_tab, 1, -1 do
-							if i == #easing_tab then
-								easing_tab[i].easing_end = true
-							elseif i == 1 then
-								easing_tab[i].easing_start = val.time
-							else
-								easing_tab[i].easing_mid = true
-							end
-							table.insert(tween_table, key, easing_tab[i])
-						end
-					end
-				end
-			end
-			if SET.auto_set_tween_preview_prop then
-				DIALOG.open(TAB_NAME, "dialog_props", {model = MEM.art_data.table.propsDictionary[MOD.model_index].key, autoclose = true})
-			else
-				create_tween_sections()
-				msg.post(".", hash("prepare_tweens"))
-			end
-		else	-- if MOD.map_preview
-			UI.load_template({"playback_back", "playback_forward", "playback_play", "playback_stop", "playback_slow", 
-			"playback_normal", "playback_fast", "playback_fastest", "close_preview", "lock_cam", "move_terrain"}, TAB_NAME)
-			local song_length = 0
-			if MEM.level_data then
-				set_move_terrain(true)
-				set_pov_lock(false)
-				if MEM.level_data.songLength then
-					song_length = tonumber(MEM.level_data.songLength) or 0
-				elseif MOD.culling_ranges then
-					song_length = (MOD.max_culling_range - 3) * 16 / 3
-				end
-			end
-			if song_length < 1 then song_length = 240 end
-			local t = {}
-			local size = SET.map_preview_partition_size
-			if size == 0 then size = 999 end
-			for i = 1, math.floor(song_length / size) do
-				table.insert(t, {type = "W", time = size})
-			end
-			table.insert(t, {type = "W", time = song_length % size})
-			MOD.tween_table = {t}
-			local fake_data = {x = 0, y = 0, z = 0}
-			MOD.prop_data = {position = fake_data, scale = fake_data, rotation = fake_data, lowest_z = 0, signal_z = {0}}
-			create_tween_sections()
-			
-			msg.post(".", hash("prepare_tweens"))
-		end
-		if MOD.pov_lock then
-			MOD.target_x = 0
-			MOD.target_y = 0
-		end
+		preview_setup_shared(message)
 	end
 end
 
 local function get_current_action()
 	local current_time = MOD.total_time * MOD.scrubber_progress
 	local timeline_tab = MOD.tween_table[selected_timeline]
-	local duration = timeline_tab.time_offset + SET.tween_padding_start
-	if current_time < SET.tween_padding_start then
+	local duration = MOD.tween_table.signals[selected_timeline] - MOD.preview_start
+	if current_time < tween_padding_start then
 		return 0, duration
 	end
 	for key, val in ipairs(timeline_tab) do
 		if not (val.easing_mid or val.easing_end) then
-			local time = val.easing_start or tonumber(val.time)
+			local time = val.easing_start or val.duration
 			if time > 0.00000001 then
 				if duration + time > current_time and ((duration + time) - current_time) > 0.00000001 then
 					return key, duration
@@ -715,7 +940,7 @@ function get_current_transform(current_action)
 	previous_transform_name = part
 	if part then
 		for key, val in ipairs(MEM.art_data.table.propsDictionary[MOD.model_index].model_data.transform_list) do
-			if part == val.name then
+			if part == key then
 				MOD.visible_transform = key
 				break
 			end
@@ -742,7 +967,7 @@ local function evaluate_button(button)
 		MOD.is_dragged = false
 		MOD.camera_is_dragged = false
 	elseif button == "pick_model" then
-		DIALOG.open(TAB_NAME, "dialog_props", {model = MEM.art_data.table.propsDictionary[MOD.model_index].key})
+		DIALOG.open(TAB_NAME, "dialog_props")
 	elseif button == "hide_fog" then
 		if SET.hide_fog then
 			gui.play_flipbook(gui.get_node("hide_fog/text"), "button_show_background")
@@ -757,6 +982,18 @@ local function evaluate_button(button)
 			gui.play_flipbook(gui.get_node("hide_beatcubes/text"), "hide_beatcubes")
 		end
 		msg.post(".", hash("hide_beatcubes"))
+	elseif button == "toggle_music" then
+		SET.play_music = not SET.play_music
+		if SET.play_music then
+			gui.play_flipbook(gui.get_node("toggle_music/text"), "button_play_music")
+			if MOD.playback then
+				stop_playback()
+				start_playback()
+			end
+		else
+			gui.play_flipbook(gui.get_node("toggle_music/text"), "button_no_music")
+			SND.stop_music()
+		end
 	elseif button == "hide_props" then
 		if SET.hide_props then
 			gui.play_flipbook(gui.get_node("hide_props/text"), "find_prop")
@@ -765,9 +1002,21 @@ local function evaluate_button(button)
 		end
 		msg.post(".", hash("hide_props"))
 	elseif button == "hide_geo" then
+		if SET.hide_geo == 1 then
+			gui.play_flipbook(gui.get_node("hide_geo/text"), "button_show_colliders")
+		elseif SET.hide_geo == 2 then
+			gui.play_flipbook(gui.get_node("hide_geo/text"), "button_hide_geo")
+		else
+			gui.play_flipbook(gui.get_node("hide_geo/text"), "button_show_geo")
+		end
 		msg.post(".", hash("hide_geo"))
 	elseif button == "reset_view" then
 		set_pov_lock(false)
+		local mode = hash("model")
+		if MOD.tween_preview then
+			mode = hash("preview")
+		end
+		msg.post(".", hash("reset_view"), {mode = mode})
 	elseif button == "hide_grid" then
 		set_hide_grid(true)
 		msg.post(".", hash("show_grid"))
@@ -791,7 +1040,9 @@ local function evaluate_button(button)
 	elseif button == "move_terrain" then
 		set_move_terrain()
 	elseif button == "find_prop" then
-		set_pov_lock(false)
+		if MOD.map_preview or MOD.tween_preview then
+			set_pov_lock(false)
+		end
 		MOD.find_prop = true
 	elseif button == "playback_back" then
 		local current_action, start_time = get_current_action()
@@ -809,7 +1060,7 @@ local function evaluate_button(button)
 					if tab.easing_mid or tab.easing_end then
 						return find_previous_action(index - 1)
 					end
-					return tab.easing_start or tonumber(tab.time)
+					return tab.easing_start or tab.duration
 				end
 				local time = find_previous_action(current_action - i)
 				if time > 0 then
@@ -831,7 +1082,8 @@ local function evaluate_button(button)
 				if current_action < 1 then
 					time = 0
 				else
-					time = MOD.tween_table[selected_timeline][current_action].easing_start or tonumber(MOD.tween_table[selected_timeline][current_action].time)
+					local action_tab = MOD.tween_table[selected_timeline][current_action]
+					time = action_tab.easing_start or action_tab.duration
 				end
 				move_scrubber(math.min((start_time + time) / MOD.total_time, 1))
 			end
@@ -868,37 +1120,12 @@ local function evaluate_button(button)
 			msg.post(UI.tab.tab_file.path, hash("show"))
 			msg.post(".", hash("hide"))
 		else
-			msg.post(UI.tab.dialog_tween.path, hash("tween_preview_closed"), {tween_index = selected_timeline})
+			msg.post(UI.tab.dialog_tween.path, hash("tween_preview_closed"), {tween_index = MOD.tween_table[selected_timeline].timeline_id})
 			msg.post(UI.tab.dialog_transform.path, hash("enable"))
+			msg.post(".", hash("update_model"), {model = MOD.model_index})
 		end
 		close_preview()
 	end
-end
-
-local function evaluate_input(field, text)
-	if field == "position_x" then
-		MOD.offset_position.x = text
-	elseif field == "position_y" then
-		MOD.offset_position.y = text
-	elseif field == "position_z" then
-		MOD.offset_position.z = text
-	elseif field == "rotation_x" then
-		MOD.offset_euler.x = text
-		handle_euler()
-	elseif field == "rotation_y" then
-		MOD.offset_euler.y = text
-		handle_euler()
-	elseif field == "rotation_z" then
-		MOD.offset_euler.z = text
-		handle_euler()
-	elseif field == "scale_x" then
-		MOD.offset_scale.x = text
-	elseif field == "scale_y" then
-		MOD.offset_scale.y = text
-	elseif field == "scale_z" then
-		MOD.offset_scale.z = text
-	end
-	update_offset_fields()
 end
 
 function update()
@@ -906,6 +1133,21 @@ function update()
 		update_view(true)
 	end
 end
+
+local ACTION_MMB = hash("mid_click")
+local ACTION_ESC = hash("escape")
+local ACTION_W = hash("w")
+local ACTION_S = hash("s")
+local ACTION_A = hash("a")
+local ACTION_D = hash("d")
+local ACTION_Q = hash("q")
+local ACTION_E = hash("e")
+local ACTION_F = hash("f")
+local ACTION_SPACE = hash("space")
+local ACTION_SCROLL_UP = hash("scroll_up")
+local ACTION_SCROLL_DOWN = hash("scroll_down")
+local ACTION_CLICK = hash("touch")
+local ACTION_R_CLICK = hash("r_click")
 
 function on_input(self, action_id, action)
 	local function get_speed()
@@ -915,50 +1157,127 @@ function on_input(self, action_id, action)
 			return 1
 		end
 	end
-	
-	if action_id == hash("mid_click") and action.pressed then
-		MOD.cursor_locked = not MOD.cursor_locked
-		window.set_mouse_lock(MOD.cursor_locked)
-		return
-	elseif action_id == hash("escape") and action.pressed and MOD.cursor_locked then
-		MOD.cursor_locked = false
-		window.set_mouse_lock(false)
-		return
-	elseif action_id == hash("w") then
+
+	if action_id == ACTION_SCROLL_UP then
+		if MOD.tween_preview then
+			mouse_wheel_scroll_target = mouse_wheel_scroll_target + 0.5 / MOD.total_time
+			if action.released then
+				mouse_wheel_scroll_target = G.clamp(MOD.scrubber_progress + mouse_wheel_scroll_target, 0, 1)
+				move_scrubber(mouse_wheel_scroll_target)
+				mouse_wheel_scroll_target = 0
+			end
+			return
+		elseif gui.pick_node(current_bounding_node, action.x, action.y) then
+			MOD.cam_target_z = MOD.cam_target_z - get_speed() * SET.model_move_sensitivity / 2
+			return
+		end
+	elseif action_id == ACTION_SCROLL_DOWN then
+		if MOD.tween_preview then
+			mouse_wheel_scroll_target = mouse_wheel_scroll_target - 0.5 / MOD.total_time
+			if action.released then
+				mouse_wheel_scroll_target = G.clamp(MOD.scrubber_progress + mouse_wheel_scroll_target, 0, 1)
+				move_scrubber(mouse_wheel_scroll_target)
+				mouse_wheel_scroll_target = 0
+			end
+			return
+		elseif gui.pick_node(current_bounding_node, action.x, action.y) then
+			MOD.cam_target_z = MOD.cam_target_z + get_speed() * SET.model_move_sensitivity / 2
+			return
+		end
+	elseif action_id == ACTION_W then
 		MOD.cam_target_z = MOD.cam_target_z - get_speed() * SET.model_move_sensitivity / 20
 		return
-	elseif action_id == hash("s") then
+	elseif action_id == ACTION_S then
 		MOD.cam_target_z = MOD.cam_target_z + get_speed() * SET.model_move_sensitivity / 20
 		return
-	elseif action_id == hash("a") then
+	elseif action_id == ACTION_A then
 		MOD.cam_target_x = MOD.cam_target_x - get_speed() * SET.model_move_sensitivity / 20
 		return
-	elseif action_id == hash("d") then
+	elseif action_id == ACTION_D then
 		MOD.cam_target_x = MOD.cam_target_x + get_speed() * SET.model_move_sensitivity / 20
 		return
-	elseif action_id == hash("e") then
+	elseif action_id == ACTION_E then
 		MOD.cam_target_y = MOD.cam_target_y + get_speed() * SET.model_move_sensitivity / 20
 		return
-	elseif action_id == hash("q") then
+	elseif action_id == ACTION_Q then
 		MOD.cam_target_y = MOD.cam_target_y - get_speed() * SET.model_move_sensitivity / 20
 		return
-	elseif action_id == hash("scroll_up") and MOD.total_time then
-		mouse_wheel_scroll_target = mouse_wheel_scroll_target + 0.5 / MOD.total_time
-		if action.released then
-			mouse_wheel_scroll_target = G.clamp(MOD.scrubber_progress + mouse_wheel_scroll_target, 0, 1)
-			move_scrubber(mouse_wheel_scroll_target)
-			mouse_wheel_scroll_target = 0
+	elseif action.pressed then
+		if action_id == ACTION_MMB then
+			MOD.cursor_locked = not MOD.cursor_locked
+			window.set_mouse_lock(MOD.cursor_locked)
+			return
+		elseif action_id == ACTION_ESC and MOD.cursor_locked then
+			MOD.cursor_locked = false
+			window.set_mouse_lock(false)
+			return
+		elseif MOD.tween_preview and action_id == ACTION_SPACE then
+			if MOD.playback then
+				stop_playback()
+			else
+				if not (MOD.scrubber_progress < 1) then
+					MOD.playback = true
+					move_scrubber(0)
+					get_current_transform(1)
+				else
+					start_playback()
+				end
+			end
+			return
+		elseif MOD.tween_preview and action_id == ACTION_F then
+			set_move_terrain()
+			return
+		elseif action_id == ACTION_CLICK and gui.pick_node(current_bounding_node, action.x, action.y) then
+			if not (MOD.is_dragged or MOD.camera_is_dragged or MOD.timeline_dragged) then
+				if MOD.tween_preview and gui.pick_node(timeline, action.x, action.y) then
+					stop_playback()
+					local pos = gui.get_screen_position(scrubber)
+					local min_x = gui.get_screen_position(gui.get_node("min")).x
+					local max_x = gui.get_screen_position(gui.get_node("max")).x
+					pos.x = math.min(math.max(action.screen_x, min_x), max_x)
+					move_scrubber((pos.x - min_x) / (max_x - min_x))
+					get_current_transform()
+					MOD.timeline_dragged = true
+					return
+				elseif not (gui.pick_node(button_box, action.x, action.y) or
+				gui.pick_node(playback_box, action.x, action.y) or
+				(MOD.tween_preview and gui.pick_node(close_button, action.x, action.y) or
+				gui.pick_node(gui.get_node("visibility_box"), action.x, action.y) or
+				(SET.show_visibility_buttons and gui.pick_node(gui.get_node("visibility_box_buttons"), action.x, action.y)))) then
+					MOD.is_dragged = true
+					return
+				end
+			end
+		elseif action_id == ACTION_R_CLICK and
+		not (MOD.is_dragged or MOD.camera_is_dragged or MOD.timeline_dragged) and
+		gui.pick_node(current_bounding_node, action.x, action.y) then
+			if not (gui.pick_node(button_box, action.x, action.y) or
+			gui.pick_node(playback_box, action.x, action.y) or
+			(MOD.tween_preview and gui.pick_node(close_button, action.x, action.y) or
+			gui.pick_node(gui.get_node("visibility_box"), action.x, action.y) or
+			gui.pick_node(timeline, action.x, action.y) or
+			(SET.show_visibility_buttons and gui.pick_node(gui.get_node("visibility_box_buttons"), action.x, action.y)))) then
+				MOD.camera_is_dragged = true
+				return
+			end
 		end
-	elseif action_id == hash("scroll_down") and MOD.total_time then
-		mouse_wheel_scroll_target = mouse_wheel_scroll_target - 0.5 / MOD.total_time
-		if action.released then
-			mouse_wheel_scroll_target = G.clamp(MOD.scrubber_progress + mouse_wheel_scroll_target, 0, 1)
-			move_scrubber(mouse_wheel_scroll_target)
-			mouse_wheel_scroll_target = 0
+	elseif action.released then
+		if MOD.camera_is_dragged and action_id == ACTION_R_CLICK then
+			MOD.camera_is_dragged = false
+			return
+		elseif (MOD.is_dragged or MOD.timeline_dragged) and action_id == ACTION_CLICK then
+			MOD.is_dragged = false
+			MOD.timeline_dragged = false
+			return
+		elseif MOD.tween_preview and action_id == ACTION_R_CLICK and gui.pick_node(timeline, action.x, action.y) then
+			for key, val in ipairs(timelines) do
+				if gui.pick_node(val, action.x, action.y) then
+					select_timeline(key)
+					break
+				end
+			end
 		end
-	end
-	
-	if not action_id then
+	elseif not action_id then
 		if MOD.is_dragged or MOD.cursor_locked then
 			MOD.target_x = MOD.target_x - action.dx * SET.model_rotation_sensitivity / 5
 			MOD.target_y = MOD.target_y + action.dy * SET.model_rotation_sensitivity / 5
@@ -984,58 +1303,7 @@ function on_input(self, action_id, action)
 			UI.on_input(TAB_NAME, action_id, action, evaluate_button)
 			return
 		end
-	elseif MOD.tween_preview and action.pressed and action_id == hash("space") then
-		if MOD.playback then
-			stop_playback()
-		else
-			if not (MOD.scrubber_progress < 1) then
-				MOD.playback = true
-				move_scrubber(0)
-				get_current_transform(1)
-			else
-				start_playback()
-			end
-		end
-		return
-	elseif action.released and MOD.camera_is_dragged and action_id == hash("r_click") then
-		MOD.camera_is_dragged = false
-		return
-	elseif action.released and (MOD.is_dragged or MOD.timeline_dragged) and action_id == hash("touch") then
-		MOD.is_dragged = false
-		MOD.timeline_dragged = false
-		return
-	elseif action.x and gui.pick_node(current_bounding_node, action.x, action.y) then
-		if MOD.is_dragged or MOD.camera_is_dragged or MOD.timeline_dragged then
-			return
-		end
-		if MOD.tween_preview and gui.pick_node(timeline, action.x, action.y) then
-			if action_id == hash("touch") then
-				stop_playback()
-				local pos = gui.get_screen_position(scrubber)
-				local min_x = gui.get_screen_position(gui.get_node("min")).x
-				local max_x = gui.get_screen_position(gui.get_node("max")).x
-				pos.x = math.min(math.max(action.screen_x, min_x), max_x)
-				move_scrubber((pos.x - min_x) / (max_x - min_x))
-				get_current_transform()
-				MOD.timeline_dragged = true
-			elseif action_id == hash("r_click") and action.released then
-				for key, val in ipairs(timelines) do
-					if gui.pick_node(val, action.x, action.y) then
-						select_timeline(key)
-						break
-					end
-				end
-			end
-		elseif not (gui.pick_node(button_box, action.x, action.y) or gui.pick_node(playback_box, action.x, action.y) or (MOD.tween_preview and
-		(gui.pick_node(close_button, action.x, action.y) or gui.pick_node(gui.get_node("visibility_box"), action.x, action.y) or
-		(SET.show_visibility_buttons and gui.pick_node(gui.get_node("visibility_box_buttons"), action.x, action.y)))))
-			then
-			if action_id == hash("touch") and action.pressed then
-				MOD.is_dragged = true
-			elseif action_id == hash("r_click") and action.pressed then
-				MOD.camera_is_dragged = true
-			end
-		end
 	end
-	UI.on_input(TAB_NAME, action_id, action, evaluate_button, evaluate_input, not MOD.tween_preview)
+	
+	UI.on_input(TAB_NAME, action_id, action, evaluate_button, nil, not MOD.tween_preview)
 end

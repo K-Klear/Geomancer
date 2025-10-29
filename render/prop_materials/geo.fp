@@ -21,8 +21,8 @@ void main()
     vec3 fog_combined = vec3(fog1 - (fog1 - fog2) * tint1.w);
 
     float light_band = max((0.5 + pos_world.y), 0.0);
-    float floor_tex = ceil(light_band) * var_normal.y;
     light_band = light_band * max((-0.125 - pos_world.y), 0.0) * 10;
+    float floor_tex = -floor((abs(clamp(pos_world.y, -0.4, 0.4)) - 0.4)) * max(var_normal.y, 0);
 
     vec4 texture0 = texture2D(tex0, var_texcoord0.xy) * (1.0 - floor_tex);
     vec4 texture1 = texture2D(tex1, var_texcoord0.xy) * floor_tex;
@@ -36,6 +36,6 @@ void main()
 
     vec3 colour = vec3((texture_final + 3.0 * rgb_combined) / 4.0) * darken * v * 3 + 0.03 * (1.0 - tint2.w);
     colour = (colour + light_band) * (1.0 - fog_distance) + fog_distance * fog_combined.xyz;
-    
+
     gl_FragColor = vec4(colour.xyz, 1.0);
 }

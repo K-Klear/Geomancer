@@ -10,8 +10,6 @@ void main()
         discard;
     }
     vec3 rgb_combined = vec3(tint1 - (tint1 - tint2) * tint1.w);
-    //vec4 rgb_combined = vec4(tint1.x - (tint1.x - tint2.x) * tint1.w, tint1.y - (tint1.y - tint2.y) * tint1.w, tint1.z - (tint1.z - tint2.z) * tint1.w, 1.0);
-    float transparency = 1 - max(rgb_combined.r, max(rgb_combined.g, rgb_combined.b));
-    transparency = transparency * transparency;
-    gl_FragColor = vec4(rgb_combined, transparency);
+    float transparency = max(rgb_combined.r, max(rgb_combined.g, rgb_combined.b));
+    gl_FragColor = vec4(rgb_combined * transparency * 0.75, transparency * 0.25);
 }

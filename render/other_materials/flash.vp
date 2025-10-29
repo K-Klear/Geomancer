@@ -1,0 +1,17 @@
+#version 140
+
+in highp vec4 position;
+
+uniform vs_uniforms
+{
+    uniform mediump mat4 mtx_worldview;
+    uniform mediump mat4 mtx_view;
+    uniform mediump mat4 mtx_proj;
+};
+
+void main()
+{
+    vec4 p = mtx_worldview * vec4(position.xyz, 1.0);
+    gl_Position = mtx_proj * p;
+}
+

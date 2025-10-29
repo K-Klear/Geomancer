@@ -36,86 +36,28 @@ Bugs:
 - Had a dynamic model refuse to stay dynamic after switching tabs. No idea why.
 	- Actually saw a wrong model turn dynamic. Something's fishy
 		- Might be caused by sorting models - investigate!
+- Fix time display in previews
 
+Settings to implement in options:
+
+sort out the colour situation
+Something for timeline height in map preview
+probably remove default model z position as is it useless?
+	Maybe it will see use in tween preview
+get rid of auto_set_tween_preview_prop
 
 
 Done:
 
 Features:
-- All map files are now loaded and as exported if available. The includes the sequence file, poster and music
-	- Exporting directly into customLevels/mix should result in a fully functional map
-	- When loading a zip or folder, previously loaded data is now unloaded first
-- Added an options screen
-- Added a button to test the music preview offset in the Level info tab
-- Added lobby colour selection to the Level info tab
-- You can now switch between seconds and beats as time units in tween editor
-	- This only works if event data is loaded
-	- The beat length is calculated using the first tempo section in the map
-
-- Map preview accessible from the main menu
-	- All features of map preview also apply to the tween preview
-	- Props/geo now appear and disappear according to the way they spawn/despawn in-game
-		- This is usually beyond draw distance. You have to turn off fog or move the camera to see it.
-		- Tween signals respect this and won't trigger on props that aren't currently loaded
-	- You can set playback speed (half, normal, double and quadruple speed)
-	- Completely reworked navigation in previews:
-		- Use WSAD to move around, Q/E to move up and down
-		- Hold shift to move around faster (3.5x by default)
-		- Click the middle mouse button to lock and hide cursor, escape or middle mouse buttion to unlock it again
-		- Zoom is no longer a thing. Mouse wheel is instead used to move the scrubber
-		- Added a white cylinder marking the player position
-		- POV lock now returns the camera to the player position, restricts movement to a small area around it and hides the player cylinder model
-			- Turning it off frees the camera, but doesn't move it otherwise
-	- Visibility menu can be opened at the top right corner. From there you can toggle visibility of:
-		- Beatcubes
-		- Props (except the currently tweened one in tween preview)
-		- Geo (cycles through "Show geo", "Show geo colliders", "Hide all")
-		- Colours (overrides map-defined colours with a specific set)
-		- Beat (stops flashing on beat as well as distortions and the spotlight effect on props)
-		- Fog (also increases draw distance)
-		- Grid (cycles between "Overdraw", "Normal" and "Hide" - see "fixes" below for details).
-
-- Tween preview now starts half a second before the animation starts and ends half a second after it finishes
-	- This can be changed in Options -> Tween -> Time padding before and after tween preview
-	- Displayed time is now relative to the start of the currently active timeline (right-click to change active timeline)
-
 
 New shortcuts:
-F9 - options
 
 Fixes:
-- Moving tween actions up or down now also moves mouse cursor to the button's new position
-- Models with multiple tweens which don't start at the same time now have their animations properly offset
-- Props with multiple tweens are now positioned based on the earliest signal received rather than the singal of the first tween
-- Tween preview timeline now has a black bar at the start of the first action
-- Reworked the optional grid in preview:
-	- The grid extends much farther, so it shouldn't run out during long tweens any more
-	- Removed the option to switch between grid, dots and a fake floow. The grid is now always using the dot graphic
-	- Improved grid rendering to reduce aliasing and make it more clean
-	- You can now cycle between "Overdraw", "Normal" and "Hide", where the overdraw grid is displayed over other graphics while normal gets occulded by props and geo
-- Moving over the timeline while dragging camera in tween/map preview no longer moves the scrubber
-- Conversely, timeline can still be dragged even if the pointer loses focus
-- Export checks the level.pw file for defined file paths (if loaded) and names exported files accordingly
-- Settings model_rotation_sensitivity and model_move_sensitivity have been rescaled and given new defaults, so these settings will not be migrated over from previous versions
-	- Settings for default_camera_zoom and model_zoom_sensitivity have been removed
 
 Bugs:
-- Fixed an error when pressing enter on a panel with a scrolling list
-- Fixed an error when loading a partially corrupted zip
-- Custom easing graph line colour is now applied correctly
-- Unloading map data no longer disables the rotate tab
-- Fixed a crash when loading a map with an older format of the meta file
 
 New options:
-	- Files -> Preload model data (opening a map takes longer, but Geomancer won't stutter when a model is displayed for the first time)
-	- Files -> Map preview timeline segment length
-	- Files -> Unload map data before opening a zip
-	- Files -> Unload map data before loading a folder
-	- Map preview -> Show transforms (default state of the show transforms button)
-	- Map preview -> Collider colour
-	- Map preview -> "Run" speed multiplier (how much the movement speed changes when holding down shift)
-	- Tween -> Default time units (seconds or beats)
-	- Tween -> Time padding before and after tween preview
 
 
 metronome_sound = 1 (0 - nothing, 1 - beep, 2 - click)

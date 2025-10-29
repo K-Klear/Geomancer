@@ -50,6 +50,8 @@ void main()
     mat4 rot = mat4(right, up, fwd, vec4(0.0, 0.0, 0.0, 1.0));
 
     var_texcoord0 = (pos * rot).xy * 0.25;
+
+    
     if (abs(var_normal.y) > 0.9999)
     {
         var_texcoord0 = pos.xz * 0.25;

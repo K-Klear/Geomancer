@@ -211,7 +211,11 @@ local function create_list_item(tab, list_index, item)
 		local button_box = new[list_tab.exclusive_button.node_id]
 		gui.set_parent(button_box, list_tab.root_node)
 		gui.set(button_box, "position.y", gui.get(button_box, "position.y") - height_adjust)
-		gui.set_text(new[list_tab.exclusive_button.text_id], list_tab.exclusive_button.value_fn(item))
+		if list_tab.exclusive_button.value_flipbook then
+			gui.play_flipbook(new[list_tab.exclusive_button.text_id], list_tab.exclusive_button.value_fn(item))
+		else
+			gui.set_text(new[list_tab.exclusive_button.text_id], list_tab.exclusive_button.value_fn(item))
+		end
 		gui.set_enabled(button_box, true)
 		list_tab.exclusive_button.list[item] = new
 		if item == list_tab.exclusive_button.selected then
@@ -238,7 +242,11 @@ local function create_list_item(tab, list_index, item)
 			local new = gui.clone_tree(val.node)
 			gui.set_parent(new[val.node_id], list_tab.root_node)
 			gui.set(new[val.node_id], "position.y", gui.get(new[val.node_id], "position.y") - height_adjust)
-			gui.set_text(new[val.text_id], val.value_fn(item))
+			if val.value_flipbook then
+				gui.play_flipbook(new[val.text_id], val.value_fn(item))
+			else
+				gui.set_text(new[val.text_id], val.value_fn(item))
+			end
 			gui.set_enabled(new[val.node_id], true)
 			val.list[item] = new
 			table.insert(UI.tab[tab].buttons, {template = val.template..item, node = new[val.node_id], text = new[val.text_id], item = item, stencil = list_tab.stencil_node})
@@ -252,7 +260,11 @@ local function create_list_item(tab, list_index, item)
 			local new = gui.clone(val.node)
 			gui.set_parent(new, list_tab.root_node)
 			gui.set(new, "position.y", gui.get(new, "position.y") - height_adjust)
-			gui.set_text(new, val.value_fn(item))
+			if val.value_flipbook then
+				gui.play_flipbook(new, val.value_fn(item))
+			else
+				gui.set_text(new, val.value_fn(item))
+			end
 			gui.set_enabled(new, true)
 			val.list[item] = new
 			if val.tint then
@@ -459,6 +471,7 @@ function UI.create_list(tab, stencil_node, item_features, list_index)
 				node_id = gui.get_id(val.node),
 				text = val.text_node,
 				text_id = gui.get_id(val.text_node),
+				value_flipbook = val.value_flipbook,
 				value_fn = val.value_fn,
 				list = {},
 				fn = val.fn,
@@ -481,6 +494,7 @@ function UI.create_list(tab, stencil_node, item_features, list_index)
 				node_id = gui.get_id(val.node),
 				text = val.text_node,
 				text_id = gui.get_id(val.text_node),
+				value_flipbook = val.value_flipbook,
 				value_fn = val.value_fn,
 				template = val.template,
 				list = {},

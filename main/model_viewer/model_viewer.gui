@@ -117,68 +117,6 @@ nodes {
 }
 nodes {
   position {
-    x: -253.0
-    y: 25.0
-  }
-  type: TYPE_TEMPLATE
-  id: "reset_view"
-  parent: "button_box"
-  inherit_alpha: true
-  template: "/templates/button_enemy.gui"
-}
-nodes {
-  size {
-    x: 50.0
-    y: 50.0
-  }
-  type: TYPE_BOX
-  id: "reset_view/button_white"
-  parent: "reset_view"
-  overridden_fields: 3
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  texture: "UI/button_reset_view"
-  id: "reset_view/text"
-  parent: "reset_view/button_white"
-  overridden_fields: 9
-  template_node_child: true
-}
-nodes {
-  position {
-    x: -103.0
-    y: 25.0
-  }
-  type: TYPE_TEMPLATE
-  id: "show_transforms"
-  parent: "button_box"
-  inherit_alpha: true
-  template: "/templates/button_enemy.gui"
-}
-nodes {
-  size {
-    x: 50.0
-    y: 50.0
-  }
-  type: TYPE_BOX
-  id: "show_transforms/button_white"
-  parent: "show_transforms"
-  overridden_fields: 3
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  texture: "UI/button_transform_one"
-  id: "show_transforms/text"
-  parent: "show_transforms/button_white"
-  overridden_fields: 9
-  template_node_child: true
-}
-nodes {
-  position {
     x: -339.0
     y: 25.0
   }
@@ -217,385 +155,13 @@ nodes {
   template_node_child: true
 }
 nodes {
-  size {
-    x: 200.0
-    y: 100.0
+  position {
+    x: -253.0
+    y: 25.0
   }
-  type: TYPE_BOX
-  id: "offset_box"
+  type: TYPE_TEMPLATE
+  id: "reset_view"
   parent: "button_box"
-  inherit_alpha: true
-  size_mode: SIZE_MODE_AUTO
-  visible: false
-}
-nodes {
-  size {
-    x: 200.0
-    y: 100.0
-  }
-  type: TYPE_BOX
-  id: "offset_box_2"
-  parent: "offset_box"
-  inherit_alpha: true
-  size_mode: SIZE_MODE_AUTO
-  visible: false
-}
-nodes {
-  position {
-    x: -160.0
-    y: 329.0
-  }
-  size {
-    x: 200.0
-    y: 100.0
-  }
-  type: TYPE_TEXT
-  text: "Position"
-  font: "preview_label"
-  id: "label_position"
-  parent: "offset_box_2"
-  inherit_alpha: true
-}
-nodes {
-  position {
-    x: -297.0
-    y: 299.0
-  }
-  type: TYPE_TEMPLATE
-  id: "position_x"
-  parent: "offset_box_2"
-  template: "/templates/text_field.gui"
-}
-nodes {
-  size {
-    x: 90.0
-    y: 40.0
-  }
-  type: TYPE_BOX
-  id: "position_x/box"
-  parent: "position_x"
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_TEXT
-  text: "180"
-  id: "position_x/text"
-  parent: "position_x/box"
-  overridden_fields: 8
-  template_node_child: true
-}
-nodes {
-  position {
-    x: -199.0
-    y: 299.0
-  }
-  type: TYPE_TEMPLATE
-  id: "position_y"
-  parent: "offset_box_2"
-  template: "/templates/text_field.gui"
-}
-nodes {
-  size {
-    x: 90.0
-    y: 40.0
-  }
-  type: TYPE_BOX
-  id: "position_y/box"
-  parent: "position_y"
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_TEXT
-  text: "180"
-  id: "position_y/text"
-  parent: "position_y/box"
-  overridden_fields: 8
-  template_node_child: true
-}
-nodes {
-  position {
-    x: -101.0
-    y: 299.0
-  }
-  type: TYPE_TEMPLATE
-  id: "position_z"
-  parent: "offset_box_2"
-  template: "/templates/text_field.gui"
-}
-nodes {
-  size {
-    x: 90.0
-    y: 40.0
-  }
-  type: TYPE_BOX
-  id: "position_z/box"
-  parent: "position_z"
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_TEXT
-  text: "180"
-  id: "position_z/text"
-  parent: "position_z/box"
-  overridden_fields: 8
-  template_node_child: true
-}
-nodes {
-  position {
-    x: -160.0
-    y: 270.0
-  }
-  size {
-    x: 200.0
-    y: 100.0
-  }
-  type: TYPE_TEXT
-  text: "Rotation"
-  font: "preview_label"
-  id: "label_rotation"
-  parent: "offset_box_2"
-  inherit_alpha: true
-}
-nodes {
-  position {
-    x: -297.0
-    y: 240.0
-  }
-  type: TYPE_TEMPLATE
-  id: "rotation_x"
-  parent: "offset_box_2"
-  template: "/templates/text_field.gui"
-}
-nodes {
-  size {
-    x: 90.0
-    y: 40.0
-  }
-  type: TYPE_BOX
-  id: "rotation_x/box"
-  parent: "rotation_x"
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_TEXT
-  text: "180"
-  id: "rotation_x/text"
-  parent: "rotation_x/box"
-  overridden_fields: 8
-  template_node_child: true
-}
-nodes {
-  position {
-    x: -199.0
-    y: 240.0
-  }
-  type: TYPE_TEMPLATE
-  id: "rotation_y"
-  parent: "offset_box_2"
-  template: "/templates/text_field.gui"
-}
-nodes {
-  size {
-    x: 90.0
-    y: 40.0
-  }
-  type: TYPE_BOX
-  id: "rotation_y/box"
-  parent: "rotation_y"
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_TEXT
-  text: "180"
-  id: "rotation_y/text"
-  parent: "rotation_y/box"
-  overridden_fields: 8
-  template_node_child: true
-}
-nodes {
-  position {
-    x: -101.0
-    y: 240.0
-  }
-  type: TYPE_TEMPLATE
-  id: "rotation_z"
-  parent: "offset_box_2"
-  template: "/templates/text_field.gui"
-}
-nodes {
-  size {
-    x: 90.0
-    y: 40.0
-  }
-  type: TYPE_BOX
-  id: "rotation_z/box"
-  parent: "rotation_z"
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_TEXT
-  text: "180"
-  id: "rotation_z/text"
-  parent: "rotation_z/box"
-  overridden_fields: 8
-  template_node_child: true
-}
-nodes {
-  position {
-    x: -160.0
-    y: 211.0
-  }
-  size {
-    x: 200.0
-    y: 100.0
-  }
-  type: TYPE_TEXT
-  text: "Scale"
-  font: "preview_label"
-  id: "label_scale"
-  parent: "offset_box_2"
-  inherit_alpha: true
-}
-nodes {
-  position {
-    x: -297.0
-    y: 181.0
-  }
-  type: TYPE_TEMPLATE
-  id: "scale_x"
-  parent: "offset_box_2"
-  template: "/templates/text_field.gui"
-}
-nodes {
-  size {
-    x: 90.0
-    y: 40.0
-  }
-  type: TYPE_BOX
-  id: "scale_x/box"
-  parent: "scale_x"
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_TEXT
-  text: "180"
-  id: "scale_x/text"
-  parent: "scale_x/box"
-  overridden_fields: 8
-  template_node_child: true
-}
-nodes {
-  position {
-    x: -199.0
-    y: 181.0
-  }
-  type: TYPE_TEMPLATE
-  id: "scale_y"
-  parent: "offset_box_2"
-  template: "/templates/text_field.gui"
-}
-nodes {
-  size {
-    x: 90.0
-    y: 40.0
-  }
-  type: TYPE_BOX
-  id: "scale_y/box"
-  parent: "scale_y"
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_TEXT
-  text: "180"
-  id: "scale_y/text"
-  parent: "scale_y/box"
-  overridden_fields: 8
-  template_node_child: true
-}
-nodes {
-  position {
-    x: -101.0
-    y: 181.0
-  }
-  type: TYPE_TEMPLATE
-  id: "scale_z"
-  parent: "offset_box_2"
-  template: "/templates/text_field.gui"
-}
-nodes {
-  size {
-    x: 90.0
-    y: 40.0
-  }
-  type: TYPE_BOX
-  id: "scale_z/box"
-  parent: "scale_z"
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_TEXT
-  text: "180"
-  id: "scale_z/text"
-  parent: "scale_z/box"
-  overridden_fields: 8
-  template_node_child: true
-}
-nodes {
-  position {
-    x: -160.0
-    y: 132.0
-  }
-  type: TYPE_TEMPLATE
-  id: "pick_model"
-  parent: "offset_box_2"
-  template: "/templates/button_white_small.gui"
-}
-nodes {
-  size {
-    x: 260.0
-    y: 48.0
-  }
-  type: TYPE_BOX
-  id: "pick_model/button_white"
-  parent: "pick_model"
-  layer: "below"
-  overridden_fields: 1
-  overridden_fields: 4
-  overridden_fields: 20
-  template_node_child: true
-}
-nodes {
-  size {
-    x: 300.0
-    y: 70.0
-  }
-  type: TYPE_TEXT
-  text: "Choose from map"
-  id: "pick_model/text"
-  parent: "pick_model/button_white"
-  layer: "text"
-  overridden_fields: 4
-  overridden_fields: 8
-  overridden_fields: 20
-  template_node_child: true
-}
-nodes {
-  position {
-    x: -153.0
-    y: 75.0
-  }
-  type: TYPE_TEMPLATE
-  id: "find_prop"
-  parent: "offset_box_2"
   inherit_alpha: true
   template: "/templates/button_enemy.gui"
 }
@@ -605,28 +171,28 @@ nodes {
     y: 50.0
   }
   type: TYPE_BOX
-  id: "find_prop/button_white"
-  parent: "find_prop"
+  id: "reset_view/button_white"
+  parent: "reset_view"
   overridden_fields: 3
   overridden_fields: 4
   template_node_child: true
 }
 nodes {
   type: TYPE_BOX
-  texture: "UI/find_prop"
-  id: "find_prop/text"
-  parent: "find_prop/button_white"
+  texture: "UI/button_reset_view"
+  id: "reset_view/text"
+  parent: "reset_view/button_white"
   overridden_fields: 9
   template_node_child: true
 }
 nodes {
   position {
     x: -203.0
-    y: 75.0
+    y: 25.0
   }
   type: TYPE_TEMPLATE
   id: "lock_cam"
-  parent: "offset_box"
+  parent: "button_box"
   inherit_alpha: true
   template: "/templates/button_enemy.gui"
 }
@@ -652,12 +218,105 @@ nodes {
 }
 nodes {
   position {
+    x: -153.0
+    y: 25.0
+  }
+  type: TYPE_TEMPLATE
+  id: "find_prop"
+  parent: "button_box"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 50.0
+    y: 50.0
+  }
+  type: TYPE_BOX
+  id: "find_prop/button_white"
+  parent: "find_prop"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/find_prop"
+  id: "find_prop/text"
+  parent: "find_prop/button_white"
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  position {
     x: -103.0
-    y: 75.0
+    y: 25.0
+  }
+  type: TYPE_TEMPLATE
+  id: "show_transforms"
+  parent: "button_box"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 50.0
+    y: 50.0
+  }
+  type: TYPE_BOX
+  id: "show_transforms/button_white"
+  parent: "show_transforms"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/button_transform_one"
+  id: "show_transforms/text"
+  parent: "show_transforms/button_white"
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -53.0
+    y: 25.0
+  }
+  type: TYPE_TEMPLATE
+  id: "move_terrain"
+  parent: "button_box"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 50.0
+    y: 50.0
+  }
+  type: TYPE_BOX
+  id: "move_terrain/button_white"
+  parent: "move_terrain"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/move_ground"
+  id: "move_terrain/text"
+  parent: "move_terrain/button_white"
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -103.0
+    y: 125.0
   }
   type: TYPE_TEMPLATE
   id: "reset_offsets"
-  parent: "offset_box"
+  parent: "button_box"
   inherit_alpha: true
   template: "/templates/button_enemy.gui"
 }
@@ -687,33 +346,41 @@ nodes {
 }
 nodes {
   position {
-    x: -53.0
-    y: 75.0
+    x: -160.0
+    y: 79.0
   }
   type: TYPE_TEMPLATE
-  id: "move_terrain"
-  parent: "offset_box"
-  inherit_alpha: true
-  template: "/templates/button_enemy.gui"
+  id: "pick_model"
+  parent: "button_box"
+  template: "/templates/button_white_small.gui"
 }
 nodes {
   size {
-    x: 50.0
-    y: 50.0
+    x: 220.0
+    y: 48.0
   }
   type: TYPE_BOX
-  id: "move_terrain/button_white"
-  parent: "move_terrain"
-  overridden_fields: 3
+  id: "pick_model/button_white"
+  parent: "pick_model"
+  layer: "below"
+  overridden_fields: 1
   overridden_fields: 4
+  overridden_fields: 20
   template_node_child: true
 }
 nodes {
-  type: TYPE_BOX
-  texture: "UI/move_ground"
-  id: "move_terrain/text"
-  parent: "move_terrain/button_white"
-  overridden_fields: 9
+  size {
+    x: 300.0
+    y: 70.0
+  }
+  type: TYPE_TEXT
+  text: "Select instance"
+  id: "pick_model/text"
+  parent: "pick_model/button_white"
+  layer: "text"
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 20
   template_node_child: true
 }
 nodes {
@@ -1099,340 +766,6 @@ nodes {
 }
 nodes {
   position {
-    x: 1270.0
-    y: 800.0
-  }
-  size {
-    x: 56.0
-    y: 56.0
-  }
-  type: TYPE_BOX
-  id: "visibility_box"
-  xanchor: XANCHOR_RIGHT
-  yanchor: YANCHOR_TOP
-  pivot: PIVOT_NE
-  parent: "controls"
-  layer: "below"
-  inherit_alpha: true
-  size_mode: SIZE_MODE_AUTO
-  visible: false
-}
-nodes {
-  position {
-    x: -28.0
-    y: -28.0
-  }
-  type: TYPE_TEMPLATE
-  id: "toggle_visibility"
-  parent: "visibility_box"
-  inherit_alpha: true
-  template: "/templates/button_enemy.gui"
-}
-nodes {
-  size {
-    x: 56.0
-    y: 56.0
-  }
-  type: TYPE_BOX
-  id: "toggle_visibility/button_white"
-  parent: "toggle_visibility"
-  overridden_fields: 3
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  texture: "UI/button_visibility"
-  id: "toggle_visibility/text"
-  parent: "toggle_visibility/button_white"
-  overridden_fields: 3
-  overridden_fields: 9
-  overridden_fields: 38
-  template_node_child: true
-  size_mode: SIZE_MODE_AUTO
-}
-nodes {
-  size {
-    x: 224.0
-    y: 128.0
-  }
-  type: TYPE_BOX
-  id: "visibility_box_buttons"
-  xanchor: XANCHOR_RIGHT
-  yanchor: YANCHOR_TOP
-  pivot: PIVOT_NE
-  parent: "visibility_box"
-  layer: "below"
-  inherit_alpha: true
-  size_mode: SIZE_MODE_AUTO
-  visible: false
-}
-nodes {
-  position {
-    x: -84.0
-    y: -28.0
-  }
-  type: TYPE_TEMPLATE
-  id: "hide_geo"
-  parent: "visibility_box_buttons"
-  inherit_alpha: true
-  template: "/templates/button_enemy.gui"
-}
-nodes {
-  size {
-    x: 56.0
-    y: 56.0
-  }
-  type: TYPE_BOX
-  id: "hide_geo/button_white"
-  parent: "hide_geo"
-  overridden_fields: 3
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  scale {
-    x: 0.5
-    y: 0.5
-  }
-  type: TYPE_BOX
-  texture: "UI/stop"
-  id: "hide_geo/text"
-  parent: "hide_geo/button_white"
-  overridden_fields: 3
-  overridden_fields: 9
-  overridden_fields: 38
-  template_node_child: true
-  size_mode: SIZE_MODE_AUTO
-}
-nodes {
-  position {
-    x: -140.0
-    y: -28.0
-  }
-  type: TYPE_TEMPLATE
-  id: "hide_props"
-  parent: "visibility_box_buttons"
-  inherit_alpha: true
-  template: "/templates/button_enemy.gui"
-}
-nodes {
-  size {
-    x: 56.0
-    y: 56.0
-  }
-  type: TYPE_BOX
-  id: "hide_props/button_white"
-  parent: "hide_props"
-  overridden_fields: 3
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  texture: "UI/find_prop"
-  id: "hide_props/text"
-  parent: "hide_props/button_white"
-  overridden_fields: 3
-  overridden_fields: 9
-  overridden_fields: 38
-  template_node_child: true
-  size_mode: SIZE_MODE_AUTO
-}
-nodes {
-  position {
-    x: -196.0
-    y: -28.0
-  }
-  type: TYPE_TEMPLATE
-  id: "hide_beatcubes"
-  parent: "visibility_box_buttons"
-  inherit_alpha: true
-  template: "/templates/button_enemy.gui"
-}
-nodes {
-  size {
-    x: 56.0
-    y: 56.0
-  }
-  type: TYPE_BOX
-  id: "hide_beatcubes/button_white"
-  parent: "hide_beatcubes"
-  overridden_fields: 3
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  texture: "UI/show_beatcubes"
-  id: "hide_beatcubes/text"
-  parent: "hide_beatcubes/button_white"
-  overridden_fields: 3
-  overridden_fields: 9
-  overridden_fields: 38
-  template_node_child: true
-  size_mode: SIZE_MODE_AUTO
-}
-nodes {
-  position {
-    x: -28.0
-    y: -84.0
-  }
-  type: TYPE_TEMPLATE
-  id: "hide_grid"
-  parent: "visibility_box_buttons"
-  inherit_alpha: true
-  template: "/templates/button_enemy.gui"
-}
-nodes {
-  size {
-    x: 56.0
-    y: 56.0
-  }
-  type: TYPE_BOX
-  id: "hide_grid/button_white"
-  parent: "hide_grid"
-  overridden_fields: 3
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  texture: "UI/button_show_grid"
-  id: "hide_grid/text"
-  parent: "hide_grid/button_white"
-  overridden_fields: 3
-  overridden_fields: 9
-  overridden_fields: 38
-  template_node_child: true
-  size_mode: SIZE_MODE_AUTO
-}
-nodes {
-  position {
-    x: -84.0
-    y: -84.0
-  }
-  type: TYPE_TEMPLATE
-  id: "hide_fog"
-  parent: "visibility_box_buttons"
-  inherit_alpha: true
-  template: "/templates/button_enemy.gui"
-}
-nodes {
-  size {
-    x: 56.0
-    y: 56.0
-  }
-  type: TYPE_BOX
-  id: "hide_fog/button_white"
-  parent: "hide_fog"
-  overridden_fields: 3
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  texture: "UI/button_show_background"
-  id: "hide_fog/text"
-  parent: "hide_fog/button_white"
-  overridden_fields: 3
-  overridden_fields: 9
-  overridden_fields: 38
-  template_node_child: true
-  size_mode: SIZE_MODE_AUTO
-}
-nodes {
-  position {
-    x: -140.0
-    y: -84.0
-  }
-  type: TYPE_TEMPLATE
-  id: "hide_beat"
-  parent: "visibility_box_buttons"
-  inherit_alpha: true
-  template: "/templates/button_enemy.gui"
-}
-nodes {
-  size {
-    x: 56.0
-    y: 56.0
-  }
-  type: TYPE_BOX
-  id: "hide_beat/button_white"
-  parent: "hide_beat"
-  overridden_fields: 3
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  scale {
-    x: 0.5
-    y: 0.5
-  }
-  type: TYPE_BOX
-  texture: "UI/stop"
-  id: "hide_beat/text"
-  parent: "hide_beat/button_white"
-  overridden_fields: 3
-  overridden_fields: 9
-  overridden_fields: 38
-  template_node_child: true
-  size_mode: SIZE_MODE_AUTO
-}
-nodes {
-  position {
-    x: -196.0
-    y: -84.0
-  }
-  type: TYPE_TEMPLATE
-  id: "button_colour"
-  parent: "visibility_box_buttons"
-  inherit_alpha: true
-  template: "/templates/button_colour.gui"
-}
-nodes {
-  size {
-    x: 56.0
-    y: 56.0
-  }
-  type: TYPE_BOX
-  id: "button_colour/button_white"
-  parent: "button_colour"
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  id: "button_colour/text"
-  parent: "button_colour/button_white"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  id: "button_colour/main"
-  parent: "button_colour/text"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  id: "button_colour/fog"
-  parent: "button_colour/text"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  id: "button_colour/glow"
-  parent: "button_colour/text"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  id: "button_colour/enemy"
-  parent: "button_colour/text"
-  template_node_child: true
-}
-nodes {
-  position {
     x: 40.0
     y: 52.0
   }
@@ -1596,6 +929,331 @@ nodes {
   pivot: PIVOT_NW
   inherit_alpha: true
   enabled: false
+}
+nodes {
+  position {
+    x: 1270.0
+    y: 830.0
+  }
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "visibility_box"
+  xanchor: XANCHOR_RIGHT
+  yanchor: YANCHOR_TOP
+  pivot: PIVOT_NE
+  layer: "below"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: -28.0
+    y: -28.0
+  }
+  type: TYPE_TEMPLATE
+  id: "toggle_visibility"
+  parent: "visibility_box"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "toggle_visibility/button_white"
+  parent: "toggle_visibility"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/button_visibility"
+  id: "toggle_visibility/text"
+  parent: "toggle_visibility/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  size {
+    x: 224.0
+    y: 128.0
+  }
+  type: TYPE_BOX
+  id: "visibility_box_buttons"
+  xanchor: XANCHOR_RIGHT
+  yanchor: YANCHOR_TOP
+  pivot: PIVOT_NE
+  parent: "visibility_box"
+  layer: "below"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  visible: false
+}
+nodes {
+  position {
+    x: -84.0
+    y: -28.0
+  }
+  type: TYPE_TEMPLATE
+  id: "hide_geo"
+  parent: "visibility_box_buttons"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "hide_geo/button_white"
+  parent: "hide_geo"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/button_show_geo"
+  id: "hide_geo/text"
+  parent: "hide_geo/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -140.0
+    y: -28.0
+  }
+  type: TYPE_TEMPLATE
+  id: "hide_props"
+  parent: "visibility_box_buttons"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "hide_props/button_white"
+  parent: "hide_props"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/find_prop"
+  id: "hide_props/text"
+  parent: "hide_props/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -196.0
+    y: -28.0
+  }
+  type: TYPE_TEMPLATE
+  id: "hide_beatcubes"
+  parent: "visibility_box_buttons"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "hide_beatcubes/button_white"
+  parent: "hide_beatcubes"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/show_beatcubes"
+  id: "hide_beatcubes/text"
+  parent: "hide_beatcubes/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -28.0
+    y: -84.0
+  }
+  type: TYPE_TEMPLATE
+  id: "hide_grid"
+  parent: "visibility_box_buttons"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "hide_grid/button_white"
+  parent: "hide_grid"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/button_show_grid"
+  id: "hide_grid/text"
+  parent: "hide_grid/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -84.0
+    y: -84.0
+  }
+  type: TYPE_TEMPLATE
+  id: "hide_fog"
+  parent: "visibility_box_buttons"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "hide_fog/button_white"
+  parent: "hide_fog"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/button_show_background"
+  id: "hide_fog/text"
+  parent: "hide_fog/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -140.0
+    y: -84.0
+  }
+  type: TYPE_TEMPLATE
+  id: "toggle_music"
+  parent: "visibility_box_buttons"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "toggle_music/button_white"
+  parent: "toggle_music"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/button_play_music"
+  id: "toggle_music/text"
+  parent: "toggle_music/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -196.0
+    y: -84.0
+  }
+  type: TYPE_TEMPLATE
+  id: "button_colour"
+  parent: "visibility_box_buttons"
+  inherit_alpha: true
+  template: "/templates/button_colour.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "button_colour/button_white"
+  parent: "button_colour"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "button_colour/text"
+  parent: "button_colour/button_white"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "button_colour/main"
+  parent: "button_colour/text"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "button_colour/fog"
+  parent: "button_colour/text"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "button_colour/glow"
+  parent: "button_colour/text"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "button_colour/enemy"
+  parent: "button_colour/text"
+  template_node_child: true
 }
 layers {
   name: "timeline"

@@ -151,6 +151,10 @@ local function export_art(path)
 				end
 			end
 		end
+		if val.hide then
+			MEM.geomancer_meta.props[val.key] = MEM.geomancer_meta.props[val.key] or {}
+			MEM.geomancer_meta.props[val.key].hide = true
+		end
 		is_dynamic[val.key] = val.dynamic
 	end
 	table.insert(model_table.propsDictionary, 1, MEM.art_data.placeholder)
@@ -416,7 +420,7 @@ local function export_all(overwrite)
 				end
 				if next(MEM.meta_data) then
 					export_pw_meta(path.."\\do_not_ship.pw_meta")
-					G.update_navbar("Editor metadata exported")
+					G.update_navbar("Metadata exported")
 					export_count = export_count + 1
 				end
 				if MEM.sequence_data.string then
@@ -731,6 +735,9 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("hide") then
 		msg.post("#", hash("disable"))
 		msg.post("#", hash("release_input_focus"))
+		if MOD.tween_preview then
+			msg.post("/model_viewer", hash("hide"))
+		end
 		DIALOG.close_all(TAB_NAME)
 	elseif message_id == hash("show") then
 		msg.post("#", hash("enable"))
@@ -760,7 +767,8 @@ local function check_geomancer_meta()
 	if MEM.art_data.table and MEM.geomancer_meta and MEM.geomancer_meta.props and next(MEM.geomancer_meta.props) then
 		for key, val in ipairs(MEM.art_data.table.propsDictionary) do
 			if MEM.geomancer_meta.props[val.key] then
-				for k, v in pairs(MEM.geomancer_meta.props[val.key].tweens) do
+				val.hide = MEM.geomancer_meta.props[val.key].hide
+				for k, v in pairs(MEM.geomancer_meta.props[val.key].tweens or {}) do
 					if val.model_data.transform_list[k] and val.model_data.transform_list[k].tween then
 						local old_script = get_tween_script(val.model_data.transform_list[k].tween)
 						if old_script == v.script then
@@ -999,8 +1007,7 @@ end
 
 local function cleanup_after_loading_files()
 	MEM.setup_culling_ranges()
-	COL.setup_colours()
-
+	msg.post("/model_viewer", hash("create_beatcubes"))
 	check_geomancer_meta()
 
 	if MEM.level_data.sceneDisplayName then
@@ -1147,8 +1154,8 @@ end
 local function load_file(path)
 	local htap = string.reverse(path)
 	local filename = string.reverse(string.sub(htap, 1, string.find(htap, "\\") - 1))
-	local extension = string.find(htap, "%.")
-	extension = string.reverse(string.sub(htap, 1, extension - 1))
+	local extension_backwards = string.find(htap, "%.")
+	local extension = string.reverse(string.sub(htap, 1, extension_backwards - 1))
 	if extension == "ogg" then
 		SND.stop_music()
 	end
@@ -1163,7 +1170,6 @@ local function load_file(path)
 				msg.post("/event#tab_event", hash("detect_sample_rate"))
 			elseif extension == "pw_art" then
 				MEM.setup_culling_ranges()
-				COL.setup_colours()
 			end
 		else
 			G.update_navbar("File not loaded")

@@ -57,12 +57,6 @@ local validation_model_z_position = {
 	max = function() return 999 end,
 	default = function() return SET.default_model_z_position end
 }
-local validation_default_colour_set = {
-	integer = true,
-	min = function() return 0 end,
-	max = function() return 99 end,
-	default = function() return SET.default_colour_set end
-}
 local validation_default_sample_rate = {
 	integer = true,
 	min = function() return 1 end,
@@ -116,6 +110,12 @@ local validation_map_preview_partition_size = {
 	max = function() return 999 end,
 	default = function() return SET.map_preview_partition_size end
 }
+local validation_max_desync = {
+	number = true,
+	min = function() return 0 end,
+	max = function() return 1 end,
+	default = function() return SET.max_desync end
+}
 
 local active_tab = "paths"
 local tab_list = {}
@@ -129,7 +129,7 @@ tab_list.colours = {buttons = {
 	"background_colour", "colour_active_text_field", "colour_highlight_material", "colour_highlight_dynamic", "colour_highlight_tween",
 	"colour_model_import_selection", "colour_model_replace", "colour_unsupported_obstacle", "colour_current_enemy_set",
 	"colour_selection_change_enemy_type", "colour_highlight_replace_enemy", "colour_current_enemy_type", "colour_tween_move",
-	"colour_tween_rotate", "colour_tween_scale", "colour_tween_wait"}, fields = {}
+	"colour_tween_rotate", "colour_tween_scale", "colour_tween_wait", "colour_hidden_model"}, fields = {}
 }
 tab_list.tween = {buttons = {
 	"restrict_rotations_to_360", "tween_action_type_dialog", "tween_part_dialog", "tween_extra_add_buttons", "ask_before_overwriting_tween_file",
@@ -155,7 +155,7 @@ tab_list.model_viewer = {buttons = {"model_show_grid", "show_transform", "custom
 	{name = "default_camera_rotation", char_limit = 3, validation = validation_camera_rotation},
 	{name = "default_camera_pitch", char_limit = 3, validation = validation_camera_pitch},
 	{name = "default_model_z_position", char_limit = 4, validation = validation_model_z_position},
-	{name = "default_colour_set", char_limit = 2, validation = validation_default_colour_set}
+	{name = "max_desync", char_limit = 4, validation = validation_max_desync}
 }}
 tab_list.events = {buttons = {"autodetect_sample_rate", "add_opens_edit_box", "hide_model_count", "mesh_flash_colour", "rotate_multiple_axes"},
 fields = {
@@ -306,16 +306,16 @@ function init(self)
 	gui.set_text(gui.get_node("default_camera_rotation/text"), SET.default_camera_rotation)
 	gui.set_text(gui.get_node("default_camera_pitch/text"), SET.default_camera_pitch)
 	gui.set_text(gui.get_node("default_model_z_position/text"), SET.default_model_z_position)
-	gui.set_text(gui.get_node("default_colour_set/text"), SET.default_colour_set)
-	gui.set_color(gui.get_node("custom_colour_main/text"), COL.str_to_colour(SET.custom_colour_main))
-	gui.set_color(gui.get_node("custom_colour_fog/text"), COL.str_to_colour(SET.custom_colour_fog))
-	gui.set_color(gui.get_node("custom_colour_glow/text"), COL.str_to_colour(SET.custom_colour_glow))
-	gui.set_color(gui.get_node("custom_colour_enemy/text"), COL.str_to_colour(SET.custom_colour_enemy))
+	gui.set_text(gui.get_node("max_desync/text"), SET.max_desync)
+	gui.set_color(gui.get_node("custom_colour_main/text"), SET.custom_colour_main)
+	gui.set_color(gui.get_node("custom_colour_fog/text"), SET.custom_colour_fog)
+	gui.set_color(gui.get_node("custom_colour_glow/text"), SET.custom_colour_glow)
+	gui.set_color(gui.get_node("custom_colour_enemy/text"), SET.custom_colour_enemy)
 	gui.set_color(gui.get_node("collider_colour/text"), SET.collider_colour)
 	if SET.default_model_show_grid == 1 then
-		gui.set_text(gui.get_node("model_show_grid/text"), "Ground")
+		gui.set_text(gui.get_node("model_show_grid/text"), "Overdraw")
 	elseif SET.default_model_show_grid == 2 then
-		gui.set_text(gui.get_node("model_show_grid/text"), "Grid")
+		gui.set_text(gui.get_node("model_show_grid/text"), "Normal")
 	else
 		gui.set_text(gui.get_node("model_show_grid/text"), "Hide")
 	end
@@ -365,15 +365,7 @@ function on_message(self, message_id, message, sender)
 		msg.post("#", hash("acquire_input_focus"))
 		if message.dialog == "colour_picker" then
 			if message.colour then
-				if message.colour_id == "custom_colour_main" or message.colour_id == "custom_colour_fog" or
-				message.colour_id == "custom_colour_glow" or message.colour_id == "custom_colour_enemy" then
-					SET[message.colour_id] = message.hex
-					if MEM.art_data.colours then
-						MEM.art_data.colours[#MEM.art_data.colours] = {main = SET.custom_colour_main, fog = SET.custom_colour_fog, glow = SET.custom_colour_glow, enemy = SET.custom_colour_enemy}
-					end
-				else
-					SET[message.colour_id] = message.colour
-				end
+				SET[message.colour_id] = message.colour
 				gui.set_color(gui.get_node(message.colour_id.."/text"), message.colour)
 				if message.colour_id == "background_colour" then
 					msg.post("@render:", hash("clear_color"), {color = message.colour})
@@ -484,11 +476,8 @@ local function evaluate_button(button)
 			else
 				gui.play_flipbook(gui.get_node("show_transform/text"), "button_transform_all")
 			end
-		elseif button == "collider_colour" then
-			UI.DIALOG.open(TAB_NAME, "colour_picker", {rgb = SET.collider_colour, colour_id = button})
 		else
-			local colour = COL.str_to_colour(SET[button])
-			UI.DIALOG.open(TAB_NAME, "colour_picker", {rgb = colour, colour_id = button})
+			UI.DIALOG.open(TAB_NAME, "colour_picker", {rgb = SET[button], colour_id = button})
 		end
 	elseif active_tab == "events" then
 		if button == "mesh_flash_colour" then

@@ -145,12 +145,7 @@ local function create_state()
 end
 
 function init(self)
-    self.predicates = create_predicates("tile", "gui", "preview", "text", "particle", "model", "model_transparent", "model_flash", "transform")
-
-    self.invert_preview = render.constant_buffer()
-    self.invert_preview.invert = vmath.vector4(0, 0, 0, 0)
-
-    self.preview_material = "preview"
+    self.predicates = create_predicates("tile", "gui", "text", "particle", "model", "model_transparent", "model_flash", "transform")
 
     -- default is stretch projection. copy from builtins and change for different projection
     -- or send a message to the render script to change projection:
@@ -194,28 +189,25 @@ function update(self)
 
 
     -- set states used for all the world predicates
-    render.set_blend_func(render.BLEND_SRC_ALPHA, render.BLEND_ONE_MINUS_SRC_ALPHA)
+    render.set_blend_func(render.BLEND_ONE, render.BLEND_ONE_MINUS_SRC_ALPHA)
     render.enable_state(render.STATE_BLEND)
 
-    -- render `model` predicate for default 3D material
-    --
     render.set_camera(self.camera)
 
-    render.set_blend_func(render.BLEND_ONE, render.BLEND_ONE_MINUS_SRC_ALPHA)
+    
     render.enable_state(render.STATE_DEPTH_TEST)
-
-
     render.disable_state(render.STATE_CULL_FACE)
 
     render.draw(predicates.model)--, camera_world.frustum)
     render.set_depth_mask(false)
+    
     render.draw(predicates.model_transparent)--, camera_world.frustum)
     render.disable_state(render.STATE_DEPTH_TEST)
     
     render.draw(predicates.model_flash)--, camera_world.frustum)
     
     render.clear({[graphics.BUFFER_TYPE_DEPTH_BIT] = 1})
-    render.enable_state(render.STATE_DEPTH_TEST)
+    --render.enable_state(render.STATE_DEPTH_TEST)
     render.draw(predicates.transform)
     render.disable_state(render.STATE_DEPTH_TEST)
     render.set_camera()
@@ -233,10 +225,6 @@ function update(self)
     render.set_projection(camera_gui.proj)
 
     render.enable_state(render.STATE_STENCIL_TEST)
-
-    render.enable_material(self.preview_material)
-    render.draw(predicates.preview, {frustrum = camera_gui.frustum, constants = self.invert_preview})
-    render.disable_material()
     
     render.draw(predicates.gui, camera_gui.frustum)
     render.draw(predicates.text, camera_gui.frustum)
@@ -272,14 +260,5 @@ function on_message(self, message_id, message)
     elseif message_id == SET_MODEL_VIEWPORT then
         state.viewport_x = message.x; state.viewport_y = message.y
         state.viewport_width = message.w; state.viewport_height = message.h
-    elseif message_id == hash("invert_preview") then
-        self.inverted = message.invert
-        if message.invert then
-            self.invert_preview.invert = vmath.vector4(1, 1, 1, 0)
-        else
-            self.invert_preview.invert = vmath.vector4(0, 0, 0, 0)
-        end
-    elseif message_id == hash("change_preview_material") then
-        self.preview_material = message.mat
     end
 end

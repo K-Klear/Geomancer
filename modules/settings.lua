@@ -4,6 +4,8 @@ SET.I_am_Klear = false
 SET.debug = false
 
 local configurable = {
+	"max_desync",
+	"colour_hidden_model",
 	"unload_data_before_loading_zip",
 	"unload_data_before_loading_folder",
 	"map_preview_partition_size",
@@ -70,7 +72,6 @@ local configurable = {
 	"default_camera_rotation",
 	"default_camera_pitch",
 	"default_model_z_position",
-	"default_colour_set",
 	"custom_colour_main",
 	"custom_colour_fog",
 	"custom_colour_glow",
@@ -121,7 +122,7 @@ SET.ignore_char_limit = false
 -- defaults
 
 SET.default_show_transform_edit_warning = true
-SET.default_model_show_grid = 1
+SET.default_model_show_grid = 3
 SET.default_show_transform = 1
 SET.default_new_event_sample_offset = 0
 SET.default_create_folder_on_export = true
@@ -177,6 +178,7 @@ SET.colour_active_text_field = vmath.vector4(0.65, 0.65, 0.65, 1)
 SET.colour_highlight_material = vmath.vector4(0.8, 0.8, 0.35, 1)
 SET.colour_highlight_dynamic = vmath.vector4(0.6, 0.75, 1, 1)
 SET.colour_highlight_tween = vmath.vector4(0.3, 0.55, 1, 1)
+SET.colour_hidden_model = vmath.vector4(1, 0.6, 0.6, 1)
 SET.colour_model_import_selection = vmath.vector4(0.5, 0.5, 0.7, 1)
 SET.colour_model_replace = vmath.vector4(1, 0.7, 0.7, 1)
 SET.colour_unsupported_obstacle = vmath.vector4(0.8, 0.2, 0.2, 1)
@@ -208,11 +210,10 @@ SET.default_camera_rotation = 0
 
 SET.default_model_z_position = 8
 
-SET.default_colour_set = 1
-SET.custom_colour_main = "471537"
-SET.custom_colour_fog = "C9C3C1"
-SET.custom_colour_glow = "FCC69D"
-SET.custom_colour_enemy = "000000"
+SET.custom_colour_main = vmath.vector4(0.3, 0.1, 0.2, 1)
+SET.custom_colour_fog = vmath.vector4(0.8, 0.75, 0.75, 1)
+SET.custom_colour_glow = vmath.vector4(1, 0.8, 0.6, 1)
+SET.custom_colour_enemy = vmath.vector4(0, 0, 0, 1)
 SET.collider_colour = vmath.vector4(0.5, 0.5, 1, 1)
 
 SET.model_show_grid = 1
@@ -228,6 +229,9 @@ SET.mesh_flash_frequency = 1
 SET.mesh_flash_colour = vmath.vector4(1, 0, 0, 0.4)
 
 SET.map_preview_partition_size = 10
+SET.max_desync = 0.15
+
+SET.play_music = true
 
 -- transform
 

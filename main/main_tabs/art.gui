@@ -122,8 +122,8 @@ nodes {
 }
 nodes {
   position {
-    x: 313.0
-    y: -428.0
+    x: 418.0
+    y: -16.0
   }
   type: TYPE_BOX
   texture: "UI/scrollbar_button"
@@ -198,58 +198,7 @@ nodes {
 }
 nodes {
   position {
-    x: 309.0
-    y: -16.0
-  }
-  type: TYPE_TEMPLATE
-  id: "model_dynamic"
-  parent: "model_list"
-  template: "/templates/button_white_small.gui"
-}
-nodes {
-  size {
-    x: 60.0
-    y: 32.0
-  }
-  type: TYPE_BOX
-  id: "model_dynamic/button_white"
-  parent: "model_dynamic"
-  layer: "below"
-  slice9 {
-    x: 14.0
-    y: 14.0
-    z: 14.0
-    w: 14.0
-  }
-  overridden_fields: 1
-  overridden_fields: 4
-  overridden_fields: 20
-  overridden_fields: 21
-  overridden_fields: 22
-  template_node_child: true
-}
-nodes {
-  scale {
-    x: 0.5
-    y: 0.5
-  }
-  type: TYPE_TEXT
-  text: "Dynamic"
-  font: "main_menu_button_smaller"
-  id: "model_dynamic/text"
-  parent: "model_dynamic/button_white"
-  layer: "text"
-  overridden_fields: 3
-  overridden_fields: 8
-  overridden_fields: 10
-  overridden_fields: 20
-  overridden_fields: 47
-  template_node_child: true
-  material: "font-df"
-}
-nodes {
-  position {
-    x: 362.0
+    x: 378.0
     y: -16.0
   }
   type: TYPE_TEMPLATE
@@ -259,7 +208,7 @@ nodes {
 }
 nodes {
   size {
-    x: 65.0
+    x: 48.0
     y: 32.0
   }
   type: TYPE_BOX
@@ -281,7 +230,7 @@ nodes {
 }
 nodes {
   scale {
-    x: 0.5
+    x: 0.35
     y: 0.5
   }
   type: TYPE_TEXT
@@ -289,6 +238,57 @@ nodes {
   font: "main_menu_button_smaller"
   id: "model_tween/text"
   parent: "model_tween/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 20
+  overridden_fields: 47
+  template_node_child: true
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 330.0
+    y: -16.0
+  }
+  type: TYPE_TEMPLATE
+  id: "model_dynamic"
+  parent: "model_list"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 48.0
+    y: 32.0
+  }
+  type: TYPE_BOX
+  id: "model_dynamic/button_white"
+  parent: "model_dynamic"
+  layer: "below"
+  slice9 {
+    x: 14.0
+    y: 14.0
+    z: 14.0
+    w: 14.0
+  }
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  overridden_fields: 21
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.35
+    y: 0.5
+  }
+  type: TYPE_TEXT
+  text: "Dynamic"
+  font: "main_menu_button_smaller"
+  id: "model_dynamic/text"
+  parent: "model_dynamic/button_white"
   layer: "text"
   overridden_fields: 3
   overridden_fields: 8
@@ -309,7 +309,7 @@ nodes {
 }
 nodes {
   size {
-    x: 284.0
+    x: 274.0
     y: 32.0
   }
   type: TYPE_BOX
@@ -361,6 +361,51 @@ nodes {
   overridden_fields: 47
   template_node_child: true
   material: "font-df"
+}
+nodes {
+  position {
+    x: 290.0
+    y: -16.0
+  }
+  type: TYPE_TEMPLATE
+  id: "model_hide"
+  parent: "model_list"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 32.0
+    y: 32.0
+  }
+  type: TYPE_BOX
+  id: "model_hide/button_white"
+  parent: "model_hide"
+  slice9 {
+    x: 12.0
+    y: 12.0
+    z: 12.0
+    w: 12.0
+  }
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  type: TYPE_BOX
+  texture: "UI/button_visibility"
+  id: "model_hide/text"
+  parent: "model_hide/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
 }
 nodes {
   position {

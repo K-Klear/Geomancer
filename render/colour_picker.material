@@ -1,8 +1,0 @@
-name: "colour_picker"
-tags: "gui"
-vertex_program: "/render/gui.vp"
-fragment_program: "/render/colour_picker.fp"
-vertex_constants {
-  name: "view_proj"
-  type: CONSTANT_TYPE_VIEWPROJ
-}

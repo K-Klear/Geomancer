@@ -75,7 +75,6 @@ local function load_old_config()
 		mesh_flash_time = {type = "number"},
 		mesh_flash_frequency = {type = "number"},
 		mesh_flash_colour = {type = "colour_full"},
-		default_colour_set = {type = "integer"},
 		custom_colour_main = {type = "hex_colour"},
 		custom_colour_fog = {type = "hex_colour"},
 		custom_colour_glow = {type = "hex_colour"},
@@ -127,9 +126,7 @@ local function load_old_config()
 		end
 	end
 	function parse.hex_colour(str)
-		if COL.str_to_colour(str) then
-			return str
-		end
+		return COL.str_to_colour(str)
 	end
 	function parse.angle_pitch(str)
 		return math.max(-90, math.min(tonumber(str), 90))
