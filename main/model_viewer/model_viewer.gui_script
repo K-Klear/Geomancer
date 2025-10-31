@@ -49,6 +49,10 @@ local function set_button_colours()
 	gui.set_color(gui.get_node("button_colour/fog"), MOD.colour_override_fog or SET.custom_colour_fog)
 	gui.set_color(gui.get_node("button_colour/glow"), MOD.colour_override_glow or SET.custom_colour_glow)
 	gui.set_color(gui.get_node("button_colour/enemy"), MOD.colour_override_enemy or SET.custom_colour_enemy)
+	gui.set_color(gui.get_node("button_colour_model/main"), MOD.colour_override_main or SET.custom_colour_main)
+	gui.set_color(gui.get_node("button_colour_model/fog"), MOD.colour_override_fog or SET.custom_colour_fog)
+	gui.set_color(gui.get_node("button_colour_model/glow"), MOD.colour_override_glow or SET.custom_colour_glow)
+	gui.set_color(gui.get_node("button_colour_model/enemy"), MOD.colour_override_enemy or SET.custom_colour_enemy)
 end
 
 local function get_viewport()
@@ -771,8 +775,12 @@ function set_ui(mode)
 			change_bounds(gui.get_node("rotate_box"))
 			gui.set_enabled(gui.get_node("find_prop/button_white"), false)
 			gui.set_enabled(gui.get_node("show_transforms/button_white"), false)
+			gui.set_enabled(gui.get_node("hide_grid_model/button_white"), false)
+			gui.set_enabled(gui.get_node("button_colour_model/button_white"), false)
 		else
-			UI.load_template({"find_prop", "show_transforms"}, TAB_NAME)
+			UI.load_template({"find_prop", "show_transforms", "hide_grid_model", "button_colour_model"}, TAB_NAME)
+			gui.set_enabled(gui.get_node("hide_grid_model/button_white"), true)
+			gui.set_enabled(gui.get_node("button_colour_model/button_white"), true)
 			gui.set_enabled(gui.get_node("show_transforms/button_white"), true)
 			gui.set_enabled(gui.get_node("find_prop/button_white"), true)
 			gui.set(gui.get_node("controls"), "position.y", 0)
@@ -796,15 +804,17 @@ function set_ui(mode)
 		gui.set_position(button_box, BUTTON_BOX_POSITION_PREVIEW)
 		gui.set_size(button_box, BUTTON_BOX_SIZE_PREVIEW)
 		gui.set_enabled(gui.get_node("playback_box"), true)
-		gui.set_enabled(gui.get_node("visibility_box"), true)
 		if mode == hash("tween_vacuum") then
-			UI.load_template({"find_prop", "show_transforms"}, TAB_NAME)
+			UI.load_template({"find_prop", "show_transforms", "hide_grid_model", "button_colour_model"}, TAB_NAME)
 			gui.set_enabled(gui.get_node("find_prop/button_white"), true)
 			gui.set_enabled(gui.get_node("label_model"), true)
 			gui.set_enabled(gui.get_node("pick_model/button_white"), false)
 			gui.set_enabled(gui.get_node("show_transforms/button_white"), true)
 			gui.set_enabled(gui.get_node("move_terrain/button_white"), false)
 			gui.set_enabled(gui.get_node("lock_cam/button_white"), false)
+			gui.set_enabled(gui.get_node("hide_grid_model/button_white"), true)
+			gui.set_enabled(gui.get_node("button_colour_model/button_white"), true)
+			gui.set_enabled(gui.get_node("visibility_box"), false)
 		elseif mode == hash("tween_context") then
 			UI.load_template({"pick_model", "lock_cam", "move_terrain"}, TAB_NAME)
 			UI.load_template({"toggle_visibility"}, TAB_NAME)
@@ -815,6 +825,9 @@ function set_ui(mode)
 			gui.set_enabled(gui.get_node("show_transforms/button_white"), false)
 			gui.set_enabled(gui.get_node("move_terrain/button_white"), true)
 			gui.set_enabled(gui.get_node("lock_cam/button_white"), true)
+			gui.set_enabled(gui.get_node("hide_grid_model/button_white"), false)
+			gui.set_enabled(gui.get_node("button_colour_model/button_white"), false)
+			gui.set_enabled(gui.get_node("visibility_box"), true)
 		elseif mode == hash("map_preview") then
 			UI.load_template({"toggle_visibility", "lock_cam", "move_terrain"}, TAB_NAME)
 			gui.set_enabled(gui.get_node("find_prop/button_white"), false)
@@ -824,21 +837,11 @@ function set_ui(mode)
 			gui.set_enabled(gui.get_node("show_transforms/button_white"), false)
 			gui.set_enabled(gui.get_node("move_terrain/button_white"), true)
 			gui.set_enabled(gui.get_node("lock_cam/button_white"), true)
+			gui.set_enabled(gui.get_node("hide_grid_model/button_white"), false)
+			gui.set_enabled(gui.get_node("button_colour_model/button_white"), false)
+			gui.set_enabled(gui.get_node("visibility_box"), true)
 		end
 	end
-
-	--[[  this stuff was in init, probably not needed at all 
-	gui.set_enabled(gui.get_node("visibility_box"), false)
-	gui.set_enabled(gui.get_node("visibility_box_buttons"), false)
-	change_bounds(bounding_node)
-	gui.set_position(button_box, BUTTON_BOX_POSITION)
-	gui.set_size(button_box, BUTTON_BOX_SIZE)
-	gui.set_enabled(timeline, false)
-	gui.set_visible(timeline, false)
-	gui.set_enabled(playback_box, false)
-	gui.set_enabled(close_button, false)
-	gui.set_enabled(time_display, false)
-	--]]
 end
 
 function on_message(self, message_id, message, sender)
@@ -872,6 +875,9 @@ function on_message(self, message_id, message, sender)
 		elseif message.dialog == "dialog_colours" then
 			set_button_colours()
 			msg.post(".", "colours_changed")
+			if message.current_dialog and UI.tab[message.current_dialog] then
+				msg.post(UI.tab[message.current_dialog].path, hash("acquire_input_focus"))
+			end
 		end
 	elseif message_id == hash("set_ui") then
 		set_ui(message.mode)
@@ -952,18 +958,17 @@ function get_current_transform(current_action)
 end
 
 local function evaluate_button(button)
-	if button == "button_colour" then
+	if button == "button_colour" or button == "button_colour_model" then
 		local current_dialog
 		if current_bounding_node == bounding_node_transform then
-			current_dialog = hash("transform")
+			current_dialog = "dialog_transform"
 			msg.post(UI.tab.dialog_transform.path, hash("release_input_focus"))
 		elseif current_bounding_node == bounding_node_preview then
-			current_dialog = hash("tween_preview")
+			current_dialog = "tween_preview"
 		else
-			current_dialog = hash("art")
+			current_dialog = "tab_art"
 		end
-		DIALOG.open(TAB_NAME, "dialog_colours")
-		--msg.post("#", hash("release_input_focus"))
+		DIALOG.open(TAB_NAME, "dialog_colours", {allow_cancel = button == "button_colour", current_dialog = current_dialog})
 		MOD.is_dragged = false
 		MOD.camera_is_dragged = false
 	elseif button == "pick_model" then
@@ -1017,7 +1022,7 @@ local function evaluate_button(button)
 			mode = hash("preview")
 		end
 		msg.post(".", hash("reset_view"), {mode = mode})
-	elseif button == "hide_grid" then
+	elseif button == "hide_grid" or button == "hide_grid_model" then
 		set_hide_grid(true)
 		msg.post(".", hash("show_grid"))
 	elseif button == "toggle_visibility" then

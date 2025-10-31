@@ -45,8 +45,11 @@ function MOD.release_model_resources()
 	for key, val in pairs(buffer_list) do
 		if val == 0 then
 			resource.release(key)
+			buffer_list[key] = buffer_list[key] - 1
 			--buffer_list[key] = nil
-			timer.delay(0.005, false, function() buffer_list[key] = nil end)
+			--timer.delay(0.005, false, function()
+				
+			--end)
 		end
 	end
 	collectgarbage()

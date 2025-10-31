@@ -92,7 +92,7 @@ local function display_transform_info()
 	gui.set_text(gui.get_node("transform_scale_z/text"), G.round(transform_list[selected_transform].scale.z, 4))
 end
 
-local function transform_selected(selection)
+local function transform_selected(selection, no_flash)
 	MOD.visible_transform = selection
 	if SET.show_transform == 1 then
 		msg.post("/model_viewer", hash("update_transform_button"))
@@ -126,11 +126,13 @@ local function transform_selected(selection)
 		if (key > selected_transform) and (val.level <= level) then break end
 		if end_search then break end
 	end
-	if #parts > 0 then
-		MEM.art_data.temp_part_list = parts
-		msg.post("/model_viewer", hash("flash"))
-	else
-		msg.post("/model_viewer", hash("stop_flashing"))
+	if not no_flash then
+		if #parts > 0 then
+			MEM.art_data.temp_part_list = parts
+			msg.post("/model_viewer", hash("flash"))
+		else
+			msg.post("/model_viewer", hash("stop_flashing"))
+		end
 	end
 end
 
@@ -180,8 +182,10 @@ local function rebuild_transform_list()
 	MEM.art_data.table.propsDictionary[model_index].model_data.transform_list = new_list
 	transform_list = new_list
 	UI.update_list(DIALOG_NAME, list, #transform_list)
-	msg.post("/model_viewer", hash("update_model"), {model = model_index, no_flash = true})
-	transform_selected(selected_transform)
+	msg.post("/model_viewer", hash("update_model"), {model = model_index, no_flash = true, keep_camera = true})
+	timer.delay(0, false, function()
+		transform_selected(selected_transform)
+	end)
 end
 
 local function change_parent(target_transform, new_parent, skip_rebuild)
@@ -427,6 +431,8 @@ function on_message(self, message_id, message, sender)
 			end
 			if not (check_children(transform_list[1].tab.children) and check_children(transform_list[2].tab.children)) then
 				add_transform(SET.root_transform_default_name, 1)
+			else
+				msg.post("/model_viewer", hash("update_model"), {model = model_index, no_flash = true})
 			end
 		end
 		local selection
@@ -438,11 +444,13 @@ function on_message(self, message_id, message, sender)
 		end
 		selection = selection or 1
 		UI.update_list(DIALOG_NAME, list, #transform_list)
-		UI.select_exclusive_button(DIALOG_NAME, list, selection)
 		SET.show_single_transform = true
-		transform_selected(selection)
 		DIALOG.show(DIALOG_DATA, sender)
 		msg.post("/model_viewer", hash("set_ui"), {mode = hash("transform")})
+		timer.delay(0, false, function()
+			transform_selected(selection)
+			UI.select_exclusive_button(DIALOG_NAME, list, selection)
+		end)
 	elseif message_id == hash("hide") then
 		close_cleanup()
 	elseif message_id == hash("dialog_closed") then
@@ -496,8 +504,8 @@ local function set_transform_data()
 			break
 		end
 	end
-	msg.post("/model_viewer", hash("update_model"), {model = model_index})
-	transform_selected(selected_transform)
+	msg.post("/model_viewer", hash("update_model"), {model = model_index, no_flash = true, keep_camera = true})
+	transform_selected(selected_transform, true)
 end
 
 local function display_euler()

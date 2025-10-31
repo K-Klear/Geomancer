@@ -60,23 +60,23 @@ function init(self)
 end
 
 function evaluate_button(button, item)
-	if button == "colour_cancel" or button == "escape" then
+	if button == "colour_cancel" then
 		MOD.colour_override = false
-		DIALOG.close(DIALOG_NAME)
+		DIALOG.close(DIALOG_NAME, {current_dialog = current_dialog})
 	elseif button == "colour_pick_section" then
 		MOD.colour_override = true
 		MOD.colour_override_main = MEM.art_data.colours[selected_colour_index].main
 		MOD.colour_override_fog = MEM.art_data.colours[selected_colour_index].fog
 		MOD.colour_override_glow = MEM.art_data.colours[selected_colour_index].glow
 		MOD.colour_override_enemy = MEM.art_data.colours[selected_colour_index].enemy
-		DIALOG.close(DIALOG_NAME)
+		DIALOG.close(DIALOG_NAME, {current_dialog = current_dialog})
 	elseif button == "colour_pick_custom" then
 		MOD.colour_override = true
 		MOD.colour_override_main = custom_main
 		MOD.colour_override_fog = custom_fog
 		MOD.colour_override_glow = custom_glow
 		MOD.colour_override_enemy = custom_enemy
-		DIALOG.close(DIALOG_NAME)
+		DIALOG.close(DIALOG_NAME, {current_dialog = current_dialog})
 	elseif button == colour_list then
 		selected_colour_index = item
 	elseif button == "custom_colour_main" then
@@ -103,6 +103,13 @@ function on_message(self, message_id, message, sender)
 		UI.update_list(DIALOG_NAME, colour_list, #MEM.art_data.colours)
 
 		selected_colour_index = 1
+
+		UI.unload_template(DIALOG_NAME, "colour_cancel")
+		gui.set_enabled(gui.get_node("colour_cancel/button_white"), message.allow_cancel)
+		if message.allow_cancel then
+			UI.load_template("colour_cancel", DIALOG_NAME)
+		end
+		
 	elseif message_id == hash("dialog_closed") then
 		msg.post("#", hash("acquire_input_focus"))
 		if message.dialog == "colour_picker" then

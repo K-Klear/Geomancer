@@ -54,8 +54,16 @@ Features:
 New shortcuts:
 
 Fixes:
+- Camera no longer resets after editing a transform
+- Map preview resets to start of the map when a new one is loaded
+- Re-added the "show grid" and "colours" buttons to the model/transform views
+- Model preview on the models tab is shown from a higher angle by default
+- Previewing a tween without context no longer starts with the camera at its origin
 
 Bugs:
+- Fixed an issue with mesh flashing triggering twice or not at all
+- Sorting models no longer breaks map preview
+- Buffer resources are now freed correctly when unloading a map
 
 New options:
 

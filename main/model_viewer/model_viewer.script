@@ -87,6 +87,7 @@ local function show_grid(self)
 		msg.post("/grid#grid", hash("enable"))
 		go.set("/grid#grid", "material", self.grid_mat_overdraw)
 	elseif SET.model_show_grid == 2 then
+		msg.post("/grid#grid", hash("enable"))
 		go.set("/grid#grid", "material", self.grid_mat)
 	else
 		msg.post("/grid#grid", hash("disable"))
@@ -201,7 +202,7 @@ local function create_chunk_model(self, chunk_tab)
 	if not (SET.hide_geo == 2) then
 		msg.post(new_mesh, hash("disable"))
 	end
-	table.insert(chunk_meshes, new_mesh)
+	table.insert(chunk_meshes, {mesh = new_mesh, buffer_resource = chunk_tab.buffer_resource})
 	go.set_parent(new_mesh, "/geo_base")
 	local _url = msg.url(nil, new_mesh, "mesh")
 	go.set(_url, "vertices", chunk_tab.buffer_resource)
@@ -219,7 +220,7 @@ local function create_slice_model(self, slice_tab)
 	if SET.hide_geo > 1 then
 		msg.post(new_mesh, hash("disable"))
 	end
-	table.insert(geo_meshes, new_mesh)
+	table.insert(geo_meshes, {mesh = new_mesh, buffer_resource = slice_tab.buffer_resource})
 	go.set_parent(new_mesh, "/geo_base")
 	local _url = msg.url(nil, new_mesh, "mesh")
 	go.set(_url, "vertices", slice_tab.buffer_resource)
@@ -280,7 +281,7 @@ end
 
 local function create_prop(self, prop_tab, mesh_flash, create_transform_models)
 	local new_base = factory.create("#create_transform_invisible", prop_tab.position, prop_tab.rotation, nil, prop_tab.scale)
-	table.insert(static_meshes, new_base)
+	table.insert(static_meshes, {mesh = new_base})
 	go.set_parent(new_base, "/static_prop_base")
 	local mesh_count = 0
 	local transform_list = MEM.art_data.table.propsDictionary[prop_tab.model_index].model_data.transform_list
@@ -295,7 +296,7 @@ local function create_prop(self, prop_tab, mesh_flash, create_transform_models)
 			val.rotation = vmath.quat(0, 0, 0, 1)
 		end
 		local new_transform = factory.create("#create_transform_invisible", val.position, val.rotation, nil, val.scale)
-		table.insert(static_meshes, new_transform)
+		table.insert(static_meshes, {mesh = new_transform})
 		table.insert(transform_go_list, {url = new_transform, position = val.position, rotation = val.rotation, scale = val.scale})
 		if val.parent_tab then
 			go.set_parent(new_transform, meta_table[val.parent_tab])
@@ -315,7 +316,6 @@ local function create_prop(self, prop_tab, mesh_flash, create_transform_models)
 			for k, v in ipairs(val.meshes) do
 				mesh_count = mesh_count + 1
 				local new_mesh = factory.create("#create_mesh")
-				table.insert(static_meshes, new_mesh)
 				if SET.hide_props or mesh_flash then
 					msg.post(new_mesh, hash("disable"))
 				end
@@ -324,6 +324,7 @@ local function create_prop(self, prop_tab, mesh_flash, create_transform_models)
 				if not v.buffer_resource then
 					MOD.create_mesh(v)
 				end
+				table.insert(static_meshes, {mesh = new_mesh, buffer_resource = v.buffer_resource})
 				go.set(_url, "vertices", v.buffer_resource)
 				MOD.buffer_resource_used(v.buffer_resource)
 				local mesh_props
@@ -382,40 +383,82 @@ local function apply_colours_model()
 	go.set("/fog#fog", "tint2", c2.fog)
 end
 
-local function apply_colour_section(colour_key, t, check_override)
-	if MOD.colour_override and (not check_override) then return end
+local function override_colour()
+	c1.main = MOD.colour_override_main
+	c2.main = MOD.colour_override_main
+	c1.fog = MOD.colour_override_fog
+	c2.fog = MOD.colour_override_fog
+	c1.glow = MOD.colour_override_glow
+	c2.glow = MOD.colour_override_glow
+	c1.enemy = MOD.colour_override_enemy
+	c2.enemy = MOD.colour_override_enemy
+	for _key in pairs(MOD.culling_ranges.visible_slices) do
+		go.set(msg.url(nil, _key.model, "mesh"), "tint1", c1.main)
+		go.set(msg.url(nil, _key.model, "mesh"), "tint2", c2.main)
+		if SET.hide_fog then
+			go.set(msg.url(nil, _key.model, "mesh"), "fog2.w", 0)
+		else
+			go.set(msg.url(nil, _key.model, "mesh"), "fog1", c1.fog)
+			go.set(msg.url(nil, _key.model, "mesh"), "fog2", c2.fog)
+		end
+	end
+	for _key in pairs(MOD.culling_ranges.visible_props) do
+		for k, v in ipairs(_key.models) do
+			if v.colour then
+				go.set(v.url, "tint1", c1[v.colour])
+				go.set(v.url, "tint2", c2[v.colour])
+				if v.fog then
+					if SET.hide_fog then
+						go.set(v.url, "fog2.w", 0)
+					else
+						go.set(v.url, "fog1", c1.fog)
+						go.set(v.url, "fog2", c2.fog)
+					end
+				end
+				if v.extra_glow then
+					go.set(v.url, "glow1", c1.glow)
+					go.set(v.url, "glow2", c2.glow)
+				end
+			end
+		end
+	end
+	for k, v in ipairs(beatcubes) do
+		go.set(v.model_url, "tint1", c1.glow)
+		go.set(v.model_url, "tint2", c2.glow)
+		if SET.hide_fog then
+			go.set(v.model_url, "fog2.w", 0)
+		else
+			go.set(v.model_url, "fog1", c1.fog)
+			go.set(v.model_url, "fog2", c2.fog)
+		end
+	end
+	go.set("/fog#fog", "tint1", c1.fog)
+	go.set("/fog#fog", "tint2", c2.fog)
+end
+
+local function apply_colour_section(colour_key, t)
+	if MOD.colour_override then return end
 	local val = MEM.art_data.colour_list[colour_key]
 	current_colour = colour_key
 	colour_transition = 1 - ((t - val.time) / val.duration)
 	ct_clamped = math.max(colour_transition, 0)
-	if not (current_colour == MOD.previous_colour) or check_override then
-		if MOD.colour_override then
-			c1.main = MOD.colour_override_main
-			c2.main = MOD.colour_override_main
-			c1.fog = MOD.colour_override_fog
-			c2.fog = MOD.colour_override_fog
-			c1.glow = MOD.colour_override_glow
-			c2.glow = MOD.colour_override_glow
-			c1.enemy = MOD.colour_override_enemy
-			c2.enemy = MOD.colour_override_enemy
-		else
-			local prev_colour = MEM.art_data.colour_list[colour_key - 1] or MEM.art_data.colour_list[colour_key]
-			c1.main = vmath.vector4(val.main)
-			c1.main.w = ct_clamped
-			c2.main = vmath.vector4(prev_colour.main)
-			c1.fog = vmath.vector4(val.fog)
-			c1.fog.w = ct_clamped
-			c2.fog = vmath.vector4(prev_colour.fog)
-			c1.glow = vmath.vector4(val.glow)
-			c1.glow.w = ct_clamped
-			c2.glow = vmath.vector4(prev_colour.glow)
-			c1.enemy = vmath.vector4(val.enemy)
-			c1.enemy.w = ct_clamped
-			c2.enemy = vmath.vector4(prev_colour.enemy)
-			c1.glow_inv = vmath.vector4(val.glow_inv)
-			c1.glow_inv.w = ct_clamped
-			c2.glow_inv = vmath.vector4(prev_colour.glow_inv)
-		end
+	if not (current_colour == MOD.previous_colour) then
+		local prev_colour = MEM.art_data.colour_list[colour_key - 1] or MEM.art_data.colour_list[colour_key]
+		c1.main = vmath.vector4(val.main)
+		c1.main.w = ct_clamped
+		c2.main = vmath.vector4(prev_colour.main)
+		c1.fog = vmath.vector4(val.fog)
+		c1.fog.w = ct_clamped
+		c2.fog = vmath.vector4(prev_colour.fog)
+		c1.glow = vmath.vector4(val.glow)
+		c1.glow.w = ct_clamped
+		c2.glow = vmath.vector4(prev_colour.glow)
+		c1.enemy = vmath.vector4(val.enemy)
+		c1.enemy.w = ct_clamped
+		c2.enemy = vmath.vector4(prev_colour.enemy)
+		c1.glow_inv = vmath.vector4(val.glow_inv)
+		c1.glow_inv.w = ct_clamped
+		c2.glow_inv = vmath.vector4(prev_colour.glow_inv)
 		for _key in pairs(MOD.culling_ranges.visible_slices) do
 			go.set(msg.url(nil, _key.model, "mesh"), "tint1", c1.main)
 			go.set(msg.url(nil, _key.model, "mesh"), "tint2", c2.main)
@@ -505,6 +548,7 @@ local function reset_view(mode)
 	if mode == hash("model") then
 		CAMERA_POSITION = vmath.vector3(0, 0, 0)
 		go.set_position(vmath.vector3(0, 0, 0), CAMERA_TARGET)
+		MOD.target_y = -25
 		go.set_rotation(vmath.quat(0, 0, 0, 1), MODEL_CAMERA)
 		msg.post("/player_capsule", hash("disable"))
 		go.set(GROUND_GO, "position.z", 0)
@@ -592,8 +636,6 @@ local function show_culling_range(self, range)
 			MOD.culling_ranges.visible_chunks[val] = true
 		end
 	end
-
-
 	
 	for key, val in ipairs(MOD.culling_ranges[range].props) do
 		if not val.hide then
@@ -760,7 +802,9 @@ function update(self, dt)
 			local t = MOD.preview_start + MOD.total_time * MOD.scrubber_progress
 			if MOD.vacuum_preview then
 				for key, val in ipairs(MOD.vacuum_signal_tabs) do
-					apply_tween(val, t)
+					if next(val.transforms) then
+						apply_tween(val, t)
+					end
 				end
 				return
 			end
@@ -784,8 +828,6 @@ function update(self, dt)
 					end
 					desync_check_playtime = desync_check_playtime + dt
 				end
-
-
 
 				for i = MOD.previous_colour or 1, #MEM.art_data.colour_list do
 					local val = MEM.art_data.colour_list[i]
@@ -877,9 +919,6 @@ function update(self, dt)
 						beat_in_progress = false
 					end
 				end
-
-
-				
 				current_culling_range = G.clamp(math.floor((z + 6) / 16), 0, MOD.max_culling_range)
 				if not (current_culling_range == previous_culling_range or MOD.stationary) then
 					for key, val in pairs(MOD.culling_ranges.visible_slices) do
@@ -932,7 +971,10 @@ end
 local function delete_static()
 	stop_flash()
 	for key, val in ipairs(static_meshes) do
-		go.delete(val)
+		go.delete(val.mesh)
+		if val.buffer_resource then
+			MOD.buffer_resource_released(val.buffer_resource)
+		end
 	end
 	static_meshes = {}
 	if MOD.culling_ranges then
@@ -948,10 +990,12 @@ end
 
 local function delete_geo()
 	for key, val in ipairs(geo_meshes) do
-		go.delete(val)
+		MOD.buffer_resource_released(val.buffer_resource)
+		go.delete(val.mesh)
 	end
 	for key, val in ipairs(chunk_meshes) do
-		go.delete(val)
+		MOD.buffer_resource_released(val.buffer_resource)
+		go.delete(val.mesh)
 	end
 	geo_meshes = {}
 	chunk_meshes = {}
@@ -972,6 +1016,7 @@ local function delete_geo()
 end
 
 local function delete_model(self)
+	stop_flash()
 	delete_static()
 	delete_geo()
 	for key, val in ipairs(created_transforms) do
@@ -980,6 +1025,7 @@ local function delete_model(self)
 	created_transforms = {}
 	preview_model = {}
 	preview_model_flash = {}
+	preview_model_transforms = {}
 end
 
 local function reset_signals()
@@ -1010,14 +1056,26 @@ local function show_transforms()
 	end
 end
 
-local function show_model(self, model_index)
+local function show_model(self, model_index, no_flash, keep_camera)
 	delete_model(self)
 	timer.delay(0, false, function()
 		local t = {position = vmath.vector3(0, 0, 0), rotation = vmath.quat(0, 0, 0, 1), scale = vmath.vector3(1), model_index = model_index}
 		preview_model, preview_model_transforms = create_prop(self, t, nil, true)
+		if MOD.vacuum_preview then
+			for key, val in ipairs(MOD.vacuum_signal_tabs) do
+				val.transforms = preview_model_transforms
+			end
+			stop_flash()
+			no_flash = true
+			reset_view(hash("preview"))
+		end
 		preview_model_flash = create_prop(self, t, true)
-		reset_view(hash("model"))
-		flash({1})
+		if not (keep_camera or MOD.vacuum_preview) then
+			reset_view(hash("model"))
+		end
+		if not no_flash then
+			flash({1})
+		end
 		show_transforms()
 	end)
 end
@@ -1153,12 +1211,6 @@ local function prepare_preview(self)
 	else
 		tween_padding_start = SET.tween_padding_start
 	end
-	if MOD.vacuum_preview then
-		for key, val in ipairs(MOD.vacuum_signal_tabs) do
-			val.transforms = preview_model_transforms
-		end
-		stop_flash()
-	end
 	active_tweens = {}
 	if MEM.event_data.table then
 		local first_tempo = MEM.event_data.table.tempoSections[1]
@@ -1216,7 +1268,7 @@ function on_message(self, message_id, message, sender)
 			end
 		end
 	elseif message_id == hash("update_model") then
-		show_model(self, message.model)
+		show_model(self, message.model, message.no_flash, message.keep_camera)
 	elseif message_id == hash("show_part") then
 		flash({message.selected_part})
 	elseif message_id == hash("flash") then
@@ -1277,12 +1329,17 @@ function on_message(self, message_id, message, sender)
 		reset_signals()
 		previous_culling_range, MOD.previous_colour = nil, nil
 	elseif message_id == hash("colours_changed") then
-		local t = MOD.preview_start + MOD.total_time * MOD.scrubber_progress
-		for key, val in ipairs(MEM.art_data.colour_list) do
-			if ((t >= val.time) and (not val.end_time or (t < val.end_time))) or (key == #MEM.art_data.colour_list) then
-				MOD.previous_colour = nil
-				apply_colour_section(key, t, MOD.colour_override)
-				break
+		if MOD.colour_override then
+			MOD.previous_colour = nil
+			override_colour()
+		else
+			local t = MOD.preview_start + MOD.total_time * MOD.scrubber_progress
+			for key, val in ipairs(MEM.art_data.colour_list) do
+				if ((t >= val.time) and (not val.end_time or (t < val.end_time))) or (key == #MEM.art_data.colour_list) then
+					MOD.previous_colour = nil
+					apply_colour_section(key, t)
+					break
+				end
 			end
 		end
 	elseif message_id == hash("hide_fog") then

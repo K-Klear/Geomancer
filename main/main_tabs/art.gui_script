@@ -429,6 +429,8 @@ local function sort_models()
 	else
 		UI.update_list(TAB_NAME, model_list)
 	end
+	MEM.create_prop_list(MEM.art_data.table, true)
+	MEM.setup_culling_ranges()
 	G.update_navbar("Models sorted alphabetically", true)
 end
 
@@ -656,7 +658,8 @@ function on_message(self, message_id, message, sender)
 			msg.post(".", hash("enable"))
 			update_lists()
 			check_tweens()
-			msg.post("/model_viewer", hash("show"), {model = get_selected_model(), selected_part = get_selected_part()})
+			msg.post("/model_viewer", hash("show"), {model = get_selected_model()})
+			msg.post("/model_viewer", hash("show_part"), {selected_part = get_selected_part()})
 		elseif message.dialog == "dialog_confirm" then
 			if message.button == 1 then	-- 1 is delete, 3 is cancel
 				delete_model(get_selected_model())
@@ -781,7 +784,6 @@ function evaluate_button(button, item)
 			end
 			UI.select_exclusive_button(TAB_NAME, model_list, item, true)
 			update_lists()
-			msg.post("/model_viewer", hash("update_model"), {model = item})
 			msg.post(".", hash("disable"))
 			DIALOG.open(TAB_NAME, "dialog_transform", {model_index = item})
 		end

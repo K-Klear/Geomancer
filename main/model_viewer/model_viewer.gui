@@ -385,6 +385,92 @@ nodes {
 }
 nodes {
   position {
+    x: -53.0
+    y: 25.0
+  }
+  type: TYPE_TEMPLATE
+  id: "hide_grid_model"
+  parent: "button_box"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 50.0
+    y: 50.0
+  }
+  type: TYPE_BOX
+  id: "hide_grid_model/button_white"
+  parent: "hide_grid_model"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/button_show_grid"
+  id: "hide_grid_model/text"
+  parent: "hide_grid_model/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -203.0
+    y: 25.0
+  }
+  type: TYPE_TEMPLATE
+  id: "button_colour_model"
+  parent: "button_box"
+  inherit_alpha: true
+  template: "/templates/button_colour.gui"
+}
+nodes {
+  size {
+    x: 50.0
+    y: 50.0
+  }
+  type: TYPE_BOX
+  id: "button_colour_model/button_white"
+  parent: "button_colour_model"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "button_colour_model/text"
+  parent: "button_colour_model/button_white"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "button_colour_model/main"
+  parent: "button_colour_model/text"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "button_colour_model/fog"
+  parent: "button_colour_model/text"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "button_colour_model/glow"
+  parent: "button_colour_model/text"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "button_colour_model/enemy"
+  parent: "button_colour_model/text"
+  template_node_child: true
+}
+nodes {
+  position {
     x: 40.0
     y: 40.0
   }

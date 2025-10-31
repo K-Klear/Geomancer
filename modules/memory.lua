@@ -540,66 +540,83 @@ function MEM.add_metadata(model_tab)
 	end
 end
 
+function MEM.create_prop_list(tab, reindex)
+	MEM.art_data.prop_list = {}
+	local function add_to_prop_list(prop_tab)
+		local sc = G.parse_values(prop_tab.scale)
+		local point = G.parse_values(prop_tab.point)
+		local scale = vmath.vector3(sc[1], sc[2], sc[3])
+		local pos = vmath.vector3(point[1], point[2], point[3])
+		local rot = vmath.quat(point[4], point[5], point[6], point[7])
+		return {position = pos, rotation = rot, scale = scale, name = prop_tab.name}
+	end
+	local dynamic_models, model_count = {}, {}
+	for key, val in ipairs(tab.staticProps or {}) do
+		model_count[val.name] = (model_count[val.name] or 0) + 1
+		local t = add_to_prop_list(val)
+		local base_range = math.floor(t.position.z / 16)
+		t.spawn_range = base_range - 3
+		t.despawn_range = base_range + 3
+		table.insert(MEM.art_data.prop_list, t)
+	end
+	for key, val in ipairs(MEM.art_data.table.dynamicProps or {}) do
+		model_count[val.name] = (model_count[val.name] or 0) + 1
+		local t = add_to_prop_list(val)
+		local base_range = math.floor(t.position.z / 16)
+		t.spawn_range = base_range - 3
+		t.despawn_range = base_range + 3
+		t.dynamic = true
+		dynamic_models[val.name] = true
+		table.insert(MEM.art_data.prop_list, t)
+	end
+
+	for key, val in ipairs(MEM.art_data.table.staticCullingRanges or {}) do
+		local range = G.parse_values(val.range)
+		for k, v in ipairs(val.members) do
+			model_count[v.name] = (model_count[v.name] or 0) + 1
+			local t = add_to_prop_list(v)
+			t.spawn_range = range[1] - 3
+			t.despawn_range = range[2] + 3
+			table.insert(MEM.art_data.prop_list, t)
+		end
+	end
+	for key, val in ipairs(MEM.art_data.table.dynamicCullingRanges or {}) do
+		local range = G.parse_values(val.range)
+		for k, v in ipairs(val.members) do
+			model_count[v.name] = (model_count[v.name] or 0) + 1
+			local t = add_to_prop_list(v)
+			t.spawn_range = range[1] - 3
+			t.despawn_range = range[2] + 3
+			t.dynamic = true
+			dynamic_models[v.name] = true
+			table.insert(MEM.art_data.prop_list, t)
+		end
+	end
+	table.sort(MEM.art_data.prop_list, function(a, b) return a.position.z < b.position.z end)
+	if reindex then
+		local model_index_list = {}
+		for key, val in ipairs(tab.propsDictionary) do
+			model_index_list[val.key] = key
+		end
+		for key, val in ipairs(MEM.art_data.prop_list) do
+			val.model_index = model_index_list[val.name]
+			val.prop_list_index = key
+		end
+	end
+	return dynamic_models, model_count
+end
+
 function load.pw_art(data, filename)
 	local tab = MEM.parse_json(data)
 	
 	if MEM.check(tab, "pw_art", filename) then
 		MOD.release_model_resources()
-		MEM.art_data = {table = tab, filename = filename, prop_list = {}, signal_consumers = {}}
-		local dynamic_models = {}
-		local model_count = {}
+		if MOD.total_time then
+			msg.post("/model_viewer", hash("move_scrubber"), {time = 0})
+		end
+		MEM.art_data = {table = tab, filename = filename, prop_list = {}}
 
-		local function add_to_prop_list(prop_tab)
-			local sc = G.parse_values(prop_tab.scale)
-			local point = G.parse_values(prop_tab.point)
-			local scale = vmath.vector3(sc[1], sc[2], sc[3])
-			local pos = vmath.vector3(point[1], point[2], point[3])
-			local rot = vmath.quat(point[4], point[5], point[6], point[7])
-			return {position = pos, rotation = rot, scale = scale, name = prop_tab.name}
-		end
-
-		for key, val in ipairs(tab.staticProps or {}) do
-			model_count[val.name] = (model_count[val.name] or 0) + 1
-			local t = add_to_prop_list(val)
-			local base_range = math.floor(t.position.z / 16)
-			t.spawn_range = base_range - 3
-			t.despawn_range = base_range + 3
-			table.insert(MEM.art_data.prop_list, t)
-		end
-		for key, val in ipairs(MEM.art_data.table.dynamicProps or {}) do
-			model_count[val.name] = (model_count[val.name] or 0) + 1
-			local t = add_to_prop_list(val)
-			local base_range = math.floor(t.position.z / 16)
-			t.spawn_range = base_range - 3
-			t.despawn_range = base_range + 3
-			t.dynamic = true
-			dynamic_models[val.name] = true
-			table.insert(MEM.art_data.prop_list, t)
-		end
-
-		for key, val in ipairs(MEM.art_data.table.staticCullingRanges or {}) do
-			local range = G.parse_values(val.range)
-			for k, v in ipairs(val.members) do
-				model_count[v.name] = (model_count[v.name] or 0) + 1
-				local t = add_to_prop_list(v)
-				t.spawn_range = range[1] - 3
-				t.despawn_range = range[2] + 3
-				table.insert(MEM.art_data.prop_list, t)
-			end
-		end
-		for key, val in ipairs(MEM.art_data.table.dynamicCullingRanges or {}) do
-			local range = G.parse_values(val.range)
-			for k, v in ipairs(val.members) do
-				model_count[v.name] = (model_count[v.name] or 0) + 1
-				local t = add_to_prop_list(v)
-				t.spawn_range = range[1] - 3
-				t.despawn_range = range[2] + 3
-				t.dynamic = true
-				dynamic_models[v.name] = true
-				table.insert(MEM.art_data.prop_list, t)
-			end
-		end
-		table.sort(MEM.art_data.prop_list, function(a, b) return a.position.z < b.position.z end)
+		local dynamic_models, model_count =	MEM.create_prop_list(tab)
 		
 		if tab.propsDictionary[1] and tab.propsDictionary[1].object.name == "Placeholder" then
 			MEM.art_data.placeholder = table.remove(tab.propsDictionary, 1)
@@ -615,17 +632,6 @@ function load.pw_art(data, filename)
 			MEM.add_metadata(val)
 			if dynamic_models[val.key] or (val.tween > 0) then
 				val.dynamic = true
-				if val.tween > 0 then
-					local count = val.tween
-					for k, v in ipairs(val.model_data.transform_list) do
-						if v.tween then
-							MEM.art_data.signal_consumers[val.key] = MEM.art_data.signal_consumers[val.key] or {}
-							table.insert(MEM.art_data.signal_consumers[val.key], v.tween.signal)
-							count = count - 1
-							if count < 1 then break end
-						end
-					end
-				end
 			end
 			val.model_data.model_count = model_count[val.key] or 0
 		end
