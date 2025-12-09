@@ -163,6 +163,9 @@ images {
 images {
   image: "/assets/gfx/model_viewer/button_play_music.png"
 }
+images {
+  image: "/assets/gfx/buttons/button_exclusive_press_2.png"
+}
 animations {
   id: "button_white_down"
   images {

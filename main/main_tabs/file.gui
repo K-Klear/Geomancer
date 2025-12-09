@@ -131,9 +131,11 @@ nodes {
     y: 48.0
   }
   type: TYPE_BOX
+  texture: "UI/button_white"
   id: "load_dir/button_white"
   parent: "load_dir"
   overridden_fields: 4
+  overridden_fields: 9
   template_node_child: true
 }
 nodes {
@@ -164,9 +166,11 @@ nodes {
     y: 48.0
   }
   type: TYPE_BOX
+  texture: "UI/button_white"
   id: "load_file/button_white"
   parent: "load_file"
   overridden_fields: 4
+  overridden_fields: 9
   template_node_child: true
 }
 nodes {

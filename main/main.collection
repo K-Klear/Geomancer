@@ -11,6 +11,18 @@ instances {
   id: "sound"
   prototype: "/sound/sound.go"
 }
+instances {
+  id: "art"
+  prototype: "/main/main_tabs/art.go"
+  children: "find"
+  children: "import"
+  children: "instance_list"
+  children: "rename"
+  children: "replace"
+  children: "transform"
+  children: "transform_parent"
+  children: "tween"
+}
 scale_along_z: 1
 embedded_instances {
   id: "event"
@@ -76,80 +88,6 @@ embedded_instances {
   data: "components {\n"
   "  id: \"dialog_tempo\"\n"
   "  component: \"/main/dialogs/event/dialog_tempo.gui\"\n"
-  "}\n"
-  ""
-}
-embedded_instances {
-  id: "art"
-  children: "import"
-  children: "rename"
-  children: "replace"
-  children: "transform"
-  children: "transform_parent"
-  children: "tween"
-  data: "components {\n"
-  "  id: \"tab_art\"\n"
-  "  component: \"/main/main_tabs/art.gui\"\n"
-  "}\n"
-  ""
-}
-embedded_instances {
-  id: "import"
-  data: "components {\n"
-  "  id: \"dialog_import_models\"\n"
-  "  component: \"/main/dialogs/art/dialog_import_models.gui\"\n"
-  "}\n"
-  ""
-}
-embedded_instances {
-  id: "replace"
-  data: "components {\n"
-  "  id: \"dialog_replace_model\"\n"
-  "  component: \"/main/dialogs/art/dialog_replace_model.gui\"\n"
-  "}\n"
-  ""
-}
-embedded_instances {
-  id: "rename"
-  data: "components {\n"
-  "  id: \"dialog_rename_model\"\n"
-  "  component: \"/main/dialogs/art/dialog_rename_model.gui\"\n"
-  "}\n"
-  ""
-}
-embedded_instances {
-  id: "tween"
-  children: "easing"
-  children: "tween_action"
-  children: "tween_copy"
-  children: "tween_part"
-  data: "components {\n"
-  "  id: \"dialog_tween\"\n"
-  "  component: \"/main/dialogs/art/tween/dialog_tween.gui\"\n"
-  "}\n"
-  ""
-}
-embedded_instances {
-  id: "tween_action"
-  data: "components {\n"
-  "  id: \"dialog_tween_action\"\n"
-  "  component: \"/main/dialogs/art/tween/dialog_tween_action.gui\"\n"
-  "}\n"
-  ""
-}
-embedded_instances {
-  id: "tween_copy"
-  data: "components {\n"
-  "  id: \"dialog_tween_copy\"\n"
-  "  component: \"/main/dialogs/art/tween/dialog_tween_copy.gui\"\n"
-  "}\n"
-  ""
-}
-embedded_instances {
-  id: "tween_part"
-  data: "components {\n"
-  "  id: \"dialog_tween_part\"\n"
-  "  component: \"/main/dialogs/art/tween/dialog_tween_part.gui\"\n"
   "}\n"
   ""
 }
@@ -331,34 +269,10 @@ embedded_instances {
   }
 }
 embedded_instances {
-  id: "transform"
-  data: "components {\n"
-  "  id: \"dialog_transform\"\n"
-  "  component: \"/main/dialogs/art/dialog_transform.gui\"\n"
-  "}\n"
-  ""
-}
-embedded_instances {
   id: "get_text"
   data: "components {\n"
   "  id: \"dialog_get_text\"\n"
   "  component: \"/main/dialogs/dialog_get_text.gui\"\n"
-  "}\n"
-  ""
-}
-embedded_instances {
-  id: "transform_parent"
-  data: "components {\n"
-  "  id: \"dialog_parent_transform\"\n"
-  "  component: \"/main/dialogs/art/dialog_parent_transform.gui\"\n"
-  "}\n"
-  ""
-}
-embedded_instances {
-  id: "easing"
-  data: "components {\n"
-  "  id: \"dialog_easing\"\n"
-  "  component: \"/main/dialogs/art/tween/dialog_easing.gui\"\n"
   "}\n"
   ""
 }
@@ -502,4 +416,104 @@ embedded_instances {
     y: 0.9
     z: 0.8
   }
+}
+embedded_instances {
+  id: "import"
+  data: "components {\n"
+  "  id: \"dialog_import_models\"\n"
+  "  component: \"/main/dialogs/art/dialog_import_models.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "instance_list"
+  data: "components {\n"
+  "  id: \"dialog_instance_list\"\n"
+  "  component: \"/main/dialogs/art/dialog_instance_list.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "rename"
+  data: "components {\n"
+  "  id: \"dialog_rename_model\"\n"
+  "  component: \"/main/dialogs/art/dialog_rename_model.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "replace"
+  data: "components {\n"
+  "  id: \"dialog_replace_model\"\n"
+  "  component: \"/main/dialogs/art/dialog_replace_model.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "transform"
+  data: "components {\n"
+  "  id: \"dialog_transform\"\n"
+  "  component: \"/main/dialogs/art/dialog_transform.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "transform_parent"
+  data: "components {\n"
+  "  id: \"dialog_parent_transform\"\n"
+  "  component: \"/main/dialogs/art/dialog_parent_transform.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "tween"
+  children: "easing"
+  children: "tween_action"
+  children: "tween_copy"
+  children: "tween_part"
+  data: "components {\n"
+  "  id: \"dialog_tween\"\n"
+  "  component: \"/main/dialogs/art/tween/dialog_tween.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "easing"
+  data: "components {\n"
+  "  id: \"dialog_easing\"\n"
+  "  component: \"/main/dialogs/art/tween/dialog_easing.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "tween_action"
+  data: "components {\n"
+  "  id: \"dialog_tween_action\"\n"
+  "  component: \"/main/dialogs/art/tween/dialog_tween_action.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "tween_copy"
+  data: "components {\n"
+  "  id: \"dialog_tween_copy\"\n"
+  "  component: \"/main/dialogs/art/tween/dialog_tween_copy.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "tween_part"
+  data: "components {\n"
+  "  id: \"dialog_tween_part\"\n"
+  "  component: \"/main/dialogs/art/tween/dialog_tween_part.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "find"
+  data: "components {\n"
+  "  id: \"dialog_find\"\n"
+  "  component: \"/main/dialogs/art/dialog_find.gui\"\n"
+  "}\n"
+  ""
 }

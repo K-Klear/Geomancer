@@ -56,7 +56,6 @@ go.property("grid_mat", resource.material("/render/other_materials/grid_repeat.m
 go.property("grid_mat_overdraw", resource.material("/render/other_materials/grid_repeat_overdraw.material"))
 
 
-local created_meshes = {}
 local created_transforms = {}
 local geo_meshes = {}
 local chunk_meshes = {}
@@ -67,6 +66,7 @@ local preview_model_transforms = {}
 local preview_model_flash = {}
 
 local current_culling_range, previous_culling_range = 0, nil
+local despawn_triggered = false
 local current_colour = 1
 local c1, c2 = {}, {}
 local colour_transition, ct_clamped
@@ -692,6 +692,9 @@ local function undo_tween(signal_tab)
 end
 
 local function apply_tween(signal_tab, time, full_reset)
+	if not signal_tab.transforms then
+		return
+	end
 	local changes = {[TWEEN_ACTION_MOVE] = {}, [TWEEN_ACTION_SCALE] = {}, [TWEEN_ACTION_ROTATE] = {}}
 	if time - (signal_tab.time + signal_tab.tween.total_time) > 0 then
 		for k, v in ipairs(signal_tab.tween.actions) do
@@ -745,6 +748,7 @@ local function apply_tween(signal_tab, time, full_reset)
 end
 
 local function get_beats(start, spb, beats_per_measure)
+	spb = math.min(spb, 14400000)
 	MOD.seconds_per_beat = spb
 	MOD.beat_start_time = start
 	local bpm = beats_per_measure
@@ -759,19 +763,39 @@ end
 local count = 0
 function update(self, dt)
 	count = count + 1
-	
 	if MOD.viewer_active then
 		local pitch = vmath.quat_rotation_x(math.rad(MOD.target_y))
 		local yaw = vmath.quat_rotation_y(math.rad(MOD.target_x))
 		local rot = yaw * pitch
 		go.set_rotation(rot, MODEL_CAMERA)
-
-		if MOD.tween_preview then
+		if not MOD.tween_preview then
 			if MOD.find_prop then
-				MOD.find_prop = false
-				if MOD.vacuum_preview then
-					CAMERA_POSITION = go.get_world_position(preview_model[1].url) + vmath.rotate(rot, vmath.vector3(0, 0, 10))
+				CAMERA_POSITION = go.get_world_position(preview_model[1].mesh)
+			else
+				local move_vector = vmath.vector3(MOD.cam_target_x, MOD.cam_target_y, 0)
+				CAMERA_POSITION = CAMERA_POSITION + vmath.rotate(rot, move_vector)
+			end
+			go.set_position(CAMERA_POSITION, CAMERA_TARGET)
+			MOD.cam_zoom = math.max(MOD.cam_zoom + MOD.cam_target_z, 0)
+			local pos = vmath.rotate(rot, vmath.vector3(0, 0, MOD.cam_zoom))
+			go.set_position(pos, MODEL_CAMERA)
+			MOD.cam_target_x, MOD.cam_target_y, MOD.cam_target_z = 0, 0, 0
+		else
+			if MOD.find_prop then
+				if type(MOD.find_prop) == "boolean" then
+					if MOD.vacuum_preview then
+						CAMERA_POSITION = go.get_world_position(preview_model[1].url) + vmath.rotate(rot, vmath.vector3(0, 0, 10))
+					end
+				else
+					MOD.target_x = 0
+					MOD.target_y = -25
+					pitch = vmath.quat_rotation_x(math.rad(MOD.target_y))
+					yaw = vmath.quat_rotation_y(math.rad(MOD.target_x))
+					rot = yaw * pitch
+					go.set_rotation(rot, MODEL_CAMERA)
+					CAMERA_POSITION = MOD.find_prop + vmath.rotate(rot, vmath.vector3(0, 0, 8))
 				end
+				MOD.find_prop = false
 			else
 				local move_vector = vmath.vector3(MOD.cam_target_x, 0, MOD.cam_target_z)
 				CAMERA_POSITION = CAMERA_POSITION + vmath.rotate(rot, move_vector)
@@ -784,21 +808,6 @@ function update(self, dt)
 				go.set_position(CAMERA_POSITION, MODEL_CAMERA)
 			end
 			MOD.cam_target_x, MOD.cam_target_y, MOD.cam_target_z = 0, 0, 0
-		else
-			if MOD.find_prop then
-				MOD.find_prop = false
-				CAMERA_POSITION = go.get_world_position(preview_model[1].mesh)
-			else
-				local move_vector = vmath.vector3(MOD.cam_target_x, MOD.cam_target_y, 0)
-				CAMERA_POSITION = CAMERA_POSITION + vmath.rotate(rot, move_vector)
-			end
-			go.set_position(CAMERA_POSITION, CAMERA_TARGET)
-			MOD.cam_zoom = math.max(MOD.cam_zoom + MOD.cam_target_z, 0)
-			local pos = vmath.rotate(rot, vmath.vector3(0, 0, MOD.cam_zoom))
-			go.set_position(pos, MODEL_CAMERA)
-			MOD.cam_target_x, MOD.cam_target_y, MOD.cam_target_z = 0, 0, 0
-		end
-		if MOD.tween_preview then
 			local t = MOD.preview_start + MOD.total_time * MOD.scrubber_progress
 			if MOD.vacuum_preview then
 				for key, val in ipairs(MOD.vacuum_signal_tabs) do
@@ -919,8 +928,23 @@ function update(self, dt)
 						beat_in_progress = false
 					end
 				end
-				current_culling_range = G.clamp(math.floor((z + 6) / 16), 0, MOD.max_culling_range)
+				local range_val = (z + 7) / 16
+				current_culling_range = math.floor(range_val)
+				if (not despawn_triggered or MOD.stationary) and (current_culling_range < math.floor(range_val + 0.125)) then
+					despawn_triggered = true
+					for key, val in pairs(MOD.culling_ranges.visible_props) do
+						if val and (not key.ranges[current_culling_range + 1]) then
+							for k, v in ipairs(key.models) do
+								msg.post(v.mesh, hash("disable"))
+							end
+							key.enabled = false
+							MOD.culling_ranges.visible_props[key] = false
+						end
+					end
+				end
+				current_culling_range = G.clamp(current_culling_range, 0, MOD.max_culling_range)
 				if not (current_culling_range == previous_culling_range or MOD.stationary) then
+					despawn_triggered = false
 					for key, val in pairs(MOD.culling_ranges.visible_slices) do
 						if val and (not key.ranges[current_culling_range]) then
 							msg.post(key.model, hash("disable"))
@@ -940,8 +964,6 @@ function update(self, dt)
 					show_culling_range(self, current_culling_range)
 					previous_culling_range = current_culling_range
 				end
-
-				
 				for key, val in ipairs(MOD.culling_ranges[current_culling_range - 1].signals or {}) do
 					if not (val.used_up or active_tweens[val]) then
 						if t - val.time > 0 then
@@ -1210,6 +1232,9 @@ local function prepare_preview(self)
 		tween_padding_start = 0
 	else
 		tween_padding_start = SET.tween_padding_start
+		if MOD.vacuum_preview then
+			show_model(self, MOD.model_index)
+		end
 	end
 	active_tweens = {}
 	if MEM.event_data.table then
@@ -1228,7 +1253,7 @@ local function prepare_preview(self)
 end
 
 function on_message(self, message_id, message, sender)
-	if message_id == hash("tween_preview") then
+	if message_id == hash("show_preview") then
 		msg.post(".", hash("enable"))
 		MOD.viewer_active = true
 		msg.post(".", hash("acquire_input_focus"))
@@ -1273,13 +1298,22 @@ function on_message(self, message_id, message, sender)
 		flash({message.selected_part})
 	elseif message_id == hash("flash") then
 		if MEM.art_data.temp_part_list then
-			flash(MEM.art_data.temp_part_list)
-			MEM.art_data.temp_part_list = nil
+			if #preview_model > 0 then
+				flash(MEM.art_data.temp_part_list)
+				MEM.art_data.temp_part_list = nil
+			else
+				local function try_again()
+					if #preview_model > 0 and MEM.art_data.temp_part_list then
+						flash(MEM.art_data.temp_part_list)
+						MEM.art_data.temp_part_list = nil
+					end
+				end
+				timer.delay(0.01, false, try_again)
+			end
 		end
 	elseif message_id == hash("stop_flashing") then
 		stop_flash()
 	elseif message_id == hash("hide_context") then
-		show_model(self, MOD.model_index)
 		for key, val in pairs(MOD.culling_ranges) do
 			for k, v in ipairs(val.slices or {}) do
 				if v.enabled then
@@ -1304,6 +1338,40 @@ function on_message(self, message_id, message, sender)
 		go.set("/geo_base", "position.z", message.z)
 		go.set("/static_prop_base", "position.z", message.z)
 	elseif message_id == hash("scrubber_moved") then
+		if not (MOD.stationary or MOD.vacuum_preview) then
+			local t = MOD.preview_start + MOD.total_time * MOD.scrubber_progress
+			local z = t * 3
+			local range_val = (z + 7) / 16
+			current_culling_range = math.floor(range_val)
+			local function show_cul_rang()
+				current_culling_range = G.clamp(current_culling_range, 0, MOD.max_culling_range)
+				for key, val in ipairs(MEM.art_data.colour_list) do
+					if ((t >= val.time) and (not val.end_time or (t < val.end_time))) or (key == #MEM.art_data.colour_list - 1) then
+						MOD.previous_colour = nil
+						apply_colour_section(key, t)
+						break
+					end
+				end
+				show_culling_range(self, current_culling_range)
+				previous_culling_range = current_culling_range
+			end
+			if (current_culling_range < math.floor(range_val + 0.125)) then
+				show_cul_rang()
+				despawn_triggered = true
+				for key, val in pairs(MOD.culling_ranges.visible_props) do
+					if val and (not key.ranges[current_culling_range + 1]) then
+						for k, v in ipairs(key.models) do
+							msg.post(v.mesh, hash("disable"))
+						end
+						key.enabled = false
+						MOD.culling_ranges.visible_props[key] = false
+					end
+				end
+			else
+				despawn_triggered = false
+				show_cul_rang()
+			end
+		end
 		apply_all_tweens()
 		if message.resume_afterwards then
 			msg.post(".", hash("resume_playback"))
@@ -1342,6 +1410,7 @@ function on_message(self, message_id, message, sender)
 				end
 			end
 		end
+		apply_colours_model()
 	elseif message_id == hash("hide_fog") then
 		hide_fog()
 	elseif message_id == hash("hide_props") then

@@ -4,6 +4,7 @@ SET.I_am_Klear = false
 SET.debug = false
 
 local configurable = {
+	"default_preview_time_units",
 	"max_desync",
 	"colour_hidden_model",
 	"unload_data_before_loading_zip",
@@ -59,7 +60,6 @@ local configurable = {
 	"tween_extra_add_buttons",
 	"ask_before_overwriting_tween_file",
 	"tween_timeline_bar_height",
-	"auto_set_tween_preview_prop",
 	"easing_node_scale",
 	"easing_curve_thickness",
 	"easing_node_colour",
@@ -231,6 +231,9 @@ SET.mesh_flash_colour = vmath.vector4(1, 0, 0, 0.4)
 SET.map_preview_partition_size = 10
 SET.max_desync = 0.15
 
+SET.preview_time_units = 1
+SET.default_preview_time_units = 1
+
 SET.play_music = true
 
 -- transform
@@ -249,7 +252,6 @@ SET.tween_action_type_dialog = true
 SET.tween_part_dialog = true
 SET.tween_extra_add_buttons = false
 SET.ask_before_overwriting_tween_file = true
-SET.auto_set_tween_preview_prop = true
 SET.tween_time_in_beats = false
 SET.tween_padding_start = 0.5
 SET.tween_padding_end = 0.5

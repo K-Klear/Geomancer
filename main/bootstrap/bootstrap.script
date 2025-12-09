@@ -49,7 +49,6 @@ local function load_old_config()
 		create_folder_on_export = {type = "boolean"},
 		confirm_file_overwrite = {type = "boolean"},
 		ask_before_overwriting_tween_file = {type = "boolean"},
-		auto_set_tween_preview_prop = {type = "boolean"},
 		ignore_char_limit = {type = "boolean"},
 		import_level_changes = {type = "boolean"},
 		import_event_changes = {type = "boolean"},
@@ -186,6 +185,7 @@ function init(self)
 				SET.import_model_changes = SET.default_import_model_changes
 				SET.import_beat_changes = SET.default_import_beat_changes
 				SET.tween_time_in_beats = SET.default_tween_time_in_beats
+				SET.preview_time_units = SET.default_preview_time_units
 				create_cfg = false
 			else
 				load_old_config()

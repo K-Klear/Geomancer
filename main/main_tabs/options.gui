@@ -2814,7 +2814,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 653.0
+    y: 627.0
   }
   type: TYPE_TEMPLATE
   id: "restrict_rotations_to_360"
@@ -2867,7 +2867,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 597.0
+    y: 571.0
   }
   type: TYPE_TEMPLATE
   id: "tween_action_type_dialog"
@@ -2920,7 +2920,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 546.0
+    y: 520.0
   }
   type: TYPE_TEMPLATE
   id: "tween_part_dialog"
@@ -2973,7 +2973,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 493.0
+    y: 467.0
   }
   type: TYPE_TEMPLATE
   id: "tween_extra_add_buttons"
@@ -3026,7 +3026,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 448.0
+    y: 422.0
   }
   type: TYPE_TEMPLATE
   id: "ask_before_overwriting_tween_file"
@@ -3079,7 +3079,7 @@ nodes {
 nodes {
   position {
     x: 88.0
-    y: 394.0
+    y: 368.0
   }
   size {
     x: 200.0
@@ -3096,7 +3096,7 @@ nodes {
 nodes {
   position {
     x: 489.0
-    y: 390.0
+    y: 364.0
   }
   type: TYPE_TEMPLATE
   id: "tween_timeline_bar_height"
@@ -3127,59 +3127,6 @@ nodes {
   parent: "tween_timeline_bar_height/box"
   overridden_fields: 4
   overridden_fields: 8
-  template_node_child: true
-}
-nodes {
-  position {
-    x: 109.0
-    y: 324.0
-  }
-  type: TYPE_TEMPLATE
-  id: "auto_set_tween_preview_prop"
-  parent: "panel_tween"
-  inherit_alpha: true
-  template: "/templates/button_white_checkbox.gui"
-}
-nodes {
-  type: TYPE_BOX
-  id: "auto_set_tween_preview_prop/button_white"
-  parent: "auto_set_tween_preview_prop"
-  slice9 {
-    x: 30.0
-    y: 30.0
-    z: 30.0
-    w: 30.0
-  }
-  overridden_fields: 22
-  template_node_child: true
-}
-nodes {
-  type: TYPE_TEXT
-  id: "auto_set_tween_preview_prop/text"
-  parent: "auto_set_tween_preview_prop/button_white"
-  overridden_fields: 3
-  template_node_child: true
-}
-nodes {
-  scale {
-    x: 2.0
-    y: 2.0
-  }
-  size {
-    x: 550.0
-    y: 100.0
-  }
-  type: TYPE_TEXT
-  text: "Load the position of the first instance of the prop when opening tween preview"
-  font: "main_menu_button_small"
-  id: "auto_set_tween_preview_prop/label"
-  line_break: true
-  parent: "auto_set_tween_preview_prop/button_white"
-  overridden_fields: 3
-  overridden_fields: 4
-  overridden_fields: 8
-  overridden_fields: 10
-  overridden_fields: 18
   template_node_child: true
 }
 nodes {
@@ -3448,7 +3395,7 @@ nodes {
 nodes {
   position {
     x: 198.0
-    y: 258.0
+    y: 312.0
   }
   size {
     x: 400.0
@@ -3465,7 +3412,7 @@ nodes {
 nodes {
   position {
     x: 398.0
-    y: 255.0
+    y: 309.0
   }
   type: TYPE_TEMPLATE
   id: "default_tween_time_in_beats"
@@ -3499,7 +3446,7 @@ nodes {
 nodes {
   position {
     x: 88.0
-    y: 203.0
+    y: 257.0
   }
   size {
     x: 200.0
@@ -3516,7 +3463,7 @@ nodes {
 nodes {
   position {
     x: 688.0
-    y: 199.0
+    y: 253.0
   }
   type: TYPE_TEMPLATE
   id: "tween_padding_start"
@@ -3552,7 +3499,7 @@ nodes {
 nodes {
   position {
     x: 764.0
-    y: 199.0
+    y: 253.0
   }
   type: TYPE_TEMPLATE
   id: "tween_padding_end"
@@ -4072,7 +4019,7 @@ nodes {
 nodes {
   position {
     x: 780.0
-    y: 419.0
+    y: 352.0
   }
   size {
     x: 200.0
@@ -4090,7 +4037,7 @@ nodes {
 nodes {
   position {
     x: 810.0
-    y: 351.0
+    y: 284.0
   }
   type: TYPE_TEMPLATE
   id: "custom_colour_main"
@@ -4113,7 +4060,7 @@ nodes {
 nodes {
   position {
     x: 900.0
-    y: 351.0
+    y: 284.0
   }
   type: TYPE_TEMPLATE
   id: "custom_colour_fog"
@@ -4136,7 +4083,7 @@ nodes {
 nodes {
   position {
     x: 990.0
-    y: 351.0
+    y: 284.0
   }
   type: TYPE_TEMPLATE
   id: "custom_colour_glow"
@@ -4159,7 +4106,7 @@ nodes {
 nodes {
   position {
     x: 1080.0
-    y: 351.0
+    y: 284.0
   }
   type: TYPE_TEMPLATE
   id: "custom_colour_enemy"
@@ -4182,7 +4129,7 @@ nodes {
 nodes {
   position {
     x: 783.0
-    y: 239.0
+    y: 203.0
   }
   size {
     x: 200.0
@@ -4199,7 +4146,7 @@ nodes {
 nodes {
   position {
     x: 1016.0
-    y: 237.0
+    y: 201.0
   }
   type: TYPE_TEMPLATE
   id: "collider_colour"
@@ -4270,6 +4217,56 @@ nodes {
   parent: "max_desync/box"
   overridden_fields: 4
   overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 783.0
+    y: 421.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Default time units"
+  font: "main_menu_button_small"
+  id: "lbl_default_preview_time_units"
+  pivot: PIVOT_W
+  parent: "panel_model_viewer"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1119.0
+    y: 418.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_preview_time_units"
+  parent: "panel_model_viewer"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "default_preview_time_units/button_white"
+  parent: "default_preview_time_units"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Seconds"
+  id: "default_preview_time_units/text"
+  parent: "default_preview_time_units/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
   template_node_child: true
 }
 nodes {

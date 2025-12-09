@@ -212,6 +212,7 @@ nodes {
     y: 32.0
   }
   type: TYPE_BOX
+  texture: "UI/button_exclusive"
   id: "model_tween/button_white"
   parent: "model_tween"
   layer: "below"
@@ -223,6 +224,7 @@ nodes {
   }
   overridden_fields: 1
   overridden_fields: 4
+  overridden_fields: 9
   overridden_fields: 20
   overridden_fields: 21
   overridden_fields: 22
@@ -230,7 +232,7 @@ nodes {
 }
 nodes {
   scale {
-    x: 0.35
+    x: 0.45
     y: 0.5
   }
   type: TYPE_TEXT
@@ -263,6 +265,7 @@ nodes {
     y: 32.0
   }
   type: TYPE_BOX
+  texture: "UI/button_exclusive"
   id: "model_dynamic/button_white"
   parent: "model_dynamic"
   layer: "below"
@@ -274,6 +277,7 @@ nodes {
   }
   overridden_fields: 1
   overridden_fields: 4
+  overridden_fields: 9
   overridden_fields: 20
   overridden_fields: 21
   overridden_fields: 22
@@ -281,7 +285,7 @@ nodes {
 }
 nodes {
   scale {
-    x: 0.35
+    x: 0.45
     y: 0.5
   }
   type: TYPE_TEXT
@@ -379,6 +383,7 @@ nodes {
     y: 32.0
   }
   type: TYPE_BOX
+  texture: "UI/button_exclusive"
   id: "model_hide/button_white"
   parent: "model_hide"
   slice9 {
@@ -389,13 +394,14 @@ nodes {
   }
   overridden_fields: 3
   overridden_fields: 4
+  overridden_fields: 9
   overridden_fields: 22
   template_node_child: true
 }
 nodes {
   scale {
-    x: 0.5
-    y: 0.5
+    x: 0.6
+    y: 0.6
   }
   type: TYPE_BOX
   texture: "UI/button_visibility"
@@ -556,8 +562,8 @@ nodes {
 }
 nodes {
   position {
-    x: 48.0
-    y: 76.0
+    x: 35.0
+    y: 86.0
   }
   type: TYPE_TEMPLATE
   id: "import_models"
@@ -565,14 +571,16 @@ nodes {
 }
 nodes {
   size {
-    x: 90.0
+    x: 70.0
     y: 44.0
   }
   type: TYPE_BOX
+  texture: "UI/button_exclusive"
   id: "import_models/button_white"
   parent: "import_models"
   overridden_fields: 1
   overridden_fields: 4
+  overridden_fields: 9
   template_node_child: true
 }
 nodes {
@@ -593,8 +601,8 @@ nodes {
 }
 nodes {
   position {
-    x: 132.0
-    y: 76.0
+    x: 95.0
+    y: 86.0
   }
   type: TYPE_TEMPLATE
   id: "sort"
@@ -602,14 +610,16 @@ nodes {
 }
 nodes {
   size {
-    x: 90.0
+    x: 50.0
     y: 44.0
   }
   type: TYPE_BOX
+  texture: "UI/button_exclusive"
   id: "sort/button_white"
   parent: "sort"
   overridden_fields: 1
   overridden_fields: 4
+  overridden_fields: 9
   template_node_child: true
 }
 nodes {
@@ -630,8 +640,8 @@ nodes {
 }
 nodes {
   position {
-    x: 216.0
-    y: 76.0
+    x: 160.0
+    y: 86.0
   }
   type: TYPE_TEMPLATE
   id: "button_replace"
@@ -639,14 +649,16 @@ nodes {
 }
 nodes {
   size {
-    x: 90.0
+    x: 80.0
     y: 44.0
   }
   type: TYPE_BOX
+  texture: "UI/button_exclusive"
   id: "button_replace/button_white"
   parent: "button_replace"
   overridden_fields: 1
   overridden_fields: 4
+  overridden_fields: 9
   template_node_child: true
 }
 nodes {
@@ -667,8 +679,8 @@ nodes {
 }
 nodes {
   position {
-    x: 300.0
-    y: 76.0
+    x: 240.0
+    y: 86.0
   }
   type: TYPE_TEMPLATE
   id: "button_rename"
@@ -676,14 +688,16 @@ nodes {
 }
 nodes {
   size {
-    x: 90.0
+    x: 80.0
     y: 44.0
   }
   type: TYPE_BOX
+  texture: "UI/button_exclusive"
   id: "button_rename/button_white"
   parent: "button_rename"
   overridden_fields: 1
   overridden_fields: 4
+  overridden_fields: 9
   template_node_child: true
 }
 nodes {
@@ -695,6 +709,84 @@ nodes {
   text: "Rename"
   id: "button_rename/text"
   parent: "button_rename/button_white"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 18
+  overridden_fields: 47
+  template_node_child: true
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 310.0
+    y: 86.0
+  }
+  type: TYPE_TEMPLATE
+  id: "button_find"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 60.0
+    y: 44.0
+  }
+  type: TYPE_BOX
+  texture: "UI/button_exclusive"
+  id: "button_find/button_white"
+  parent: "button_find"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  type: TYPE_TEXT
+  text: "Find"
+  id: "button_find/text"
+  parent: "button_find/button_white"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 18
+  overridden_fields: 47
+  template_node_child: true
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 387.0
+    y: 86.0
+  }
+  type: TYPE_TEMPLATE
+  id: "button_list"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 94.0
+    y: 44.0
+  }
+  type: TYPE_BOX
+  texture: "UI/button_exclusive"
+  id: "button_list/button_white"
+  parent: "button_list"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  type: TYPE_TEXT
+  text: "Instances"
+  id: "button_list/text"
+  parent: "button_list/button_white"
   overridden_fields: 3
   overridden_fields: 8
   overridden_fields: 18

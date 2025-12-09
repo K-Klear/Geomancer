@@ -8,7 +8,8 @@ local SND = require "modules.sound"
 local DIALOG = UI.DIALOG
 
 local bounding_node, bounding_node_preview, bounding_node_transform, aux_node, button_box, playback_box
-local close_button, timeline, scrubber, time_display, selected_timeline
+local close_button, timeline, scrubber, time_display, time_tween, time_length, selected_timeline
+
 local get_current_transform, previous_transform_name
 local current_bounding_node
 local colour_unselected_timeline = vmath.vector4(0.6, 0.6, 0.6, 1)
@@ -16,7 +17,10 @@ local colour_unselected_timeline = vmath.vector4(0.6, 0.6, 0.6, 1)
 local move_scrubber
 local mouse_wheel_scroll_target = 0
 
+local preview_source
+
 local tween_padding_start, tween_padding_end = 0, 0
+local song_length
 
 local TAB_NAME = "model_viewer"
 
@@ -101,6 +105,54 @@ local function set_hide_grid(change)
 	end
 end
 
+local function update_view(update_scubber)
+	if update_scubber then
+		local min_x = gui.get_screen_position(gui.get_node("min")).x
+		local max_x = gui.get_screen_position(gui.get_node("max")).x
+		local pos = gui.get_screen_position(scrubber)
+		MOD.scrubber_progress = (pos.x - min_x) / (max_x - min_x)
+		get_current_transform()
+	end
+	local tween_progress = MOD.total_time * MOD.scrubber_progress
+	local time_to_display = MOD.preview_start + tween_progress
+	local progress_percent = 100 * time_to_display / song_length
+	local song_length_converted = song_length
+	local tween_start = 0
+	if MOD.tween_table then
+		tween_start = MOD.tween_table.signals[selected_timeline]
+	end
+
+	if SET.preview_time_units == 2 then
+		time_to_display = time_to_display * 3
+		song_length_converted = song_length_converted * 3
+		tween_start = tween_start * 3
+	elseif SET.preview_time_units == 3 then
+		time_to_display = time_to_display * SET.sample_rate
+		song_length_converted = song_length_converted * SET.sample_rate
+		tween_start = tween_start * SET.sample_rate
+	end
+
+	gui.set_text(time_display, string.format("%.1f", time_to_display).." / "..string.format("%.1f", song_length_converted))
+	gui.set_text(time_length, string.format("%.1f", progress_percent).."%")
+	if MOD.tween_table then
+		gui.set_text(time_tween, string.format("%.1f", time_to_display - tween_start))
+	end
+end
+
+local function update_time_units_button(update_text)
+	if SET.preview_time_units == 2 then
+		gui.set_text(gui.get_node("time_units/text"), "Distance")
+	elseif SET.preview_time_units == 3 then
+		gui.set_text(gui.get_node("time_units/text"), "Samples")
+	else
+		SET.preview_time_units = 1
+		gui.set_text(gui.get_node("time_units/text"), "Seconds")
+	end
+	if update_text then
+		update_view()
+	end
+end
+
 function init(self)
 	MOD.map_preview = false
 	set_transform_button()
@@ -114,6 +166,8 @@ function init(self)
 	timeline = gui.get_node("timeline_box")
 	scrubber = gui.get_node("scrubber")
 	time_display = gui.get_node("label_time")
+	time_length = gui.get_node("label_time_length")
+	time_tween = gui.get_node("label_time_tween")
 	aux_node = gui.new_box_node(vmath.vector3(0), vmath.vector3(1))
 	gui.set_pivot(aux_node, gui.PIVOT_NW)
 	gui.set_visible(aux_node, false)
@@ -146,20 +200,7 @@ local function delete_timeline()
 	action_bars = {}
 end
 
-local function update_view(update_scubber)
-	if update_scubber then
-		local min_x = gui.get_screen_position(gui.get_node("min")).x
-		local max_x = gui.get_screen_position(gui.get_node("max")).x
-		local pos = gui.get_screen_position(scrubber)
-		MOD.scrubber_progress = (pos.x - min_x) / (max_x - min_x)
-		get_current_transform()
-	end
-	local time_to_display = MOD.preview_start + (MOD.total_time * MOD.scrubber_progress)
-	if selected_timeline and MOD.tween_table and MOD.tween_table[selected_timeline].time_offset then
-		time_to_display = time_to_display - MOD.tween_table[selected_timeline].time_offset
-	end
-	gui.set_text(time_display, G.round(time_to_display, 3))
-end
+
 
 
 local function select_timeline(selection)
@@ -266,12 +307,12 @@ local function start_playback()
 end
 
 local function close_preview()
-	if MOD.map_preview then
+	if preview_source == hash("tween_editor") then
+		set_ui(hash("transform"))
+	else
 		msg.post(".", hash("reset_tween"))
 		MOD.map_preview = false
 		set_ui(hash("map_preview"))
-	else
-		set_ui(hash("transform"))
 	end
 	MOD.tween_preview = false
 	MOD.vacuum_preview = false
@@ -468,38 +509,44 @@ local function prepare_tween_data(selected_model_index)
 		end
 		for _, event_val in pairs(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events) do
 			local start = event_val.startSample / SET.sample_rate
-			local range = math.min(math.floor((start * 3 + 6) / 16), MOD.max_culling_range)
+			local range_val = (start * 3 + 7) / 16
+			local range = math.min(math.floor(range_val), MOD.max_culling_range)
+
+			local ignore_despawn = not (range < math.floor(range_val + 0.125))
+			
 			MOD.culling_ranges[range] = MOD.culling_ranges[range] or {slices = {}, props = {}, signals = {}}
 			local target_prop, target_transform, target_model_index, target_prop_list_index
 			local target_table
 			local range_to_search = range
 			if MOD.stationary then range_to_search = 0 end
 			for k, v in ipairs(MOD.culling_ranges[range_to_search].props) do
-				if (MEM.art_data.table.propsDictionary[v.model_index].tween or 0) > 0 then
-					local trans_list = MEM.art_data.table.propsDictionary[v.model_index].model_data.transform_list
-					for key, val in ipairs(trans_list) do
-						if val.tween then
-							if val.tween.signal == event_val.payload then
-								v.signal = v.signal or {}
-								local already_done
-								for _k, _v in ipairs(v.signal) do
-									if _v.target_transform == key then
-										already_done = true
+				if ignore_despawn or v.ranges[range_to_search + 1] then
+					if (MEM.art_data.table.propsDictionary[v.model_index].tween or 0) > 0 then
+						local trans_list = MEM.art_data.table.propsDictionary[v.model_index].model_data.transform_list
+						for key, val in ipairs(trans_list) do
+							if val.tween then
+								if val.tween.signal == event_val.payload then
+									v.signal = v.signal or {}
+									local already_done
+									for _k, _v in ipairs(v.signal) do
+										if _v.target_transform == key then
+											already_done = true
+											break
+										end
+									end
+									if not already_done then
+										target_prop = v.name
+										target_model_index = v.model_index
+										target_prop_list_index = v.prop_list_index
+										target_transform = key
+										target_table = v.signal
 										break
 									end
 								end
-								if not already_done then
-									target_prop = v.name
-									target_model_index = v.model_index
-									target_prop_list_index = v.prop_list_index
-									target_transform = key
-									target_table = v.signal
-									break
-								end
 							end
 						end
+						if target_prop then break end
 					end
-					if target_prop then break end
 				end
 			end
 			table.insert(MOD.culling_ranges[range].signals, {
@@ -553,14 +600,8 @@ local function prepare_tween_data(selected_model_index)
 	end
 end
 
-local function preview_setup_map()
-	MOD.map_preview = true
-	tween_padding_start = 0
-	tween_padding_end = 0
-	selected_timeline = 1
-	set_move_terrain(true)
-
-	local song_length = 0
+local function get_song_length()
+	song_length = 0
 	if MEM.level_data then
 		if MEM.level_data.songLength then
 			song_length = tonumber(MEM.level_data.songLength) or 0
@@ -569,6 +610,14 @@ local function preview_setup_map()
 		end
 	end
 	if song_length < 1 then song_length = 300 end
+end
+
+local function preview_setup_map()
+	MOD.map_preview = true
+	tween_padding_start = 0
+	tween_padding_end = 0
+	selected_timeline = 1
+	set_move_terrain(true)
 	
 	local t = {}
 	local size = SET.map_preview_partition_size
@@ -583,12 +632,13 @@ local function preview_setup_map()
 	MOD.tween_table.signals = {0}
 
 	MOD.preview_start = 0
-	MOD.preview_end = song_length
 	MOD.total_time = song_length
 	
 	create_tween_sections()
 	if not MOD.scrubber_progress then
 		move_scrubber(0)
+	else
+		move_scrubber(MOD.scrubber_progress)
 	end
 	prepare_tween_data()
 	set_ui(hash("map_preview"))
@@ -602,17 +652,17 @@ local function setup_tween_contex(picked_transform, selected_prop)
 	local timeline_count = 0
 	MOD.tween_table = {signals = {}}
 
+	local last_tween_end = 0
+
 	for key, val in ipairs(MOD.props_for_preview[selected_prop]) do
 		tween_start = math.min(tween_start, val.time)
 		timeline_count = timeline_count + 1
-		MOD.total_time = math.max(MOD.total_time, val.tween.total_time)
+		last_tween_end = math.max(last_tween_end, val.time + val.tween.total_time)
 		table.insert(MOD.tween_table, val.tween.actions)
 		table.insert(MOD.tween_table.signals, val.time)
 	end
-
-	MOD.total_time = MOD.total_time + SET.tween_padding_start + SET.tween_padding_end
+	MOD.total_time = last_tween_end - tween_start + SET.tween_padding_start + SET.tween_padding_end
 	MOD.preview_start = tween_start - SET.tween_padding_start
-	MOD.preview_end = tween_start + MOD.total_time + SET.tween_padding_end
 
 	if picked_transform then
 		selected_timeline = 0
@@ -678,7 +728,6 @@ local function setup_tween_vacuum(picked_transform, selected_model_tweens)
 	
 	MOD.total_time = longest_tween + SET.tween_padding_start + SET.tween_padding_end
 	MOD.preview_start = -SET.tween_padding_start
-	MOD.preview_end = MOD.total_time + SET.tween_padding_end
 
 	create_tween_sections()
 
@@ -703,9 +752,9 @@ local function preview_setup_tween(message, force_vacuum)
 
 	MOD.props_for_preview = {}
 	local repeat_props = {}
-	
+
 	for key, val in pairs(MOD.culling_ranges) do
-		for k, v in ipairs(val.signals or {})  do
+		for k, v in ipairs(val.signals or {}) do
 			if v.target_model_index == MOD.model_index then
 				local t = {
 					transforms = v.transforms,
@@ -748,7 +797,12 @@ local function preview_setup_shared(message)
 	set_pov_lock(false)
 	previous_transform_name = nil
 	msg.post("#", hash("acquire_input_focus"))
+	get_song_length()
 
+	if message.jump_to then
+		MOD.scrubber_progress = message.jump_to / song_length
+	end
+	
 	if message.preview_map then
 		preview_setup_map()
 	else
@@ -757,6 +811,7 @@ local function preview_setup_shared(message)
 end
 
 function set_ui(mode)
+	update_time_units_button()
 	show_visibility_box(false)
 	UI.unload_template(TAB_NAME)
 	UI.load_template({"reset_view"}, TAB_NAME)	
@@ -764,6 +819,8 @@ function set_ui(mode)
 		gui.set_enabled(gui.get_node("toggle_visibility/button_white"), false)
 		gui.set_enabled(gui.get_node("label_model"), false)
 		gui.set_enabled(time_display, false)
+		gui.set_enabled(time_length, false)
+		gui.set_enabled(time_tween, false)
 		gui.set_enabled(gui.get_node("pick_model/button_white"), false)
 		gui.set_enabled(scrubber, false)
 		gui.set_enabled(gui.get_node("playback_box"), false)
@@ -795,10 +852,11 @@ function set_ui(mode)
 		end
 	elseif mode == hash("tween_vacuum") or mode == hash("tween_context") or mode == hash("map_preview") then
 		UI.load_template({"playback_back", "playback_forward", "playback_play", "playback_stop", "playback_slow", 
-		"playback_normal", "playback_fast", "playback_fastest", "close_preview"}, TAB_NAME)
+		"playback_normal", "playback_fast", "playback_fastest", "close_preview", "time_units"}, TAB_NAME)
 		gui.set_enabled(timeline, true)
 		gui.set_enabled(gui.get_node("close_preview/button_white"), true)
 		gui.set_enabled(time_display, true)
+		gui.set_enabled(time_length, true)
 		change_bounds(bounding_node_preview)
 		gui.set_enabled(scrubber, true)
 		gui.set_position(button_box, BUTTON_BOX_POSITION_PREVIEW)
@@ -815,6 +873,7 @@ function set_ui(mode)
 			gui.set_enabled(gui.get_node("hide_grid_model/button_white"), true)
 			gui.set_enabled(gui.get_node("button_colour_model/button_white"), true)
 			gui.set_enabled(gui.get_node("visibility_box"), false)
+			gui.set_enabled(time_tween, true)
 		elseif mode == hash("tween_context") then
 			UI.load_template({"pick_model", "lock_cam", "move_terrain"}, TAB_NAME)
 			UI.load_template({"toggle_visibility"}, TAB_NAME)
@@ -828,6 +887,7 @@ function set_ui(mode)
 			gui.set_enabled(gui.get_node("hide_grid_model/button_white"), false)
 			gui.set_enabled(gui.get_node("button_colour_model/button_white"), false)
 			gui.set_enabled(gui.get_node("visibility_box"), true)
+			gui.set_enabled(time_tween, true)
 		elseif mode == hash("map_preview") then
 			UI.load_template({"toggle_visibility", "lock_cam", "move_terrain"}, TAB_NAME)
 			gui.set_enabled(gui.get_node("find_prop/button_white"), false)
@@ -840,6 +900,7 @@ function set_ui(mode)
 			gui.set_enabled(gui.get_node("hide_grid_model/button_white"), false)
 			gui.set_enabled(gui.get_node("button_colour_model/button_white"), false)
 			gui.set_enabled(gui.get_node("visibility_box"), true)
+			gui.set_enabled(time_tween, false)
 		end
 	end
 end
@@ -855,6 +916,7 @@ function on_message(self, message_id, message, sender)
 		if MOD.tween_preview then
 			close_preview()
 		end
+		DIALOG.close_all(TAB_NAME)
 	elseif message_id == hash("disable_input") then
 		msg.post("#", hash("release_input_focus"))
 	elseif message_id == hash("dialog_closed") then
@@ -864,7 +926,7 @@ function on_message(self, message_id, message, sender)
 				stop_playback()
 				msg.post(".", hash("reset_tween"))
 				setup_tween_contex(nil, message.selected_prop)
-				--msg.post(".", hash("tween_preview"), {model = MOD.model_index, selected_transform = 1})
+				--msg.post(".", hash("show_preview"), {model = MOD.model_index, selected_transform = 1})
 			elseif message.vacuum then
 				stop_playback()
 				msg.post(".", hash("hide_context"))
@@ -887,7 +949,8 @@ function on_message(self, message_id, message, sender)
 		start_playback()
 	elseif message_id == hash("move_scrubber") then
 		move_scrubber(message.time)
-	elseif message_id == hash("tween_preview") then
+	elseif message_id == hash("show_preview") then
+		preview_source = message.source
 		preview_setup_shared(message)
 	end
 end
@@ -967,6 +1030,7 @@ local function evaluate_button(button)
 			current_dialog = "tween_preview"
 		else
 			current_dialog = "tab_art"
+			msg.post(UI.tab.tab_art.path, hash("release_input_focus"))
 		end
 		DIALOG.open(TAB_NAME, "dialog_colours", {allow_cancel = button == "button_colour", current_dialog = current_dialog})
 		MOD.is_dragged = false
@@ -1049,6 +1113,9 @@ local function evaluate_button(button)
 			set_pov_lock(false)
 		end
 		MOD.find_prop = true
+	elseif button == "time_units" then
+		SET.preview_time_units = SET.preview_time_units + 1
+		update_time_units_button(true)
 	elseif button == "playback_back" then
 		local current_action, start_time = get_current_action()
 		local new_time
@@ -1121,13 +1188,26 @@ local function evaluate_button(button)
 		move_scrubber(0)
 		get_current_transform(1)
 	elseif MOD.tween_preview and (button == "close_preview" or button == "escape") then
-		if MOD.map_preview then
+		if preview_source == hash("file_tab") then
 			msg.post(UI.tab.tab_file.path, hash("show"))
 			msg.post(".", hash("hide"))
-		else
+		elseif preview_source == hash("tween_editor") then
 			msg.post(UI.tab.dialog_tween.path, hash("tween_preview_closed"), {tween_index = MOD.tween_table[selected_timeline].timeline_id})
 			msg.post(UI.tab.dialog_transform.path, hash("enable"))
 			msg.post(".", hash("update_model"), {model = MOD.model_index})
+		elseif preview_source == hash("instance_list") then
+			msg.post(UI.tab.tab_art.path, hash("show"))
+			msg.post(UI.tab.dialog_instance_list.path, hash("reopen"))
+			msg.post(".", hash("hide"))
+		else	-- This could be removed, but I'm keeping in just in case preview_source ever happens to be nil since I missed something
+			if MOD.map_preview then
+				msg.post(UI.tab.tab_file.path, hash("show"))
+				msg.post(".", hash("hide"))
+			else
+				msg.post(UI.tab.dialog_tween.path, hash("tween_preview_closed"), {tween_index = MOD.tween_table[selected_timeline].timeline_id})
+				msg.post(UI.tab.dialog_transform.path, hash("enable"))
+				msg.post(".", hash("update_model"), {model = MOD.model_index})
+			end
 		end
 		close_preview()
 	end

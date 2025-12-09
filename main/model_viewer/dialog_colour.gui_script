@@ -109,7 +109,6 @@ function on_message(self, message_id, message, sender)
 		if message.allow_cancel then
 			UI.load_template("colour_cancel", DIALOG_NAME)
 		end
-		
 	elseif message_id == hash("dialog_closed") then
 		msg.post("#", hash("acquire_input_focus"))
 		if message.dialog == "colour_picker" then

@@ -1,8 +1,6 @@
 To do:
 
 - Fix buttons firing when mouse is held, moved away and then returned to the button
-- Check for illegal enemy types
-- Partial export
 - Link the model spreadsheet from somewhere, maybe
 - "Smart" model dynamizer
 - The json sanitiser is dumb. Make it less dumb
@@ -16,19 +14,17 @@ To do:
 	- Add a new section for sequences found among the enemies/in the sequence file?
 - Add a cfg for default easing and number of nodes
 - Option to view colliders in model viewer
-- Lock view to base transform in tween preview
-- Reorganise cfgs - look into the guide
-	- Scratch that - start implementing an actual options screen
-- Maybe a player model?
-- Catch errors when running out of available gui nodes, maybe? Might be worth on the preview timeline.
-	- Alternatively just stop creating them when they're way too smooched together, but that sounds like work
-		- Definitely worth it to not make separate ones for easings. But still work.
 - Shift-click fields to delete contents
 - have validation check if the value is function or just a value and remove all the dumb anonymous functions returning always the same thing
 - Add a warning if no export happens before closing
-- Add a "placeholder model" tag to hide specific props in previews
 - Store signals during model preview as hashes to make update() a tad faster.
 - If a poster is not present in the map, generate a placeholder graphic
+- Stop messing up the prop groups. And might as well implement my own way of organising them.
+- Automatic frame-by-frame animation generation
+
+- Option to show prop origin
+- A way to expand a repeat action
+- A "note" tween action
 
 Bugs:
 - The check for Spooky and airdrop obstacle signals needs to be more robust
@@ -36,37 +32,47 @@ Bugs:
 - Had a dynamic model refuse to stay dynamic after switching tabs. No idea why.
 	- Actually saw a wrong model turn dynamic. Something's fishy
 		- Might be caused by sorting models - investigate!
-- Fix time display in previews
+- Tween > preview > click event tab - beatcubes still there.
 
 Settings to implement in options:
 
-sort out the colour situation
 Something for timeline height in map preview
 probably remove default model z position as is it useless?
 	Maybe it will see use in tween preview
-get rid of auto_set_tween_preview_prop
-
 
 Done:
 
 Features:
+- Added a "Find" button to the art tab to search in the model list
+	- The search field accepts Lua pattern matching. This is unlikely to be useful, so don't worry about it.
+- Added an "Instances" button to the art tab. This will bring out a list of all instances of the selected model sorted by Z position.
+	- Specific prop properties (position, rotation, scale, spawn/despawn times) can be modified from this screen.
+	- Use the eye icon to jump to a specific prop's position in map preview
+- Map/tween preview now shows current time, total map length and percentage to the left and in the case of tween preview time relative to the start of the tween associated with the currently selected timeline to the right.
+	- The units can be switched between seconds, distance in map units or samples according to the currently set sample rate
 
 New shortcuts:
 
 Fixes:
-- Camera no longer resets after editing a transform
-- Map preview resets to start of the map when a new one is loaded
-- Re-added the "show grid" and "colours" buttons to the model/transform views
-- Model preview on the models tab is shown from a higher angle by default
-- Previewing a tween without context no longer starts with the camera at its origin
+- The Load file function now lets you load .ogg files, which is an easy way to change the map's music.
+- Colour override gets turned off when loading a new map
+- Removed the "Load the position of the first instance of the prop when opening tween preview" option, as it is no longer necessary
+- Changed the appearance of some buttons to a more space-efficient design
+- Improved timing of prop spawns/despawns. Should be exactly the same as in-game.
 
 Bugs:
-- Fixed an issue with mesh flashing triggering twice or not at all
-- Sorting models no longer breaks map preview
-- Buffer resources are now freed correctly when unloading a map
+- Fixed graphical glitches appearing during no-beat sections if BPM is set to 0.
+- Any dialogs opened in model preview (colour) now get closed when switching tabs
+- Fixed an issue preventing tween previews for props without corresponding signals from working
+- Fixed incorrect tween preview length for some props with multiple tweens
+- Fixed a bug preventing geomancer metadata from being written correctly
+- Fixed an error when rewinding a map with a signal sent near the prop's despawn time
+- Fixed a crash when replacing the last model on the list with a different one
+- After a model is replaced, model count is now updated
+- Fixed an issue when refreshing a list with a lot of entries
 
 New options:
-
+- Map preview -> Default time units
 
 metronome_sound = 1 (0 - nothing, 1 - beep, 2 - click)
 

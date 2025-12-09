@@ -2,7 +2,6 @@ local MEM = require "modules.memory"
 local UI = require "modules.ui"
 local G = require "modules.global"
 local SET = require "modules.settings"
-local COL = require "modules.colours"
 local MOD = require "modules.models"
 local DIALOG = UI.DIALOG
 local TAB_NAME = "tab_art"
@@ -73,7 +72,7 @@ end
 function init(self)
 	gui.set_render_order(1)
 	msg.post("#", hash("disable"))
-	UI.load_template({"sort", "button_replace", "button_rename", "colour_guide", "import_models"}, TAB_NAME)
+	UI.load_template({"sort", "button_replace", "button_rename", "button_find", "button_list", "colour_guide", "import_models"}, TAB_NAME)
 	local mat_template = gui.get_node("mat_0/button_white")
 	local position = gui.get_position(mat_template)
 	local start_y = position.y
@@ -107,6 +106,7 @@ function init(self)
 			type = hash("button"),
 			node = gui.get_node("model_hide/button_white"),
 			text_node = gui.get_node("model_hide/text"),
+			gfx = hash("button_exclusive"),
 			value_flipbook = true,
 			value_fn = function(i)
 				if MEM.art_data.table.propsDictionary[i].hide then
@@ -128,6 +128,7 @@ function init(self)
 			type = hash("button"),
 			node = gui.get_node("model_dynamic/button_white"),
 			text_node = gui.get_node("model_dynamic/text"),
+			gfx = hash("button_exclusive"),
 			value_fn = function(i)
 				if MEM.art_data.table.propsDictionary[i].dynamic then
 					return "Dynamic"
@@ -150,6 +151,7 @@ function init(self)
 			type = hash("button"),
 			node = gui.get_node("model_tween/button_white"),
 			text_node = gui.get_node("model_tween/text"),
+			gfx = hash("button_exclusive"),
 			value_fn = function(i)
 				if MEM.art_data.table.propsDictionary[i].tween == 1 then
 					return "1 tween"
@@ -255,7 +257,6 @@ local function update_materials()
 end
 
 local function update_lists()
-	-- THIS IS PART OF THE UI LEAK, HAPPENED WHEN WORKING ON A TWEEN
 	UI.update_list(TAB_NAME, model_list, #MEM.art_data.table.propsDictionary)
 	if get_selected_model() > 0 then
 		local part_table = MEM.art_data.table.propsDictionary[get_selected_model()].model_data.parts
@@ -313,6 +314,35 @@ local function import_models()
 	end
 end
 
+local function count_model_instances(model_name)
+	local count = 0
+	for key, val in ipairs(MEM.art_data.table.staticProps) do
+		if val.name == model_name then
+			count = count + 1
+		end
+	end
+	for key, val in ipairs(MEM.art_data.table.dynamicProps) do
+		if val.name == model_name then
+			count = count + 1
+		end
+	end
+	for key, val in ipairs(MEM.art_data.table.staticCullingRanges) do
+		for k, v in ipairs(val.members) do
+			if v.name == model_name then
+				count = count + 1
+			end
+		end
+	end
+	for key, val in ipairs(MEM.art_data.table.dynamicCullingRanges) do
+		for k, v in ipairs(val.members) do
+			if v.name == model_name then
+				count = count + 1
+			end
+		end
+	end
+	return count
+end
+
 local function model_replace(selected_model_index, replace_model_index)
 	local old_name = MEM.art_data.table.propsDictionary[selected_model_index].key
 	local new_name = MEM.art_data.table.propsDictionary[replace_model_index].key
@@ -351,21 +381,24 @@ local function model_replace(selected_model_index, replace_model_index)
 	MEM.art_data.table.propsDictionary[replace_model_index].object.name = MEM.art_data.table.propsDictionary[selected_model_index].object.name
 	MEM.art_data.table.propsDictionary[replace_model_index].dynamic = MEM.art_data.table.propsDictionary[selected_model_index].dynamic
 	-- something about tweens too
-	
+
 	MEM.art_data.table.propsDictionary[selected_model_index] = MEM.art_data.table.propsDictionary[replace_model_index]
 	table.remove(MEM.art_data.table.propsDictionary, replace_model_index)
 
+	local new_index = selected_model_index
+	if not (MEM.art_data.table.propsDictionary[selected_model_index] and MEM.art_data.table.propsDictionary[selected_model_index].key == new_name) then
+		new_index = new_index - 1
+	end
+	MEM.art_data.table.propsDictionary[new_index].model_data.model_count = count_model_instances(old_name)
+
+	MEM.create_prop_list(MEM.art_data.table, true)
+	MEM.setup_culling_ranges()
+	
+	msg.post("/model_viewer", hash("update_model"), {model = new_index})
+	UI.select_exclusive_button(TAB_NAME, model_list, new_index)
+
 	G.update_navbar("All instances of "..old_name.." have been replaced by "..new_name.." keeping the original model name and properties.", true)
 	update_lists()
-	for key, val in ipairs(MEM.art_data.table.propsDictionary) do
-		if val.key == old_name then
-			msg.post("/model_viewer", hash("update_model"), {model = key})
-			timer.delay(0, false, function()
-				UI.select_exclusive_button(TAB_NAME, model_list, key)
-			end)
-			break
-		end
-	end
 end
 
 local function rename_model(new_name, model_to_rename)
@@ -585,6 +618,18 @@ local function check_tweens()
 	end
 end
 
+local function select_model(selected_model)
+	selected_model = selected_model or get_selected_model()
+	UI.update_list(TAB_NAME, part_list, #MEM.art_data.table.propsDictionary[selected_model].model_data.parts)
+	UI.select_exclusive_button(TAB_NAME, part_list, 1)
+	if MEM.art_data.table.propsDictionary[selected_model].model_data.do_not_render then
+		msg.post("/model_viewer", hash("remove_model"))
+		return
+	end
+	update_materials()
+	msg.post("/model_viewer", hash("update_model"), {model = selected_model, selected_part = 1})
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == hash("hide") then
 		msg.post("#", hash("disable"))
@@ -666,40 +711,18 @@ function on_message(self, message_id, message, sender)
 			elseif message.button == 3 then
 				G.update_navbar("Model deletion canceled", true)
 			end
+		elseif message.dialog == "dialog_find" then
+			if message.selected_model then
+				UI.select_exclusive_button(TAB_NAME, model_list, message.selected_model)
+				select_model(message.selected_model)
+			end
 		end
 	elseif message_id == hash("degeomance") then
 		degeomance()
 	end
 end
 
-local function count_model_instances(model_name)
-	local count = 0
-	for key, val in ipairs(MEM.art_data.table.staticProps) do
-		if val.name == model_name then
-			count = count + 1
-		end
-	end
-	for key, val in ipairs(MEM.art_data.table.dynamicProps) do
-		if val.name == model_name then
-			count = count + 1
-		end
-	end
-	for key, val in ipairs(MEM.art_data.table.staticCullingRanges) do
-		for k, v in ipairs(val.members) do
-			if v.name == model_name then
-				count = count + 1
-			end
-		end
-	end
-	for key, val in ipairs(MEM.art_data.table.dynamicCullingRanges) do
-		for k, v in ipairs(val.members) do
-			if v.name == model_name then
-				count = count + 1
-			end
-		end
-	end
-	return count
-end
+
 
 function evaluate_button(button, item)
 	if button == "sort" then
@@ -722,6 +745,15 @@ function evaluate_button(button, item)
 		else
 			G.update_navbar("Select a model first", true)
 		end
+	elseif button == "button_list" then
+		local selected_model = get_selected_model()
+		if selected_model > 0 then
+			open_dialog("dialog_instance_list", {selected_model = selected_model})
+		else
+			G.update_navbar("Select a model first", true)
+		end
+	elseif button == "button_find" then
+		open_dialog("dialog_find")
 	elseif button == "button_delete" then
 		local selected_model = get_selected_model()
 		if selected_model > 0 then
@@ -756,15 +788,7 @@ function evaluate_button(button, item)
 			G.update_navbar("Select a model and one of its parts first.", true)
 		end
 	elseif button == model_list then
-		local selected_model = get_selected_model()
-		UI.update_list(TAB_NAME, part_list, #MEM.art_data.table.propsDictionary[selected_model].model_data.parts)
-		UI.select_exclusive_button(TAB_NAME, part_list, 1)
-		if MEM.art_data.table.propsDictionary[item].model_data.do_not_render then
-			msg.post("/model_viewer", hash("remove_model"))
-			return
-		end
-		update_materials()
-		msg.post("/model_viewer", hash("update_model"), {model = selected_model, selected_part = 1})
+		select_model()
 	elseif button == part_list then
 		msg.post("/model_viewer", hash("show_part"), {selected_part = item or 1})
 		update_materials()

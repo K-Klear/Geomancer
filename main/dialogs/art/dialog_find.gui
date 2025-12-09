@@ -1,0 +1,301 @@
+script: "/main/dialogs/art/dialog_find.gui_script"
+fonts {
+  name: "main_menu_button"
+  font: "/assets/fonts/final/main_menu_button.font"
+}
+fonts {
+  name: "status_text"
+  font: "/assets/fonts/final/status_text.font"
+}
+textures {
+  name: "UI"
+  texture: "/assets/gfx/UI.atlas"
+}
+nodes {
+  position {
+    x: 550.0
+    y: 437.0
+  }
+  size {
+    x: 620.0
+    y: 460.0
+  }
+  type: TYPE_BOX
+  texture: "UI/panel_green"
+  id: "edit_box"
+  layer: "list_background"
+  slice9 {
+    x: 40.0
+    y: 40.0
+    z: 40.0
+    w: 40.0
+  }
+  alpha: 0.9
+}
+nodes {
+  position {
+    y: 192.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 250.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "Enter (part of) the name\n"
+  "of the prop"
+  font: "main_menu_button"
+  id: "title_find"
+  pivot: PIVOT_N
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  parent: "edit_box"
+  layer: "text"
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+  material: "font-df"
+}
+nodes {
+  position {
+    y: -157.0
+  }
+  type: TYPE_TEMPLATE
+  id: "close"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 180.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  id: "close/button_white"
+  parent: "close"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Close"
+  id: "close/text"
+  parent: "close/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -176.0
+    y: 118.0
+  }
+  size {
+    x: 352.0
+    y: 164.0
+  }
+  type: TYPE_BOX
+  texture: "UI/empty_pixel"
+  id: "find_list"
+  pivot: PIVOT_NW
+  parent: "edit_box"
+  clipping_mode: CLIPPING_MODE_STENCIL
+  clipping_visible: false
+}
+nodes {
+  position {
+    x: 313.0
+    y: -428.0
+  }
+  type: TYPE_BOX
+  texture: "UI/scrollbar_button"
+  id: "find_scroll_up"
+  parent: "find_list"
+  layer: "below"
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 313.0
+    y: -569.0
+  }
+  rotation {
+    z: 180.0
+  }
+  type: TYPE_BOX
+  texture: "UI/scrollbar_button"
+  id: "find_scroll_down"
+  parent: "find_list"
+  layer: "below"
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 313.0
+    y: -466.0
+  }
+  size {
+    x: 32.0
+    y: 34.0
+  }
+  color {
+    x: 0.502
+    y: 0.502
+    z: 0.502
+  }
+  type: TYPE_BOX
+  texture: "UI/scrollbar"
+  id: "find_scroll_background"
+  pivot: PIVOT_N
+  parent: "find_list"
+  layer: "below"
+  slice9 {
+    x: 6.0
+    y: 6.0
+    z: 6.0
+    w: 6.0
+  }
+}
+nodes {
+  position {
+    x: 313.0
+    y: -466.0
+  }
+  size {
+    x: 24.0
+    y: 34.0
+  }
+  type: TYPE_BOX
+  texture: "UI/scrollbar"
+  id: "find_scroll_grip"
+  pivot: PIVOT_N
+  parent: "find_list"
+  layer: "below"
+  slice9 {
+    x: 6.0
+    y: 6.0
+    z: 6.0
+    w: 6.0
+  }
+}
+nodes {
+  position {
+    y: -16.0
+  }
+  type: TYPE_TEMPLATE
+  id: "find_exclusive"
+  parent: "find_list"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 320.0
+    y: 32.0
+  }
+  type: TYPE_BOX
+  texture: "UI/button_exclusive"
+  id: "find_exclusive/button_white"
+  pivot: PIVOT_W
+  parent: "find_exclusive"
+  layer: "below"
+  slice9 {
+    x: 6.0
+    y: 6.0
+    z: 6.0
+    w: 6.0
+  }
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 9
+  overridden_fields: 14
+  overridden_fields: 20
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 5.0
+  }
+  size {
+    x: 160.0
+    y: 30.0
+  }
+  type: TYPE_TEXT
+  text: "123456789012345678901234567890123456789"
+  font: "status_text"
+  id: "find_exclusive/text"
+  pivot: PIVOT_W
+  parent: "find_exclusive/button_white"
+  layer: "text"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 14
+  overridden_fields: 18
+  overridden_fields: 20
+  overridden_fields: 47
+  template_node_child: true
+  material: "font-df"
+}
+nodes {
+  position {
+    x: -240.0
+    y: -83.0
+  }
+  type: TYPE_TEMPLATE
+  id: "field_find"
+  parent: "edit_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 480.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "field_find/box"
+  parent: "field_find"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "field_find/text"
+  parent: "field_find/box"
+  overridden_fields: 8
+  template_node_child: true
+}
+layers {
+  name: "list_background"
+}
+layers {
+  name: "below"
+}
+layers {
+  name: "text"
+}
+layers {
+  name: "dialog"
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT
+materials {
+  name: "font-df"
+  material: "/builtins/fonts/font-df.material"
+}

@@ -34,6 +34,22 @@ local mouse_held, r_ctr_held, l_ctr_held, l_shift_held, r_shift_held
 
 local hover = {}
 
+local button_gfx = {}
+button_gfx[hash("button_white")] = {
+	base = "button_white",
+	up = "button_white_up",
+	down = "button_white_down",
+	hover = "button_white_hover",
+	text_offset = vmath.vector3(5, -5, 0)
+}
+button_gfx[hash("button_exclusive")] = {
+	base = "button_exclusive",
+	up = "button_exclusive_unpress",
+	down = "button_exclusive_press",
+	hover = "button_exclusive_press_2",
+	text_offset = vmath.vector3(1, -1, 0)
+}
+
 function UI.load_template(template, tab)
 	if type(template) == "table" then
 		for key, val in ipairs(template) do
@@ -48,7 +64,7 @@ function UI.load_template(template, tab)
 	end
 	local node = gui.get_node(template.."/button_white")
 	local text = gui.get_node(template.."/text")
-	table.insert(UI.tab[tab].buttons, {template = template, node = node, text = text})
+	table.insert(UI.tab[tab].buttons, {template = template, node = node, text = text, gfx = gui.get_flipbook(node)})
 end
 
 function UI.load_text_field(template, char_limit, tab, validation)
@@ -64,11 +80,11 @@ local function remove_hover(tab)
 	if hover[tab] then
 		local button = UI.tab[tab].buttons[hover[tab]]
 		if mouse_held then
-			gui.play_flipbook(button.node, "button_white_up", function()
-				gui.play_flipbook(button.node, "button_white")
+			gui.play_flipbook(button.node, button_gfx[button.gfx].up, function()
+				gui.play_flipbook(button.node, button_gfx[button.gfx].base)
 			end)
 		else
-			gui.play_flipbook(button.node, "button_white")
+			gui.play_flipbook(button.node, button_gfx[button.gfx].base)
 		end
 		gui.animate(button.text, "position", UI.EMPTY_VECTOR, go.EASING_LINEAR, UI.BUTTON_PRESS_TIME)
 		hover[tab] = nil
@@ -98,7 +114,7 @@ function UI.unload_template(tab, template)
 							remove_hover(tab)
 						end
 					end
-					gui.play_flipbook(val.node, "button_white")
+					gui.play_flipbook(val.node, button_gfx[val.gfx].base)
 					gui.set_position(val.text, UI.EMPTY_VECTOR)
 					table.remove(UI.tab[tab].buttons, key)
 					return
@@ -107,7 +123,7 @@ function UI.unload_template(tab, template)
 		end
 	else
 		for key, val in ipairs(UI.tab[tab].buttons) do
-			gui.play_flipbook(val.node, "button_white")
+			gui.play_flipbook(val.node, button_gfx[val.gfx].base)
 			gui.set_position(val.text, UI.EMPTY_VECTOR)
 		end
 		UI.tab[tab].buttons = {}
@@ -183,7 +199,7 @@ end
 local function template_clicked(tab, button, fn, no_anim)
 	local button_data = UI.tab[tab].buttons[button]
 	if not no_anim then
-		gui.play_flipbook(button_data.node, "button_white_up")
+		gui.play_flipbook(button_data.node, button_gfx[button_data.gfx].up)
 		gui.animate(button_data.text, "position", UI.EMPTY_VECTOR, go.EASING_LINEAR, UI.BUTTON_PRESS_TIME)
 	end
 	fn(button_data.template, button_data.item)
@@ -205,87 +221,136 @@ end
 local function create_list_item(tab, list_index, item)
 	local list_tab = UI.tab[tab].scrolling_lists[list_index]
 	local height_adjust = (item - 1) * list_tab.item_height
-	if list_tab.exclusive_button and not list_tab.exclusive_button.list[item] and 
-	(not list_tab.exclusive_button.enabled or list_tab.exclusive_button.enabled(item)) then
-		local new = gui.clone_tree(list_tab.exclusive_button.node)
-		local button_box = new[list_tab.exclusive_button.node_id]
-		gui.set_parent(button_box, list_tab.root_node)
-		gui.set(button_box, "position.y", gui.get(button_box, "position.y") - height_adjust)
-		if list_tab.exclusive_button.value_flipbook then
-			gui.play_flipbook(new[list_tab.exclusive_button.text_id], list_tab.exclusive_button.value_fn(item))
+	local recycle = list_tab.existing_items[item]
+	if list_tab.exclusive_button then
+		local new
+		if recycle then
+			new = list_tab.exclusive_button.list[item]
 		else
-			gui.set_text(new[list_tab.exclusive_button.text_id], list_tab.exclusive_button.value_fn(item))
+			new = gui.clone_tree(list_tab.exclusive_button.node)
+			list_tab.exclusive_button.list[item] = new
 		end
-		gui.set_enabled(button_box, true)
-		list_tab.exclusive_button.list[item] = new
-		if item == list_tab.exclusive_button.selected then
-			gui.play_flipbook(button_box, "button_exclusive_press_5")
-		end
-		if list_tab.exclusive_button.tint then
-			gui.set_color(button_box, list_tab.exclusive_button.tint(item))
+		local button_box = new[list_tab.exclusive_button.node_id]
+		local pos = gui.get(list_tab.exclusive_button.node, "position.y")
+		gui.set_parent(button_box, list_tab.root_node)
+		gui.set(button_box, "position.y", pos - height_adjust)
+		if (not list_tab.exclusive_button.enabled or list_tab.exclusive_button.enabled(item)) then
+			if list_tab.exclusive_button.value_flipbook then
+				gui.play_flipbook(new[list_tab.exclusive_button.text_id], list_tab.exclusive_button.value_fn(item))
+			else
+				gui.set_text(new[list_tab.exclusive_button.text_id], list_tab.exclusive_button.value_fn(item))
+			end
+			if item == list_tab.exclusive_button.selected then
+				gui.play_flipbook(button_box, "button_exclusive_press_5")
+			end
+			if list_tab.exclusive_button.tint then
+				gui.set_color(button_box, list_tab.exclusive_button.tint(item))
+			end
+			gui.set_enabled(button_box, true)
+		else
+			gui.set_enabled(button_box, false)
 		end
 	end
 	for key, val in ipairs(list_tab.backgrounds) do
-		if not val.list[item] and (not (val.enabled) or val.enabled(item)) then
-			local new = gui.clone(val.node)
-			gui.set_parent(new, list_tab.root_node)
-			gui.set(new, "position.y", gui.get(new, "position.y") - height_adjust)
-			gui.set_enabled(new, true)
+		local new
+		if recycle then
+			new = val.list[item]
+		else
+			new = gui.clone(val.node)
 			val.list[item] = new
+		end
+		local pos = gui.get(val.node, "position.y")
+		gui.set_parent(new, list_tab.root_node)
+		gui.set(new, "position.y", pos - height_adjust)
+		if (not val.enabled or val.enabled(item)) then
+			gui.set_enabled(new, true)
 			if val.tint then
 				gui.set_color(new, val.tint(item))
 			end
+		else
+			gui.set_enabled(new, false)
 		end
 	end
 	for key, val in ipairs(list_tab.buttons) do
-		if not val.list[item] and (not (val.enabled) or val.enabled(item)) then
-			local new = gui.clone_tree(val.node)
-			gui.set_parent(new[val.node_id], list_tab.root_node)
-			gui.set(new[val.node_id], "position.y", gui.get(new[val.node_id], "position.y") - height_adjust)
+		local new
+		if recycle then
+			new = val.list[item]
+			UI.unload_template(tab, val.template..item)
+		else
+			new = gui.clone_tree(val.node)
+			val.list[item] = new
+		end
+		local pos = gui.get(val.node, "position.y")
+		gui.set_parent(new[val.node_id], list_tab.root_node)
+		gui.set(new[val.node_id], "position.y", pos - height_adjust)
+		if (not val.enabled or val.enabled(item)) then
 			if val.value_flipbook then
 				gui.play_flipbook(new[val.text_id], val.value_fn(item))
 			else
 				gui.set_text(new[val.text_id], val.value_fn(item))
 			end
 			gui.set_enabled(new[val.node_id], true)
-			val.list[item] = new
-			table.insert(UI.tab[tab].buttons, {template = val.template..item, node = new[val.node_id], text = new[val.text_id], item = item, stencil = list_tab.stencil_node})
+			table.insert(UI.tab[tab].buttons, {template = val.template..item, node = new[val.node_id], text = new[val.text_id], item = item, stencil = list_tab.stencil_node, gfx = val.gfx})
 			if val.tint then
 				gui.set_color(new[val.node_id], val.tint(item))
 			end
+		else
+			gui.set_enabled(new[val.node_id], false)
 		end
 	end
 	for key, val in ipairs(list_tab.labels) do
-		if not val.list[item] and (not val.enabled or val.enabled(item)) then
-			local new = gui.clone(val.node)
-			gui.set_parent(new, list_tab.root_node)
-			gui.set(new, "position.y", gui.get(new, "position.y") - height_adjust)
+		local new
+		if recycle then
+			new = val.list[item]
+		else
+			new = gui.clone(val.node)
+			val.list[item] = new
+		end
+		local pos = gui.get(val.node, "position.y")
+		gui.set_parent(new, list_tab.root_node)
+		gui.set(new, "position.y", pos - height_adjust)
+		if (not val.enabled or val.enabled(item)) then
 			if val.value_flipbook then
 				gui.play_flipbook(new, val.value_fn(item))
 			else
 				gui.set_text(new, val.value_fn(item))
 			end
 			gui.set_enabled(new, true)
-			val.list[item] = new
 			if val.tint then
 				gui.set_color(new, val.tint(item))
 			end
+		else
+			gui.set_enabled(new, false)
 		end
 	end
 	for key, val in ipairs(list_tab.fields) do
-		if not val.list[item] and (not val.enabled or val.enabled(item)) then
-			local new = gui.clone_tree(val.node)
-			gui.set_parent(new[val.node_id], list_tab.root_node)
-			gui.set(new[val.node_id], "position.y", gui.get(new[val.node_id], "position.y") - height_adjust)
+		local new
+		local template = val.template..item
+		if recycle then
+			new = val.list[item]
+			for k, v in ipairs(UI.tab[tab].fields) do
+				if v.template == template then
+					table.remove(UI.tab[tab].fields, k)
+					break
+				end
+			end
+		else
+			new = gui.clone_tree(val.node)
+			val.list[item] = new
+		end
+		local pos = gui.get(val.node, "position.y")
+		gui.set_parent(new[val.node_id], list_tab.root_node)
+		gui.set(new[val.node_id], "position.y", pos - height_adjust)
+		if (not val.enabled or val.enabled(item)) then
 			if val.validation.number and val.char_limit then
 				gui.set_text(new[val.text_id], shorten_number(val.value_fn(item), val.char_limit))
 			else
 				gui.set_text(new[val.text_id], val.value_fn(item))
 			end
 			gui.set_enabled(new[val.node_id], true)
-			val.list[item] = new
+
 			table.insert(UI.tab[tab].fields, {
-				template = val.template..item,
+				template = template,
 				char_limit = val.char_limit,
 				node = new[val.node_id],
 				text = new[val.text_id],
@@ -296,8 +361,12 @@ local function create_list_item(tab, list_index, item)
 			if val.tint then
 				gui.set_color(new[val.node_id], val.tint(item))
 			end
+		else
+			UI.unload_template(tab, val.template..item)
+			gui.set_enabled(new[val.node_id], false)
 		end
 	end
+	list_tab.existing_items[item] = true
 end
 
 local function delete_list_item(tab, list_index, item)
@@ -344,6 +413,7 @@ local function delete_list_item(tab, list_index, item)
 			val.list[item] = nil
 		end
 	end
+	list_tab.existing_items[item] = nil
 end
 
 local function set_grip_size(tab, list_index)
@@ -400,6 +470,7 @@ end
 
 function UI.update_list(tab, list_index, item_count)
 	local list_tab = UI.tab[tab].scrolling_lists[list_index]
+	
 	item_count = item_count or list_tab.item_count
 	list_tab.item_count = item_count
 	list_tab.target_max = math.max(list_tab.item_count - list_tab.max_item_count + 1, 1) * list_tab.item_height
@@ -415,14 +486,41 @@ function UI.update_list(tab, list_index, item_count)
 	if list_tab.exclusive_button and (list_tab.exclusive_button.selected > item_count) then
 		list_tab.exclusive_button.selected = item_count
 	end
-	for item = list_tab.visible_range_min, list_tab.visible_range_max do
-		delete_list_item(tab, list_index, item)
-		if not (item > item_count) then
+
+	for item in pairs(list_tab.existing_items) do
+		if (item < list_tab.visible_range_min) or (item > item_count) or (item > list_tab.visible_range_max) then
+			delete_list_item(tab, list_index, item)
+		else
 			create_list_item(tab, list_index, item)
 		end
 	end
+	
+	
+	for item = list_tab.visible_range_min, list_tab.visible_range_max do
+		--delete_list_item(tab, list_index, item)
+		--if not (item > item_count) then
+			--create_list_item(tab, list_index, item)
+		--end
+	end
+	for item = list_tab.visible_range_min, list_tab.visible_range_max do
+		--if not (item > item_count) then
+		--	create_list_item(tab, list_index, item)
+		--end
+	end
 	set_grip_size(tab, list_index)
 	UI.move_list_root(tab, list_index, true)
+	
+	--[[
+	timer.delay(0.01, false, function()  -- this is just godawful
+		for item = list_tab.visible_range_min, list_tab.visible_range_max do
+			if not (item > item_count) then
+				create_list_item(tab, list_index, item)
+			end
+		end
+		set_grip_size(tab, list_index)
+		UI.move_list_root(tab, list_index, true)
+	end)
+	--]]
 end
 
 function UI.destroy_list(tab, list_index)
@@ -452,7 +550,8 @@ function UI.create_list(tab, stencil_node, item_features, list_index)
 		scroll_target = 0,
 		stencil_node = stencil_node,
 		horizontal = item_features.horizontal,
-		scroll_bar_visible = true
+		scroll_bar_visible = true,
+		existing_items = {}
 	}
 	gui.set_parent(list_tab.root_node, stencil_node)
 	gui.set_visible(list_tab.root_node, false)
@@ -499,7 +598,8 @@ function UI.create_list(tab, stencil_node, item_features, list_index)
 				template = val.template,
 				list = {},
 				tint = val.tint,
-				enabled = val.enabled
+				enabled = val.enabled,
+				gfx = val.gfx or hash("button_white")
 			})
 		elseif val.type == hash("field") then
 			table.insert(list_tab.fields, {
@@ -532,7 +632,6 @@ function UI.create_list(tab, stencil_node, item_features, list_index)
 		gui.set_enabled(val.node, false)
 	end
 	list_tab.item_height = max_y - min_y
-	--	print(max_y, min_y)
 	list_tab.max_item_count = math.floor(list_tab.size_y / list_tab.item_height)
 	list_tab.size_y = list_tab.max_item_count * list_tab.item_height
 	gui.set(list_tab.stencil_node, "size.y", list_tab.size_y)
@@ -574,7 +673,9 @@ function UI.move_list_root(tab, list_index, adjust_grip)
 		end
 	end
 	for item = range_min, range_max do
-		create_list_item(tab, list_index, item)
+		if not list_tab.existing_items[item] then
+			create_list_item(tab, list_index, item)
+		end
 	end
 	list_tab.visible_range_min = range_min
 	list_tab.visible_range_max = range_max
@@ -735,7 +836,9 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_
 					end
 				end
 				exit_text_field(text_field_fn)
-				text_field_clicked(UI.tab[tab].fields[field_index])
+				timer.delay(0.015, false, function() -- this is just godawful
+					text_field_clicked(UI.tab[tab].fields[field_index])
+				end)
 			else
 				exit_text_field(text_field_fn)
 			end
@@ -884,9 +987,9 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_
 		elseif action.pressed then
 			for key, val in ipairs(UI.tab[tab].buttons) do
 				if gui.pick_node(val.node, action.x, action.y) then
-					gui.play_flipbook(val.node, "button_white_down")
+					gui.play_flipbook(val.node, button_gfx[val.gfx].down)
 					gui.set_position(val.text, UI.EMPTY_VECTOR)
-					gui.animate(val.text, "position", vmath.vector3(5, -5, 0), go.EASING_LINEAR, UI.BUTTON_PRESS_TIME)
+					gui.animate(val.text, "position", button_gfx[val.gfx].text_offset, go.EASING_LINEAR, UI.BUTTON_PRESS_TIME)
 					break
 				end
 			end
@@ -901,7 +1004,10 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_
 	elseif not action_id and not (UI.tab[tab].scrolling_grip_held) then
 		local new_hover
 		for key, val in ipairs(UI.tab[tab].buttons) do
-			if gui.pick_node(val.node, action.x, action.y) then
+			local error = pcall(gui.pick_node, val.node, action.x, action.y)
+			if not error then
+				print("not finding "..val.item)
+			elseif gui.pick_node(val.node, action.x, action.y) then
 				new_hover = key
 				break
 			end
@@ -911,12 +1017,12 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_
 				--SND.play("#hover")
 				remove_hover(tab)
 				hover[tab] = new_hover
-				local hover_anim = "button_white_hover"
+				local button_data = UI.tab[tab].buttons[hover[tab]]
 				if mouse_held then
-					gui.play_flipbook(UI.tab[tab].buttons[hover[tab]].node, "button_white_down")
-					gui.animate(UI.tab[tab].buttons[hover[tab]].text, "position", vmath.vector3(5, -5, 0), go.EASING_LINEAR, UI.BUTTON_PRESS_TIME)
+					gui.play_flipbook(button_data.node, button_gfx[button_data.gfx].down)
+					gui.animate(button_data.text, "position", button_gfx[button_data.gfx].text_offset, go.EASING_LINEAR, UI.BUTTON_PRESS_TIME)
 				else
-					gui.play_flipbook(UI.tab[tab].buttons[hover[tab]].node, hover_anim)
+					gui.play_flipbook(button_data.node, button_gfx[button_data.gfx].hover)
 				end
 			end
 		else

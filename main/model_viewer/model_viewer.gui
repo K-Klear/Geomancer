@@ -1,11 +1,11 @@
 script: "/main/model_viewer/model_viewer.gui_script"
 fonts {
-  name: "logo_welcome"
-  font: "/assets/fonts/final/logo_welcome.font"
-}
-fonts {
   name: "preview_label"
   font: "/assets/fonts/final/preview_label.font"
+}
+fonts {
+  name: "preview_time"
+  font: "/assets/fonts/final/preview_time.font"
 }
 textures {
   name: "UI"
@@ -475,7 +475,7 @@ nodes {
     y: 40.0
   }
   size {
-    x: 224.0
+    x: 280.0
     y: 96.0
   }
   type: TYPE_BOX
@@ -660,16 +660,18 @@ nodes {
     y: 56.0
   }
   type: TYPE_BOX
+  texture: "UI/button_exclusive"
   id: "playback_slow/button_white"
   parent: "playback_slow"
   overridden_fields: 3
   overridden_fields: 4
+  overridden_fields: 9
   template_node_child: true
 }
 nodes {
   scale {
-    x: 0.5
-    y: 0.5
+    x: 0.75
+    y: 0.75
   }
   type: TYPE_BOX
   texture: "UI/half_speed"
@@ -683,7 +685,7 @@ nodes {
 }
 nodes {
   position {
-    x: 75.0
+    x: 78.0
     y: 82.0
   }
   scale {
@@ -702,16 +704,18 @@ nodes {
     y: 56.0
   }
   type: TYPE_BOX
+  texture: "UI/button_exclusive"
   id: "playback_normal/button_white"
   parent: "playback_normal"
   overridden_fields: 3
   overridden_fields: 4
+  overridden_fields: 9
   template_node_child: true
 }
 nodes {
   scale {
-    x: 0.5
-    y: 0.5
+    x: 0.75
+    y: 0.75
   }
   type: TYPE_BOX
   texture: "UI/normal_speed"
@@ -725,7 +729,7 @@ nodes {
 }
 nodes {
   position {
-    x: 100.0
+    x: 106.0
     y: 82.0
   }
   scale {
@@ -744,16 +748,18 @@ nodes {
     y: 56.0
   }
   type: TYPE_BOX
+  texture: "UI/button_exclusive"
   id: "playback_fast/button_white"
   parent: "playback_fast"
   overridden_fields: 3
   overridden_fields: 4
+  overridden_fields: 9
   template_node_child: true
 }
 nodes {
   scale {
-    x: 0.5
-    y: 0.5
+    x: 0.75
+    y: 0.75
   }
   type: TYPE_BOX
   texture: "UI/double_speed"
@@ -767,7 +773,7 @@ nodes {
 }
 nodes {
   position {
-    x: 125.0
+    x: 134.0
     y: 82.0
   }
   scale {
@@ -786,16 +792,18 @@ nodes {
     y: 56.0
   }
   type: TYPE_BOX
+  texture: "UI/button_exclusive"
   id: "playback_fastest/button_white"
   parent: "playback_fastest"
   overridden_fields: 3
   overridden_fields: 4
+  overridden_fields: 9
   template_node_child: true
 }
 nodes {
   scale {
-    x: 0.5
-    y: 0.5
+    x: 0.75
+    y: 0.75
   }
   type: TYPE_BOX
   texture: "UI/quadruple_speed"
@@ -809,8 +817,45 @@ nodes {
 }
 nodes {
   position {
-    x: 271.0
-    y: 75.0
+    x: 252.0
+    y: 40.0
+  }
+  type: TYPE_TEMPLATE
+  id: "time_units"
+  parent: "playback_box"
+  inherit_alpha: true
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  texture: "UI/button_exclusive"
+  id: "time_units/button_white"
+  parent: "time_units"
+  overridden_fields: 4
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  type: TYPE_TEXT
+  text: "Seconds"
+  id: "time_units/text"
+  parent: "time_units/button_white"
+  overridden_fields: 3
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 328.0
+    y: 94.0
   }
   scale {
     x: 0.5
@@ -822,7 +867,7 @@ nodes {
   }
   type: TYPE_TEXT
   text: "0:50.115"
-  font: "logo_welcome"
+  font: "preview_time"
   id: "label_time"
   pivot: PIVOT_W
   parent: "controls"
@@ -830,7 +875,50 @@ nodes {
 }
 nodes {
   position {
-    x: 930.0
+    x: 328.0
+    y: 71.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "0:50.115"
+  font: "preview_time"
+  id: "label_time_length"
+  pivot: PIVOT_W
+  parent: "controls"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 696.0
+    y: 778.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "0:50.115"
+  font: "preview_time"
+  id: "label_model"
+  yanchor: YANCHOR_TOP
+  parent: "controls"
+  inherit_alpha: true
+  enabled: false
+}
+nodes {
+  position {
+    x: 879.0
     y: 75.0
   }
   scale {
@@ -843,12 +931,11 @@ nodes {
   }
   type: TYPE_TEXT
   text: "0:50.115"
-  font: "logo_welcome"
-  id: "label_model"
+  font: "preview_time"
+  id: "label_time_tween"
   pivot: PIVOT_E
   parent: "controls"
   inherit_alpha: true
-  enabled: false
 }
 nodes {
   position {

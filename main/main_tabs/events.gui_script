@@ -21,10 +21,6 @@ local function spb_to_BPM(spb)
 	return math.floor(((SET.sample_rate * 60) / spb) * 10000) * 0.0001
 end
 
-local function BPM_to_spb(BPM)
-	return (60 / BPM) * SET.sample_rate
-end
-
 local function update_filter_text()
 	local event_count = #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events
 	local events_filtered = 0
@@ -59,7 +55,7 @@ function init(self)
 	gui.set_render_order(1)
 	msg.post("#", hash("disable"))
 	UI.load_template({"sample_48000", "sample_44100", "nobeat_add", "event_add", "event_add_multiple", "tempo_add", "event_filter"}, TAB_NAME)
-	UI.load_template({"music_preview", "metronome_sound"}, TAB_NAME)
+	--UI.load_template({"music_preview", "metronome_sound"}, TAB_NAME)
 	local validation = {
 		integer = true,
 		min = function() return 1 end,

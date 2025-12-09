@@ -40,7 +40,6 @@ local STRING = "string"
 
 function MEM.export_json(json_tab)
 	io.write("{")
-	local string_tab = {}
 	local function export_table(tab)
 		if tab._key_sort then
 			local key_count = #tab._key_sort
@@ -548,7 +547,7 @@ function MEM.create_prop_list(tab, reindex)
 		local scale = vmath.vector3(sc[1], sc[2], sc[3])
 		local pos = vmath.vector3(point[1], point[2], point[3])
 		local rot = vmath.quat(point[4], point[5], point[6], point[7])
-		return {position = pos, rotation = rot, scale = scale, name = prop_tab.name}
+		return {position = pos, rotation = rot, scale = scale, name = prop_tab.name, prop_tab = prop_tab}
 	end
 	local dynamic_models, model_count = {}, {}
 	for key, val in ipairs(tab.staticProps or {}) do
@@ -556,7 +555,7 @@ function MEM.create_prop_list(tab, reindex)
 		local t = add_to_prop_list(val)
 		local base_range = math.floor(t.position.z / 16)
 		t.spawn_range = base_range - 3
-		t.despawn_range = base_range + 3
+		t.despawn_range = base_range + 4
 		table.insert(MEM.art_data.prop_list, t)
 	end
 	for key, val in ipairs(MEM.art_data.table.dynamicProps or {}) do
@@ -564,7 +563,7 @@ function MEM.create_prop_list(tab, reindex)
 		local t = add_to_prop_list(val)
 		local base_range = math.floor(t.position.z / 16)
 		t.spawn_range = base_range - 3
-		t.despawn_range = base_range + 3
+		t.despawn_range = base_range + 4
 		t.dynamic = true
 		dynamic_models[val.name] = true
 		table.insert(MEM.art_data.prop_list, t)
@@ -699,6 +698,9 @@ end
 function load.ogg(data, filename)
 	MEM.music_raw = data
 	MEM.music = SND.load_music(data)
+	if MEM.music then
+		return true
+	end
 end
 
 function load.png(data, filename)
@@ -722,7 +724,7 @@ function MEM.setup_culling_ranges()
 		for key, val in ipairs(MEM.geo_data.slices) do
 			if not val.empty then
 				local range_spawn = math.max(val.id - 3, 0)
-				local range_despawn = math.max(val.id + 3, 0)
+				local range_despawn = math.max(val.id + 4, 0)
 				val.ranges = {}
 				for i = range_spawn, range_despawn do
 					MOD.culling_ranges[i] = MOD.culling_ranges[i] or {slices = {}, props = {}, signals = {}, chunks = {}}
@@ -736,7 +738,7 @@ function MEM.setup_culling_ranges()
 		for key, val in ipairs(MEM.geo_data.chunks) do
 			if not val.empty then
 				local range_spawn = math.max(val.id[3] - 3, 0)
-				local range_despawn = math.max(val.id[3] + 3, 0)
+				local range_despawn = math.max(val.id[3] + 4, 0)
 				val.ranges = {}
 				for i = range_spawn, range_despawn do
 					MOD.culling_ranges[i] = MOD.culling_ranges[i] or {slices = {}, props = {}, signals = {}, chunks = {}}

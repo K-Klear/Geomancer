@@ -1195,6 +1195,7 @@ nodes {
   type: TYPE_TEMPLATE
   id: "music_preview"
   template: "/templates/button_white_small.gui"
+  enabled: false
 }
 nodes {
   position {
@@ -1228,6 +1229,7 @@ nodes {
   type: TYPE_TEMPLATE
   id: "metronome_sound"
   template: "/templates/button_white_small.gui"
+  enabled: false
 }
 nodes {
   position {

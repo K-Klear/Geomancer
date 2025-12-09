@@ -541,7 +541,7 @@ function evaluate_button(button, item)
 		msg.post("#", hash("release_input_focus"))
 		msg.post(UI.tab.tab_art.path, hash("disable"))
 		msg.post(UI.tab.dialog_transform.path, hash("disable"))
-		msg.post("/model_viewer", hash("tween_preview"), {model = model_index, selected_transform = selected_transform})
+		msg.post("/model_viewer", hash("show_preview"), {source = hash("tween_editor"), model = model_index, selected_transform = selected_transform})
 	elseif button == "dialog_tween_transform" and #tween_actions > 0 then
 		DIALOG.open(DIALOG_NAME, "dialog_tween_part", {model = model_index, transform_index = selected_transform})
 	elseif button == "dialog_tween_save" then

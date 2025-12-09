@@ -133,7 +133,7 @@ tab_list.colours = {buttons = {
 }
 tab_list.tween = {buttons = {
 	"restrict_rotations_to_360", "tween_action_type_dialog", "tween_part_dialog", "tween_extra_add_buttons", "ask_before_overwriting_tween_file",
-	"auto_set_tween_preview_prop", "easing_node_colour", "easing_node_highlight_colour", "easing_curve_colour", "default_tween_time_in_beats"},
+	"easing_node_colour", "easing_node_highlight_colour", "easing_curve_colour", "default_tween_time_in_beats"},
 	fields = {{name = "tween_timeline_bar_height", char_limit = 3, validation = validation_bar},
 	{name = "easing_node_scale", char_limit = 3, validation = validation_node_scale},
 	{name = "easing_curve_thickness", char_limit = 3, validation = validation_curve_thickness},
@@ -148,7 +148,7 @@ tab_list.transform = {buttons = {
 	{name = "root_transform_default_name", char_limit = 26, validation = validation_root_transform_name}}
 }
 tab_list.model_viewer = {buttons = {"model_show_grid", "show_transform", "custom_colour_main", "custom_colour_fog",
-"custom_colour_glow", "custom_colour_enemy", "collider_colour"}, fields = {
+"custom_colour_glow", "custom_colour_enemy", "collider_colour", "default_preview_time_units"}, fields = {
 	{name = "model_rotation_sensitivity", char_limit = 4, validation = validation_model_rotation_sensitivity},
 	{name = "model_move_sensitivity", char_limit = 4, validation = validation_model_move_sensitivity},
 	{name = "run_speed_multiplier", char_limit = 4, validation = validation_run_speed_multiplier},
@@ -291,7 +291,6 @@ function init(self)
 	set_checkbox("tween_part_dialog", SET.tween_part_dialog)
 	set_checkbox("tween_extra_add_buttons", SET.tween_extra_add_buttons)
 	set_checkbox("ask_before_overwriting_tween_file", SET.ask_before_overwriting_tween_file)
-	set_checkbox("auto_set_tween_preview_prop", SET.auto_set_tween_preview_prop)
 	if SET.default_tween_time_in_beats then
 		gui.set_text(gui.get_node("default_tween_time_in_beats/text"), "Beats")
 	else
@@ -325,6 +324,13 @@ function init(self)
 		gui.play_flipbook(gui.get_node("show_transform/text"), "button_transform_one")
 	else
 		gui.play_flipbook(gui.get_node("show_transform/text"), "button_transform_all")
+	end
+	if SET.default_preview_time_units == 1 then
+		gui.set_text(gui.get_node("default_preview_time_units/text"), "Seconds")
+	elseif SET.default_preview_time_units == 2 then
+		gui.set_text(gui.get_node("default_preview_time_units/text"), "Distance")
+	else
+		gui.set_text(gui.get_node("default_preview_time_units/text"), "Samples")
 	end
 	-- events etc
 	set_checkbox("autodetect_sample_rate", SET.autodetect_sample_rate)
@@ -463,6 +469,18 @@ local function evaluate_button(button)
 				gui.set_text(gui.get_node("model_show_grid/text"), "Normal")
 			else
 				gui.set_text(gui.get_node("model_show_grid/text"), "Hide")
+			end
+		elseif button == "default_preview_time_units" then
+			SET.default_preview_time_units = SET.default_preview_time_units + 1
+			if SET.default_preview_time_units > 3 then
+				SET.default_preview_time_units = 1
+			end
+			if SET.default_preview_time_units == 1 then
+				gui.set_text(gui.get_node("default_preview_time_units/text"), "Seconds")
+			elseif SET.default_preview_time_units == 2 then
+				gui.set_text(gui.get_node("default_preview_time_units/text"), "Distance")
+			else
+				gui.set_text(gui.get_node("default_preview_time_units/text"), "Samples")
 			end
 		elseif button == "show_transform" then
 			SET.default_show_transform = SET.default_show_transform + 1

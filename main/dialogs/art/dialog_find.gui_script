@@ -1,0 +1,77 @@
+local MEM = require "modules.memory"
+local UI = require "modules.ui"
+
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "dialog_find"
+local DIALOG_DATA
+
+local find_list, search_list, evaluate_button
+
+function init(self)
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+	UI.load_template({"close"}, DIALOG_NAME)
+	local find_list_tab = {
+		{
+			type = hash("exclusive_button"),
+			node = gui.get_node("find_exclusive/button_white"),
+			text_node = gui.get_node("find_exclusive/text"),
+			value_fn = function(i) return search_list[i].name end,
+			template = "find_exclusive;",
+			fn = evaluate_button
+		},
+		item_count = 0,
+		scroll_prefix = "find_"
+	}
+	find_list = UI.create_list(DIALOG_NAME, gui.get_node("find_list"), find_list_tab)
+	local validation = {
+		text = true,
+		json_safe = true,
+		default = function() return "" end
+	}
+	UI.load_text_field("field_find", 31, DIALOG_NAME, validation)
+end
+
+function evaluate_button(button, item)
+	if button == "close" or button == "enter" or button == "escape" then
+		DIALOG.close(DIALOG_NAME)
+	elseif button == find_list then
+		DIALOG.close(DIALOG_NAME, {selected_model = search_list[item].index})
+	end
+end
+
+local function search_props(str)
+	search_list = {}
+	for key, val in ipairs(MEM.art_data.table.propsDictionary) do
+		if string.find(string.lower(val.key), string.lower(str)) then
+			table.insert(search_list, {name = val.key, index = key})
+		end
+	end
+	UI.update_list(DIALOG_NAME, find_list, #search_list)
+end
+
+local function evaluate_field(field, text)
+	if field == "field_find" then
+		search_props(text)
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		DIALOG.show(DIALOG_DATA, sender)
+		search_props(gui.get_text(gui.get_node("field_find/text")))
+		UI.select_exclusive_button(DIALOG_NAME, find_list, 0, true)
+	end
+end
+
+function update()
+	if DIALOG_DATA.dialog_open then
+		for list_index in pairs(DIALOG_DATA.scrolling) do
+			UI.move_list_root(DIALOG_NAME, list_index, true)
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button, evaluate_field)
+end

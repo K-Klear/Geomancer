@@ -145,8 +145,8 @@ local function export_art(path)
 					ActionType = "ScriptedTweenTrigger", _key_sort = {"type", "EventId", "ActionType"}})
 					if save_original then
 						MEM.geomancer_meta.props[val.key] = MEM.geomancer_meta.props[val.key] or {tweens = {}}
-						MEM.geomancer_meta.props[val.key].tweens[k] = {table = v.tween, script = tween_script, signal = v.tween.signal}
-						MEM.geomancer_meta.props[val.key].tweens[k].table.signal = nil
+						MEM.geomancer_meta.props[val.key].tweens[tostring(k)] = {table = v.tween, script = tween_script, signal = v.tween.signal}
+						MEM.geomancer_meta.props[val.key].tweens[tostring(k)].table.signal = nil
 					end
 				end
 			end
@@ -303,8 +303,14 @@ local function export_geomancer_meta(path)
 	end
 	local f = G.safe_output(path)
 	if f then
-		io.write(json.encode(MEM.geomancer_meta))
-		io.close(f)
+		local works, data = pcall(json.encode, MEM.geomancer_meta)
+		if works then
+			io.write(data)
+			io.close(f)
+		else
+			io.close(f)
+			return true
+		end
 	end
 	for key, val in pairs(MEM.geomancer_meta.props) do
 		if val.tweens then
@@ -769,10 +775,11 @@ local function check_geomancer_meta()
 			if MEM.geomancer_meta.props[val.key] then
 				val.hide = MEM.geomancer_meta.props[val.key].hide
 				for k, v in pairs(MEM.geomancer_meta.props[val.key].tweens or {}) do
-					if val.model_data.transform_list[k] and val.model_data.transform_list[k].tween then
-						local old_script = get_tween_script(val.model_data.transform_list[k].tween)
+					local num_key = tonumber(k)
+					if val.model_data.transform_list[num_key] and val.model_data.transform_list[num_key].tween then
+						local old_script = get_tween_script(val.model_data.transform_list[num_key].tween)
 						if old_script == v.script then
-							val.model_data.transform_list[k].tween = v.table
+							val.model_data.transform_list[num_key].tween = v.table
 						else
 							print("Meta script mismatch!")
 						end
@@ -877,6 +884,165 @@ local function import_changes()
 	if UI.tab.tab_art.state and art_data then
 		local art_tab = MEM.parse_json(art_data)
 		if MEM.check(art_tab, "pw_art", "Selected pw_art file") then
+			local old_prop_list = {}
+			local existing_culling_ranges = {[true] = {}, [false] = {}}
+			if MEM.art_data.table.staticProps then
+				for key, val in ipairs(MEM.art_data.table.staticProps) do
+					old_prop_list[val.name] = old_prop_list[val.name] or {}
+					table.insert(old_prop_list[val.name], {
+						tab = val, location = "staticProps", dynamic = false, parent_tab = MEM.art_data.table.staticProps
+					})
+				end
+			end
+			if MEM.art_data.table.dynamicProps then
+				for key, val in ipairs(MEM.art_data.table.dynamicProps) do
+					old_prop_list[val.name] = old_prop_list[val.name] or {}
+					table.insert(old_prop_list[val.name], {
+						tab = val, location = "dynamicProps", dynamic = true, parent_tab = MEM.art_data.table.dynamicProps
+					})
+				end
+			end
+			if MEM.art_data.table.staticCullingRanges then
+				for k, v in ipairs(MEM.art_data.table.staticCullingRanges) do
+					for key, val in ipairs(v.members) do
+						old_prop_list[val.name] = old_prop_list[val.name] or {}
+						table.insert(old_prop_list[val.name], {
+							tab = val, location = "staticCullingRanges", range = v.range, dynamic = false, parent_tab = v.members
+						})
+					end
+					existing_culling_ranges[false][v.range] = v
+				end
+			end
+			if MEM.art_data.table.dynamicCullingRanges then
+				for k, v in ipairs(MEM.art_data.table.dynamicCullingRanges) do
+					for key, val in ipairs(v.members) do
+						old_prop_list[val.name] = old_prop_list[val.name] or {}
+						table.insert(old_prop_list[val.name], {
+							tab = val, location = "dynamicCullingRanges", range = v.range, dynamic = true, parent_tab = v.members
+						})
+					end
+					existing_culling_ranges[true][v.range] = v
+				end
+			end
+
+			local props_to_move = {}
+
+			if art_tab.staticCullingRanges then
+				for _, _val in ipairs(art_tab.staticCullingRanges) do
+					for k, v in ipairs(_val.members) do
+						for key, val in ipairs(old_prop_list[v.name] or {}) do
+							if val.tab.point == v.point and val.tab.scale == v.scale then
+								if (val.location == "staticProps" or val.location == "dynamicProps") or not (_val.range == val.range) then
+									table.insert(props_to_move, {
+										location = val.location, range = _val.range, old_range = val.range, tab = val.tab,
+										dynamic = val.dynamic, new_dynamic = false, parent_tab = val.parent_tab
+									})
+								end
+							end
+						end
+					end
+				end
+			end
+			if art_tab.dynamicCullingRanges then
+				for _, _val in ipairs(art_tab.dynamicCullingRanges) do
+					for k, v in ipairs(_val.members) do
+						for key, val in ipairs(old_prop_list[v.name] or {}) do
+							if val.tab.point == v.point and val.tab.scale == v.scale then
+								if (val.location == "staticProps" or val.location == "dynamicProps") or not (_val.range == val.range) then
+									table.insert(props_to_move, {
+										location = val.location, range = _val.range, old_range = val.range, tab = val.tab,
+										dynamic = val.dynamic, new_dynamic = true, parent_tab = val.parent_tab
+									})
+								end
+							end
+						end
+					end
+				end
+			end
+
+			local empty_range_tables = {[true] = {}, [false] = {}}
+			
+			for key, val in ipairs(props_to_move) do
+				if (val.location == "staticProps") or (val.location == "dynamicProps") then
+					for k, v in ipairs(val.parent_tab) do
+						if v == val.tab then
+							if existing_culling_ranges[val.new_dynamic][val.range] then
+								table.insert(existing_culling_ranges[val.new_dynamic][val.range].members, val.tab)
+							else
+								if val.new_dynamic then
+									MEM.art_data.table.dynamicCullingRanges = MEM.art_data.table.dynamicCullingRanges or {}
+									local t = {
+										range = val.range,
+										_key_sort = {"range", "members"},
+										members = {val.tab}
+									}
+									table.insert(MEM.art_data.table.dynamicCullingRanges, t)
+								else
+									MEM.art_data.table.staticCullingRanges = MEM.art_data.table.staticCullingRanges or {}
+									local t = {
+										range = val.range,
+										_key_sort = {"range", "members"},
+										members = {val.tab}
+									}
+									table.insert(MEM.art_data.table.staticCullingRanges, t)
+								end
+							end
+							table.remove(val.parent_tab, k)
+							break
+						end
+					end
+				else
+					for k, v in ipairs(val.parent_tab) do
+						if v == val.tab then
+							if existing_culling_ranges[val.new_dynamic][val.range] then
+								table.insert(existing_culling_ranges[val.new_dynamic][val.range].members, val.tab)
+							else
+								if val.new_dynamic then
+									MEM.art_data.table.dynamicCullingRanges = MEM.art_data.table.dynamicCullingRanges or {}
+									local t = {
+										range = val.range,
+										_key_sort = {"range", "members"},
+										members = {val.tab}
+									}
+									table.insert(MEM.art_data.table.dynamicCullingRanges, t)
+								else
+									MEM.art_data.table.staticCullingRanges = MEM.art_data.table.staticCullingRanges or {}
+									local t = {
+										range = val.range,
+										_key_sort = {"range", "members"},
+										members = {val.tab}
+									}
+									table.insert(MEM.art_data.table.staticCullingRanges, t)
+								end
+							end
+							table.remove(val.parent_tab, k)
+							if #val.parent_tab < 1 then
+								empty_range_tables[val.dynamic][val.parent_tab] = true
+							end
+							break
+						end
+					end
+				end
+			end
+
+			if #empty_range_tables[true] > 0 then
+				for i = #MEM.art_data.table.dynamicCullingRanges, 1, -1 do
+					local val = MEM.art_data.table.dynamicCullingRanges[i]
+					if empty_range_tables[true][val.members] then
+						table.remove(MEM.art_data.table.dynamicCullingRanges, i)
+					end
+				end
+			end
+			if #empty_range_tables[false] > 0 then
+				for i = #MEM.art_data.table.dynamicCullingRanges, 1, -1 do
+					local val = MEM.art_data.table.dynamicCullingRanges[i]
+					if empty_range_tables[false][val.members] then
+						table.remove(MEM.art_data.table.dynamicCullingRanges, i)
+					end
+				end
+			end
+
+			
 			local dynamic_models = {}
 			if art_tab.dynamicProps then
 				for key, val in ipairs(art_tab.dynamicProps) do
@@ -925,6 +1091,8 @@ local function import_changes()
 					end
 				end
 			end
+			MEM.create_prop_list(MEM.art_data.table, true)
+			MEM.setup_culling_ranges()
 		end
 		if geomancer_data then
 			MEM.load_geomancer_data(geomancer_data, "The geomancer metadata file")
@@ -1009,6 +1177,8 @@ local function cleanup_after_loading_files()
 	MEM.setup_culling_ranges()
 	msg.post("/model_viewer", hash("create_beatcubes"))
 	check_geomancer_meta()
+
+	MOD.colour_override = false
 
 	if MEM.level_data.sceneDisplayName then
 		G.update_navbar("Loaded scene: "..MEM.level_data.sceneDisplayName)
@@ -1280,7 +1450,7 @@ local function evaluate_button(button)
 			G.update_navbar("", true)
 			msg.post("#", hash("disable"))
 			msg.post("#", hash("release_input_focus"))
-			msg.post("/model_viewer", hash("tween_preview"), {preview_map = true})
+			msg.post("/model_viewer", hash("show_preview"), {source = hash("file_tab"), preview_map = true})
 		else
 			G.update_navbar("Map data not loaded", true)
 		end
@@ -1313,7 +1483,7 @@ local function evaluate_button(button)
 			degeomance()
 		end
 	elseif button == "load_file" then
-		local num, path = diags.open("pw_meta,pw,pw_beat,pw_event,pw_geo,pw_art,pw_seq", SET.default_path_load_file)
+		local num, path = diags.open("pw_meta,pw,pw_beat,pw_event,pw_geo,pw_art,pw_seq,ogg", SET.default_path_load_file)
 		if path then
 			load_file(path)
 		end
