@@ -126,7 +126,8 @@ function init(self)
 			node = gui.get_node("range_low"),
 			value_fn = function(i)
 				local range_val = (prop_list[i].spawn_range * 16 - 7) / 3
-				return G.round(math.max(0, range_val), 2)
+				local str = G.round(math.max(0, range_val), 2).." ("..prop_list[i].spawn_range..")"
+				return str
 			end,
 			template = "range_low;",
 		},
@@ -135,7 +136,8 @@ function init(self)
 			node = gui.get_node("range_high"),
 			value_fn = function(i)
 				local range_val = (prop_list[i].despawn_range * 16 + 7) / 3
-				return G.round(math.max(0, range_val), 2)
+				local str = G.round(math.max(0, range_val), 2).." ("..prop_list[i].despawn_range..")"
+				return str
 			end,
 			template = "range_high;",
 		},

@@ -25,6 +25,9 @@ To do:
 - Option to show prop origin
 - A way to expand a repeat action
 - A "note" tween action
+- Show a transform's properties during a tween preview
+- Bulk changing of materials
+- The metronome thing
 
 Bugs:
 - The check for Spooky and airdrop obstacle signals needs to be more robust
@@ -32,7 +35,6 @@ Bugs:
 - Had a dynamic model refuse to stay dynamic after switching tabs. No idea why.
 	- Actually saw a wrong model turn dynamic. Something's fishy
 		- Might be caused by sorting models - investigate!
-- Tween > preview > click event tab - beatcubes still there.
 
 Settings to implement in options:
 
@@ -54,7 +56,7 @@ Features:
 New shortcuts:
 
 Fixes:
-- The Load file function now lets you load .ogg files, which is an easy way to change the map's music.
+- The Load file button now lets you load .ogg files, which is an easy way to change the map's music.
 - Colour override gets turned off when loading a new map
 - Removed the "Load the position of the first instance of the prop when opening tween preview" option, as it is no longer necessary
 - Changed the appearance of some buttons to a more space-efficient design
@@ -70,6 +72,7 @@ Bugs:
 - Fixed a crash when replacing the last model on the list with a different one
 - After a model is replaced, model count is now updated
 - Fixed an issue when refreshing a list with a lot of entries
+- Prevented a second copy of root tranform from being automatically created in some models
 
 New options:
 - Map preview -> Default time units

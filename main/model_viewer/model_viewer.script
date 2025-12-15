@@ -147,6 +147,7 @@ end
 
 local flash_timer, flash_on, flash_off
 local flash_list = {}
+
 function flash_off()
 	if SET.mesh_flash_frequency > 0 then
 		for key, val in pairs(flash_list) do
@@ -177,21 +178,25 @@ local function stop_flash()
 		timer.cancel(flash_timer)
 		flash_timer = nil
 	end
-	for key, val in ipairs(flash_list) do
-		msg.post(preview_model[val].url, hash("enable"))
-		msg.post(preview_model_flash[val].url, hash("disable"))
+	if preview_model[1] then
+		for key, val in ipairs(flash_list) do
+			msg.post(preview_model[val].url, hash("enable"))
+			msg.post(preview_model_flash[val].url, hash("disable"))
+		end
 	end
 	flash_list = {}
 end
 
 local function flash(list)
+	MOD.flash_list = list
 	stop_flash()
-	for key, val in ipairs(list) do
-		msg.post(preview_model[val].url, hash("disable"))
-		msg.post(preview_model_flash[val].url, hash("enable"))
-		table.insert(flash_list, val)
-	end
-	if #list > 0 then
+	if MOD.flash_list[1] and preview_model[1] then
+		for key, val in ipairs(MOD.flash_list) do
+			msg.post(preview_model[val].url, hash("disable"))
+			msg.post(preview_model_flash[val].url, hash("enable"))
+			table.insert(flash_list, val)
+		end
+		MOD.flash_list = {}
 		flash_on()
 	end
 end
@@ -1097,6 +1102,8 @@ local function show_model(self, model_index, no_flash, keep_camera)
 		end
 		if not no_flash then
 			flash({1})
+		elseif MOD.flash_list then
+			flash(MOD.flash_list)
 		end
 		show_transforms()
 	end)
@@ -1260,6 +1267,7 @@ function on_message(self, message_id, message, sender)
 		show_grid(self)
 		msg.post("/fog#fog", hash("enable"))
 		show_transforms()
+		delete_model(self)
 	elseif message_id == hash("show_model_preview") then
 		msg.post(".", hash("enable"))
 		MOD.viewer_active = true
@@ -1297,19 +1305,8 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("show_part") then
 		flash({message.selected_part})
 	elseif message_id == hash("flash") then
-		if MEM.art_data.temp_part_list then
-			if #preview_model > 0 then
-				flash(MEM.art_data.temp_part_list)
-				MEM.art_data.temp_part_list = nil
-			else
-				local function try_again()
-					if #preview_model > 0 and MEM.art_data.temp_part_list then
-						flash(MEM.art_data.temp_part_list)
-						MEM.art_data.temp_part_list = nil
-					end
-				end
-				timer.delay(0.01, false, try_again)
-			end
+		if MOD.flash_list and preview_model[1] then
+			flash(MOD.flash_list)
 		end
 	elseif message_id == hash("stop_flashing") then
 		stop_flash()
@@ -1388,6 +1385,7 @@ function on_message(self, message_id, message, sender)
 		msg.post(".", hash("disable"))
 		msg.post("/grid#grid", hash("disable"))
 		msg.post("/player_capsule", hash("disable"))
+		hide_beatcubes(true)
 		delete_model(self)
 		msg.post("/fog#fog", hash("disable"))
 	elseif message_id == hash("reset_tween") then

@@ -14,6 +14,8 @@ MOD.tween_preview = false
 
 MOD.playback = false
 
+MOD.flash_list = {}
+
 local buffer_list = {}
 local buffer_name_index = 0
 local function get_buffer_name()

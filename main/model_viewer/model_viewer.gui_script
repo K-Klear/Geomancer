@@ -311,9 +311,9 @@ local function close_preview()
 		set_ui(hash("transform"))
 	else
 		msg.post(".", hash("reset_tween"))
-		MOD.map_preview = false
 		set_ui(hash("map_preview"))
 	end
+	MOD.map_preview = false
 	MOD.tween_preview = false
 	MOD.vacuum_preview = false
 	stop_playback()
@@ -913,9 +913,7 @@ function on_message(self, message_id, message, sender)
 		set_button_colours()
 		msg.post("#", hash("acquire_input_focus"))
 	elseif message_id == hash("hide") then
-		if MOD.tween_preview then
-			close_preview()
-		end
+		close_preview()
 		DIALOG.close_all(TAB_NAME)
 	elseif message_id == hash("disable_input") then
 		msg.post("#", hash("release_input_focus"))

@@ -748,9 +748,13 @@ function MEM.setup_culling_ranges()
 			end
 		end
 	end
+	local infinite_prop_list = {}
 	if MEM.art_data.prop_list then
 		for key, val in ipairs(MEM.art_data.prop_list) do
 			val.ranges = {}
+			if val.spawn_range > val.despawn_range then
+				table.insert(infinite_prop_list, val)
+			end
 			for i = math.max(val.spawn_range, 0), math.max(val.despawn_range, 0) do
 				MOD.culling_ranges[i] = MOD.culling_ranges[i] or {slices = {}, props = {}, signals = {}, chunks = {}}
 				table.insert(MOD.culling_ranges[i].props, val)
@@ -765,6 +769,13 @@ function MEM.setup_culling_ranges()
 		end
 	end
 	MOD.max_culling_range = max_range
+	for key, val in ipairs(infinite_prop_list) do
+		for i = math.max(val.spawn_range, 0), max_range do
+			MOD.culling_ranges[i] = MOD.culling_ranges[i] or {slices = {}, props = {}, signals = {}, chunks = {}}
+			table.insert(MOD.culling_ranges[i].props, val)
+			val.ranges[i] = true
+		end
+	end
 end
 
 return MEM

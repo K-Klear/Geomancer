@@ -564,7 +564,7 @@ nodes {
 }
 nodes {
   position {
-    x: 587.0
+    x: 599.0
     y: -20.0
   }
   scale {
@@ -638,7 +638,7 @@ nodes {
 }
 nodes {
   position {
-    x: 630.0
+    x: 653.0
     y: -20.0
   }
   type: TYPE_TEMPLATE
@@ -680,7 +680,7 @@ nodes {
 }
 nodes {
   position {
-    x: 707.0
+    x: 741.0
     y: -20.0
   }
   scale {
@@ -712,7 +712,7 @@ nodes {
 }
 nodes {
   position {
-    x: 664.0
+    x: 687.0
     y: -20.0
   }
   type: TYPE_TEMPLATE
@@ -754,7 +754,7 @@ nodes {
 }
 nodes {
   position {
-    x: 751.0
+    x: 799.0
     y: -20.0
   }
   type: TYPE_TEMPLATE
@@ -796,7 +796,7 @@ nodes {
 }
 nodes {
   position {
-    x: 792.0
+    x: 840.0
     y: -20.0
   }
   type: TYPE_TEMPLATE
@@ -832,7 +832,7 @@ nodes {
 }
 nodes {
   position {
-    x: 822.0
+    x: 870.0
     y: -20.0
   }
   type: TYPE_TEMPLATE

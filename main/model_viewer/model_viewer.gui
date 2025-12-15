@@ -1428,6 +1428,241 @@ nodes {
   parent: "button_colour/text"
   template_node_child: true
 }
+nodes {
+  position {
+    x: 1270.0
+    y: 550.0
+  }
+  size {
+    x: 168.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "transform_box"
+  xanchor: XANCHOR_RIGHT
+  yanchor: YANCHOR_TOP
+  pivot: PIVOT_NE
+  layer: "below"
+  inherit_alpha: true
+  size_mode: SIZE_MODE_AUTO
+  enabled: false
+  visible: false
+}
+nodes {
+  position {
+    x: -28.0
+    y: -80.0
+  }
+  type: TYPE_TEMPLATE
+  id: "toggle_transform"
+  parent: "transform_box"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "toggle_transform/button_white"
+  parent: "toggle_transform"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 1.5
+    y: 1.5
+  }
+  type: TYPE_BOX
+  texture: "UI/button_visibility"
+  id: "toggle_transform/text"
+  parent: "toggle_transform/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -67.0
+    y: 17.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "transform_name"
+  font: "preview_time"
+  id: "transform_name"
+  pivot: PIVOT_E
+  parent: "transform_box"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: -67.0
+    y: -7.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "transform_pos"
+  font: "preview_time"
+  id: "transform_position"
+  pivot: PIVOT_E
+  parent: "transform_box"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: -67.0
+    y: -31.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "transform_pos"
+  font: "preview_time"
+  id: "transform_rotation"
+  pivot: PIVOT_E
+  parent: "transform_box"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: -67.0
+    y: -55.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "transform_pos"
+  font: "preview_time"
+  id: "transform_scale"
+  pivot: PIVOT_E
+  parent: "transform_box"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: -196.0
+    y: -80.0
+  }
+  type: TYPE_TEMPLATE
+  id: "button_transform_local"
+  parent: "transform_box"
+  inherit_alpha: true
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 20.0
+  }
+  type: TYPE_BOX
+  texture: "UI/button_exclusive"
+  id: "button_transform_local/button_white"
+  parent: "button_transform_local"
+  slice9 {
+    x: 24.0
+    y: 16.0
+    z: 24.0
+    w: 16.0
+  }
+  overridden_fields: 4
+  overridden_fields: 9
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  type: TYPE_TEXT
+  text: "Global"
+  id: "button_transform_local/text"
+  parent: "button_transform_local/button_white"
+  overridden_fields: 3
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -106.0
+    y: -80.0
+  }
+  type: TYPE_TEMPLATE
+  id: "button_transform_select"
+  parent: "transform_box"
+  inherit_alpha: true
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 110.0
+    y: 20.0
+  }
+  type: TYPE_BOX
+  texture: "UI/button_exclusive"
+  id: "button_transform_select/button_white"
+  parent: "button_transform_select"
+  slice9 {
+    x: 24.0
+    y: 16.0
+    z: 24.0
+    w: 16.0
+  }
+  overridden_fields: 4
+  overridden_fields: 9
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  type: TYPE_TEXT
+  text: "Select transform"
+  id: "button_transform_select/text"
+  parent: "button_transform_select/button_white"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 18
+  template_node_child: true
+}
 layers {
   name: "timeline"
 }

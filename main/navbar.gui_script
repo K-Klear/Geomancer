@@ -85,8 +85,6 @@ local function switch_tab(tab)
 	elseif tab == "tab_beat" then
 		BEAT.update_obstacles()
 		BEAT.update_buttons()
-	elseif tab == "tab_meta" then
-		S.update("Start by loading one or more png files with the size of 167 x 166. Their names have to be a number representing the Z position of the resulting geo slice.", false)
 	end
 	--]]
 end
