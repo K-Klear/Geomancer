@@ -796,7 +796,7 @@ nodes {
 }
 nodes {
   position {
-    x: 562.0
+    x: 557.0
     y: -20.0
   }
   type: TYPE_TEMPLATE
@@ -806,7 +806,7 @@ nodes {
 }
 nodes {
   size {
-    x: 40.0
+    x: 50.0
     y: 40.0
   }
   type: TYPE_BOX

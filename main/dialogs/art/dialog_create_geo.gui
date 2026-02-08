@@ -1,0 +1,416 @@
+script: "/main/dialogs/art/dialog_create_geo.gui_script"
+fonts {
+  name: "main_menu_button"
+  font: "/assets/fonts/final/main_menu_button.font"
+}
+fonts {
+  name: "tab_caption"
+  font: "/assets/fonts/final/tab_caption.font"
+}
+fonts {
+  name: "main_menu_button_small"
+  font: "/assets/fonts/final/main_menu_button_small.font"
+}
+textures {
+  name: "UI"
+  texture: "/assets/gfx/UI.atlas"
+}
+nodes {
+  position {
+    x: 640.0
+    y: 400.0
+  }
+  size {
+    x: 640.0
+    y: 460.0
+  }
+  type: TYPE_BOX
+  texture: "UI/panel_green"
+  id: "edit_box"
+  layer: "list_background"
+  slice9 {
+    x: 40.0
+    y: 40.0
+    z: 40.0
+    w: 40.0
+  }
+  alpha: 0.9
+}
+nodes {
+  position {
+    y: 172.0
+  }
+  size {
+    x: 250.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "Generate geo from prop"
+  font: "main_menu_button"
+  id: "dialog_geo_title"
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  parent: "edit_box"
+  layer: "text"
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+}
+nodes {
+  position {
+    x: -215.0
+    y: 113.0
+  }
+  type: TYPE_TEMPLATE
+  id: "checkbox_visible_geo"
+  parent: "edit_box"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "checkbox_visible_geo/button_white"
+  parent: "checkbox_visible_geo"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "checkbox_visible_geo/text"
+  parent: "checkbox_visible_geo/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Generate visible geo"
+  font: "main_menu_button_small"
+  id: "checkbox_visible_geo/label"
+  line_break: true
+  parent: "checkbox_visible_geo/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -215.0
+    y: 67.0
+  }
+  type: TYPE_TEMPLATE
+  id: "checkbox_collider"
+  parent: "edit_box"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "checkbox_collider/button_white"
+  parent: "checkbox_collider"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "checkbox_collider/text"
+  parent: "checkbox_collider/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Generate collider"
+  font: "main_menu_button_small"
+  id: "checkbox_collider/label"
+  line_break: true
+  parent: "checkbox_collider/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -215.0
+    y: 23.0
+  }
+  type: TYPE_TEMPLATE
+  id: "checkbox_delete_prop"
+  parent: "edit_box"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "checkbox_delete_prop/button_white"
+  parent: "checkbox_delete_prop"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "checkbox_delete_prop/text"
+  parent: "checkbox_delete_prop/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Delete prop afterwards"
+  font: "main_menu_button_small"
+  id: "checkbox_delete_prop/label"
+  line_break: true
+  parent: "checkbox_delete_prop/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -215.0
+    y: -26.0
+  }
+  type: TYPE_TEMPLATE
+  id: "checkbox_scale"
+  parent: "edit_box"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "checkbox_scale/button_white"
+  parent: "checkbox_scale"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "checkbox_scale/text"
+  parent: "checkbox_scale/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Scale prop to 0"
+  font: "main_menu_button_small"
+  id: "checkbox_scale/label"
+  line_break: true
+  parent: "checkbox_scale/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -215.0
+    y: -74.0
+  }
+  type: TYPE_TEMPLATE
+  id: "checkbox_all"
+  parent: "edit_box"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "checkbox_all/button_white"
+  parent: "checkbox_all"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "checkbox_all/text"
+  parent: "checkbox_all/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Do this for all instances"
+  font: "main_menu_button_small"
+  id: "checkbox_all/label"
+  line_break: true
+  parent: "checkbox_all/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -90.0
+    y: -145.0
+  }
+  type: TYPE_TEMPLATE
+  id: "generate_geo"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  id: "generate_geo/button_white"
+  parent: "generate_geo"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Generate"
+  id: "generate_geo/text"
+  parent: "generate_geo/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 90.0
+    y: -145.0
+  }
+  type: TYPE_TEMPLATE
+  id: "geo_cancel"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  id: "geo_cancel/button_white"
+  parent: "geo_cancel"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Cancel"
+  id: "geo_cancel/text"
+  parent: "geo_cancel/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+layers {
+  name: "list_background"
+}
+layers {
+  name: "below"
+}
+layers {
+  name: "text"
+}
+layers {
+  name: "dialog"
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT
+materials {
+  name: "font-df"
+  material: "/builtins/fonts/font-df.material"
+}

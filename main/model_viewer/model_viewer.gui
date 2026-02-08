@@ -1158,7 +1158,7 @@ nodes {
 }
 nodes {
   size {
-    x: 224.0
+    x: 280.0
     y: 128.0
   }
   type: TYPE_BOX
@@ -1174,8 +1174,8 @@ nodes {
 }
 nodes {
   position {
-    x: -84.0
-    y: -28.0
+    x: -252.0
+    y: -84.0
   }
   type: TYPE_TEMPLATE
   id: "hide_geo"
@@ -1310,7 +1310,7 @@ nodes {
 }
 nodes {
   position {
-    x: -84.0
+    x: -140.0
     y: -84.0
   }
   type: TYPE_TEMPLATE
@@ -1344,8 +1344,8 @@ nodes {
 }
 nodes {
   position {
-    x: -140.0
-    y: -84.0
+    x: -84.0
+    y: -28.0
   }
   type: TYPE_TEMPLATE
   id: "toggle_music"
@@ -1378,7 +1378,7 @@ nodes {
 }
 nodes {
   position {
-    x: -196.0
+    x: -84.0
     y: -84.0
   }
   type: TYPE_TEMPLATE
@@ -1427,6 +1427,74 @@ nodes {
   id: "button_colour/enemy"
   parent: "button_colour/text"
   template_node_child: true
+}
+nodes {
+  position {
+    x: -252.0
+    y: -28.0
+  }
+  type: TYPE_TEMPLATE
+  id: "hide_obstacles"
+  parent: "visibility_box_buttons"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "hide_obstacles/button_white"
+  parent: "hide_obstacles"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/button_show_obstacles"
+  id: "hide_obstacles/text"
+  parent: "hide_obstacles/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -196.0
+    y: -84.0
+  }
+  type: TYPE_TEMPLATE
+  id: "hide_colliders"
+  parent: "visibility_box_buttons"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "hide_colliders/button_white"
+  parent: "hide_colliders"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/button_hide_colliders"
+  id: "hide_colliders/text"
+  parent: "hide_colliders/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
 }
 nodes {
   position {

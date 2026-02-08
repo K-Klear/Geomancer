@@ -999,7 +999,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 718.0
+    y: 743.0
   }
   type: TYPE_TEMPLATE
   id: "confirm_file_overwrite"
@@ -1052,7 +1052,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 669.0
+    y: 694.0
   }
   type: TYPE_TEMPLATE
   id: "default_create_folder_on_export"
@@ -1105,7 +1105,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 617.0
+    y: 642.0
   }
   type: TYPE_TEMPLATE
   id: "default_import_changes_from_zip"
@@ -1158,7 +1158,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 567.0
+    y: 592.0
   }
   type: TYPE_TEMPLATE
   id: "default_import_level_changes"
@@ -1211,7 +1211,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 518.0
+    y: 543.0
   }
   type: TYPE_TEMPLATE
   id: "default_import_event_changes"
@@ -1264,7 +1264,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 469.0
+    y: 494.0
   }
   type: TYPE_TEMPLATE
   id: "default_import_model_changes"
@@ -1317,7 +1317,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 422.0
+    y: 447.0
   }
   type: TYPE_TEMPLATE
   id: "default_import_beat_changes"
@@ -1370,7 +1370,60 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 375.0
+    y: 397.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_import_geo_changes"
+  parent: "panel_files"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "default_import_geo_changes/button_white"
+  parent: "default_import_geo_changes"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "default_import_geo_changes/text"
+  parent: "default_import_geo_changes/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Include geo data when importing changes"
+  font: "main_menu_button_small"
+  id: "default_import_geo_changes/label"
+  line_break: true
+  parent: "default_import_geo_changes/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 151.0
+    y: 346.0
   }
   type: TYPE_TEMPLATE
   id: "preload_models"
@@ -1445,7 +1498,7 @@ nodes {
 nodes {
   position {
     x: 177.0
-    y: 326.0
+    y: 303.0
   }
   size {
     x: 200.0
@@ -1462,7 +1515,7 @@ nodes {
 nodes {
   position {
     x: 668.0
-    y: 322.0
+    y: 299.0
   }
   type: TYPE_TEMPLATE
   id: "map_preview_partition_size"
@@ -1498,7 +1551,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 273.0
+    y: 261.0
   }
   type: TYPE_TEMPLATE
   id: "unload_data_before_loading_zip"
@@ -1551,7 +1604,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 226.0
+    y: 214.0
   }
   type: TYPE_TEMPLATE
   id: "unload_data_before_loading_folder"
@@ -1617,7 +1670,7 @@ nodes {
 }
 nodes {
   position {
-    x: 283.0
+    x: 178.0
     y: 674.0
   }
   scale {
@@ -1640,7 +1693,7 @@ nodes {
 }
 nodes {
   position {
-    x: 246.0
+    x: 141.0
     y: 673.0
   }
   type: TYPE_TEMPLATE
@@ -1663,7 +1716,7 @@ nodes {
 }
 nodes {
   position {
-    x: 283.0
+    x: 178.0
     y: 614.0
   }
   scale {
@@ -1686,7 +1739,7 @@ nodes {
 }
 nodes {
   position {
-    x: 246.0
+    x: 141.0
     y: 613.0
   }
   type: TYPE_TEMPLATE
@@ -1709,7 +1762,7 @@ nodes {
 }
 nodes {
   position {
-    x: 283.0
+    x: 178.0
     y: 554.0
   }
   scale {
@@ -1732,7 +1785,7 @@ nodes {
 }
 nodes {
   position {
-    x: 246.0
+    x: 141.0
     y: 553.0
   }
   type: TYPE_TEMPLATE
@@ -1755,7 +1808,7 @@ nodes {
 }
 nodes {
   position {
-    x: 283.0
+    x: 178.0
     y: 494.0
   }
   scale {
@@ -1778,7 +1831,7 @@ nodes {
 }
 nodes {
   position {
-    x: 246.0
+    x: 141.0
     y: 493.0
   }
   type: TYPE_TEMPLATE
@@ -1801,7 +1854,7 @@ nodes {
 }
 nodes {
   position {
-    x: 283.0
+    x: 178.0
     y: 434.0
   }
   scale {
@@ -1824,7 +1877,7 @@ nodes {
 }
 nodes {
   position {
-    x: 246.0
+    x: 141.0
     y: 433.0
   }
   type: TYPE_TEMPLATE
@@ -1847,7 +1900,7 @@ nodes {
 }
 nodes {
   position {
-    x: 283.0
+    x: 178.0
     y: 374.0
   }
   scale {
@@ -1870,7 +1923,7 @@ nodes {
 }
 nodes {
   position {
-    x: 246.0
+    x: 141.0
     y: 373.0
   }
   type: TYPE_TEMPLATE
@@ -1893,7 +1946,7 @@ nodes {
 }
 nodes {
   position {
-    x: 283.0
+    x: 178.0
     y: 314.0
   }
   scale {
@@ -1906,7 +1959,8 @@ nodes {
     y: 40.0
   }
   type: TYPE_TEXT
-  text: "Highlight colour of model to be replaced"
+  text: "Highlight colour of model\n"
+  "to be replaced"
   font: "main_menu_button_small"
   id: "label_colour_model_replace"
   pivot: PIVOT_W
@@ -1916,7 +1970,7 @@ nodes {
 }
 nodes {
   position {
-    x: 246.0
+    x: 141.0
     y: 313.0
   }
   type: TYPE_TEMPLATE
@@ -1939,7 +1993,7 @@ nodes {
 }
 nodes {
   position {
-    x: 283.0
+    x: 178.0
     y: 254.0
   }
   scale {
@@ -1962,7 +2016,7 @@ nodes {
 }
 nodes {
   position {
-    x: 246.0
+    x: 141.0
     y: 253.0
   }
   type: TYPE_TEMPLATE
@@ -1985,7 +2039,7 @@ nodes {
 }
 nodes {
   position {
-    x: 829.0
+    x: 562.0
     y: 674.0
   }
   scale {
@@ -2008,7 +2062,7 @@ nodes {
 }
 nodes {
   position {
-    x: 792.0
+    x: 525.0
     y: 673.0
   }
   type: TYPE_TEMPLATE
@@ -2031,7 +2085,7 @@ nodes {
 }
 nodes {
   position {
-    x: 829.0
+    x: 562.0
     y: 548.0
   }
   scale {
@@ -2054,7 +2108,7 @@ nodes {
 }
 nodes {
   position {
-    x: 792.0
+    x: 525.0
     y: 547.0
   }
   type: TYPE_TEMPLATE
@@ -2077,7 +2131,7 @@ nodes {
 }
 nodes {
   position {
-    x: 829.0
+    x: 562.0
     y: 490.0
   }
   scale {
@@ -2100,7 +2154,7 @@ nodes {
 }
 nodes {
   position {
-    x: 792.0
+    x: 525.0
     y: 489.0
   }
   type: TYPE_TEMPLATE
@@ -2123,7 +2177,7 @@ nodes {
 }
 nodes {
   position {
-    x: 829.0
+    x: 562.0
     y: 611.0
   }
   scale {
@@ -2146,7 +2200,7 @@ nodes {
 }
 nodes {
   position {
-    x: 792.0
+    x: 525.0
     y: 610.0
   }
   type: TYPE_TEMPLATE
@@ -2169,7 +2223,7 @@ nodes {
 }
 nodes {
   position {
-    x: 829.0
+    x: 562.0
     y: 427.0
   }
   scale {
@@ -2192,7 +2246,7 @@ nodes {
 }
 nodes {
   position {
-    x: 792.0
+    x: 525.0
     y: 426.0
   }
   type: TYPE_TEMPLATE
@@ -2215,7 +2269,7 @@ nodes {
 }
 nodes {
   position {
-    x: 829.0
+    x: 562.0
     y: 369.0
   }
   scale {
@@ -2238,7 +2292,7 @@ nodes {
 }
 nodes {
   position {
-    x: 792.0
+    x: 525.0
     y: 368.0
   }
   type: TYPE_TEMPLATE
@@ -2261,7 +2315,7 @@ nodes {
 }
 nodes {
   position {
-    x: 829.0
+    x: 562.0
     y: 313.0
   }
   scale {
@@ -2284,7 +2338,7 @@ nodes {
 }
 nodes {
   position {
-    x: 792.0
+    x: 525.0
     y: 312.0
   }
   type: TYPE_TEMPLATE
@@ -2307,7 +2361,7 @@ nodes {
 }
 nodes {
   position {
-    x: 829.0
+    x: 562.0
     y: 252.0
   }
   scale {
@@ -2330,7 +2384,7 @@ nodes {
 }
 nodes {
   position {
-    x: 792.0
+    x: 525.0
     y: 251.0
   }
   type: TYPE_TEMPLATE
@@ -2353,7 +2407,7 @@ nodes {
 }
 nodes {
   position {
-    x: 283.0
+    x: 178.0
     y: 195.0
   }
   scale {
@@ -2376,7 +2430,7 @@ nodes {
 }
 nodes {
   position {
-    x: 246.0
+    x: 141.0
     y: 194.0
   }
   type: TYPE_TEMPLATE
@@ -2395,6 +2449,180 @@ nodes {
   type: TYPE_BOX
   id: "colour_hidden_model/text"
   parent: "colour_hidden_model/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 913.0
+    y: 661.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Custom colour set\n"
+  "Main / Fog / Glow / Enemy"
+  font: "main_menu_button_small"
+  id: "lbl_custom colour"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 943.0
+    y: 593.0
+  }
+  type: TYPE_TEMPLATE
+  id: "custom_colour_main"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_main/button_white"
+  parent: "custom_colour_main"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_main/text"
+  parent: "custom_colour_main/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1033.0
+    y: 593.0
+  }
+  type: TYPE_TEMPLATE
+  id: "custom_colour_fog"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_fog/button_white"
+  parent: "custom_colour_fog"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_fog/text"
+  parent: "custom_colour_fog/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1123.0
+    y: 593.0
+  }
+  type: TYPE_TEMPLATE
+  id: "custom_colour_glow"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_glow/button_white"
+  parent: "custom_colour_glow"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_glow/text"
+  parent: "custom_colour_glow/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1213.0
+    y: 593.0
+  }
+  type: TYPE_TEMPLATE
+  id: "custom_colour_enemy"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_enemy/button_white"
+  parent: "custom_colour_enemy"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "custom_colour_enemy/text"
+  parent: "custom_colour_enemy/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 916.0
+    y: 512.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Collider colour\n"
+  "(strong/weak)"
+  font: "main_menu_button_small"
+  id: "lbl_collider_colour"
+  pivot: PIVOT_W
+  parent: "panel_colours"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 1149.0
+    y: 510.0
+  }
+  type: TYPE_TEMPLATE
+  id: "collider_strong_colour"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "collider_strong_colour/button_white"
+  parent: "collider_strong_colour"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "collider_strong_colour/text"
+  parent: "collider_strong_colour/button_white"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1214.0
+    y: 510.0
+  }
+  type: TYPE_TEMPLATE
+  id: "collider_weak_colour"
+  parent: "panel_colours"
+  inherit_alpha: true
+  template: "/templates/button_colour_single.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "collider_weak_colour/button_white"
+  parent: "collider_weak_colour"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "collider_weak_colour/text"
+  parent: "collider_weak_colour/button_white"
   template_node_child: true
 }
 nodes {
@@ -4014,156 +4242,6 @@ nodes {
   parent: "default_colour_set/box"
   overridden_fields: 4
   overridden_fields: 8
-  template_node_child: true
-}
-nodes {
-  position {
-    x: 780.0
-    y: 352.0
-  }
-  size {
-    x: 200.0
-    y: 100.0
-  }
-  type: TYPE_TEXT
-  text: "Custom colour set\n"
-  "Main / Fog / Glow / Enemy"
-  font: "main_menu_button_small"
-  id: "lbl_custom colour"
-  pivot: PIVOT_W
-  parent: "panel_model_viewer"
-  inherit_alpha: true
-}
-nodes {
-  position {
-    x: 810.0
-    y: 284.0
-  }
-  type: TYPE_TEMPLATE
-  id: "custom_colour_main"
-  parent: "panel_model_viewer"
-  inherit_alpha: true
-  template: "/templates/button_colour_single.gui"
-}
-nodes {
-  type: TYPE_BOX
-  id: "custom_colour_main/button_white"
-  parent: "custom_colour_main"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  id: "custom_colour_main/text"
-  parent: "custom_colour_main/button_white"
-  template_node_child: true
-}
-nodes {
-  position {
-    x: 900.0
-    y: 284.0
-  }
-  type: TYPE_TEMPLATE
-  id: "custom_colour_fog"
-  parent: "panel_model_viewer"
-  inherit_alpha: true
-  template: "/templates/button_colour_single.gui"
-}
-nodes {
-  type: TYPE_BOX
-  id: "custom_colour_fog/button_white"
-  parent: "custom_colour_fog"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  id: "custom_colour_fog/text"
-  parent: "custom_colour_fog/button_white"
-  template_node_child: true
-}
-nodes {
-  position {
-    x: 990.0
-    y: 284.0
-  }
-  type: TYPE_TEMPLATE
-  id: "custom_colour_glow"
-  parent: "panel_model_viewer"
-  inherit_alpha: true
-  template: "/templates/button_colour_single.gui"
-}
-nodes {
-  type: TYPE_BOX
-  id: "custom_colour_glow/button_white"
-  parent: "custom_colour_glow"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  id: "custom_colour_glow/text"
-  parent: "custom_colour_glow/button_white"
-  template_node_child: true
-}
-nodes {
-  position {
-    x: 1080.0
-    y: 284.0
-  }
-  type: TYPE_TEMPLATE
-  id: "custom_colour_enemy"
-  parent: "panel_model_viewer"
-  inherit_alpha: true
-  template: "/templates/button_colour_single.gui"
-}
-nodes {
-  type: TYPE_BOX
-  id: "custom_colour_enemy/button_white"
-  parent: "custom_colour_enemy"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  id: "custom_colour_enemy/text"
-  parent: "custom_colour_enemy/button_white"
-  template_node_child: true
-}
-nodes {
-  position {
-    x: 783.0
-    y: 203.0
-  }
-  size {
-    x: 200.0
-    y: 100.0
-  }
-  type: TYPE_TEXT
-  text: "Collider colour"
-  font: "main_menu_button_small"
-  id: "lbl_collider_colour"
-  pivot: PIVOT_W
-  parent: "panel_model_viewer"
-  inherit_alpha: true
-}
-nodes {
-  position {
-    x: 1016.0
-    y: 201.0
-  }
-  type: TYPE_TEMPLATE
-  id: "collider_colour"
-  parent: "panel_model_viewer"
-  inherit_alpha: true
-  template: "/templates/button_colour_single.gui"
-}
-nodes {
-  type: TYPE_BOX
-  id: "collider_colour/button_white"
-  parent: "collider_colour"
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  id: "collider_colour/text"
-  parent: "collider_colour/button_white"
   template_node_child: true
 }
 nodes {

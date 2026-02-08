@@ -22,7 +22,7 @@ function init(self)
 	gui.set_render_order(1)
 	gui.set_text(gui.get_node("version_label"), "Version "..sys.get_config("project.version"))
 	UI.load_template({"exit", "load_dir", "load_file", "load_zip", "unload_all", "export_all", "export_folder_checkbox", "import_changes",
-	"import_checkbox", "degeomance", "import_level", "import_events", "import_beat", "import_models", "help", "map_preview"}, TAB_NAME)
+	"import_checkbox", "degeomance", "import_level", "import_events", "import_beat", "import_models", "import_geo", "help", "map_preview"}, TAB_NAME)
 	if SET.I_am_Klear then
 		UI.load_template("klear_button", TAB_NAME)
 	else
@@ -34,6 +34,7 @@ function init(self)
 	set_checkbox("import_events", SET.import_event_changes)
 	set_checkbox("import_beat", SET.import_beat_changes)
 	set_checkbox("import_models", SET.import_model_changes)
+	set_checkbox("import_geo", SET.import_geo_changes)
 end
 
 local function run_export_fn()
@@ -283,6 +284,76 @@ end
 local function export_geo(path)
 	local f = G.safe_output(path)
 	if f then
+
+
+		local chunk_count = 1
+		if MEM.level_data.songLength then
+			chunk_count = math.ceil(((MEM.level_data.songLength * 3) - 4) / 16)
+		end
+
+		local function add_empty(id)
+			return {meshSizes = {0, 0}, _key_sort = {"id", "verts", "meshSizes", "tris"}, tris = {}, id = id, verts = {}}
+		end
+
+		local chunks_modified = {}
+		for key, val in pairs(MEM.geo_data.chunks) do
+			local id
+			if val.modified then
+				id = val.id[1]..","..val.id[2]..","..val.id[3]
+				chunks_modified[id] = val
+			end
+			if val.original_size then
+				id = id or val.id[1]..","..val.id[2]..","..val.id[3]
+				MEM.geomancer_meta.geo.chunks[id] = val.original_size
+			end
+		end
+		
+		local chunk_index = 0
+		for chunk_z = -1, chunk_count do
+			if not MEM.geo_data.table.chunkSlices[chunk_z + 2] then
+				MEM.geo_data.table.chunkSlices[chunk_z + 2] = add_empty(tostring(chunk_z))
+			end
+			local slice_tab = MEM.geo_data.slices[chunk_z]
+			if slice_tab then
+				if slice_tab.original_size then
+					MEM.geomancer_meta.geo.slices[tostring(chunk_z)] = slice_tab.original_size
+				end
+				if slice_tab.modified then
+					local new_data = slice_tab[2]
+					local slice_export_table = MEM.geo_data.table.chunkSlices[chunk_z + 2]
+					slice_export_table.meshSizes[1] = MEM.geo_data.table.chunkSlices[chunk_z + 2].meshSizes[1] or 0
+					slice_export_table.meshSizes[2] = #new_data.tris - slice_export_table.meshSizes[1]
+					slice_export_table.meshSizes._pure_array = nil
+					slice_export_table.verts = new_data.verts
+					slice_export_table.tris = new_data.tris
+					slice_export_table.verts._pure_array = nil
+					slice_export_table.tris._pure_array = nil
+					slice_export_table.meshSizes._pure_array = nil
+				end
+			end
+			for chunk_y = -3, 2 do
+				for chunk_x = -3, 2 do
+					chunk_index = chunk_index + 1
+					local id = chunk_x..","..chunk_y..","..chunk_z
+					if not MEM.geo_data.table.chunkData[chunk_index] then
+						MEM.geo_data.table.chunkData[chunk_index] = add_empty(id)
+					end
+					if chunks_modified[id] then
+						local new_data = chunks_modified[id]
+						local chunk_export_table = MEM.geo_data.table.chunkData[chunk_index]
+						if new_data then
+							chunk_export_table.verts = new_data.verts
+							chunk_export_table.tris = new_data.tris
+							chunk_export_table.meshSizes = new_data.meshSizes
+							chunk_export_table.verts._pure_array = nil
+							chunk_export_table.tris._pure_array = nil
+							chunk_export_table.meshSizes._pure_array = nil
+						end
+					end
+				end
+			end
+		end
+		
 		MEM.export_json(MEM.geo_data.table)
 		io.close(f)
 	end
@@ -380,7 +451,7 @@ local function export_all(overwrite)
 			filename_poster = filename_poster or filename_common..".png"
 			filename_ogg = filename_ogg or filename_common..".ogg"
 			
-			MEM.geomancer_meta = {version = sys.get_config("project.version"), props = {}}
+			MEM.geomancer_meta = {version = sys.get_config("project.version"), props = {}, geo = {chunks = {}, slices = {}}}
 
 
 			
@@ -770,19 +841,40 @@ function on_message(self, message_id, message, sender)
 end
 
 local function check_geomancer_meta()
-	if MEM.art_data.table and MEM.geomancer_meta and MEM.geomancer_meta.props and next(MEM.geomancer_meta.props) then
-		for key, val in ipairs(MEM.art_data.table.propsDictionary) do
-			if MEM.geomancer_meta.props[val.key] then
-				val.hide = MEM.geomancer_meta.props[val.key].hide
-				for k, v in pairs(MEM.geomancer_meta.props[val.key].tweens or {}) do
-					local num_key = tonumber(k)
-					if val.model_data.transform_list[num_key] and val.model_data.transform_list[num_key].tween then
-						local old_script = get_tween_script(val.model_data.transform_list[num_key].tween)
-						if old_script == v.script then
-							val.model_data.transform_list[num_key].tween = v.table
-						else
-							print("Meta script mismatch!")
+	if MEM.art_data.table and MEM.geomancer_meta then
+		if MEM.geomancer_meta.props and next(MEM.geomancer_meta.props) then
+			for key, val in ipairs(MEM.art_data.table.propsDictionary) do
+				if MEM.geomancer_meta.props[val.key] then
+					val.hide = MEM.geomancer_meta.props[val.key].hide
+					for k, v in pairs(MEM.geomancer_meta.props[val.key].tweens or {}) do
+						local num_key = tonumber(k)
+						if val.model_data.transform_list[num_key] and val.model_data.transform_list[num_key].tween then
+							local old_script = get_tween_script(val.model_data.transform_list[num_key].tween)
+							if old_script == v.script then
+								val.model_data.transform_list[num_key].tween = v.table
+							else
+								print("Meta script mismatch!")
+							end
 						end
+					end
+				end
+			end
+		end
+		if MEM.geomancer_meta.geo then
+			for key, val in pairs(MEM.geomancer_meta.geo.slices) do
+				local slice_id = tonumber(key)
+				if MEM.geo_data.slices[slice_id] then
+					MEM.geo_data.slices[slice_id].original_size = val
+				end
+			end
+			local chunk_list = {}
+			for key, val in pairs(MEM.geomancer_meta.geo.chunks) do
+				chunk_list[key] = val
+			end
+			if next(chunk_list) then
+				for key, val in ipairs(MEM.geo_data.chunks) do
+					if chunk_list[val.id_str] then
+						val.original_size = chunk_list[val.id_str]
 					end
 				end
 			end
@@ -792,14 +884,17 @@ local function check_geomancer_meta()
 end
 
 local function import_changes()
-	if not ((SET.import_level_changes and UI.tab.tab_level.state) or (SET.import_event_changes and UI.tab.tab_event.state) or
-	(SET.import_beat_changes and UI.tab.tab_beat.state) or (SET.import_model_changes and UI.tab.tab_art.state)) then
+	if not (SET.import_level_changes or SET.import_event_changes or SET.import_beat_changes or SET.import_model_changes or SET.import_geo_changes) then
+		G.update_navbar("At least one import type needs to be enabled.", true)
+		return
+	elseif not ((SET.import_level_changes and UI.tab.tab_level.state) or (SET.import_event_changes and UI.tab.tab_event.state) or
+	(SET.import_beat_changes and UI.tab.tab_beat.state) or (SET.import_model_changes and UI.tab.tab_art.state) or (SET.import_geo_changes and UI.tab.tab_geo.state)) then
 		G.update_navbar("You must open a map first.", true)
 		return
 	else
 		G.update_navbar("Importing changes", true)
 	end
-	local _, path, level_data, event_data, art_data, beat_data, geomancer_data
+	local _, path, level_data, event_data, art_data, beat_data, geo_data, geomancer_data
 	if SET.import_changes_from_zip then
 		_, path = diags.open("zip", SET.default_path_import_model_data)
 		if path then
@@ -820,6 +915,8 @@ local function import_changes()
 						geomancer_data = file.content
 					elseif SET.import_beat_changes and string.sub(file.name, -7) == "pw_beat" then
 						beat_data = file.content
+					elseif SET.import_geo_changes and string.sub(file.name, -6) == "pw_geo" then
+						geo_data = file.content
 					end
 				end
 			end
@@ -850,6 +947,8 @@ local function import_changes()
 							geomancer_data = read_file(path.."/"..filename)
 						elseif SET.import_beat_changes and extension == "pw_beat" then
 							beat_data = read_file(path.."/"..filename)
+						elseif SET.import_geo_changes and extension == "pw_geo" then
+							geo_data = read_file(path.."/"..filename)
 						end
 					end
 				end
@@ -879,6 +978,130 @@ local function import_changes()
 			MEM.event_data.table.tempoSections[1].beatsPerMeasure = beatsPerMeasure
 			MEM.event_data.table.tempoSections[1].startSample = startSample
 			G.update_navbar("Event data updated")
+		end
+	end
+	if geomancer_data then
+		MEM.load_geomancer_data(geomancer_data, "The geomancer metadata file")
+	end
+	if UI.tab.tab_geo.state and geo_data then
+		if MEM.geomancer_meta and MEM.geomancer_meta.geo then
+			local geo_tab = MEM.parse_json(geo_data)
+			if MEM.check(geo_tab, "pw_geo", "Selected pw_geo file") then
+				for _slice_id, original_size in pairs(MEM.geomancer_meta.geo.slices or {}) do
+					local slice_id = tonumber(_slice_id) or -2
+					local imported_geo
+					for key, val in ipairs(geo_tab.chunkSlices) do
+						if tonumber(val.id) == slice_id then
+							imported_geo = val
+							break
+						end
+					end
+					if imported_geo then
+						local slice_tab_both_meshes = MEM.geo_data.slices[slice_id]
+						if slice_tab_both_meshes then
+							MEM.remove_geomanced_slice(slice_tab_both_meshes)
+						else
+							slice_tab_both_meshes = {
+								{id = tonumber(slice_id), verts = {}, tris = {}, triangles = {}, normals_parsed = {}, verts_parsed = {}, mesh_index = 1},
+								{id = tonumber(slice_id), verts = {}, tris = {}, triangles = {}, normals_parsed = {}, verts_parsed = {}, mesh_index = 2}
+							}
+							MEM.geo_data.slices[slice_id] = slice_tab_both_meshes
+						end
+						local slice_tab = slice_tab_both_meshes[2]
+						slice_tab_both_meshes.modified = true
+						slice_tab_both_meshes.original_size = #slice_tab.tris
+						local first_vert = imported_geo.tris[original_size + 1] + 1
+						local existing_vert_count = #slice_tab.verts
+						for i = first_vert, #imported_geo.verts do
+							table.insert(slice_tab.verts, imported_geo.verts[i])
+							table.insert(slice_tab.verts_parsed, G.parse_values(imported_geo.verts[i]))
+						end
+						local tris_offset = existing_vert_count - first_vert + 1
+						local verts_parsed = slice_tab.verts_parsed
+						for i = original_size + 1, #imported_geo.tris, 3 do
+							table.insert(slice_tab.tris, imported_geo.tris[i] + tris_offset)
+							table.insert(slice_tab.tris, imported_geo.tris[i + 1] + tris_offset)
+							table.insert(slice_tab.tris, imported_geo.tris[i + 2] + tris_offset)
+							local vec_a = vmath.vector3(verts_parsed[slice_tab.tris[i + 0] + 1][1], verts_parsed[slice_tab.tris[i + 0] + 1][2], verts_parsed[slice_tab.tris[i + 0] + 1][3])
+							local vec_b = vmath.vector3(verts_parsed[slice_tab.tris[i + 1] + 1][1], verts_parsed[slice_tab.tris[i + 1] + 1][2], verts_parsed[slice_tab.tris[i + 1] + 1][3])
+							local vec_c = vmath.vector3(verts_parsed[slice_tab.tris[i + 2] + 1][1], verts_parsed[slice_tab.tris[i + 2] + 1][2], verts_parsed[slice_tab.tris[i + 2] + 1][3])
+							local norm = vmath.normalize(vmath.cross(vec_b - vec_a, vec_c - vec_a))
+							for j = 0, 2 do
+								local vertex = slice_tab.tris[i + j] + 1
+								table.insert(slice_tab.triangles, verts_parsed[vertex][1])
+								table.insert(slice_tab.triangles, verts_parsed[vertex][2])
+								table.insert(slice_tab.triangles, verts_parsed[vertex][3])
+								table.insert(slice_tab.normals_parsed, norm.x)
+								table.insert(slice_tab.normals_parsed, norm.y)
+								table.insert(slice_tab.normals_parsed, norm.z)
+							end
+						end
+						if slice_tab.buffer_resource then
+							MOD.buffer_resource_released(slice_tab.buffer_resource)
+						end
+						MOD.create_mesh(slice_tab)
+					end
+				end
+				for chunk_id, original_size in pairs(MEM.geomancer_meta.geo.chunks or {}) do
+					local imported_geo
+					for key, val in ipairs(geo_tab.chunkData) do
+						if val.id == chunk_id then
+							imported_geo = val
+							break
+						end
+					end
+					if imported_geo then
+						local chunk_tab
+						for key, val in ipairs(MEM.geo_data.chunks) do
+							if val.id_str == chunk_id then
+								chunk_tab = val
+								break
+							end
+						end
+						if chunk_tab then
+							MEM.remove_geomanced_chunk(chunk_tab)
+						else
+							chunk_tab = {
+								id = G.parse_values(chunk_id), id_str = chunk_id, verts = {}, tris = {}, triangles = {}, normals_parsed = {}, 
+								verts_parsed = {}, meshSizes = {0, 0}
+							}
+							table.insert(MEM.geo_data.chunks, chunk_tab)
+						end
+						chunk_tab.modified = true
+						chunk_tab.original_size = #chunk_tab.tris
+						local first_vert = imported_geo.tris[original_size + 1] + 1
+						local existing_vert_count = #chunk_tab.verts
+						for i = first_vert, #imported_geo.verts do
+							table.insert(chunk_tab.verts, imported_geo.verts[i])
+							table.insert(chunk_tab.verts_parsed, G.parse_values(imported_geo.verts[i]))
+						end
+						local tris_offset = existing_vert_count - first_vert + 1
+						local verts_parsed = chunk_tab.verts_parsed
+						for i = original_size + 1, #imported_geo.tris, 3 do
+							table.insert(chunk_tab.tris, imported_geo.tris[i] + tris_offset)
+							table.insert(chunk_tab.tris, imported_geo.tris[i + 1] + tris_offset)
+							table.insert(chunk_tab.tris, imported_geo.tris[i + 2] + tris_offset)
+							local vec_a = vmath.vector3(verts_parsed[chunk_tab.tris[i + 0] + 1][1], verts_parsed[chunk_tab.tris[i + 0] + 1][2], verts_parsed[chunk_tab.tris[i + 0] + 1][3])
+							local vec_b = vmath.vector3(verts_parsed[chunk_tab.tris[i + 1] + 1][1], verts_parsed[chunk_tab.tris[i + 1] + 1][2], verts_parsed[chunk_tab.tris[i + 1] + 1][3])
+							local vec_c = vmath.vector3(verts_parsed[chunk_tab.tris[i + 2] + 1][1], verts_parsed[chunk_tab.tris[i + 2] + 1][2], verts_parsed[chunk_tab.tris[i + 2] + 1][3])
+							local norm = vmath.normalize(vmath.cross(vec_b - vec_a, vec_c - vec_a))
+							for j = 0, 2 do
+								local vertex = chunk_tab.tris[i + j] + 1
+								table.insert(chunk_tab.triangles, verts_parsed[vertex][1])
+								table.insert(chunk_tab.triangles, verts_parsed[vertex][2])
+								table.insert(chunk_tab.triangles, verts_parsed[vertex][3])
+								table.insert(chunk_tab.normals_parsed, norm.x)
+								table.insert(chunk_tab.normals_parsed, norm.y)
+								table.insert(chunk_tab.normals_parsed, norm.z)
+							end
+						end
+						if chunk_tab.buffer_resource then
+							MOD.buffer_resource_released(chunk_tab.buffer_resource)
+						end
+						MOD.create_mesh(chunk_tab)
+					end
+				end
+			end
 		end
 	end
 	if UI.tab.tab_art.state and art_data then
@@ -1041,8 +1264,6 @@ local function import_changes()
 					end
 				end
 			end
-
-			
 			local dynamic_models = {}
 			if art_tab.dynamicProps then
 				for key, val in ipairs(art_tab.dynamicProps) do
@@ -1092,14 +1313,13 @@ local function import_changes()
 				end
 			end
 			MEM.create_prop_list(MEM.art_data.table, true)
-			MEM.setup_culling_ranges()
-		end
-		if geomancer_data then
-			MEM.load_geomancer_data(geomancer_data, "The geomancer metadata file")
 		end
 		check_geomancer_meta()
 		G.update_navbar("Model data updated")
 	end
+	MEM.setup_culling_ranges()
+
+	
 	if UI.tab.tab_beat.state and beat_data then
 		local beat_tab = MEM.parse_json(beat_data)
 		if MEM.check(beat_tab, "pw_beat", "Selected pw_beat file") then
@@ -1445,6 +1665,7 @@ local function evaluate_button(button)
 		os.exit(1)
 	elseif button == "klear_button" then
 
+		
 	elseif button == "map_preview" then
 		if MEM.art_data.table then
 			G.update_navbar("", true)
@@ -1474,6 +1695,9 @@ local function evaluate_button(button)
 	elseif button == "import_beat" then
 		SET.import_beat_changes = not SET.import_beat_changes
 		set_checkbox("import_beat", SET.import_beat_changes)
+	elseif button == "import_geo" then
+		SET.import_geo_changes = not SET.import_geo_changes
+		set_checkbox("import_geo", SET.import_geo_changes)
 	elseif button == "import_changes" then
 		import_changes()
 	elseif button == "degeomance" then

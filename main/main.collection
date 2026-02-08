@@ -442,6 +442,14 @@ embedded_instances {
   ""
 }
 embedded_instances {
+  id: "create_geo"
+  data: "components {\n"
+  "  id: \"dialog_create_geo\"\n"
+  "  component: \"/main/dialogs/art/dialog_create_geo.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
   id: "replace"
   data: "components {\n"
   "  id: \"dialog_replace_model\"\n"

@@ -13,13 +13,13 @@ To do:
 - Custom sequence name support
 	- Add a new section for sequences found among the enemies/in the sequence file?
 - Add a cfg for default easing and number of nodes
-- Option to view colliders in model viewer
 - Shift-click fields to delete contents
 - have validation check if the value is function or just a value and remove all the dumb anonymous functions returning always the same thing
 - Add a warning if no export happens before closing
 - Store signals during model preview as hashes to make update() a tad faster.
 - If a poster is not present in the map, generate a placeholder graphic
 - Stop messing up the prop groups. And might as well implement my own way of organising them.
+	- Yeah, maybe not... it's a mess
 - Automatic frame-by-frame animation generation
 
 - Option to show prop origin
@@ -35,51 +35,62 @@ Bugs:
 - Had a dynamic model refuse to stay dynamic after switching tabs. No idea why.
 	- Actually saw a wrong model turn dynamic. Something's fishy
 		- Might be caused by sorting models - investigate!
+- It's possible to close model viewer while in FPS control mode. Turn it off in that case!
+- Meshes in model viewer tend to disappear. Related to flashing?
 
 Settings to implement in options:
+- Something for timeline height in map preview
+- probably remove default model z position as is it useless?
+	-Maybe it will see use in tween preview
 
-Something for timeline height in map preview
-probably remove default model z position as is it useless?
-	Maybe it will see use in tween preview
+To-do (geo generation):
+- Fix the collider rendering (depth buffer?)
+- Prop deletion
+- Icon graphics
 
 Done:
 
 Features:
-- Added a "Find" button to the art tab to search in the model list
-	- The search field accepts Lua pattern matching. This is unlikely to be useful, so don't worry about it.
-- Added an "Instances" button to the art tab. This will bring out a list of all instances of the selected model sorted by Z position.
-	- Specific prop properties (position, rotation, scale, spawn/despawn times) can be modified from this screen.
-	- Use the eye icon to jump to a specific prop's position in map preview
-- Map/tween preview now shows current time, total map length and percentage to the left and in the case of tween preview time relative to the start of the tween associated with the currently selected timeline to the right.
-	- The units can be switched between seconds, distance in map units or samples according to the currently set sample rate
+- It is now possible to create geo (visible and/or invisible) from props, from the Instance dialog
+	- Clicking the "Geo" button at the prop instance of your choice opens a dialog with options:
+		- Select whether to generate visible geo, colliders or both
+		- You may choose to delete the prop afterwards
+		- Alternatively it can be automatically scaled to 0 to make it invisible, but still present in the map in case you want to reference it later
+		- If there's more than one instance of this prop, you can generate geo from all of them at the same time
+	- Geomancer keeps track of geo generated this way and will store this information in the geomancer metadata file on export
+		- This allows it to regenerate these changes when importing changes from a previously geomanced map
+		- There are also new buttons on the Geo/Colliders tab used to remove all geo created this way, as long as the metadata file is present
+- You can now delete specific prop instances (trash bin icon in the instances dialog)
+- Made geo rendering in previews more accurate
+- Obstacles are now shown in preview (can be hidden)
+- Improved how colliders are rendered (textured and transparent)
+	- Collider display can be enabled/disabled independently from geo
+	- Obstacles have collider graphics attached
+	- Red colliders (geo and obstacles) hurt the player when going through them
+	- Yellow colliders (found on some built-in props) only block shots
+		- Props named "PF_CollisionCube_01_Flat" and "PF_CollisionCube_02_tall" are hardcoded to show as appropriately-sized colliders
+- The find model dialog now opens with the text field selected
+- Increased the maximum number of tween action repeats to 999
 
 New shortcuts:
 
 Fixes:
-- The Load file button now lets you load .ogg files, which is an easy way to change the map's music.
-- Colour override gets turned off when loading a new map
-- Removed the "Load the position of the first instance of the prop when opening tween preview" option, as it is no longer necessary
-- Changed the appearance of some buttons to a more space-efficient design
-- Improved timing of prop spawns/despawns. Should be exactly the same as in-game.
+- Changes to geo made on the Geo / Collisions tab are now shown on the preview
 
 Bugs:
-- Fixed graphical glitches appearing during no-beat sections if BPM is set to 0.
-- Any dialogs opened in model preview (colour) now get closed when switching tabs
-- Fixed an issue preventing tween previews for props without corresponding signals from working
-- Fixed incorrect tween preview length for some props with multiple tweens
-- Fixed a bug preventing geomancer metadata from being written correctly
-- Fixed an error when rewinding a map with a signal sent near the prop's despawn time
-- Fixed a crash when replacing the last model on the list with a different one
-- After a model is replaced, model count is now updated
-- Fixed an issue when refreshing a list with a lot of entries
-- Prevented a second copy of root tranform from being automatically created in some models
+- Fixed an error when opening the model viewer for a map with no props
+- Fixed a bug preventing geo and props from despawning correctly when jumping around on the timeline
+- Model viewer input is now correctly disabled when returning to the prop instance dialog
+- Fixed an issue preventing enemy type from changing
+- Material set "2089 - Alien Planet" is now named correctly
 
-New options:
-- Map preview -> Default time units
+Options:
+- Moved custom colour set to the Colours tab
+- Collider colour setting has been split between strong (geo) and weak (bullet blockers) colliders and moved to the Colours tab
+- Files -> Include geo data when importing changes
 
 metronome_sound = 1 (0 - nothing, 1 - beep, 2 - click)
 
 Notes:
 - See if "MEM.event_reloaded" and similar are necessary. Currently load error unloads previous data - is that a bad thing?
 - Check if importing a new enemy type doesn't mess up the bulk replace dialog
-- See if G.find_substring is still in use after I'm done with this

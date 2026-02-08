@@ -6,7 +6,7 @@ local DIALOG_NAME = "material"
 local DIALOG_DATA
 
 local material_names = {
-	"Default", "Heartbreaker", "Alien Planet", "2089 - Arbiter", "2089 - Robot Facilities", "2089 - Strange Creatures",
+	"Default", "Heartbreaker", "2089 - Alien Planet", "2089 - Arbiter", "2089 - Robot Facilities", "2089 - Strange Creatures",
 	"AP2 Cave", "AP2 Desert", "Western Town", "OldWest Train", "Castle", "ShredFactory",
 	"HalloweenParty", "ArtDeco", "MyMind", "Odin"
 }

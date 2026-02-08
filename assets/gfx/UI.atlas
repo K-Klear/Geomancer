@@ -166,6 +166,15 @@ images {
 images {
   image: "/assets/gfx/buttons/button_exclusive_press_2.png"
 }
+images {
+  image: "/assets/gfx/model_viewer/button_hide_obstacles.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/button_show_obstacles.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/button_hide_colliders.png"
+}
 animations {
   id: "button_white_down"
   images {

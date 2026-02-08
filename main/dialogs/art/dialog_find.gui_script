@@ -61,6 +61,8 @@ function on_message(self, message_id, message, sender)
 		DIALOG.show(DIALOG_DATA, sender)
 		search_props(gui.get_text(gui.get_node("field_find/text")))
 		UI.select_exclusive_button(DIALOG_NAME, find_list, 0, true)
+		local field_pos = gui.get_screen_position(gui.get_node("field_find/text"))
+		UI.on_input(DIALOG_NAME, hash("touch"), {released = true, x = field_pos.x, y = field_pos.y}, evaluate_button, evaluate_field)
 	end
 end
 

@@ -101,10 +101,9 @@ function MEM.export_json(json_tab)
 						io.write(QUOTE..val..QUOTE)
 					end
 				else
+					io.write(val)
 					if key_count > 1 then
 						io.write(",")
-					else
-						io.write(val)
 					end
 				end
 				key_count = key_count - 1
@@ -287,10 +286,25 @@ function load.pw_beat(data, filename)
 		local enemy_types = {}
 		local types = {Normal = "normal", Tough = "tough", ChuckNorris = "chuck", Shield = "shield", ["Mounted Enemy"] = "horse", ["Normal Turret"] = "turret",
 		["Minigun Turret"] = "minigun", FlyingBomb = "skull", ["Trap Enemy"] = "trap"}
-		
+		local obstacle_positions = {EvenMoreLeft = -0.7, FarLeft = -0.6, Left = -0.375, Center = 0, Right = 0.375, FarRight = 0.6, EvenMoreRight = 0.7}
 		for key, val in ipairs(tab.beatData) do
 			for k, v in ipairs(val.obstacles) do
-				table.insert(obstacle_list, {beat_data_key = key, obstacles_key = k})
+				local time = tonumber(val.time)
+				local z = (time * 3) + 0.375 + 0.125
+				local position = {x = obstacle_positions[v.placement] or 0, y = 0, z = -z}
+				local base_range = math.floor(z / 16)
+				local t = {
+					beat_data_key = key,
+					obstacles_key = k,
+					tab = v,
+					time = time,
+					type = v.type,
+					position = position,
+					spawn_range = base_range - 3,
+					despawn_range = base_range + 4,
+					ranges = {}
+				}
+				table.insert(obstacle_list, t)
 			end
 			for k, v in ipairs(val.targets) do
 				table.insert(enemy_list, {beat_data_key = key, enemies_key = k})
@@ -328,77 +342,128 @@ function load.pw_event(data, filename)
 	end
 end
 
+function MEM.parse_chunk_data(chunk_tab)
+	for key, val in ipairs(MEM.geo_data.chunks or {}) do
+		if val.buffer_resource then
+			MOD.buffer_resource_released(val.buffer_resource)
+		end
+	end
+	local chunks = {}
+	for key, val in ipairs(chunk_tab) do
+		local id = G.parse_values(val.id)
+		if #val.verts > 0 then
+			local verts_parsed, triangles, normals = {}, {}, {}
+			for k, v in ipairs(val.verts) do
+				verts_parsed[k] = G.parse_values(v)
+			end
+			for i = 1, #val.tris, 3 do
+				local vec_a = vmath.vector3(verts_parsed[val.tris[i + 0] + 1][1], verts_parsed[val.tris[i + 0] + 1][2], verts_parsed[val.tris[i + 0] + 1][3])
+				local vec_b = vmath.vector3(verts_parsed[val.tris[i + 1] + 1][1], verts_parsed[val.tris[i + 1] + 1][2], verts_parsed[val.tris[i + 1] + 1][3])
+				local vec_c = vmath.vector3(verts_parsed[val.tris[i + 2] + 1][1], verts_parsed[val.tris[i + 2] + 1][2], verts_parsed[val.tris[i + 2] + 1][3])
+				local norm = vmath.normalize(vmath.cross(vec_b - vec_a, vec_c - vec_a))
+				for j = 0, 2 do
+					local vertex = val.tris[i + j] + 1
+					table.insert(triangles, verts_parsed[vertex][1])
+					table.insert(triangles, verts_parsed[vertex][2])
+					table.insert(triangles, verts_parsed[vertex][3])
+					table.insert(normals, norm.x)
+					table.insert(normals, norm.y)
+					table.insert(normals, norm.z)
+				end
+			end
+			local t = {
+				triangles = triangles,
+				normals_parsed = normals,
+				IndexStart = 1,
+				IndexEnd = #val.tris,
+			}
+			MOD.create_mesh(t)
+			table.insert(chunks, {
+				buffer_resource = t.buffer_resource, id = id, id_str = val.id, triangles = triangles, verts_parsed = verts_parsed,
+				normals_parsed = normals, verts = val.verts, tris = val.tris, meshSizes = val.meshSizes
+			})
+			if #val.meshSizes > 2 then
+				val.meshSizes[2] = val.meshSizes[2] + val.meshSizes[3]
+				val.meshSizes[3] = nil
+				val.meshSizes._pure_array = nil
+			end
+		else
+			table.insert(chunks, {id = id, id_str = val.id, empty = true})
+		end
+	end
+	return chunks
+end
+
+function MEM.parse_slice_data(slice_tab)
+	for slice_id, val in pairs(MEM.geo_data.slices or {}) do
+		for k, v in ipairs(val) do
+			if v.buffer_resource then
+				MOD.buffer_resource_released(v.buffer_resource)
+			end
+		end
+	end
+	local slices = {}
+	for key, val in ipairs(slice_tab) do
+		local id_num = tonumber(val.id) or -1
+		slices[id_num] = slices[id_num] or {}
+		if #val.verts > 0 then
+			local mesh_end = 0
+			local verts_parsed = {}
+			for k, v in ipairs(val.verts) do
+				verts_parsed[k] = G.parse_values(v)
+			end
+			for mesh_index, mesh_size in ipairs(val.meshSizes) do
+				local triangles, normals = {}, {}
+				for i = mesh_end + 1, mesh_end + mesh_size, 3 do
+					local vec_a = vmath.vector3(verts_parsed[val.tris[i + 0] + 1][1], verts_parsed[val.tris[i + 0] + 1][2], verts_parsed[val.tris[i + 0] + 1][3])
+					local vec_b = vmath.vector3(verts_parsed[val.tris[i + 1] + 1][1], verts_parsed[val.tris[i + 1] + 1][2], verts_parsed[val.tris[i + 1] + 1][3])
+					local vec_c = vmath.vector3(verts_parsed[val.tris[i + 2] + 1][1], verts_parsed[val.tris[i + 2] + 1][2], verts_parsed[val.tris[i + 2] + 1][3])
+					local norm = vmath.normalize(vmath.cross(vec_b - vec_a, vec_c - vec_a))
+					for j = 0, 2 do
+						local vertex = val.tris[i + j] + 1
+						table.insert(triangles, verts_parsed[vertex][1])
+						table.insert(triangles, verts_parsed[vertex][2])
+						table.insert(triangles, verts_parsed[vertex][3])
+						table.insert(normals, norm.x)
+						table.insert(normals, norm.y)
+						table.insert(normals, norm.z)
+					end
+				end
+				local t = {
+					triangles = triangles,
+					normals_parsed = normals
+				}
+				if #triangles > 0 then
+					MOD.create_mesh(t)
+					table.insert(slices[id_num], {
+						buffer_resource = t.buffer_resource, mesh_index = mesh_index,
+						triangles = triangles, verts_parsed = verts_parsed, id = id_num,
+						normals_parsed = normals, verts = val.verts, tris = val.tris
+					})
+				else
+					table.insert(slices[id_num], {
+						mesh_index = mesh_index,
+						triangles = triangles, verts_parsed = verts_parsed, id = id_num,
+						normals_parsed = normals, verts = val.verts, tris = val.tris
+					})
+				end
+				mesh_end = mesh_end + mesh_size
+			end
+			if #val.meshSizes > 2 then
+				val.meshSizes[2] = val.meshSizes[2] + val.meshSizes[3]
+				val.meshSizes[3] = nil
+				val.meshSizes._pure_array = nil
+			end
+		end
+	end
+	return slices
+end
+
 function load.pw_geo(data, filename)
 	local tab = MEM.parse_json(data)
 	if MEM.check(tab, "pw_geo", filename) then
-		local chunks, slices = {}, {}
-		for key, val in ipairs(tab.chunkData) do
-			local id = G.parse_values(val.id)
-			if #val.verts > 0 then
-				local verts_parsed, triangles, normals = {}, {}, {}
-				for k, v in ipairs(val.verts) do
-					verts_parsed[k] = G.parse_values(v)
-				end
-				for i = 1, #val.tris, 3 do
-					local vec_a = vmath.vector3(verts_parsed[val.tris[i + 0] + 1][1], verts_parsed[val.tris[i + 0] + 1][2], verts_parsed[val.tris[i + 0] + 1][3])
-					local vec_b = vmath.vector3(verts_parsed[val.tris[i + 1] + 1][1], verts_parsed[val.tris[i + 1] + 1][2], verts_parsed[val.tris[i + 1] + 1][3])
-					local vec_c = vmath.vector3(verts_parsed[val.tris[i + 2] + 1][1], verts_parsed[val.tris[i + 2] + 1][2], verts_parsed[val.tris[i + 2] + 1][3])
-					local norm = vmath.normalize(vmath.cross(vec_b - vec_a, vec_c - vec_a))
-					for j = 0, 2 do
-						local vertex = val.tris[i + j] + 1
-						table.insert(triangles, verts_parsed[vertex][1])
-						table.insert(triangles, verts_parsed[vertex][2])
-						table.insert(triangles, verts_parsed[vertex][3])
-						table.insert(normals, norm.x)
-						table.insert(normals, norm.y)
-						table.insert(normals, norm.z)
-					end
-				end
-				local t = {
-					triangles = triangles,
-					normals_parsed = normals,
-					IndexStart = 1,
-					IndexEnd = #val.tris,
-				}
-				MOD.create_mesh(t)
-				table.insert(chunks, {buffer_resource = t.buffer_resource, id = id})
-			else
-				table.insert(chunks, {id = id, empty = true})
-			end
-		end
-		for key, val in ipairs(tab.chunkSlices) do
-			if #val.verts > 0 then
-				local verts_parsed, triangles, normals = {}, {}, {}
-				for k, v in ipairs(val.verts) do
-					verts_parsed[k] = G.parse_values(v)
-				end
-				for i = 1, #val.tris, 3 do
-					local vec_a = vmath.vector3(verts_parsed[val.tris[i + 0] + 1][1], verts_parsed[val.tris[i + 0] + 1][2], verts_parsed[val.tris[i + 0] + 1][3])
-					local vec_b = vmath.vector3(verts_parsed[val.tris[i + 1] + 1][1], verts_parsed[val.tris[i + 1] + 1][2], verts_parsed[val.tris[i + 1] + 1][3])
-					local vec_c = vmath.vector3(verts_parsed[val.tris[i + 2] + 1][1], verts_parsed[val.tris[i + 2] + 1][2], verts_parsed[val.tris[i + 2] + 1][3])
-					local norm = vmath.normalize(vmath.cross(vec_b - vec_a, vec_c - vec_a))
-					for j = 0, 2 do
-						local vertex = val.tris[i + j] + 1
-						table.insert(triangles, verts_parsed[vertex][1])
-						table.insert(triangles, verts_parsed[vertex][2])
-						table.insert(triangles, verts_parsed[vertex][3])
-						table.insert(normals, norm.x)
-						table.insert(normals, norm.y)
-						table.insert(normals, norm.z)
-					end
-				end
-				local t = {
-					triangles = triangles,
-					normals_parsed = normals,
-					IndexStart = 1,
-					IndexEnd = #val.tris,
-				}
-				MOD.create_mesh(t)
-				table.insert(slices, {buffer_resource = t.buffer_resource, id = tonumber(val.id)})
-			else
-				table.insert(slices, {id = tonumber(val.id), empty = true})
-			end
-		end
+		local chunks = MEM.parse_chunk_data(tab.chunkData)
+		local slices = MEM.parse_slice_data(tab.chunkSlices)
 		MEM.geo_data = {table = tab, filename = filename, chunks = chunks, slices = slices}
 		UI.tab.tab_geo.state = true
 		return true
@@ -474,14 +539,13 @@ end
 
 
 local tween_count, part_list, transform_list
-local function explore_model_tree(source_tab, part_name, level, parent_tab)
-	if source_tab.name == "Colliders" then
-	--	tree_section\.name = source_tab.name
-		return
-	end -- Catch colliders here so they appear on the model preview somehow
+local function explore_model_tree(source_tab, part_name, level, parent_tab, is_collider)
 	part_name = source_tab.name or part_name
 	table.insert(transform_list, {})
 	local current_transform = transform_list[#transform_list]
+	if source_tab.name == "Colliders" then
+		is_collider = true
+	end
 	if source_tab.components then
 		for k, v in ipairs(source_tab.components) do
 			if v.type == "Transform" then
@@ -490,6 +554,7 @@ local function explore_model_tree(source_tab, part_name, level, parent_tab)
 				current_transform.tab = source_tab
 				current_transform.level = level
 				current_transform.parent_tab = parent_tab
+				current_transform.collider = is_collider
 			elseif v.type == "ScriptedTween" then
 				local tween_script = MEM.parse_tween(v.Script)
 				if tween_script then
@@ -503,7 +568,9 @@ local function explore_model_tree(source_tab, part_name, level, parent_tab)
 			elseif v.type == "MeshFilter" then
 				local mesh_tab = {}
 				for key, val in ipairs(v.subMeshes) do
-					mesh_tab[key] = {IndexStart = val.IndexStart + 1, IndexEnd = val.IndexCount + val.IndexStart, verts = v.verts, tris = v.tris, normals = v.normals}
+					mesh_tab[key] = {
+						IndexStart = val.IndexStart + 1, IndexEnd = val.IndexCount + val.IndexStart, verts = v.verts, tris = v.tris,
+						normals = v.normals, collider = is_collider}
 					if SET.preload_models then
 						MOD.create_mesh(mesh_tab[key])
 					end
@@ -515,14 +582,14 @@ local function explore_model_tree(source_tab, part_name, level, parent_tab)
 				current_transform.mesh_count = #mesh_tab
 			elseif v.type == "MeshRenderer" then
 				for key, val in ipairs(v.materials) do
-					table.insert(part_list, {name = part_name, tab = v.materials, index = key})
+					table.insert(part_list, {name = part_name, tab = v.materials, index = key, collider = is_collider})
 				end
 			end
 		end
 	end
 	if source_tab.children and source_tab.children[1] then
 		for k, v in ipairs(source_tab.children) do
-			explore_model_tree(v, part_name, level + 1, current_transform)
+			explore_model_tree(v, part_name, level + 1, current_transform, is_collider)
 		end
 	end
 end
@@ -628,7 +695,135 @@ function load.pw_art(data, filename)
 				G.update_navbar("Found key/name mismatch is prop "..val.key..". It has been fixed.")
 			end
 			model_index_list[val.key] = key
+			if val.key == "PF_CollisionCube_02_tall" then
+				val.object = {
+					components = {
+						{
+							values = "0,0,0,0,0,0,1,1,1,1",
+							type = "Transform",
+							_key_sort = {"type", "values"}
+						}
+					},
+					children = {
+						{
+							components = {
+								{
+									values = "0,0,0,0,0,0,1,-1,1,1",
+									type = "Transform",
+									_key_sort = {"type", "values"}
+								},
+								{
+									materials = {
+										[1] = "(DoNotEdit)LiveMat_Props",
+										_pure_array = "[\"(DoNotEdit)LiveMat_Props\"]"
+									},
+									type = "MeshRenderer",
+									_key_sort = {"type", "materials"}
+								},
+								{
+									tris = {0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4, 8, 9, 10, 10, 11, 8, 12, 13, 14, 14, 15, 12, 16, 17, 18, 18, 19, 16, 20, 21, 22, 22, 23, 20, 
+									_pure_array = "[0,1,2,2,3,0,4,5,6,6,7,4,8,9,10,10,11,8,12,13,14,14,15,12,16,17,18,18,19,16,20,21,22,22,23,20]"},
+									verts = {
+										"0.5,2,0.5", "0.5,2,-0.5", "-0.5,2,-0.5", "-0.5,2,0.5", "-0.5,0,0.5", "-0.5,2,0.5", "-0.5,2,-0.5", "-0.5,0,-0.5",
+										"-0.5,0,-0.5", "-0.5,2,-0.5", "0.5,2,-0.5", "0.5,0,-0.5", "0.5,0,-0.5", "0.5,0,0.5", "-0.5,0,0.5", "-0.5,0,-0.5",
+										"0.5,0,0.5", "0.5,2,0.5", "-0.5,2,0.5", "-0.5,0,0.5", "0.5,0,-0.5", "0.5,2,-0.5", "0.5,2,0.5", "0.5,0,0.5",
+										_pure_array = "[\"0.5,2,0.5\",\"0.5,2,-0.5\",\"-0.5,2,-0.5\",\"-0.5,2,0.5\",\"-0.5,0,0.5\",\"-0.5,2,0.5\",\"-0.5,2,-0.5\",\"-0.5,0,-0.5\",\"-0.5,0,-0.5\",\"-0.5,2,-0.5\",\"0.5,2,-0.5\",\"0.5,0,-0.5\",\"0.5,0,-0.5\",\"0.5,0,0.5\",\"-0.5,0,0.5\",\"-0.5,0,-0.5\",\"0.5,0,0.5\",\"0.5,2,0.5\",\"-0.5,2,0.5\",\"-0.5,0,0.5\",\"0.5,0,-0.5\",\"0.5,2,-0.5\",\"0.5,2,0.5\",\"0.5,0,0.5\"]"
+									},
+									normals = {
+										"0,1,0", "0,1,0", "0,1,0", "0,1,0", "-1,0,0", "-1,0,0", "-1,0,0", "-1,0,0", "0,0,-1", "0,0,-1",
+										"0,0,-1", "0,0,-1", "0,-1,0", "0,-1,0", "0,-1,0", "0,-1,0", "0,0,1", "0,0,1", "0,0,1","0,0,1",
+										"1,0,0", "1,0,0", "1,0,0", "1,0,0",
+										_pure_array = "[\"0,1,0\",\"0,1,0\",\"0,1,0\",\"0,1,0\",\"-1,0,0\",\"-1,0,0\",\"-1,0,0\",\"-1,0,0\",\"0,0,-1\",\"0,0,-1\",\"0,0,-1\",\"0,0,-1\",\"0,-1,0\",\"0,-1,0\",\"0,-1,0\",\"0,-1,0\",\"0,0,1\",\"0,0,1\",\"0,0,1\",\"0,0,1\",\"1,0,0\",\"1,0,0\",\"1,0,0\",\"1,0,0\"]"
+									},
+									subMeshes = {
+										{
+											IndexCount = 36,
+											BaseVertex = 0,
+											Topology  = "Triangles",
+											IndexStart = 0,
+											_key_sort = {"IndexStart", "IndexCount", "Topology", "BaseVertex"}
+										}
+									},
+									type = "MeshFilter",
+									_key_sort = {"type", "verts", "tris", "normals", "subMeshes"}
+								}
+							},
+							children = {},
+							_key_sort = {"name", "components", "children"},
+							name = "Colliders"
+						}
+					},
+					_key_sort = {"name", "components", "children"},
+					name = "PF_CollisionCube_02_tall"
+				}
+				val._key_sort = {"key", "object"}
+				val.key = "PF_CollisionCube_02_tall"
+			elseif val.key == "PF_CollisionCube_01_Flat" then
+				val.object = {
+					components = {
+						{
+							values = "0,0,0,0,0,0,1,1,1,1",
+							type = "Transform",
+							_key_sort = {"type", "values"}
+						}
+					},
+					children = {
+						{
+							components = {
+								{
+									values = "0,0,0,0,0,0,1,-1,1,1",
+									type = "Transform",
+									_key_sort = {"type", "values"}
+								},
+								{
+									materials = {
+										[1] = "(DoNotEdit)LiveMat_Props",
+										_pure_array = "[\"(DoNotEdit)LiveMat_Props\"]"
+									},
+									type = "MeshRenderer",
+									_key_sort = {"type", "materials"}
+								},
+								{
+									tris = {0,1,2,2,3,0,4,5,6,6,7,4,8,9,10,10,11,8,12,13,14,14,15,12,16,17,18,18,19,16,20,21,22,22,23,20, 
+									_pure_array = "[0,1,2,2,3,0,4,5,6,6,7,4,8,9,10,10,11,8,12,13,14,14,15,12,16,17,18,18,19,16,20,21,22,22,23,20]"},
+									verts = {
+										"1.5,0.1,0.5","1.5,0.1,-0.5","-1.5,0.1,-0.5","-1.5,0.1,0.5","-1.5,-0.1,0.5","-1.5,0.1,0.5","-1.5,0.1,-0.5","-1.5,-0.1,-0.5",
+										"-1.5,-0.1,-0.5","-1.5,0.1,-0.5","1.5,0.1,-0.5","1.5,-0.1,-0.5","1.5,-0.1,-0.5","1.5,-0.1,0.5","-1.5,-0.1,0.5","-1.5,-0.1,-0.5",
+										"1.5,-0.1,0.5","1.5,0.1,0.5","-1.5,0.1,0.5","-1.5,-0.1,0.5","1.5,-0.1,-0.5","1.5,0.1,-0.5","1.5,0.1,0.5","1.5,-0.1,0.5",
+										_pure_array = "[\"1.5,0.1,0.5\",\"1.5,0.1,-0.5\",\"-1.5,0.1,-0.5\",\"-1.5,0.1,0.5\",\"-1.5,-0.1,0.5\",\"-1.5,0.1,0.5\",\"-1.5,0.1,-0.5\",\"-1.5,-0.1,-0.5\",\"-1.5,-0.1,-0.5\",\"-1.5,0.1,-0.5\",\"1.5,0.1,-0.5\",\"1.5,-0.1,-0.5\",\"1.5,-0.1,-0.5\",\"1.5,-0.1,0.5\",\"-1.5,-0.1,0.5\",\"-1.5,-0.1,-0.5\",\"1.5,-0.1,0.5\",\"1.5,0.1,0.5\",\"-1.5,0.1,0.5\",\"-1.5,-0.1,0.5\",\"1.5,-0.1,-0.5\",\"1.5,0.1,-0.5\",\"1.5,0.1,0.5\",\"1.5,-0.1,0.5\"]"
+									},
+									normals = {
+										"0,1,0","0,1,0","0,1,0",
+										"0,1,0","-1,0,0","-1,0,0","-1,0,0","-1,0,0","0,0,-1","0,0,-1","0,0,-1","0,0,-1","0,-1,0",
+										"0,-1,0","0,-1,0","0,-1,0","0,0,1","0,0,1","0,0,1","0,0,1","1,0,0","1,0,0","1,0,0","1,0,0",
+										_pure_array = "[\"0,1,0\",\"0,1,0\",\"0,1,0\",\"0,1,0\",\"-1,0,0\",\"-1,0,0\",\"-1,0,0\",\"-1,0,0\",\"0,0,-1\",\"0,0,-1\",\"0,0,-1\",\"0,0,-1\",\"0,-1,0\",\"0,-1,0\",\"0,-1,0\",\"0,-1,0\",\"0,0,1\",\"0,0,1\",\"0,0,1\",\"0,0,1\",\"1,0,0\",\"1,0,0\",\"1,0,0\",\"1,0,0\"]"
+									},
+									subMeshes = {
+										{
+											IndexCount = 36,
+											BaseVertex = 0,
+											Topology  = "Triangles",
+											IndexStart = 0,
+											_key_sort = {"IndexStart", "IndexCount", "Topology", "BaseVertex"}
+										}
+									},
+									type = "MeshFilter",
+									_key_sort = {"type", "verts", "tris", "normals", "subMeshes"}
+								}
+							},
+							children = {},
+							_key_sort = {"name", "components", "children"},
+							name = "Colliders"
+						}
+					},
+					_key_sort = {"name", "components", "children"},
+					name = "PF_CollisionCube_01_Flat"
+				}
+				val._key_sort = {"key", "object"}
+				val.key = "PF_CollisionCube_01_Flat"
+			end
 			MEM.add_metadata(val)
+
 			if dynamic_models[val.key] or (val.tween > 0) then
 				val.dynamic = true
 			end
@@ -718,30 +913,124 @@ function MEM.load_file(path, filename, extension, data)
 	end
 end
 
+function MEM.remove_geomanced_slice(slice_tab)
+	if slice_tab.original_size then
+		slice_tab[1].triangles = slice_tab[1].triangles or {}
+		slice_tab[1].normals_parsed = slice_tab[1].normals_parsed or {}
+		slice_tab[1].verts_parsed = slice_tab[1].verts_parsed or {}
+		local triangles_first = #slice_tab[1].triangles
+		for i = slice_tab.original_size, #slice_tab[2].tris - 1 do
+			local j = i * 3
+			slice_tab[1].tris[i + 1] = nil
+			slice_tab[1].triangles[j + 1] = nil
+			slice_tab[1].triangles[j + 2] = nil
+			slice_tab[1].triangles[j + 3] = nil
+			slice_tab[1].normals_parsed[j + 1] = nil
+			slice_tab[1].normals_parsed[j + 2] = nil
+			slice_tab[1].normals_parsed[j + 3] = nil
+			slice_tab[2].tris[i + 1] = nil
+			slice_tab[2].triangles[j + 1 - triangles_first] = nil
+			slice_tab[2].triangles[j + 2 - triangles_first] = nil
+			slice_tab[2].triangles[j + 3 - triangles_first] = nil
+			slice_tab[2].normals_parsed[j + 1 - triangles_first] = nil
+			slice_tab[2].normals_parsed[j + 2 - triangles_first] = nil
+			slice_tab[2].normals_parsed[j + 3 - triangles_first] = nil
+		end
+		local highest_vert = 1
+		for k, v in ipairs(slice_tab[1].tris) do
+			highest_vert = math.max(highest_vert, v + 1)
+		end
+		for i = highest_vert + 1, #slice_tab[1].verts do
+			slice_tab[1].verts[i] = nil
+			slice_tab[1].verts_parsed = nil
+			slice_tab[2].verts[i] = nil
+			slice_tab[2].verts_parsed = nil
+		end
+		if slice_tab[1].buffer_resource then
+			MOD.buffer_resource_released(slice_tab[1].buffer_resource)
+		end
+		if slice_tab[2].buffer_resource then
+			MOD.buffer_resource_released(slice_tab[2].buffer_resource)
+		end
+		if #slice_tab[1].triangles > 0 then
+			MOD.create_mesh(slice_tab[1])
+		else
+			slice_tab[1].buffer_resource = nil
+		end
+		if #slice_tab[2].triangles > 0 then
+			MOD.create_mesh(slice_tab[2])
+		else
+			slice_tab[2].buffer_resource = nil
+		end
+		slice_tab.modified = true
+		slice_tab.original_size = nil
+		return 1
+	else
+		return 0
+	end
+end
+
+function MEM.remove_geomanced_chunk(chunk_tab)
+	if chunk_tab.original_size then
+		for i = chunk_tab.original_size, #chunk_tab.tris - 1 do
+			chunk_tab.tris[i + 1] = nil
+			chunk_tab.triangles[i * 3 + 1] = nil
+			chunk_tab.triangles[i * 3 + 2] = nil
+			chunk_tab.triangles[i * 3 + 3] = nil
+			chunk_tab.normals_parsed[i * 3 + 1] = nil
+			chunk_tab.normals_parsed[i * 3 + 2] = nil
+			chunk_tab.normals_parsed[i * 3 + 3] = nil
+		end
+		local highest_vert = 1
+		for k, v in ipairs(chunk_tab.tris) do
+			highest_vert = math.max(highest_vert, v + 1)
+		end
+		for i = highest_vert + 1, #chunk_tab.verts do
+			chunk_tab.verts[i] = nil
+			chunk_tab.verts_parsed = nil
+		end
+		if chunk_tab.buffer_resource then
+			MOD.buffer_resource_released(chunk_tab.buffer_resource)
+		end
+		if #chunk_tab.triangles > 0 then
+			MOD.create_mesh(chunk_tab)
+		else
+			chunk_tab.buffer_resource = nil
+		end
+		chunk_tab.modified = true
+		chunk_tab.original_size = nil
+		return 1
+	else
+		return 0
+	end
+end
+
 function MEM.setup_culling_ranges()
-	MOD.culling_ranges = {visible_slices = {}, visible_props = {}, visible_chunks = {}}
+	MOD.culling_ranges = {visible_slices = {}, visible_props = {}, visible_chunks = {}, visible_obstacles = {}, visible_enemies = {}}
 	if MEM.geo_data.slices then
-		for key, val in ipairs(MEM.geo_data.slices) do
-			if not val.empty then
-				local range_spawn = math.max(val.id - 3, 0)
-				local range_despawn = math.max(val.id + 4, 0)
-				val.ranges = {}
-				for i = range_spawn, range_despawn do
-					MOD.culling_ranges[i] = MOD.culling_ranges[i] or {slices = {}, props = {}, signals = {}, chunks = {}}
-					table.insert(MOD.culling_ranges[i].slices, val)
-					val.ranges[i] = true
+		for slice_id, val in pairs(MEM.geo_data.slices) do
+			local range_spawn = math.max(slice_id - 3, 0)
+			local range_despawn = math.max(slice_id + 4, 0)
+			for i = range_spawn, range_despawn do
+				MOD.culling_ranges[i] = MOD.culling_ranges[i] or {slices = {}, props = {}, signals = {}, chunks = {}, obstacles = {}, enemies = {}}
+				for k, v in ipairs(val) do
+					if v.triangles and #v.triangles > 0 then
+						v.ranges = v.ranges or {}
+						v.ranges[i] = true
+						table.insert(MOD.culling_ranges[i].slices, v)
+					end
 				end
 			end
 		end
 	end
 	if MEM.geo_data.chunks then
 		for key, val in ipairs(MEM.geo_data.chunks) do
-			if not val.empty then
+			if val.triangles and #val.triangles > 0 then
 				local range_spawn = math.max(val.id[3] - 3, 0)
 				local range_despawn = math.max(val.id[3] + 4, 0)
 				val.ranges = {}
 				for i = range_spawn, range_despawn do
-					MOD.culling_ranges[i] = MOD.culling_ranges[i] or {slices = {}, props = {}, signals = {}, chunks = {}}
+					MOD.culling_ranges[i] = MOD.culling_ranges[i] or {slices = {}, props = {}, signals = {}, chunks = {}, obstacles = {}, enemies = {}}
 					table.insert(MOD.culling_ranges[i].chunks, val)
 					val.ranges[i] = true
 				end
@@ -756,12 +1045,22 @@ function MEM.setup_culling_ranges()
 				table.insert(infinite_prop_list, val)
 			end
 			for i = math.max(val.spawn_range, 0), math.max(val.despawn_range, 0) do
-				MOD.culling_ranges[i] = MOD.culling_ranges[i] or {slices = {}, props = {}, signals = {}, chunks = {}}
+				MOD.culling_ranges[i] = MOD.culling_ranges[i] or {slices = {}, props = {}, signals = {}, chunks = {}, obstacles = {}, enemies = {}}
 				table.insert(MOD.culling_ranges[i].props, val)
 				val.ranges[i] = true
 			end
 		end
 	end
+	if MEM.beat_data.obstacle_list then
+		for key, val in ipairs(MEM.beat_data.obstacle_list) do
+			for i = math.max(val.spawn_range, 0), math.max(val.despawn_range, 0) do
+				MOD.culling_ranges[i] = MOD.culling_ranges[i] or {slices = {}, props = {}, signals = {}, chunks = {}, obstacles = {}, enemies = {}}
+				table.insert(MOD.culling_ranges[i].obstacles, val)
+				val.ranges[i] = true
+			end
+		end
+	end
+	
 	local max_range = 0
 	for k, v in pairs(MOD.culling_ranges) do
 		if type(k) == "number" then
@@ -771,7 +1070,7 @@ function MEM.setup_culling_ranges()
 	MOD.max_culling_range = max_range
 	for key, val in ipairs(infinite_prop_list) do
 		for i = math.max(val.spawn_range, 0), max_range do
-			MOD.culling_ranges[i] = MOD.culling_ranges[i] or {slices = {}, props = {}, signals = {}, chunks = {}}
+			MOD.culling_ranges[i] = MOD.culling_ranges[i] or {slices = {}, props = {}, signals = {}, chunks = {}, obstacles = {}, enemies = {}}
 			table.insert(MOD.culling_ranges[i].props, val)
 			val.ranges[i] = true
 		end

@@ -10,7 +10,7 @@ textures {
 nodes {
   position {
     x: 480.0
-    y: 456.0
+    y: 505.0
   }
   type: TYPE_TEMPLATE
   id: "geo_visual"
@@ -44,7 +44,7 @@ nodes {
 nodes {
   position {
     x: 800.0
-    y: 456.0
+    y: 505.0
   }
   type: TYPE_TEMPLATE
   id: "geo_collision"
@@ -71,6 +71,72 @@ nodes {
   "collision data"
   id: "geo_collision/text"
   parent: "geo_collision/button_white"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 480.0
+    y: 319.0
+  }
+  type: TYPE_TEMPLATE
+  id: "delete_visual"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 242.0
+    y: 146.0
+  }
+  type: TYPE_BOX
+  id: "delete_visual/button_white"
+  parent: "delete_visual"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 230.0
+    y: 90.0
+  }
+  type: TYPE_TEXT
+  text: "Remove visual data added by Geomancer"
+  id: "delete_visual/text"
+  parent: "delete_visual/button_white"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 800.0
+    y: 319.0
+  }
+  type: TYPE_TEMPLATE
+  id: "delete_collision"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 242.0
+    y: 146.0
+  }
+  type: TYPE_BOX
+  id: "delete_collision/button_white"
+  parent: "delete_collision"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 230.0
+    y: 70.0
+  }
+  type: TYPE_TEXT
+  text: "Remove collision data added by Geomancer"
+  id: "delete_collision/text"
+  parent: "delete_collision/button_white"
   overridden_fields: 4
   overridden_fields: 8
   template_node_child: true

@@ -19,6 +19,7 @@ local configurable = {
 	"default_import_event_changes",
 	"default_import_model_changes",
 	"default_import_beat_changes",
+	"default_import_geo_changes",
 	"default_new_event_sample_offset",
 	"default_show_transform_edit_warning",
 	"default_model_show_grid",
@@ -76,7 +77,8 @@ local configurable = {
 	"custom_colour_fog",
 	"custom_colour_glow",
 	"custom_colour_enemy",
-	"collider_colour",
+	"collider_strong_colour",
+	"collider_weak_colour",
 	"autodetect_sample_rate",
 	"default_sample_rate",
 	"add_opens_edit_box",
@@ -131,6 +133,7 @@ SET.default_import_level_changes = true
 SET.default_import_event_changes = true
 SET.default_import_model_changes = true
 SET.default_import_beat_changes = true
+SET.default_import_geo_changes = true
 SET.default_tween_time_in_beats = false
 
 -- file
@@ -157,6 +160,7 @@ SET.import_level_changes = true
 SET.import_event_changes = true
 SET.import_model_changes = true
 SET.import_beat_changes = true
+SET.import_geo_changes = true
 
 SET.degeomance_sequence = "Dance_03"
 SET.degeomance_glitched_enemy = "Normal"
@@ -200,6 +204,16 @@ SET.hide_model_count = false
 -- model
 SET.restrict_rotations_to_360 = true
 
+-- instance
+SET.ask_before_deleting_prop = true
+
+-- geo generation
+SET.generate_visible_geo = false
+SET.generate_collider_geo = true
+SET.delete_prop_after_geo = false
+SET.scale_prop_after_geo = false
+SET.generate_geo_for_all_instances = false
+
 -- model viewer
 SET.run_speed_multiplier = 3.5
 
@@ -214,13 +228,16 @@ SET.custom_colour_main = vmath.vector4(0.3, 0.1, 0.2, 1)
 SET.custom_colour_fog = vmath.vector4(0.8, 0.75, 0.75, 1)
 SET.custom_colour_glow = vmath.vector4(1, 0.8, 0.6, 1)
 SET.custom_colour_enemy = vmath.vector4(0, 0, 0, 1)
-SET.collider_colour = vmath.vector4(0.5, 0.5, 1, 1)
+SET.collider_strong_colour = vmath.vector4(1, 0, 0, 1)
+SET.collider_weak_colour = vmath.vector4(1, 1, 0, 1)
 
 SET.model_show_grid = 1
 
 SET.show_transform = 1
 
-SET.hide_geo = 1
+SET.hide_geo = false
+SET.hide_colliders = true
+SET.hide_obstacles = false
 
 SET.tween_timeline_bar_height = 20 -- make this 6+
 

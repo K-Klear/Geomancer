@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <asset>
+    <contributor>
+      <author>Blender User</author>
+      <authoring_tool>Blender 2.93.5 commit date:2021-10-05, commit time:12:04, hash:a791bdabd0b2</authoring_tool>
+    </contributor>
+    <created>2026-01-24T13:55:05</created>
+    <modified>2026-01-24T13:55:05</modified>
+    <unit name="meter" meter="1"/>
+    <up_axis>Z_UP</up_axis>
+  </asset>
+  <library_effects>
+    <effect id="Default_OBJ_005-effect">
+      <profile_COMMON>
+        <technique sid="common">
+          <lambert>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <diffuse>
+              <color sid="diffuse">0.8 0.8 0.8 1</color>
+            </diffuse>
+            <index_of_refraction>
+              <float sid="ior">1.45</float>
+            </index_of_refraction>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
+  </library_effects>
+  <library_images/>
+  <library_materials>
+    <material id="Default_OBJ_005-material" name="Default OBJ.005">
+      <instance_effect url="#Default_OBJ_005-effect"/>
+    </material>
+  </library_materials>
+  <library_geometries>
+    <geometry id="obstaclePillar_vaporwave-mesh" name="obstaclePillar_vaporwave">
+      <mesh>
+        <source id="obstaclePillar_vaporwave-mesh-positions">
+          <float_array id="obstaclePillar_vaporwave-mesh-positions-array" count="216">0.3750001 2.921545 0.3749999 -0.3750635 2.921545 0.3749999 -0.3750635 0.3679206 0.3749999 0.3750001 0.3679205 0.3749999 0.3749998 4 -0.3748558 -0.3750631 4 -0.3748558 -0.3750631 4 0.3749999 0.3749998 4 0.3749999 0.3750001 0.3679205 -0.3748558 -0.3750635 0.3679206 -0.3748558 -0.3750635 2.921545 -0.3748558 0.3750001 2.921545 -0.3748558 0.3750001 0 0.3749999 -0.3750635 0 0.3749999 -0.3750635 0 -0.3748558 0.3750001 0 -0.3748558 0.3750001 2.921545 -0.3748558 0.3750001 2.921545 0.3749999 0.3750001 0.3679205 0.3749999 0.3750001 0.3679205 -0.3748558 -0.3750635 2.921545 0.3749999 -0.3750635 2.921545 -0.3748558 -0.3750635 0.3679206 -0.3748558 -0.3750635 0.3679206 0.3749999 0.3750001 0 -0.3748558 -0.3750635 0 -0.3748558 -0.3750635 0.282204 -0.3748558 0.3750001 0.2822039 -0.3748558 -0.3750635 0.282204 0.3749999 -0.3750635 0.282204 -0.3748558 -0.3750635 0 -0.3748558 -0.3750635 0 0.3749999 0.3750001 0.2822039 0.3749999 -0.3750635 0.282204 0.3749999 -0.3750635 0 0.3749999 0.3750001 0 0.3749999 0.3750001 0.2822039 -0.3748558 0.3750001 0.2822039 0.3749999 0.3750001 0 0.3749999 0.3750001 0 -0.3748558 -0.3750635 0.3679206 0.3749999 -0.3750635 0.3679206 -0.3748558 0.3750001 0.3679205 -0.3748558 0.3750001 0.3679205 0.3749999 -0.3750635 0.282204 0.3749999 0.3750001 0.2822039 0.3749999 0.3750001 0.2822039 -0.3748558 -0.3750635 0.282204 -0.3748558 0.3749998 4 0.3749999 -0.3750631 4 0.3749999 -0.3750631 2.993436 0.3749999 0.3749998 2.993436 0.3749999 0.3749998 4 -0.3748558 0.3749998 4 0.3749999 0.3749998 2.993436 0.3749999 0.3749998 2.993436 -0.3748558 -0.3750631 4 -0.3748558 0.3749998 4 -0.3748558 0.3749998 2.993436 -0.3748558 -0.3750631 2.993436 -0.3748558 -0.3750631 4 0.3749999 -0.3750631 4 -0.3748558 -0.3750631 2.993436 -0.3748558 -0.3750631 2.993436 0.3749999 -0.3750635 2.921545 0.3749999 0.3750001 2.921545 0.3749999 0.3750001 2.921545 -0.3748558 -0.3750635 2.921545 -0.3748558 -0.3750631 2.993436 -0.3748558 0.3749998 2.993436 -0.3748558 0.3749998 2.993436 0.3749999 -0.3750631 2.993436 0.3749999</float_array>
+          <technique_common>
+            <accessor source="#obstaclePillar_vaporwave-mesh-positions-array" count="72" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="obstaclePillar_vaporwave-mesh-normals">
+          <float_array id="obstaclePillar_vaporwave-mesh-normals-array" count="42">0 0 1 0 1 0 0 0 -1 0 0 -1 0 0 -1 0 0 -1 0 -1 0 0 -1 0 0 -1 0 1 0 0 -1 0 0 -1.58932e-7 -1 0 0 1 0 0 -1 0</float_array>
+          <technique_common>
+            <accessor source="#obstaclePillar_vaporwave-mesh-normals-array" count="14" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="obstaclePillar_vaporwave-mesh-map-0">
+          <float_array id="obstaclePillar_vaporwave-mesh-map-0-array" count="216">0.625 0.25 0.375 0.25 0.375 0.03469693 0.625 0.03469693 0.625 0.25 0.375 0.03469693 0.625 0.5 0.375 0.5 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.25 0.625 0.7153031 0.375 0.7153031 0.375 0.5 0.625 0.5 0.625 0.7153031 0.375 0.5 0.625 1 0.375 1 0.375 0.75 0.625 0.75 0.625 1 0.375 0.75 0.875 0.25 0.625 0.25 0.625 0.03469693 0.875 0.03469693 0.875 0.25 0.625 0.03469693 0.375 0.25 0.125 0.25 0.125 0.03469693 0.375 0.03469693 0.375 0.25 0.125 0.03469693 0.625 0.75 0.375 0.75 0.375 0.7233866 0.625 0.7233866 0.625 0.75 0.375 0.7233866 0.375 0.02661341 0.125 0.02661341 0.125 0 0.375 0 0.375 0.02661341 0.125 0 0.625 0.02661341 0.375 0.02661341 0.375 0 0.625 0 0.625 0.02661341 0.375 0 0.875 0.02661341 0.625 0.02661341 0.625 0 0.875 0 0.875 0.02661341 0.625 0 0.375 0.03469693 0.375 0.7153031 0.875 0.03469693 0.625 0.03469693 0.375 0.03469693 0.875 0.03469693 0.375 0.02661341 0.625 0.02661341 0.625 0.7233866 0.125 0.02661341 0.375 0.02661341 0.625 0.7233866 0.625 0.25 0.375 0.25 0.375 0.25 0.625 0.25 0.625 0.25 0.375 0.25 0.625 0.5 0.625 0.25 0.625 0.25 0.625 0.5 0.625 0.5 0.625 0.25 0.375 0.5 0.625 0.5 0.625 0.5 0.375 0.5 0.375 0.5 0.625 0.5 0.375 0.25 0.375 0.5 0.375 0.5 0.375 0.25 0.375 0.25 0.375 0.5 0.375 0.25 0.625 0.25 0.625 0.5 0.125 0.25 0.375 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.25 0.375 0.25 0.375 0.5 0.625 0.25</float_array>
+          <technique_common>
+            <accessor source="#obstaclePillar_vaporwave-mesh-map-0-array" count="108" stride="2">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="obstaclePillar_vaporwave-mesh-vertices">
+          <input semantic="POSITION" source="#obstaclePillar_vaporwave-mesh-positions"/>
+        </vertices>
+        <triangles material="Default_OBJ_005-material" count="36">
+          <input semantic="VERTEX" source="#obstaclePillar_vaporwave-mesh-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#obstaclePillar_vaporwave-mesh-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#obstaclePillar_vaporwave-mesh-map-0" offset="2" set="0"/>
+          <p>0 0 0 1 0 1 2 0 2 3 0 3 0 0 4 2 0 5 4 1 6 5 1 7 6 1 8 7 1 9 4 1 10 6 1 11 8 2 12 9 3 13 10 4 14 11 5 15 8 2 16 10 4 17 12 6 18 13 6 19 14 7 20 15 8 21 12 6 22 14 7 23 16 9 24 17 9 25 18 9 26 19 9 27 16 9 28 18 9 29 20 10 30 21 10 31 22 10 32 23 10 33 20 10 34 22 10 35 24 5 36 25 5 37 26 5 38 27 5 39 24 5 40 26 5 41 28 10 42 29 10 43 30 10 44 31 10 45 28 10 46 30 10 47 32 0 48 33 0 49 34 0 50 35 0 51 32 0 52 34 0 53 36 9 54 37 9 55 38 9 56 39 9 57 36 9 58 38 9 59 40 11 60 41 11 61 42 11 62 43 11 63 40 11 64 42 11 65 44 12 66 45 12 67 46 12 68 47 12 69 44 12 70 46 12 71 48 0 72 49 0 73 50 0 74 51 0 75 48 0 76 50 0 77 52 9 78 53 9 79 54 9 80 55 9 81 52 9 82 54 9 83 56 5 84 57 5 85 58 5 86 59 5 87 56 5 88 58 5 89 60 10 90 61 10 91 62 10 92 63 10 93 60 10 94 62 10 95 64 1 96 65 1 97 66 1 98 67 1 99 64 1 100 66 1 101 68 13 102 69 13 103 70 13 104 71 13 105 68 13 106 70 13 107</p>
+        </triangles>
+      </mesh>
+    </geometry>
+  </library_geometries>
+  <library_visual_scenes>
+    <visual_scene id="Scene" name="Scene">
+      <node id="obstaclePillar_vaporwave" name="obstaclePillar_vaporwave" type="NODE">
+        <matrix sid="transform">1 0 0 0 0 -1.62921e-7 -1 0 0 1 -1.62921e-7 0 0 0 0 1</matrix>
+        <instance_geometry url="#obstaclePillar_vaporwave-mesh" name="obstaclePillar_vaporwave">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="Default_OBJ_005-material" target="#Default_OBJ_005-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
+    </visual_scene>
+  </library_visual_scenes>
+  <scene>
+    <instance_visual_scene url="#Scene"/>
+  </scene>
+</COLLADA>

@@ -60,3 +60,15 @@ embedded_components {
   data: "prototype: \"/main/model_viewer/guiding_cubes_112.go\"\n"
   ""
 }
+embedded_components {
+  id: "create_obstacle"
+  type: "factory"
+  data: "prototype: \"/main/model_viewer/obstacle.go\"\n"
+  ""
+}
+embedded_components {
+  id: "create_obstacle_limbo"
+  type: "factory"
+  data: "prototype: \"/main/model_viewer/obstacle_limbo.go\"\n"
+  ""
+}

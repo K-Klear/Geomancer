@@ -478,7 +478,7 @@ function on_message(self, message_id, message, sender)
 			end
 		elseif message.subject == "rename_transform" and message.text then
 			if message.text == "Colliders" then
-				G.update_navbar("The name \"Colliders\" is reserved for collider data (not supported by custom maps) and skipped over by Geomancer. Choose a different name", true)
+				G.update_navbar("The name \"Colliders\" is reserved for collider data (not supported by custom maps). Choose a different name", true)
 			else
 				rename_transform(message.text)
 			end

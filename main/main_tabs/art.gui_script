@@ -508,8 +508,10 @@ end
 local function change_model_material(model_index, part_index, material, change_all)
 	if change_all then
 		for key, val in ipairs(MEM.art_data.table.propsDictionary[model_index].model_data.parts) do
-			val.tab[val.index] = material
-			val.tab._pure_array = nil
+			if not val.collider then
+				val.tab[val.index] = material
+				val.tab._pure_array = nil
+			end
 		end
 	else
 		local part_tab = MEM.art_data.table.propsDictionary[model_index].model_data.parts[part_index]
@@ -716,6 +718,8 @@ function on_message(self, message_id, message, sender)
 				UI.select_exclusive_button(TAB_NAME, model_list, message.selected_model)
 				select_model(message.selected_model)
 			end
+		elseif message.dialog == "dialog_instance_list" then
+			UI.update_list(TAB_NAME, model_list, #MEM.art_data.table.propsDictionary)
 		end
 	elseif message_id == hash("degeomance") then
 		degeomance()
@@ -776,14 +780,18 @@ function evaluate_button(button, item)
 		local selected_model = get_selected_model()
 		if selected_model > 0 then
 			local selected_part = get_selected_part()
-			if UI.shift_held then
-				change_model_material(selected_model, selected_part, material_list[item], true)
-				msg.post("/model_viewer", hash("change_material"), {model_index = selected_model})
+			if MEM.art_data.table.propsDictionary[selected_model].model_data.parts[selected_part].collider then
+				G.update_navbar("Cannot change the material of a collider mesh", true)
 			else
-				change_model_material(selected_model, selected_part, material_list[item])
-				msg.post("/model_viewer", hash("change_material"), {part_index = selected_part, model_index = selected_model})
+				if UI.shift_held then
+					change_model_material(selected_model, selected_part, material_list[item], true)
+					msg.post("/model_viewer", hash("change_material"), {model_index = selected_model})
+				else
+					change_model_material(selected_model, selected_part, material_list[item])
+					msg.post("/model_viewer", hash("change_material"), {part_index = selected_part, model_index = selected_model})
+				end
+				update_materials()
 			end
-			update_materials()
 		else
 			G.update_navbar("Select a model and one of its parts first.", true)
 		end

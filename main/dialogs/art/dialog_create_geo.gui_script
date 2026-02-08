@@ -1,0 +1,381 @@
+local UI = require "modules.ui"
+local MEM = require "modules.memory"
+local SET = require "modules.settings"
+local MOD = require "modules.models"
+local G = require "modules.global"
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "dialog_create_geo"
+local DIALOG_DATA
+
+local prop_list, model_index, prop_index
+
+function init(self)
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+	UI.load_template({"generate_geo", "geo_cancel", "checkbox_visible_geo", "checkbox_collider", "checkbox_scale", "checkbox_delete_prop"}, DIALOG_NAME)
+end
+
+local function update_buttons()
+	local state = {[true] = "X", [false] = ""}
+	gui.set_text(gui.get_node("checkbox_visible_geo/text"), state[SET.generate_visible_geo])
+	gui.set_text(gui.get_node("checkbox_collider/text"), state[SET.generate_collider_geo])
+	gui.set_text(gui.get_node("checkbox_scale/text"), state[SET.scale_prop_after_geo])
+	gui.set_text(gui.get_node("checkbox_delete_prop/text"), state[SET.delete_prop_after_geo])
+	gui.set_text(gui.get_node("checkbox_all/text"), state[SET.generate_geo_for_all_instances])
+end
+
+local function generate_geo(prop_tab, transform_list)
+	local chunk_x = math.floor(prop_tab.position.x / 16)
+	local chunk_y = math.floor(prop_tab.position.y / 16)
+	local chunk_z = math.floor(prop_tab.position.z / 16)
+
+	local offset_x = prop_tab.position.x % 16
+	local offset_y = prop_tab.position.y % 16
+	local offset_z = prop_tab.position.z % 16
+
+	--if chunk_x < -3 or chunk_x > 2 or chunk_y < -3 or chunk_y > 2 then
+	
+	if chunk_x < -3 then
+		offset_x = offset_x - 16 * (-3 - chunk_x)
+		chunk_x = -3
+	elseif chunk_x > 2 then
+		offset_x = offset_x + 16 * (chunk_x - 2)
+		chunk_x = 2
+	end
+	if chunk_y < -3 then
+		offset_y = offset_y - 16 * (-3 - chunk_y)
+		chunk_y = -3
+	elseif chunk_y > 2 then
+		offset_y = offset_y + 16 * (chunk_y - 2)
+		chunk_y = 2
+	end
+
+	local chunk_tab, slice_tab
+	if SET.generate_collider_geo then
+		for key, val in ipairs(MEM.geo_data.chunks) do
+			if val.id[1] == chunk_x and val.id[2] == chunk_y and val.id[3] == chunk_z then
+				chunk_tab = val
+				break
+			end
+		end
+		if not chunk_tab then
+			chunk_tab = {id = {chunk_x, chunk_y, chunk_z}, id_str = chunk_x..","..chunk_y..","..chunk_z, verts = {}, tris = {}, meshSizes = {0, 0}}
+			table.insert(MEM.geo_data.chunks, chunk_tab)
+		end
+		chunk_tab.verts = chunk_tab.verts or {}
+		chunk_tab.tris = chunk_tab.tris or {}
+		chunk_tab.triangles = chunk_tab.triangles or {}
+		chunk_tab.normals_parsed = chunk_tab.normals_parsed or {}
+		chunk_tab.verts_parsed = chunk_tab.verts_parsed or {}
+		chunk_tab.meshSizes = chunk_tab.meshSizes or {}
+		chunk_tab.meshSizes[1] = chunk_tab.meshSizes[1] or 0
+		chunk_tab.meshSizes[2] = chunk_tab.meshSizes[2] or 0
+		chunk_tab.original_size = chunk_tab.original_size or (chunk_tab.meshSizes[1] + chunk_tab.meshSizes[2])
+	end
+
+	if SET.generate_visible_geo then
+		if MEM.geo_data.slices[chunk_z] and MEM.geo_data.slices[chunk_z][2] then
+			slice_tab = MEM.geo_data.slices[chunk_z][2]
+		else
+			MEM.geo_data.slices[chunk_z] = MEM.geo_data.slices[chunk_z] or {}
+			MEM.geo_data.slices[chunk_z][1] = MEM.geo_data.slices[chunk_z][1] or {id = chunk_z, verts = {}, tris = {}, mesh_index = 1}
+			MEM.geo_data.slices[chunk_z][2] = {id = chunk_z, verts = {}, tris = {}, mesh_index = 2}
+			slice_tab = MEM.geo_data.slices[chunk_z][2]
+		end
+		slice_tab.verts = slice_tab.verts or {}
+		slice_tab.tris = slice_tab.tris or {}
+		slice_tab.triangles = slice_tab.triangles or {}
+		slice_tab.normals_parsed = slice_tab.normals_parsed or {}
+		slice_tab.verts_parsed = slice_tab.verts_parsed or {}
+		slice_tab.mesh_index = slice_tab.mesh_index or 2
+		MEM.geo_data.slices[chunk_z].original_size = MEM.geo_data.slices[chunk_z].original_size or #MEM.geo_data.slices[chunk_z][1].tris
+	end
+
+	local new_chunk, new_slice
+	
+	for key, val in ipairs(transform_list) do
+		if val.meshes then
+			local matrix_chunk, matrix_slice
+			local matrix_list = {}
+			local flip = prop_tab.scale.x * prop_tab.scale.y * prop_tab.scale.z
+			local function get_transform_list(mesh_tab)
+				if mesh_tab.parent_tab then
+					get_transform_list(mesh_tab.parent_tab)
+					local pos = vmath.vector3(mesh_tab.position)
+					--pos.x = -pos.x
+					table.insert(matrix_list, vmath.matrix4_compose(pos, mesh_tab.rotation, mesh_tab.scale))
+					flip = flip * mesh_tab.scale.x * mesh_tab.scale.y * mesh_tab.scale.z
+				end
+			end
+			get_transform_list(val)
+
+			local vert_count, vert_count_slice
+			local existing_chunk_tris, existing_slice_tris = {}, {}
+			
+			local function prep_chunk()
+				if not chunk_tab then return end
+				matrix_chunk = vmath.matrix4_compose(vmath.vector3(offset_x, offset_y, offset_z), prop_tab.rotation, prop_tab.scale)
+				vert_count = #chunk_tab.verts
+				for i = 1, #chunk_tab.tris, 3 do
+					existing_chunk_tris[chunk_tab.verts[chunk_tab.tris[i] + 1]..chunk_tab.verts[chunk_tab.tris[i + 1] + 1]..chunk_tab.verts[chunk_tab.tris[i + 2] + 1]] = true
+				end
+			end
+			local function prep_slice()
+				if not slice_tab then return end
+				matrix_slice = vmath.matrix4_compose(vmath.vector3(prop_tab.position.x, prop_tab.position.y, offset_z), prop_tab.rotation, prop_tab.scale)
+				vert_count_slice = #slice_tab.verts
+				for i = 1, #slice_tab.tris, 3 do
+					existing_slice_tris[slice_tab.verts[slice_tab.tris[i] + 1]..slice_tab.verts[slice_tab.tris[i + 1] + 1]..slice_tab.verts[slice_tab.tris[i + 2] + 1]] = true
+				end
+			end
+			prep_chunk()
+			prep_slice()
+			if chunk_tab and slice_tab then
+				for k, v in ipairs(matrix_list) do
+					matrix_slice = matrix_slice * v
+					matrix_chunk = matrix_chunk * v
+				end
+			elseif chunk_tab then
+				for k, v in ipairs(matrix_list) do
+					matrix_chunk = matrix_chunk * v
+				end
+			elseif slice_tab then
+				for k, v in ipairs(matrix_list) do
+					matrix_slice = matrix_slice * v
+				end
+			else
+				return
+			end
+
+			for mesh_key, mesh_tab in ipairs(val.meshes) do
+				local chunk_verts_temp, chunk_verts_parsed_temp, slice_verts_temp, slice_verts_parsed_temp, normals_temp, tris_temp = {}, {}, {}, {}, {}, {}
+				for k, v in ipairs(mesh_tab.verts_parsed) do
+					local vertex_coords = vmath.vector4(v[1], v[2], v[3], 1)
+					local vertex_x, vertex_y, vertex_z
+					if chunk_tab then
+						vertex_x = vmath.dot(vertex_coords, vmath.vector4(matrix_chunk.m00, matrix_chunk.m01, matrix_chunk.m02, matrix_chunk.m03))
+						vertex_y = vmath.dot(vertex_coords, vmath.vector4(matrix_chunk.m10, matrix_chunk.m11, matrix_chunk.m12, matrix_chunk.m13))
+						vertex_z = vmath.dot(vertex_coords, vmath.vector4(matrix_chunk.m20, matrix_chunk.m21, matrix_chunk.m22, matrix_chunk.m23))
+						table.insert(chunk_verts_temp, vertex_x..","..vertex_y..","..vertex_z)
+						table.insert(chunk_verts_parsed_temp, {vertex_x, vertex_y, vertex_z})
+					end
+					if slice_tab then
+						vertex_x = vmath.dot(vertex_coords, vmath.vector4(matrix_slice.m00, matrix_slice.m01, matrix_slice.m02, matrix_slice.m03))
+						vertex_y = vmath.dot(vertex_coords, vmath.vector4(matrix_slice.m10, matrix_slice.m11, matrix_slice.m12, matrix_slice.m13))
+						vertex_z = vmath.dot(vertex_coords, vmath.vector4(matrix_slice.m20, matrix_slice.m21, matrix_slice.m22, matrix_slice.m23))
+						table.insert(slice_verts_temp, vertex_x..","..vertex_y..","..vertex_z)
+						table.insert(slice_verts_parsed_temp, {vertex_x, vertex_y, vertex_z})
+					end
+				end
+
+
+				for tris_index = 1, #mesh_tab.tris, 3 do
+					local tris_1, tris_2, tris_3
+					tris_1 = mesh_tab.tris[tris_index]
+					if flip > 0 then
+						tris_2 = mesh_tab.tris[tris_index + 1]
+						tris_3 = mesh_tab.tris[tris_index + 2]
+					else
+						tris_2 = mesh_tab.tris[tris_index + 2]
+						tris_3 = mesh_tab.tris[tris_index + 1]
+					end
+					table.insert(tris_temp, {tris_1, tris_2, tris_3})
+					local vert_str, vert_slice_str
+					if chunk_tab then
+						vert_str = chunk_verts_temp[tris_1 + 1]..chunk_verts_temp[tris_2 + 1]..chunk_verts_temp[tris_3 + 1]
+					end
+					if slice_tab then
+						vert_slice_str = slice_verts_temp[tris_1 + 1]..slice_verts_temp[tris_2 + 1]..slice_verts_temp[tris_3 + 1]
+					end
+					local skip_chunk = (not vert_str) or existing_chunk_tris[vert_str]
+					local skip_slice = (not vert_slice_str) or existing_slice_tris[vert_slice_str]
+					if not (skip_chunk and skip_slice) then
+						local vec_a = vmath.vector3(mesh_tab.verts_parsed[tris_1 + 1][1], mesh_tab.verts_parsed[tris_1 + 1][2], mesh_tab.verts_parsed[tris_1 + 1][3])
+						local vec_b = vmath.vector3(mesh_tab.verts_parsed[tris_2 + 1][1], mesh_tab.verts_parsed[tris_2 + 1][2], mesh_tab.verts_parsed[tris_2 + 1][3])
+						local vec_c = vmath.vector3(mesh_tab.verts_parsed[tris_3 + 1][1], mesh_tab.verts_parsed[tris_3 + 1][2], mesh_tab.verts_parsed[tris_3 + 1][3])
+						local norm = vmath.normalize(vmath.cross(vec_b - vec_a, vec_c - vec_a))
+						table.insert(normals_temp, norm.x)
+						table.insert(normals_temp, norm.y)
+						table.insert(normals_temp, norm.z)
+						if not skip_chunk then
+							new_chunk = true
+						end
+						if not skip_slice then
+							new_slice = true
+						end
+					end
+				end
+
+				if new_chunk or new_slice then
+					for _k, tris_val in ipairs(tris_temp) do
+						for k, v in ipairs(tris_val) do
+							local vertex = v + 1
+							if new_chunk then
+								table.insert(chunk_tab.tris, v + vert_count)
+								table.insert(chunk_tab.verts, chunk_verts_temp[3 * (_k - 1) + k])
+								table.insert(chunk_tab.verts_parsed, chunk_verts_parsed_temp[3 * (_k - 1) + k])
+								
+								table.insert(chunk_tab.triangles, chunk_verts_parsed_temp[vertex][1])
+								table.insert(chunk_tab.triangles, chunk_verts_parsed_temp[vertex][2])
+								table.insert(chunk_tab.triangles, chunk_verts_parsed_temp[vertex][3])
+								table.insert(chunk_tab.normals_parsed, normals_temp[3 * (_k - 1) + 1])
+								table.insert(chunk_tab.normals_parsed, normals_temp[3 * (_k - 1) + 2])
+								table.insert(chunk_tab.normals_parsed, normals_temp[3 * (_k - 1) + 3])
+							end
+							if new_slice then
+								table.insert(slice_tab.tris, v + vert_count_slice)
+								table.insert(slice_tab.verts, slice_verts_temp[3 * (_k - 1) + k])
+								table.insert(slice_tab.verts_parsed, slice_verts_parsed_temp[3 * (_k - 1) + k])
+
+								table.insert(slice_tab.triangles, slice_verts_parsed_temp[vertex][1])
+								table.insert(slice_tab.triangles, slice_verts_parsed_temp[vertex][2])
+								table.insert(slice_tab.triangles, slice_verts_parsed_temp[vertex][3])
+								table.insert(slice_tab.normals_parsed, normals_temp[3 * (_k - 1) + 1])
+								table.insert(slice_tab.normals_parsed, normals_temp[3 * (_k - 1) + 2])
+								table.insert(slice_tab.normals_parsed, normals_temp[3 * (_k - 1) + 3])
+							end
+						end
+					end
+					if new_chunk then
+						vert_count = #chunk_tab.verts
+					end
+					if new_slice then
+						vert_count_slice = #slice_tab.verts
+					end
+				end
+			end
+		end
+	end
+	local added_chunk, added_slice = 0, 0
+	if new_chunk then
+		chunk_tab.meshSizes[2] = #chunk_tab.tris - chunk_tab.meshSizes[1]
+		if chunk_tab.buffer_resource then
+			MOD.buffer_resource_released(chunk_tab.buffer_resource)
+		end
+		MOD.create_mesh(chunk_tab)
+		chunk_tab.modified = true
+		added_chunk = 1
+	end
+	if new_slice then
+		if slice_tab.buffer_resource then
+			MOD.buffer_resource_released(slice_tab.buffer_resource)
+		end
+		MOD.create_mesh(slice_tab)
+		MEM.geo_data.slices[chunk_z].modified = true
+		added_slice = 1
+	end
+	MEM.setup_culling_ranges()
+	return added_chunk, added_slice
+end
+
+local function evaluate_button(button)
+	if button == "generate_geo" or button == "enter" then
+		local transform_list = MEM.art_data.table.propsDictionary[prop_list[1].model_index].model_data.transform_list
+		local chunk_count, slice_count = 0, 0
+		if SET.generate_geo_for_all_instances then
+			for key, val in ipairs(prop_list) do
+				local chunk, slice = generate_geo(val, transform_list)
+				chunk_count = chunk_count + chunk
+				slice_count = slice_count + slice
+			end
+		else
+			local chunk, slice = generate_geo(prop_list[prop_index], transform_list)
+			chunk_count = chunk_count + chunk
+			slice_count = slice_count + slice
+		end
+		local update_str = ""
+		if chunk_count + slice_count < 1 then
+			update_str = "No new geo added."
+		else
+			if slice_count > 1 then
+				update_str = update_str.."Added visible geo from "..slice_count.." props. "
+			elseif slice_count > 0 then
+				update_str = update_str.."Added visible geo from one prop. "
+			end
+			if chunk_count > 1 then
+				update_str = update_str.."Added collider geo from "..chunk_count.." props."
+			elseif chunk_count > 0 then
+				update_str = update_str.."Added collider geo from one prop."
+			end
+		end
+
+		G.update_navbar(update_str, true)
+		DIALOG.close(DIALOG_NAME, {changes = true, prop_index = prop_index})
+	elseif button == "geo_cancel" or button == "escape" then
+		DIALOG.close(DIALOG_NAME)
+	elseif button == "checkbox_visible_geo" then
+		SET.generate_visible_geo = not SET.generate_visible_geo
+		if not (SET.generate_visible_geo and SET.generate_collider_geo) then
+			SET.generate_collider_geo = true
+		end
+		update_buttons()
+	elseif button == "checkbox_collider" then
+		SET.generate_collider_geo = not SET.generate_collider_geo
+		if not (SET.generate_visible_geo and SET.generate_collider_geo) then
+			SET.generate_visible_geo = true
+		end
+		update_buttons()
+	elseif button == "checkbox_delete_prop" then
+		if SET.ask_before_deleting_prop and not SET.delete_prop_after_geo then
+			local title
+			if SET.generate_geo_for_all_instances then
+				title = "Are you sure you want to delete all instances after generating geo?"
+			else
+				title = "Are you sure you want to delete the prop instance after generating geo?"
+			end
+			DIALOG.open(DIALOG_NAME, "dialog_confirm", {title = title, button_1 = "Delete", button_3 = "Cancel", subject = "delete_prop_after_geo"})
+		else
+			SET.delete_prop_after_geo = not SET.delete_prop_after_geo
+			if SET.delete_prop_after_geo then
+				SET.scale_prop_after_geo = false
+			end
+			update_buttons()
+		end
+	elseif button == "checkbox_scale" then
+		SET.scale_prop_after_geo = not SET.scale_prop_after_geo
+		if SET.scale_prop_after_geo then
+			SET.delete_prop_after_geo = false
+		end
+		update_buttons()
+	elseif button == "checkbox_all" then
+		SET.generate_geo_for_all_instances = not SET.generate_geo_for_all_instances
+		update_buttons()
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		DIALOG.show(DIALOG_DATA, sender)
+		prop_list = {}
+		model_index = message.model_index
+		prop_index = message.prop_index
+		for key, val in ipairs(MEM.art_data.prop_list) do
+			if val.model_index == model_index then
+				table.insert(prop_list, val)
+			end
+		end
+		local prop_count = #prop_list
+		if prop_count > 1 then
+			gui.set_text(gui.get_node("checkbox_all/label"), "Do this for all instances ("..prop_count..")")
+			gui.set_enabled(gui.get_node("checkbox_all/button_white"), true)
+			UI.load_template("checkbox_all", DIALOG_NAME)
+		else
+			gui.set_enabled(gui.get_node("checkbox_all/button_white"), false)
+			UI.unload_template(DIALOG_NAME, "checkbox_all")
+		end
+		update_buttons()
+	elseif message_id == hash("dialog_closed") then
+		if message.dialog == "dialog_confirm" then  			-- buttons are 1 = delete, 3 = cancel
+			if message.button == 1 then
+				SET.delete_prop_after_geo = true
+				SET.scale_prop_after_geo = false
+				update_buttons()
+			end
+		end
+		msg.post("#", hash("acquire_input_focus"))
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button)
+end

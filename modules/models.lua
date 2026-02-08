@@ -10,6 +10,7 @@ MOD.target_y = 15
 MOD.cam_target_x = 0
 MOD.cam_target_y = 0
 MOD.cam_target_z = 8
+MOD.cam_zoom = 8
 MOD.tween_preview = false
 
 MOD.playback = false
@@ -87,9 +88,6 @@ function MOD.create_mesh(mesh_tab)
 			end
 			mesh_tab.triangles = triangles
 			mesh_tab.normals_parsed = normals
-			mesh_tab.tris = nil
-			mesh_tab.normals = nil
-			mesh_tab.verts = nil
 			mesh_tab.verts_parsed = verts_parsed
 		else
 			local verts_parsed
@@ -117,9 +115,6 @@ function MOD.create_mesh(mesh_tab)
 			end
 			mesh_tab.triangles = triangles
 			mesh_tab.normals_parsed = normals
-			mesh_tab.tris = nil
-			mesh_tab.normals = nil
-			mesh_tab.verts = nil
 			mesh_tab.verts_parsed = verts_parsed
 		end
 	end

@@ -289,7 +289,7 @@ local function generate_list()
 			template = "tween_repeat_count;",
 			enabled = is_repeat,
 			validation = validation_repeat,
-			char_limit = 2
+			char_limit = 3
 		},
 		{
 			type = hash("label"),

@@ -407,9 +407,9 @@ local function show_visibility_box(state)
 	end
 	gui.set_enabled(gui.get_node("visibility_box_buttons"), SET.show_visibility_buttons)
 	if SET.show_visibility_buttons then
-		UI.load_template({"hide_geo", "hide_props", "hide_beatcubes", "hide_grid", "hide_fog", "toggle_music", "button_colour"}, TAB_NAME)
+		UI.load_template({"hide_geo", "hide_colliders", "hide_props", "hide_beatcubes", "hide_obstacles", "hide_grid", "hide_fog", "toggle_music", "button_colour"}, TAB_NAME)
 	else
-		UI.unload_template(TAB_NAME, {"hide_geo", "hide_props", "hide_beatcubes", "hide_grid", "hide_fog", "toggle_music", "button_colour"})
+		UI.unload_template(TAB_NAME, {"hide_geo", "hide_props", "hide_colliders", "hide_beatcubes", "hide_obstacles", "hide_grid", "hide_fog", "toggle_music", "button_colour"})
 	end
 end
 
@@ -635,6 +635,7 @@ local function preview_setup_map()
 	MOD.total_time = song_length
 	
 	create_tween_sections()
+	msg.post(".", hash("prepare_obstacles"))
 	if not MOD.scrubber_progress then
 		move_scrubber(0)
 	else
@@ -1042,6 +1043,13 @@ local function evaluate_button(button)
 			gui.play_flipbook(gui.get_node("hide_fog/text"), "hide_fog")
 		end
 		msg.post(".", hash("hide_fog"))
+	elseif button == "hide_obstacles" then
+		if SET.hide_obstacles then
+			gui.play_flipbook(gui.get_node("hide_obstacles/text"), "button_show_obstacles")
+		else
+			gui.play_flipbook(gui.get_node("hide_obstacles/text"), "button_hide_obstacles")
+		end
+		msg.post(".", hash("hide_obstacles"))
 	elseif button == "hide_beatcubes" then
 		if SET.hide_beatcubes then
 			gui.play_flipbook(gui.get_node("hide_beatcubes/text"), "show_beatcubes")
@@ -1069,14 +1077,19 @@ local function evaluate_button(button)
 		end
 		msg.post(".", hash("hide_props"))
 	elseif button == "hide_geo" then
-		if SET.hide_geo == 1 then
-			gui.play_flipbook(gui.get_node("hide_geo/text"), "button_show_colliders")
-		elseif SET.hide_geo == 2 then
-			gui.play_flipbook(gui.get_node("hide_geo/text"), "button_hide_geo")
-		else
+		if SET.hide_geo then
 			gui.play_flipbook(gui.get_node("hide_geo/text"), "button_show_geo")
+		else
+			gui.play_flipbook(gui.get_node("hide_geo/text"), "button_hide_geo")
 		end
 		msg.post(".", hash("hide_geo"))
+	elseif button == "hide_colliders" then
+		if SET.hide_colliders then
+			gui.play_flipbook(gui.get_node("hide_colliders/text"), "button_show_colliders")
+		else
+			gui.play_flipbook(gui.get_node("hide_colliders/text"), "button_hide_colliders")
+		end
+		msg.post(".", hash("hide_colliders"))
 	elseif button == "reset_view" then
 		set_pov_lock(false)
 		local mode = hash("model")

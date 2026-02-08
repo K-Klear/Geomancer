@@ -13,14 +13,14 @@ local TWEEN_ACTION_MOVE = hash("T")
 local TWEEN_ACTION_SCALE = hash("S")
 local TWEEN_ACTION_ROTATE = hash("R")
 
-local TEMPO_SECTION = hash("tempo_section")
 local NOBEAT_START = hash("nobeat_start")
 local NOBEAT_END = hash("nobeat_end")
-
 
 local material_list = {}
 
 go.property("geo_material", resource.material("/render/prop_materials/geo.material"))
+
+go.property("shader_collider", resource.material("/render/prop_materials/collider.material"))
 
 go.property("shader_prop", resource.material("/render/prop_materials/prop.material"))
 go.property("shader_glow", resource.material("/render/prop_materials/glow.material"))
@@ -51,6 +51,7 @@ go.property("cont_1_tex", resource.texture("/assets/gfx/textures/continental_1.p
 go.property("cont_2_tex", resource.texture("/assets/gfx/textures/continental_2.png"))
 go.property("shield_tex", resource.texture("/assets/gfx/textures/shielded.png"))
 go.property("ped_tex", resource.texture("/assets/gfx/textures/peds.png"))
+go.property("collider_tex", resource.texture("/assets/gfx/textures/collider.png"))
 
 go.property("grid_mat", resource.material("/render/other_materials/grid_repeat.material"))
 go.property("grid_mat_overdraw", resource.material("/render/other_materials/grid_repeat_overdraw.material"))
@@ -204,15 +205,16 @@ end
 
 local function create_chunk_model(self, chunk_tab)
 	local new_mesh = factory.create("#create_mesh")
-	if not (SET.hide_geo == 2) then
+	if SET.hide_colliders then
 		msg.post(new_mesh, hash("disable"))
 	end
 	table.insert(chunk_meshes, {mesh = new_mesh, buffer_resource = chunk_tab.buffer_resource})
 	go.set_parent(new_mesh, "/geo_base")
 	local _url = msg.url(nil, new_mesh, "mesh")
 	go.set(_url, "vertices", chunk_tab.buffer_resource)
-	go.set(_url, "material", self.shader_pure_colour)
-	go.set(_url, "tint1", SET.collider_colour)
+	go.set(_url, "material", self.shader_collider)
+	go.set(_url, "tint", SET.collider_strong_colour)
+	go.set(_url, "texture0", self.collider_tex)
 
 	MOD.buffer_resource_used(chunk_tab.buffer_resource)
 
@@ -220,9 +222,9 @@ local function create_chunk_model(self, chunk_tab)
 	return new_mesh
 end
 
-local function create_slice_model(self, slice_tab)
+local function create_slice_model(self, slice_tab, complex)
 	local new_mesh = factory.create("#create_mesh")
-	if SET.hide_geo > 1 then
+	if SET.hide_geo then
 		msg.post(new_mesh, hash("disable"))
 	end
 	table.insert(geo_meshes, {mesh = new_mesh, buffer_resource = slice_tab.buffer_resource})
@@ -231,12 +233,15 @@ local function create_slice_model(self, slice_tab)
 	go.set(_url, "vertices", slice_tab.buffer_resource)
 	go.set(_url, "texture0", self.prop_tex)
 	go.set(_url, "texture1", self.geo_floor_tex)
-	go.set(_url, "material", self.geo_material)
-	
+	if complex then
+		go.set(_url, "material", self.geo_material)
+	else
+		go.set(_url, "material", self.shader_geo_simple)
+	end
 	MOD.buffer_resource_used(slice_tab.buffer_resource)
 
 	go.set_position(vmath.vector3(0, 0, 16 * slice_tab.id), new_mesh)
-	return new_mesh
+	return new_mesh, _url
 end
 
 local function get_parent(transform_index, transform_list)
@@ -321,7 +326,7 @@ local function create_prop(self, prop_tab, mesh_flash, create_transform_models)
 			for k, v in ipairs(val.meshes) do
 				mesh_count = mesh_count + 1
 				local new_mesh = factory.create("#create_mesh")
-				if SET.hide_props or mesh_flash then
+				if (not v.collider and SET.hide_props) or mesh_flash or (v.collider and SET.hide_colliders) then
 					msg.post(new_mesh, hash("disable"))
 				end
 				go.set_parent(new_mesh, new_transform)
@@ -337,6 +342,10 @@ local function create_prop(self, prop_tab, mesh_flash, create_transform_models)
 					go.set(_url, "material", self.shader_flash)
 					go.set(_url, "tint", SET.mesh_flash_colour)
 					mesh_props = {url = _url}
+				elseif v.collider then
+					go.set(_url, "material", self.shader_collider)
+					go.set(_url, "tint", SET.collider_weak_colour)
+					mesh_props = {mesh = new_mesh, url = _url, collider = true}
 				else
 					local part_tab = MEM.art_data.table.propsDictionary[prop_tab.model_index].model_data.parts[mesh_count]
 					mesh_props = set_material(self, _url, part_tab.tab[part_tab.index])
@@ -397,14 +406,24 @@ local function override_colour()
 	c2.glow = MOD.colour_override_glow
 	c1.enemy = MOD.colour_override_enemy
 	c2.enemy = MOD.colour_override_enemy
-	for _key in pairs(MOD.culling_ranges.visible_slices) do
-		go.set(msg.url(nil, _key.model, "mesh"), "tint1", c1.main)
-		go.set(msg.url(nil, _key.model, "mesh"), "tint2", c2.main)
+	for _key in pairs(MOD.culling_ranges.visible_obstacles) do
+		go.set(_key.url, "tint1", c1.main)
+		go.set(_key.url, "tint2", c2.main)
 		if SET.hide_fog then
-			go.set(msg.url(nil, _key.model, "mesh"), "fog2.w", 0)
+			go.set(_key.url, "fog2.w", 0)
 		else
-			go.set(msg.url(nil, _key.model, "mesh"), "fog1", c1.fog)
-			go.set(msg.url(nil, _key.model, "mesh"), "fog2", c2.fog)
+			go.set(_key.url, "fog1", c1.fog)
+			go.set(_key.url, "fog2", c2.fog)
+		end
+	end
+	for _key in pairs(MOD.culling_ranges.visible_slices) do
+		go.set(_key.url, "tint1", c1.main)
+		go.set(_key.url, "tint2", c2.main)
+		if SET.hide_fog then
+			go.set(_key.url, "fog2.w", 0)
+		else
+			go.set(_key.url, "fog1", c1.fog)
+			go.set(_key.url, "fog2", c2.fog)
 		end
 	end
 	for _key in pairs(MOD.culling_ranges.visible_props) do
@@ -464,14 +483,24 @@ local function apply_colour_section(colour_key, t)
 		c1.glow_inv = vmath.vector4(val.glow_inv)
 		c1.glow_inv.w = ct_clamped
 		c2.glow_inv = vmath.vector4(prev_colour.glow_inv)
-		for _key in pairs(MOD.culling_ranges.visible_slices) do
-			go.set(msg.url(nil, _key.model, "mesh"), "tint1", c1.main)
-			go.set(msg.url(nil, _key.model, "mesh"), "tint2", c2.main)
+		for _key in pairs(MOD.culling_ranges.visible_obstacles) do
+			go.set(_key.url, "tint1", c1.main)
+			go.set(_key.url, "tint2", c2.main)
 			if SET.hide_fog then
-				go.set(msg.url(nil, _key.model, "mesh"), "fog2.w", 0)
+				go.set(_key.url, "fog2.w", 0)
 			else
-				go.set(msg.url(nil, _key.model, "mesh"), "fog1", c1.fog)
-				go.set(msg.url(nil, _key.model, "mesh"), "fog2", c2.fog)
+				go.set(_key.url, "fog1", c1.fog)
+				go.set(_key.url, "fog2", c2.fog)
+			end
+		end
+		for _key in pairs(MOD.culling_ranges.visible_slices) do
+			go.set(_key.url, "tint1", c1.main)
+			go.set(_key.url, "tint2", c2.main)
+			if SET.hide_fog then
+				go.set(_key.url, "fog2.w", 0)
+			else
+				go.set(_key.url, "fog1", c1.fog)
+				go.set(_key.url, "fog2", c2.fog)
 			end
 		end
 		for _key in pairs(MOD.culling_ranges.visible_props) do
@@ -508,7 +537,10 @@ local function apply_colour_section(colour_key, t)
 		go.set("/fog#fog", "tint2", c2.fog)
 	elseif colour_transition >= 0 then
 		for _key in pairs(MOD.culling_ranges.visible_slices) do
-			go.set(msg.url(nil, _key.model, "mesh"), "tint1.w", ct_clamped)
+			go.set(_key.url, "tint1.w", ct_clamped)
+		end
+		for _key in pairs(MOD.culling_ranges.visible_obstacles) do
+			go.set(_key.url, "tint1.w", ct_clamped)
 		end
 		for _key in pairs(MOD.culling_ranges.visible_props) do
 			for k, v in ipairs(_key.models) do
@@ -600,31 +632,33 @@ end
 local function show_culling_range(self, range)
 	for key, val in ipairs(MOD.culling_ranges[range].slices) do
 		if not val.model then
-			val.model = create_slice_model(self, val)
+			local new_slice, new_mesh = create_slice_model(self, val, val.mesh_index == 1)
+			go.set(new_mesh, "tint1", vmath.vector4(c1.main.x, c1.main.y, c1.main.z, ct_clamped))
+			go.set(new_mesh, "tint2", c2.main)
+			if SET.hide_fog then
+				go.set(new_mesh, "fog2.w", 0)
+			else
+				go.set(new_mesh, "fog1", c1.fog)
+				go.set(new_mesh, "fog2", c2.fog)
+			end
+			val.model = new_slice
+			val.url = new_mesh
 			val.enabled = true
 			MOD.culling_ranges.visible_slices[val] = true
-			go.set(msg.url(nil, val.model, "mesh"), "tint1", vmath.vector4(c1.main.x, c1.main.y, c1.main.z, ct_clamped))
-			go.set(msg.url(nil, val.model, "mesh"), "tint2", c2.main)
-			if SET.hide_fog then
-				go.set(msg.url(nil, val.model, "mesh"), "fog2.w", 0)
-			else
-				go.set(msg.url(nil, val.model, "mesh"), "fog1", c1.fog)
-				go.set(msg.url(nil, val.model, "mesh"), "fog2", c2.fog)
-			end
 		elseif not val.enabled then
-			if SET.hide_geo == 1 then
+			val.enabled = true
+			if not SET.hide_geo then
 				msg.post(val.model, hash("enable"))
 			end
-			val.enabled = true
-			MOD.culling_ranges.visible_slices[val] = true
-			go.set(msg.url(nil, val.model, "mesh"), "tint1", vmath.vector4(c1.main.x, c1.main.y, c1.main.z, ct_clamped))
-			go.set(msg.url(nil, val.model, "mesh"), "tint2", c2.main)
+			go.set(val.url, "tint1", vmath.vector4(c1.main.x, c1.main.y, c1.main.z, ct_clamped))
+			go.set(val.url, "tint2", c2.main)
 			if SET.hide_fog then
-				go.set(msg.url(nil, val.model, "mesh"), "fog2.w", 0)
+				go.set(val.url, "fog2.w", 0)
 			else
-				go.set(msg.url(nil, val.model, "mesh"), "fog1", c1.fog)
-				go.set(msg.url(nil, val.model, "mesh"), "fog2", c2.fog)
+				go.set(val.url, "fog1", c1.fog)
+				go.set(val.url, "fog2", c2.fog)
 			end
+			MOD.culling_ranges.visible_slices[val] = true
 		end
 	end
 
@@ -634,11 +668,33 @@ local function show_culling_range(self, range)
 			val.enabled = true
 			MOD.culling_ranges.visible_chunks[val] = true
 		elseif not val.enabled then
-			if SET.hide_geo == 2 then
+			if not SET.hide_colliders then
 				msg.post(val.model, hash("enable"))
 			end
 			val.enabled = true
 			MOD.culling_ranges.visible_chunks[val] = true
+		end
+	end
+
+	for key, val in ipairs(MOD.culling_ranges[range].obstacles) do
+		if val.model and (not val.enabled) then
+			if not SET.hide_obstacles then
+				msg.post(val.url, hash("enable"))
+			end
+			if not SET.hide_colliders then
+				msg.post(val.collider, hash("enable"))
+			end
+			go.set(val.url, "tint1", c1.main)
+			go.set(val.url, "tint1.w", ct_clamped)
+			go.set(val.url, "tint2", c2.main)
+			if SET.hide_fog then
+				go.set(val.url, "fog2.w", 0)
+			else
+				go.set(val.url, "fog1", c1.fog)
+				go.set(val.url, "fog2", c2.fog)
+			end
+			val.enabled = true
+			MOD.culling_ranges.visible_obstacles[val] = true
 		end
 	end
 	
@@ -646,11 +702,13 @@ local function show_culling_range(self, range)
 		if not val.hide then
 			if not val.models then
 				val.models = create_prop(self, val)
-				val.enabled = true
-				MOD.culling_ranges.visible_props[val] = true
+				if (val.collider and (not SET.hide_colliders)) or ((not val.collider) and SET.hide_props) then
+					val.enabled = true
+					MOD.culling_ranges.visible_props[val] = true
+				end
 			elseif not val.enabled then
 				for k, v in ipairs(val.models) do
-					if not SET.hide_props then
+					if (v.collider and (not SET.hide_colliders)) or not (v.collider or SET.hide_props) then
 						msg.post(v.mesh, hash("enable"))
 					end
 					if v.colour then
@@ -673,6 +731,50 @@ local function show_culling_range(self, range)
 				end
 				val.enabled = true
 				MOD.culling_ranges.visible_props[val] = true
+			end
+		end
+	end
+end
+
+local function hide_culling_range(self, _z)
+	local range_val = (_z + 7) / 16
+	current_culling_range = math.floor(range_val)
+	if (not despawn_triggered or MOD.stationary) and (current_culling_range < math.floor(range_val + 0.125)) then
+		despawn_triggered = true
+		for key, val in pairs(MOD.culling_ranges.visible_props) do
+			if val and (not key.ranges[current_culling_range + 1]) then
+				for k, v in ipairs(key.models) do
+					msg.post(v.mesh, hash("disable"))
+				end
+				key.enabled = false
+				MOD.culling_ranges.visible_props[key] = false
+			end
+		end
+	end
+	current_culling_range = G.clamp(current_culling_range, 0, MOD.max_culling_range)
+	if not (current_culling_range == previous_culling_range or MOD.stationary) then
+		despawn_triggered = false
+		for key, val in pairs(MOD.culling_ranges.visible_slices) do
+			if val and (not key.ranges[current_culling_range]) then
+				msg.post(key.model, hash("disable"))
+				key.enabled = false
+				MOD.culling_ranges.visible_slices[key] = false
+			end
+		end
+		for key, val in pairs(MOD.culling_ranges.visible_obstacles) do
+			if val and (not key.ranges[current_culling_range]) then
+				msg.post(key.model, hash("disable"))
+				key.enabled = false
+				MOD.culling_ranges.visible_obstacles[key] = false
+			end
+		end
+		for key, val in pairs(MOD.culling_ranges.visible_props) do
+			if val and (not key.ranges[current_culling_range]) then
+				for k, v in ipairs(key.models) do
+					msg.post(v.mesh, hash("disable"))
+				end
+				key.enabled = false
+				MOD.culling_ranges.visible_props[key] = false
 			end
 		end
 	end
@@ -765,9 +867,7 @@ local function get_beats(start, spb, beats_per_measure)
 	beat_duration = spb * 0.5
 end
 
-local count = 0
 function update(self, dt)
-	count = count + 1
 	if MOD.viewer_active then
 		local pitch = vmath.quat_rotation_x(math.rad(MOD.target_y))
 		local yaw = vmath.quat_rotation_y(math.rad(MOD.target_x))
@@ -892,14 +992,14 @@ function update(self, dt)
 				if beat_flash or whiteout_flash or whiteout_in_progress or beat_in_progress then
 					if beat_flash then
 						for key, val in pairs(MOD.culling_ranges.visible_slices) do
-							go.set(msg.url(nil, key.model, "mesh"), "tint2.w", beat_flash)
+							go.set(key.url, "tint2.w", beat_flash)
 						end
 						for k, v in ipairs(beatcubes) do
 							go.set(v.model_url, "flash.x", beat_flash)
 						end
 					elseif beat_in_progress then
 						for key, val in pairs(MOD.culling_ranges.visible_slices) do
-							go.set(msg.url(nil, key.model, "mesh"), "tint2.w", 0)
+							go.set(key.url, "tint2.w", 0)
 						end
 						for k, v in ipairs(beatcubes) do
 							go.set(v.model_url, "flash.x", 0)
@@ -926,6 +1026,21 @@ function update(self, dt)
 							end
 						end
 					end
+					--[[
+					for key, v in pairs(MOD.culling_ranges.visible_obstacles) do
+						if beat_flash then
+							go.set(key.url, "flash.x", beat_flash)
+						elseif beat_in_progress then
+							go.set(key.url, "flash.x", 0)
+						end
+						if whiteout_flash then
+							go.set(key.url, "flash.w", 1)
+							go.set(key.url, "flash.z", whiteout_flash)
+						elseif whiteout_in_progress then
+							go.set(key.url, "flash.w", 0)
+						end
+					end
+					--]]
 					if not whiteout_flash then
 						whiteout_in_progress = false
 					end
@@ -933,42 +1048,13 @@ function update(self, dt)
 						beat_in_progress = false
 					end
 				end
-				local range_val = (z + 7) / 16
-				current_culling_range = math.floor(range_val)
-				if (not despawn_triggered or MOD.stationary) and (current_culling_range < math.floor(range_val + 0.125)) then
-					despawn_triggered = true
-					for key, val in pairs(MOD.culling_ranges.visible_props) do
-						if val and (not key.ranges[current_culling_range + 1]) then
-							for k, v in ipairs(key.models) do
-								msg.post(v.mesh, hash("disable"))
-							end
-							key.enabled = false
-							MOD.culling_ranges.visible_props[key] = false
-						end
-					end
-				end
-				current_culling_range = G.clamp(current_culling_range, 0, MOD.max_culling_range)
+
+				hide_culling_range(self, z)
 				if not (current_culling_range == previous_culling_range or MOD.stationary) then
-					despawn_triggered = false
-					for key, val in pairs(MOD.culling_ranges.visible_slices) do
-						if val and (not key.ranges[current_culling_range]) then
-							msg.post(key.model, hash("disable"))
-							key.enabled = false
-							MOD.culling_ranges.visible_slices[key] = false
-						end
-					end
-					for key, val in pairs(MOD.culling_ranges.visible_props) do
-						if val and (not key.ranges[current_culling_range]) then
-							for k, v in ipairs(key.models) do
-								msg.post(v.mesh, hash("disable"))
-							end
-							key.enabled = false
-							MOD.culling_ranges.visible_props[key] = false
-						end
-					end
 					show_culling_range(self, current_culling_range)
 					previous_culling_range = current_culling_range
 				end
+
 				for key, val in ipairs(MOD.culling_ranges[current_culling_range - 1].signals or {}) do
 					if not (val.used_up or active_tweens[val]) then
 						if t - val.time > 0 then
@@ -1032,6 +1118,7 @@ local function delete_geo()
 		for key, val in pairs(MOD.culling_ranges) do
 			for k, v in ipairs(val.slices or {}) do
 				v.model = nil
+				v.url = nil
 				v.enabled = nil
 			end
 			for k, v in ipairs(val.chunks or {}) do
@@ -1148,45 +1235,117 @@ local function hide_fog()
 	end
 end
 
+local function hide_obstacles()
+	SET.hide_obstacles = not SET.hide_obstacles
+	if SET.hide_obstacles then
+		for key in pairs(MOD.culling_ranges.visible_obstacles) do
+			msg.post(key.url, hash("disable"))
+		end
+	else
+		for key in pairs(MOD.culling_ranges.visible_obstacles) do
+			msg.post(key.url, hash("enable"))
+		end
+	end
+end
+
 local function hide_props()
 	SET.hide_props = not SET.hide_props
 	if SET.hide_props then
 		for key in pairs(MOD.culling_ranges.visible_props) do
 			for k, v in ipairs(key.models) do
-				msg.post(v.url, hash("disable"))
+				if not v.collider then
+					msg.post(v.url, hash("disable"))
+				end
 			end
 		end
 	else
 		for key in pairs(MOD.culling_ranges.visible_props) do
 			for k, v in ipairs(key.models) do
-				msg.post(v.url, hash("enable"))
+				if not v.collider then
+					msg.post(v.url, hash("enable"))
+				end
 			end
 		end
 	end
 end
 
 local function hide_geo()
-	SET.hide_geo = SET.hide_geo + 1
-	if SET.hide_geo > 3 then
-		SET.hide_geo = 1
-	end
-	if SET.hide_geo == 1 then
-		for key in pairs(MOD.culling_ranges.visible_slices) do
-			msg.post(key.model, hash("enable"))
-		end
-	else
+	SET.hide_geo = not SET.hide_geo
+	if SET.hide_geo then
 		for key in pairs(MOD.culling_ranges.visible_slices) do
 			msg.post(key.model, hash("disable"))
 		end
-	end
-	if SET.hide_geo == 2 then
-		for key in pairs(MOD.culling_ranges.visible_chunks) do
+	else
+		for key in pairs(MOD.culling_ranges.visible_slices) do
 			msg.post(key.model, hash("enable"))
 		end
-	else
+	end
+end
+
+local function hide_colliders()
+	SET.hide_colliders = not SET.hide_colliders
+	if SET.hide_colliders then
 		for key in pairs(MOD.culling_ranges.visible_chunks) do
 			msg.post(key.model, hash("disable"))
 		end
+		for key in pairs(MOD.culling_ranges.visible_obstacles) do
+			msg.post(key.collider, hash("disable"))
+		end
+		for key in pairs(MOD.culling_ranges.visible_props) do
+			for k, v in ipairs(key.models) do
+				if v.collider then
+					msg.post(v.url, hash("disable"))
+				end
+			end
+		end
+	else
+		for key in pairs(MOD.culling_ranges.visible_chunks) do
+			msg.post(key.model, hash("enable"))
+		end
+		for key in pairs(MOD.culling_ranges.visible_obstacles) do
+			msg.post(key.collider, hash("enable"))
+		end
+		for key in pairs(MOD.culling_ranges.visible_props) do
+			for k, v in ipairs(key.models) do
+				if v.collider then
+					msg.post(v.url, hash("enable"))
+				end
+			end
+		end
+	end
+end
+
+local function delete_obstacles()
+	if MOD.culling_ranges then
+		MOD.culling_ranges.visible_obstacles = {}
+		for key, val in pairs(MOD.culling_ranges) do
+			for k, v in ipairs(val.obstacles or {}) do
+				if v.model then
+					go.delete(v.model)
+				end
+				v.model = nil
+				v.enabled = nil
+				v.url = nil
+				v.collider = nil
+			end
+		end
+	end
+end
+
+local function create_obstacles()
+	delete_obstacles()
+	for key, val in ipairs(MEM.beat_data.obstacle_list) do
+		local new_obstacle
+		if val.type == "LimboTall" or val.type == "LimboShort" then
+			new_obstacle = factory.create("#create_obstacle_limbo", vmath.vector3(val.position.x, 0, val.position.z))
+		else
+			new_obstacle = factory.create("#create_obstacle", vmath.vector3(val.position.x, 0, val.position.z))
+		end
+		msg.post(new_obstacle, hash("disable"))
+		val.model = new_obstacle
+		val.url = msg.url(nil, new_obstacle, "model")
+		val.collider = msg.url(nil, new_obstacle, "collider")
+		go.set(val.collider, "tint", SET.collider_strong_colour)
 	end
 end
 
@@ -1287,17 +1446,21 @@ function on_message(self, message_id, message, sender)
 		delete_model(self)
 	elseif message_id == hash("change_material") then
 		if message.part_index then
-			local part_tab = MEM.art_data.table.propsDictionary[message.model_index].model_data.parts[message.part_index]
-			local url = preview_model[message.part_index].url
-			local mesh_props = set_material(self, url, part_tab.tab[part_tab.index])
-			mesh_props.mesh = url
-			preview_model[message.part_index] = mesh_props
+			if not preview_model[message.part_index].collider then
+				local part_tab = MEM.art_data.table.propsDictionary[message.model_index].model_data.parts[message.part_index]
+				local url = preview_model[message.part_index].url
+				local mesh_props = set_material(self, url, part_tab.tab[part_tab.index])
+				mesh_props.mesh = url
+				preview_model[message.part_index] = mesh_props
+			end
 		else
 			for key, val in ipairs(MEM.art_data.table.propsDictionary[message.model_index].model_data.parts) do
-				local url = preview_model[key].url
-				local mesh_props = set_material(self, url, val.tab[val.index])
-				mesh_props.mesh = url
-				preview_model[key] = mesh_props
+				if not preview_model[key].collider then
+					local url = preview_model[key].url
+					local mesh_props = set_material(self, url, val.tab[val.index])
+					mesh_props.mesh = url
+					preview_model[key] = mesh_props
+				end
 			end
 		end
 	elseif message_id == hash("update_model") then
@@ -1314,9 +1477,8 @@ function on_message(self, message_id, message, sender)
 		for key, val in pairs(MOD.culling_ranges) do
 			for k, v in ipairs(val.slices or {}) do
 				if v.enabled then
-					local url = msg.url(nil, v.model, "mesh")
 					v.enabled = false
-					msg.post(url, hash("disable"))
+					msg.post(v.model, hash("disable"))
 				end
 			end
 			for k, v in ipairs(val.props or {}) do
@@ -1338,36 +1500,18 @@ function on_message(self, message_id, message, sender)
 		if not (MOD.stationary or MOD.vacuum_preview) then
 			local t = MOD.preview_start + MOD.total_time * MOD.scrubber_progress
 			local z = t * 3
-			local range_val = (z + 7) / 16
-			current_culling_range = math.floor(range_val)
-			local function show_cul_rang()
-				current_culling_range = G.clamp(current_culling_range, 0, MOD.max_culling_range)
-				for key, val in ipairs(MEM.art_data.colour_list) do
-					if ((t >= val.time) and (not val.end_time or (t < val.end_time))) or (key == #MEM.art_data.colour_list - 1) then
-						MOD.previous_colour = nil
-						apply_colour_section(key, t)
-						break
-					end
+
+			for key, val in ipairs(MEM.art_data.colour_list) do
+				if ((t >= val.time) and (not val.end_time or (t < val.end_time))) or (key == #MEM.art_data.colour_list - 1) then
+					MOD.previous_colour = nil
+					apply_colour_section(key, t)
+					break
 				end
-				show_culling_range(self, current_culling_range)
-				previous_culling_range = current_culling_range
 			end
-			if (current_culling_range < math.floor(range_val + 0.125)) then
-				show_cul_rang()
-				despawn_triggered = true
-				for key, val in pairs(MOD.culling_ranges.visible_props) do
-					if val and (not key.ranges[current_culling_range + 1]) then
-						for k, v in ipairs(key.models) do
-							msg.post(v.mesh, hash("disable"))
-						end
-						key.enabled = false
-						MOD.culling_ranges.visible_props[key] = false
-					end
-				end
-			else
-				despawn_triggered = false
-				show_cul_rang()
-			end
+			despawn_triggered = false
+			hide_culling_range(self, z)
+			show_culling_range(self, current_culling_range)
+			previous_culling_range = current_culling_range
 		end
 		apply_all_tweens()
 		if message.resume_afterwards then
@@ -1375,6 +1519,8 @@ function on_message(self, message_id, message, sender)
 		end
 	elseif message_id == hash("prepare_preview") then
 		prepare_preview(self)
+	elseif message_id == hash("prepare_obstacles") then
+		create_obstacles()
 	elseif message_id == hash("create_beatcubes") then
 		create_beatcubes()
 	elseif message_id == hash("hide") then
@@ -1391,6 +1537,7 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("reset_tween") then
 		delete_static()
 		delete_geo()
+		delete_obstacles()
 		hide_beatcubes(true)
 		reset_signals()
 		previous_culling_range, MOD.previous_colour = nil, nil
@@ -1411,10 +1558,14 @@ function on_message(self, message_id, message, sender)
 		apply_colours_model()
 	elseif message_id == hash("hide_fog") then
 		hide_fog()
+	elseif message_id == hash("hide_obstacles") then
+		hide_obstacles()
 	elseif message_id == hash("hide_props") then
 		hide_props()
 	elseif message_id == hash("hide_geo") then
 		hide_geo()
+	elseif message_id == hash("hide_colliders") then
+		hide_colliders()
 	elseif message_id == hash("hide_beatcubes") then
 		hide_beatcubes()
 	elseif message_id == hash("reset_view") then

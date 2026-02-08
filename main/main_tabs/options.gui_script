@@ -122,14 +122,15 @@ local tab_list = {}
 tab_list.paths = {buttons = {}, fields = {}}
 tab_list.files = {buttons = {"confirm_file_overwrite", "default_create_folder_on_export", "default_import_changes_from_zip", "preload_models",
 "default_import_level_changes", "default_import_event_changes", "default_import_model_changes", "default_import_beat_changes",
-"unload_data_before_loading_zip", "unload_data_before_loading_folder"}, fields = {
+"default_import_geo_changes", "unload_data_before_loading_zip", "unload_data_before_loading_folder"}, fields = {
 	{name = "map_preview_partition_size", char_limit = 3, validation = validation_map_preview_partition_size},
 }}
 tab_list.colours = {buttons = {
 	"background_colour", "colour_active_text_field", "colour_highlight_material", "colour_highlight_dynamic", "colour_highlight_tween",
 	"colour_model_import_selection", "colour_model_replace", "colour_unsupported_obstacle", "colour_current_enemy_set",
 	"colour_selection_change_enemy_type", "colour_highlight_replace_enemy", "colour_current_enemy_type", "colour_tween_move",
-	"colour_tween_rotate", "colour_tween_scale", "colour_tween_wait", "colour_hidden_model"}, fields = {}
+	"colour_tween_rotate", "colour_tween_scale", "colour_tween_wait", "colour_hidden_model", "custom_colour_main", "custom_colour_fog",
+	"custom_colour_glow", "custom_colour_enemy", "collider_strong_colour", "collider_weak_colour"}, fields = {}
 }
 tab_list.tween = {buttons = {
 	"restrict_rotations_to_360", "tween_action_type_dialog", "tween_part_dialog", "tween_extra_add_buttons", "ask_before_overwriting_tween_file",
@@ -147,8 +148,7 @@ tab_list.transform = {buttons = {
 	{name = "default_transform_name", char_limit = 26, validation = validation_transform_name},
 	{name = "root_transform_default_name", char_limit = 26, validation = validation_root_transform_name}}
 }
-tab_list.model_viewer = {buttons = {"model_show_grid", "show_transform", "custom_colour_main", "custom_colour_fog",
-"custom_colour_glow", "custom_colour_enemy", "collider_colour", "default_preview_time_units"}, fields = {
+tab_list.model_viewer = {buttons = {"model_show_grid", "show_transform", "default_preview_time_units"}, fields = {
 	{name = "model_rotation_sensitivity", char_limit = 4, validation = validation_model_rotation_sensitivity},
 	{name = "model_move_sensitivity", char_limit = 4, validation = validation_model_move_sensitivity},
 	{name = "run_speed_multiplier", char_limit = 4, validation = validation_run_speed_multiplier},
@@ -306,11 +306,6 @@ function init(self)
 	gui.set_text(gui.get_node("default_camera_pitch/text"), SET.default_camera_pitch)
 	gui.set_text(gui.get_node("default_model_z_position/text"), SET.default_model_z_position)
 	gui.set_text(gui.get_node("max_desync/text"), SET.max_desync)
-	gui.set_color(gui.get_node("custom_colour_main/text"), SET.custom_colour_main)
-	gui.set_color(gui.get_node("custom_colour_fog/text"), SET.custom_colour_fog)
-	gui.set_color(gui.get_node("custom_colour_glow/text"), SET.custom_colour_glow)
-	gui.set_color(gui.get_node("custom_colour_enemy/text"), SET.custom_colour_enemy)
-	gui.set_color(gui.get_node("collider_colour/text"), SET.collider_colour)
 	if SET.default_model_show_grid == 1 then
 		gui.set_text(gui.get_node("model_show_grid/text"), "Overdraw")
 	elseif SET.default_model_show_grid == 2 then

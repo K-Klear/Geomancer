@@ -17,20 +17,6 @@ function G.update_navbar(text, clear)
 	msg.post("/navbar#navbar", hash("update_status"), {text = text, clear = clear})
 end
 
-function G.find_substring(string, substring, count, index)
-	index = index or 1
-	repeat
-		local found = string.find(string, substring, index)
-		if found then
-			index = found + 1
-			count = count - 1
-		else
-			return nil
-		end
-	until count < 1
-	return index - 1
-end
-
 function G.parse_values(str)
 	local commas = {}
 	commas[0] = 0

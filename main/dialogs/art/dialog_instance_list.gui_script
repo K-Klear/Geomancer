@@ -189,10 +189,16 @@ function init(self)
 			text_node = gui.get_node("prop_delete/text"),
 			value_fn = function() return "" end,
 			template = "prop_delete;",
-			gfx = hash("button_exclusive"),
-			enabled = function() return false end
+			gfx = hash("button_exclusive")
 		},
-		
+		{
+			type = hash("button"),
+			node = gui.get_node("geo/button_white"),
+			text_node = gui.get_node("geo/text"),
+			value_fn = function() return "GEO" end,
+			template = "geo;",
+			gfx = hash("button_exclusive")
+		},
 		item_count = 0,
 		scroll_prefix = "prop_"
 	}
@@ -243,6 +249,43 @@ local function evaluate_input(field, text, item)
 	end
 end
 
+local function remove_prop(prop_tab)
+	for k, v in ipairs(MEM.art_data.table.staticProps or {}) do
+		if v == prop_tab then
+			table.remove(MEM.art_data.table.staticProps, k)
+			return
+		end
+	end
+	for k, v in ipairs(MEM.art_data.table.dynamicProps or {}) do
+		if v == prop_tab then
+			table.remove(MEM.art_data.table.dynamicProps, k)
+			return
+		end
+	end
+	for k, v in ipairs(MEM.art_data.table.staticCullingRanges or {}) do
+		for _k, _v in ipairs(v.members) do
+			if _v == prop_tab then
+				table.remove(v.members, _k)
+				if #v.members < 1 then
+					table.remove(MEM.art_data.table.staticCullingRanges, k)
+				end
+				return
+			end
+		end
+	end
+	for k, v in ipairs(MEM.art_data.table.dynamicCullingRanges or {}) do
+		for _k, _v in ipairs(v.members) do
+			if _v == prop_tab then
+				table.remove(v.members, _k)
+				if #v.members < 1 then
+					table.remove(MEM.art_data.table.dynamicCullingRanges, k)
+				end
+				return
+			end
+		end
+	end
+end
+
 function evaluate_button(button, item)
 	if button == "instance_accept" or button == "escape" then
 		for key, val in ipairs(prop_list) do
@@ -258,53 +301,7 @@ function evaluate_button(button, item)
 				if val.changes.range then
 					local range_str = (val.spawn_range + 3)..","..(val.despawn_range - 3)
 					local is_dynamic = MEM.art_data.table.propsDictionary[val.model_index].dynamic
-					local table_found
-					for k, v in ipairs(MEM.art_data.table.staticProps or {}) do
-						if v == val.prop_tab then
-							table.remove(MEM.art_data.table.staticProps, k)
-							table_found = true
-							break
-						end
-					end
-					if not table_found then
-						for k, v in ipairs(MEM.art_data.table.dynamicProps or {}) do
-							if v == val.prop_tab then
-								table.remove(MEM.art_data.table.dynamicProps, k)
-								table_found = true
-								break
-							end
-						end
-					end
-					if not table_found then
-						for k, v in ipairs(MEM.art_data.table.staticCullingRanges or {}) do
-							for _k, _v in ipairs(v.members) do
-								if _v == val.prop_tab then
-									table.remove(v.members, _k)
-									if #v.members < 1 then
-										table.remove(MEM.art_data.table.staticCullingRanges, k)
-									end
-									table_found = true
-									break
-								end
-							end
-							if table_found then break end
-						end
-					end
-					if not table_found then
-						for k, v in ipairs(MEM.art_data.table.dynamicCullingRanges or {}) do
-							for _k, _v in ipairs(v.members) do
-								if _v == val.prop_tab then
-									table.remove(v.members, _k)
-									if #v.members < 1 then
-										table.remove(MEM.art_data.table.dynamicCullingRanges, k)
-									end
-									table_found = true
-									break
-								end
-							end
-							if table_found then break end
-						end
-					end
+					remove_prop(val.prop_tab)
 					local range_tab
 					if is_dynamic then
 						for k, v in ipairs(MEM.art_data.table.dynamicCullingRanges or {}) do
@@ -374,6 +371,7 @@ function evaluate_button(button, item)
 			prop_list[item].changes.range = true
 			UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
 		elseif str == "prop_view;" then
+			MEM.setup_culling_ranges()
 			MOD.find_prop = vmath.vector3(prop_list[item].position.x, prop_list[item].position.y, 0)
 			G.update_navbar("", true)
 			msg.post("#", hash("disable"))
@@ -383,6 +381,20 @@ function evaluate_button(button, item)
 			msg.post("/model_viewer", hash("show_preview"), {
 				source = hash("instance_list"), jump_to = pos, preview_map = true
 			})
+		elseif str == "prop_delete;" then
+			if SET.ask_before_deleting_prop then
+				local title = "Are you sure you want to delete this prop?"
+				DIALOG.open(DIALOG_NAME, "dialog_confirm", {title = title, button_1 = "Delete", button_3 = "Cancel", subject = "delete_prop;"..item})
+			else
+				remove_prop(prop_list[item].prop_tab)
+				table.remove(prop_list, item)
+				MEM.art_data.table.propsDictionary[model_index].model_data.model_count = MEM.art_data.table.propsDictionary[model_index].model_data.model_count - 1
+				UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
+				MEM.create_prop_list(MEM.art_data.table, true)
+				MEM.setup_culling_ranges()
+			end
+		elseif str == "geo;" then
+			DIALOG.open(DIALOG_NAME, "dialog_create_geo", {model_index = model_index, prop_index = item})
 		end
 	end
 end
@@ -403,6 +415,60 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("reopen") then
 		DIALOG.show(DIALOG_DATA, DIALOG_DATA.parent_tab)
 		msg.post(DIALOG_DATA.parent_tab, hash("release_input_focus"))
+		msg.post("/model_viewer", hash("disable_input"))
+	elseif message_id == hash("dialog_closed") then
+		msg.post("#", hash("acquire_input_focus"))
+		if message.dialog == "dialog_create_geo" then
+			if message.changes then
+				if SET.scale_prop_after_geo then
+					local function scale_to_zero(prop_tab)
+						prop_tab.scale.x = 0
+						prop_tab.scale.y = 0
+						prop_tab.scale.z = 0
+						prop_tab.changes = prop_tab.changes or {}
+						prop_tab.changes.scale = true
+					end
+					if SET.generate_geo_for_all_instances then
+						for key, val in ipairs(prop_list) do
+							scale_to_zero(val)
+						end
+					else
+						scale_to_zero(prop_list[message.prop_index])
+					end
+					UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
+				elseif SET.delete_prop_after_geo then
+					if SET.generate_geo_for_all_instances then
+						for key, val in ipairs(prop_list) do
+							remove_prop(val.prop_tab)
+						end
+						prop_list = {}
+						MEM.art_data.table.propsDictionary[model_index].model_data.model_count = 0
+						MEM.create_prop_list(MEM.art_data.table, true)
+						MEM.setup_culling_ranges()
+						DIALOG.close(DIALOG_NAME)
+					else
+						remove_prop(prop_list[message.prop_index].prop_tab)
+						MEM.art_data.table.propsDictionary[model_index].model_data.model_count = MEM.art_data.table.propsDictionary[model_index].model_data.model_count - 1
+						UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
+						MEM.create_prop_list(MEM.art_data.table, true)
+						MEM.setup_culling_ranges()
+					end
+				end
+			end
+		elseif message.dialog == "dialog_confirm" then  			-- buttons are 1 = delete, 3 = cancel
+			local div = string.find(message.subject, ";")
+			if div then
+				if message.button == 1 then
+					local item = tonumber(string.sub(message.subject, div + 1))
+					remove_prop(prop_list[item].prop_tab)
+					table.remove(prop_list, item)
+					MEM.art_data.table.propsDictionary[model_index].model_data.model_count = MEM.art_data.table.propsDictionary[model_index].model_data.model_count - 1
+					UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
+					MEM.create_prop_list(MEM.art_data.table, true)
+					MEM.setup_culling_ranges()
+				end
+			end
+		end
 	end
 end
 

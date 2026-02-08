@@ -1,4 +1,5 @@
 local MEM = require "modules.memory"
+local MOD = require "modules.models"
 local UI = require "modules.ui"
 local G = require "modules.global"
 local TAB_NAME = "tab_geo"
@@ -6,7 +7,7 @@ local TAB_NAME = "tab_geo"
 
 function init(self)
 	gui.set_render_order(1)
-	UI.load_template({"geo_visual", "geo_collision"}, TAB_NAME)
+	UI.load_template({"geo_visual", "geo_collision", "delete_visual", "delete_collision"}, TAB_NAME)
 	msg.post("#", hash("disable"))
 end
 
@@ -53,6 +54,8 @@ local function evaluate_button(button)
 			local tab = MEM.parse_json(geo_data)
 			if MEM.check(tab, "pw_geo", "Selected pw_geo file") then
 				MEM.geo_data.table.chunkSlices = tab.chunkSlices
+				MEM.geo_data.slices = MEM.parse_slice_data(tab.chunkSlices)
+				MEM.setup_culling_ranges()
 			end
 			G.update_navbar("Visual data replaced.", true)
 		end
@@ -62,8 +65,32 @@ local function evaluate_button(button)
 			local tab = MEM.parse_json(geo_data)
 			if MEM.check(tab, "pw_geo", "Selected pw_geo file") then
 				MEM.geo_data.table.chunkData = tab.chunkData
+				MEM.geo_data.chunks = MEM.parse_slice_data(tab.chunkData)
+				MEM.setup_culling_ranges()
 			end
 			G.update_navbar("Collision data replaced.", true)
+		end
+	elseif button == "delete_visual" then
+		local count = 0
+		for key, val in pairs(MEM.geo_data.slices) do
+			count = count + MEM.remove_geomanced_slice(val)
+		end
+		MEM.setup_culling_ranges()
+		if count > 0 then
+			G.update_navbar("Removed parts from "..count.." geo slices", true)
+		else
+			G.update_navbar("No visible geo changes found", true)
+		end
+	elseif button == "delete_collision" then
+		local count = 0
+		for key, val in ipairs(MEM.geo_data.chunks) do
+			count = count + MEM.remove_geomanced_chunk(val)
+		end
+		MEM.setup_culling_ranges()
+		if count > 0 then
+			G.update_navbar("Removed parts from "..count.." geo chunks", true)
+		else
+			G.update_navbar("No geo collider changes found", true)
 		end
 	end
 end

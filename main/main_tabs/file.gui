@@ -582,7 +582,7 @@ nodes {
 }
 nodes {
   position {
-    x: 1130.0
+    x: 1148.0
     y: 556.0
   }
   scale {
@@ -618,7 +618,7 @@ nodes {
 }
 nodes {
   position {
-    x: 1147.0
+    x: 1165.0
     y: 556.0
   }
   scale {
@@ -763,6 +763,74 @@ nodes {
   overridden_fields: 3
   overridden_fields: 8
   template_node_child: true
+}
+nodes {
+  position {
+    x: 1148.0
+    y: 585.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  type: TYPE_TEMPLATE
+  id: "import_geo"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 40.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "import_geo/button_white"
+  parent: "import_geo"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 48.0
+    y: 48.0
+  }
+  type: TYPE_TEXT
+  id: "import_geo/text"
+  parent: "import_geo/button_white"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1165.0
+    y: 585.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+    z: 0.75
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Geo"
+  font: "main_menu_button_small"
+  id: "label_geo"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  layer: "text"
+  material: "font-df"
 }
 layers {
   name: "below"

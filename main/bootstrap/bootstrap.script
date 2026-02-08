@@ -184,6 +184,7 @@ function init(self)
 				SET.import_event_changes = SET.default_import_event_changes
 				SET.import_model_changes = SET.default_import_model_changes
 				SET.import_beat_changes = SET.default_import_beat_changes
+				SET.import_geo_changes = SET.default_import_geo_changes
 				SET.tween_time_in_beats = SET.default_tween_time_in_beats
 				SET.preview_time_units = SET.default_preview_time_units
 				create_cfg = false

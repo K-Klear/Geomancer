@@ -796,7 +796,50 @@ nodes {
 }
 nodes {
   position {
-    x: 840.0
+    x: 846.0
+    y: -20.0
+  }
+  type: TYPE_TEMPLATE
+  id: "geo"
+  parent: "prop_list"
+  template: "/templates/button_white_tiny.gui"
+}
+nodes {
+  size {
+    x: 60.0
+    y: 30.0
+  }
+  type: TYPE_BOX
+  texture: "UI/button_exclusive"
+  id: "geo/button_white"
+  parent: "geo"
+  overridden_fields: 4
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.25
+    y: 0.25
+    z: 0.25
+  }
+  size {
+    x: 30.0
+    y: 30.0
+  }
+  type: TYPE_TEXT
+  text: "GEO"
+  id: "geo/text"
+  parent: "geo/button_white"
+  overridden_fields: 1
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 893.0
     y: -20.0
   }
   type: TYPE_TEMPLATE
@@ -832,7 +875,7 @@ nodes {
 }
 nodes {
   position {
-    x: 870.0
+    x: 923.0
     y: -20.0
   }
   type: TYPE_TEMPLATE
@@ -939,7 +982,7 @@ layers {
 }
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_PARENT
-max_nodes: 1024
+max_nodes: 4096
 materials {
   name: "font-df"
   material: "/builtins/fonts/font-df.material"
