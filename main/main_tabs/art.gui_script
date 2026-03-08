@@ -272,11 +272,12 @@ end
 
 local function import_models()
 	local model_data
-	local num, path = diags.open("zip,pw_art", SET.default_path_import_models)
+	local num, path = diags.open("zip,pw_art,obj", SET.default_path_import_models)
 	if path then
 		local f = io.open(path, "rb")
 		if f then
-			if string.sub(path, -3) == "zip" then
+			local ext = string.sub(path, -3)
+			if ext == "zip" then
 				local zip_data = f:read("*a")
 				local archive = zip.open(zip_data)
 				local file_index = zip.get_number_of_entries(archive) - 1
@@ -287,6 +288,12 @@ local function import_models()
 						break
 					end
 				end
+			elseif ext == "obj" then
+				local emanelif = string.reverse(path)
+				local extension_index = string.find(emanelif, "%.")
+				local start_index = string.find(emanelif, "\\")
+				local filename = string.reverse(string.sub(emanelif, extension_index + 1, start_index - 1))
+				MEM.parse_obj(f, filename)
 			else
 				model_data = f:read("*a")
 			end

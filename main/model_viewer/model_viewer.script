@@ -1419,6 +1419,13 @@ local function prepare_preview(self)
 end
 
 function on_message(self, message_id, message, sender)
+	if message_id == hash("model_test") then
+		for key, val in ipairs(MOD.test_model) do
+			local new_mesh = factory.create("/model_viewer#create_mesh")
+			local _url = msg.url(nil, new_mesh, "mesh")
+			go.set(_url, "vertices", val.buffer_resource)
+		end
+	end
 	if message_id == hash("show_preview") then
 		msg.post(".", hash("enable"))
 		MOD.viewer_active = true

@@ -594,6 +594,82 @@ local function explore_model_tree(source_tab, part_name, level, parent_tab, is_c
 	end
 end
 
+function MEM.parse_obj(f, name)
+	local str = "{\"key\":\""..name.."\",\"object\":{\"name\":\""..name.."\",\"components\":[{\"type\":\"Transform\",\"values\":\"0,0,0,0,0,0,1,1,1,1\"}],\"children\":["
+
+	local children = {}
+	local current_child = 0
+	local vert_count_total = 0
+	local vert_count_current = 0
+
+	local handle_lines = {}
+	handle_lines.o = function(line_data)
+		current_child = current_child + 1
+		table.insert(children, {name = line_data[2], verts = {}, normals = {}, tris = {}})
+		vert_count_total = vert_count_total + vert_count_current
+		vert_count_current = 0
+	end
+	handle_lines.v = function(line_data)
+		local s = ""
+		for i = 2, 4 do
+			if i < 4 then
+				s = s..line_data[i]..","
+			else
+				s = s..line_data[i]
+			end
+		end
+		vert_count_current = vert_count_current + 1
+		table.insert(children[current_child].verts, s)
+	end
+	handle_lines.vn = function(line_data)
+		local s = ""
+		local count = #line_data
+		for i = 2, count do
+			if i < count then
+				s = s..line_data[i]..","
+			else
+				s = s..line_data[i]
+			end
+		end
+		table.insert(children[current_child].normals, s)
+	end
+	handle_lines.f = function(line_data)
+		local polygon_size = #line_data - 1
+		local vertex_1 = G.parse_values(line_data[2], "/")
+		for tris = 1, polygon_size - 2 do
+			local vertex = G.parse_values(line_data[tris + 2], "/")
+			table.insert(children[current_child].tris, tonumber(vertex[1]) - 1 - vert_count_total)
+			vertex = G.parse_values(line_data[tris + 3], "/")
+			table.insert(children[current_child].tris, tonumber(vertex[1]) - 1 - vert_count_total)
+			table.insert(children[current_child].tris, tonumber(vertex_1[1]) - 1 - vert_count_total)
+		end
+	end
+	
+	for line in f:lines() do
+		local line_data = G.parse_values_obj(line)
+		if handle_lines[line_data[1]] then
+			handle_lines[line_data[1]](line_data)
+		end
+	end
+
+	for key, val in ipairs(children) do
+		local mesh_tab = {}
+		mesh_tab.tris = val.tris
+		mesh_tab.verts = val.verts
+		mesh_tab.normals = val.verts
+		mesh_tab.IndexStart = 1
+		mesh_tab.IndexEnd = #mesh_tab.tris
+
+		MOD.create_mesh(mesh_tab)
+		MOD.test_model = MOD.test_model or {}
+		table.insert(MOD.test_model, mesh_tab)
+	end
+
+	msg.post("/model_viewer", hash("model_test"))
+
+	str = str.."]}}"
+end
+
 function MEM.add_metadata(model_tab)
 	part_list, transform_list = {}, {}
 	tween_count = 0

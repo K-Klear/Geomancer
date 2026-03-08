@@ -1665,7 +1665,6 @@ local function evaluate_button(button)
 		os.exit(1)
 	elseif button == "klear_button" then
 
-		
 	elseif button == "map_preview" then
 		if MEM.art_data.table then
 			G.update_navbar("", true)

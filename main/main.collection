@@ -150,6 +150,9 @@ embedded_instances {
   "  component: \"/main/main_tabs/geo.gui\"\n"
   "}\n"
   ""
+  position {
+    x: 70.0
+  }
 }
 embedded_instances {
   id: "meta"
@@ -216,59 +219,6 @@ embedded_instances {
   ""
 }
 embedded_instances {
-  id: "ground_former"
-  children: "geo_base"
-  children: "grid"
-  children: "prop_offset"
-  children: "static_prop_base"
-  data: ""
-}
-embedded_instances {
-  id: "grid"
-  data: "embedded_components {\n"
-  "  id: \"grid\"\n"
-  "  type: \"model\"\n"
-  "  data: \"mesh: \\\"/builtins/assets/meshes/quad_2x2.dae\\\"\\n"
-  "name: \\\"{{NAME}}\\\"\\n"
-  "materials {\\n"
-  "  name: \\\"default\\\"\\n"
-  "  material: \\\"/render/other_materials/grid_repeat.material\\\"\\n"
-  "  textures {\\n"
-  "    sampler: \\\"tex0\\\"\\n"
-  "    texture: \\\"/assets/gfx/textures/grid_dots.png\\\"\\n"
-  "  }\\n"
-  "}\\n"
-  "\"\n"
-  "  rotation {\n"
-  "    x: 0.70710677\n"
-  "    w: -0.70710677\n"
-  "  }\n"
-  "}\n"
-  ""
-  position {
-    x: 4.5
-    y: 0.03
-    z: -580.5
-  }
-  scale3 {
-    x: 640.0
-    y: 640.0
-    z: 640.0
-  }
-}
-embedded_instances {
-  id: "prop_offset"
-  children: "base_transform"
-  data: ""
-}
-embedded_instances {
-  id: "base_transform"
-  data: ""
-  scale3 {
-    z: -1.0
-  }
-}
-embedded_instances {
   id: "get_text"
   data: "components {\n"
   "  id: \"dialog_get_text\"\n"
@@ -315,20 +265,6 @@ embedded_instances {
   "  component: \"/main/main_tabs/options.gui\"\n"
   "}\n"
   ""
-}
-embedded_instances {
-  id: "geo_base"
-  data: ""
-  scale3 {
-    z: -1.0
-  }
-}
-embedded_instances {
-  id: "static_prop_base"
-  data: ""
-  scale3 {
-    z: -1.0
-  }
 }
 embedded_instances {
   id: "colour_picker"
@@ -524,4 +460,71 @@ embedded_instances {
   "  component: \"/main/dialogs/art/dialog_find.gui\"\n"
   "}\n"
   ""
+}
+embedded_instances {
+  id: "ground_former"
+  children: "geo_base"
+  children: "grid"
+  children: "prop_offset"
+  children: "static_prop_base"
+  data: ""
+}
+embedded_instances {
+  id: "grid"
+  data: "embedded_components {\n"
+  "  id: \"grid\"\n"
+  "  type: \"model\"\n"
+  "  data: \"mesh: \\\"/builtins/assets/meshes/quad_2x2.dae\\\"\\n"
+  "name: \\\"{{NAME}}\\\"\\n"
+  "materials {\\n"
+  "  name: \\\"default\\\"\\n"
+  "  material: \\\"/builtins/materials/model.material\\\"\\n"
+  "  textures {\\n"
+  "    sampler: \\\"tex0\\\"\\n"
+  "    texture: \\\"/assets/gfx/textures/grid_dots.png\\\"\\n"
+  "  }\\n"
+  "}\\n"
+  "\"\n"
+  "  rotation {\n"
+  "    x: 0.70710677\n"
+  "    w: -0.70710677\n"
+  "  }\n"
+  "}\n"
+  ""
+  position {
+    x: 4.5
+    y: 0.03
+    z: -580.5
+  }
+  scale3 {
+    x: 640.0
+    y: 640.0
+    z: 640.0
+  }
+}
+embedded_instances {
+  id: "geo_base"
+  data: ""
+  scale3 {
+    z: -1.0
+  }
+}
+embedded_instances {
+  id: "static_prop_base"
+  data: ""
+  scale3 {
+    z: -1.0
+  }
+}
+embedded_instances {
+  id: "prop_offset"
+  children: "base_transform"
+  data: ""
+}
+embedded_instances {
+  id: "base_transform"
+  data: ""
+  scale3 {
+    z: -1.0
+  }
 }

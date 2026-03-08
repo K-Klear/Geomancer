@@ -17,11 +17,28 @@ function G.update_navbar(text, clear)
 	msg.post("/navbar#navbar", hash("update_status"), {text = text, clear = clear})
 end
 
-function G.parse_values(str)
+function G.parse_values_obj(str)
+	local spaces = {}
+	spaces[0] = 0
+	repeat
+		local new = string.find(str, " ", (spaces[#spaces] + 1))
+		if not new then break end
+		table.insert(spaces, new)
+	until not new
+	table.insert(spaces, #str + 1)
+	local values = {}
+	for i = 1, #spaces do
+		table.insert(values, string.sub(str, spaces[i - 1] + 1, spaces[i] - 1))
+	end
+	return values
+end
+
+function G.parse_values(str, divisor)
+	divisor = divisor or ","
 	local commas = {}
 	commas[0] = 0
 	repeat
-		local new = string.find(str, ",", (commas[#commas] + 1))
+		local new = string.find(str, divisor, (commas[#commas] + 1))
 		if not new then break end
 		table.insert(commas, new)
 	until not new
