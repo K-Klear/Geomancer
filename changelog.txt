@@ -29,6 +29,12 @@ To do:
 - Bulk changing of materials
 - The metronome thing
 
+- EXPORT INTO A TEMPORARY FOLDER AND ONLY THEN OVERWRITE!
+
+- Open dialogs such as transform rename with the field already selected
+- Lobby colours are overwritten on change import
+- Make model loading without normals faster... somehow.
+
 Bugs:
 - The check for Spooky and airdrop obstacle signals needs to be more robust
 	- That is to say, it needs to happen on every export, not just while degeomancing, plus it needs to be smarter
@@ -37,16 +43,25 @@ Bugs:
 		- Might be caused by sorting models - investigate!
 - It's possible to close model viewer while in FPS control mode. Turn it off in that case!
 - Meshes in model viewer tend to disappear. Related to flashing?
+- A leftover chunk info in .geomancer file from a different version can fuck everything up really bad
+- Files with "." in them trip Geomancer up. Investigate, fix, prevent, whatever. Just make it not be an issue.
+- Importing models will not preserve info in geomancer meta file
+- If sample rate ever becomes 0, things get fucky. Make sure it doesn't
+- Obstacles (and their colliders) are still visible after closing preview
 
 Settings to implement in options:
 - Something for timeline height in map preview
 - probably remove default model z position as is it useless?
 	-Maybe it will see use in tween preview
+SET.remove_normal_data
+SET.confirm_tween_deletion
+SET.delete_empty_tweens
+SET.ask_before_deleting_prop
 
 To-do (geo generation):
 - Fix the collider rendering (depth buffer?)
 - Prop deletion
-- Icon graphics
+- Check for max chunk z position and adjust if necessary
 
 Done:
 
@@ -76,6 +91,9 @@ New shortcuts:
 
 Fixes:
 - Changes to geo made on the Geo / Collisions tab are now shown on the preview
+- Importing changes now imports lobby colours too
+- Tween actions that would appear on the timeline shorter than 1 pixel no longer generate separators, appearing as a solid colour (rather than solid black)
+- Adjusted default tween colours for readability
 
 Bugs:
 - Fixed an error when opening the model viewer for a map with no props
@@ -83,6 +101,10 @@ Bugs:
 - Model viewer input is now correctly disabled when returning to the prop instance dialog
 - Fixed an issue preventing enemy type from changing
 - Material set "2089 - Alien Planet" is now named correctly
+- Fixed an issue preventing colour changes from being applied to props in stationary maps
+- Correct colour section is now shown when previewing a tween in a stationary map
+- Props no longer despawn in stationary maps
+- Fixed a crash when opening certain models in transform editor 
 
 Options:
 - Moved custom colour set to the Colours tab

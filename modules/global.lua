@@ -267,5 +267,9 @@ function G.sanitise_euler(euler)
 	return euler
 end
 
+function G.get_tween_name(tween_tab, tween_index)
+	return tween_tab.name or ("Tween "..tween_index)
+end
+
 
 return G

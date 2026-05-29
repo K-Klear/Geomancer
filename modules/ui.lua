@@ -290,7 +290,9 @@ local function create_list_item(tab, list_index, item)
 				gui.set_text(new[val.text_id], val.value_fn(item))
 			end
 			gui.set_enabled(new[val.node_id], true)
-			table.insert(UI.tab[tab].buttons, {template = val.template..item, node = new[val.node_id], text = new[val.text_id], item = item, stencil = list_tab.stencil_node, gfx = val.gfx})
+			if not list_tab.disabled then
+				table.insert(UI.tab[tab].buttons, {template = val.template..item, node = new[val.node_id], text = new[val.text_id], item = item, stencil = list_tab.stencil_node, gfx = val.gfx})
+			end
 			if val.tint then
 				gui.set_color(new[val.node_id], val.tint(item))
 			end
@@ -576,6 +578,7 @@ function UI.create_list(tab, stencil_node, item_features, list_index)
 				fn = val.fn,
 				selected = 0,
 				tint = val.tint,
+				release_only = val.release_only,
 				enabled = val.enabled
 			}
 			gui.set_enabled(val.node, false)
@@ -701,6 +704,30 @@ function UI.scroll_to_item(tab, list_index, item, fast)
 		gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_LINEAR, SET.scroll_time * time_mult, 0, function() end_scrolling(tab, list_index) end)
 		if not UI.tab[tab].scrolling[list_index] then
 			UI.tab[tab].scrolling[list_index] = true
+		end
+	end
+end
+
+function UI.disable_list(tab, list_index)
+	local list_tab = UI.tab[tab].scrolling_lists[list_index]
+	list_tab.disabled = true
+	local templates_to_unload = {}
+	for key, val in ipairs(list_tab.buttons) do
+		for item in pairs(val.list) do
+			table.insert(templates_to_unload, val.template..item)
+		end
+	end
+	UI.unload_template(tab, templates_to_unload)
+end
+
+function UI.enable_list(tab, list_index)
+	local list_tab = UI.tab[tab].scrolling_lists[list_index]
+	UI.disable_list(tab, list_index)
+	if not list_tab.disabled then return end
+	list_tab.disabled = nil
+	for key, val in ipairs(list_tab.buttons) do
+		for item, v in pairs(val.list) do
+			table.insert(UI.tab[tab].buttons, {template = val.template..item, node = v[val.node_id], text = v[val.text_id], item = item, stencil = list_tab.stencil_node, gfx = val.gfx})
 		end
 	end
 end
@@ -858,106 +885,111 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_
 	end
 	if UI.tab[tab].scrolling_lists then
 		for key, list_tab in ipairs(UI.tab[tab].scrolling_lists) do
-			if action.x and gui.pick_node(list_tab.stencil_node, action.x, action.y) then
-				if action_id == hash("scroll_down") then
-					if action.value > 0 then
-						list_tab.scroll_target = math.min(list_tab.scroll_target + SET.scroll_speed, list_tab.target_max)
-						gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_LINEAR, SET.scroll_time, 0, function() end_scrolling(tab, key) end)
-						if not UI.tab[tab].scrolling[key] then
-							UI.tab[tab].scrolling[key] = true
+			if not list_tab.disabled then
+				if action.x and gui.pick_node(list_tab.stencil_node, action.x, action.y) then
+					if action_id == hash("scroll_down") then
+						if action.value > 0 then
+							list_tab.scroll_target = math.min(list_tab.scroll_target + SET.scroll_speed, list_tab.target_max)
+							gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_LINEAR, SET.scroll_time, 0, function() end_scrolling(tab, key) end)
+							if not UI.tab[tab].scrolling[key] then
+								UI.tab[tab].scrolling[key] = true
+							end
+						else
+							local root_pos = gui.get(list_tab.root_node, "position.y")
+							list_tab.scroll_target = math.min(root_pos + (list_tab.scroll_target - root_pos) * 0.6, list_tab.scroll_max)--list_tab.target_max)
+							gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_OUTSINE, SET.scroll_time * .5, 0, function() end_scrolling(tab, key) end)
 						end
-					else
-						local root_pos = gui.get(list_tab.root_node, "position.y")
-						list_tab.scroll_target = math.min(root_pos + (list_tab.scroll_target - root_pos) * 0.6, list_tab.scroll_max)--list_tab.target_max)
-						gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_OUTSINE, SET.scroll_time * .5, 0, function() end_scrolling(tab, key) end)
-					end
-					return
-				elseif action_id == hash("scroll_up") then
-					if action.value > 0 then
-						list_tab.scroll_target = math.max(list_tab.scroll_target - SET.scroll_speed, list_tab.target_min)
-						gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_LINEAR, SET.scroll_time, 0, function() end_scrolling(tab, key) end)
-						if not UI.tab[tab].scrolling[key] then
-							UI.tab[tab].scrolling[key] = true
+						return
+					elseif action_id == hash("scroll_up") then
+						if action.value > 0 then
+							list_tab.scroll_target = math.max(list_tab.scroll_target - SET.scroll_speed, list_tab.target_min)
+							gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_LINEAR, SET.scroll_time, 0, function() end_scrolling(tab, key) end)
+							if not UI.tab[tab].scrolling[key] then
+								UI.tab[tab].scrolling[key] = true
+							end
+						else
+							local root_pos = gui.get(list_tab.root_node, "position.y")
+							list_tab.scroll_target = math.max(root_pos + (list_tab.scroll_target - root_pos) * 0.6, 0)
+							gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_OUTSINE, SET.scroll_time * 0.5, 0, function() end_scrolling(tab, key) end)
 						end
-					else
-						local root_pos = gui.get(list_tab.root_node, "position.y")
-						list_tab.scroll_target = math.max(root_pos + (list_tab.scroll_target - root_pos) * 0.6, 0)
-						gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_OUTSINE, SET.scroll_time * 0.5, 0, function() end_scrolling(tab, key) end)
-					end
-					return
-				elseif gui.pick_node(list_tab.scroll_grip, action.x, action.y) then
-					if action_id == hash("touch") and not action.released then
-						UI.tab[tab].scrolling_grip_held = key
-					end
-				elseif action.pressed and gui.pick_node(list_tab.scroll_background, action.x, action.y) then
-					local pos = gui.get_screen_position(list_tab.scroll_grip)
-					local page_height = (list_tab.max_item_count - 1) * list_tab.item_height
-					if list_tab.horizontal then
-						if action.x < pos.x then
-							page_height = -page_height
+						return
+					elseif gui.pick_node(list_tab.scroll_grip, action.x, action.y) then
+						if action_id == hash("touch") and not action.released then
+							UI.tab[tab].scrolling_grip_held = key
 						end
-						list_tab.scroll_target = math.min(math.max(list_tab.scroll_target + page_height, 0), list_tab.scroll_max)
-						gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_LINEAR, SET.scroll_time * 0.7, 0, function() end_scrolling(tab, key) end)
-						if not UI.tab[tab].scrolling[key] then
-							UI.tab[tab].scrolling[key] = true
+					elseif action.pressed and gui.pick_node(list_tab.scroll_background, action.x, action.y) then
+						local pos = gui.get_screen_position(list_tab.scroll_grip)
+						local page_height = (list_tab.max_item_count - 1) * list_tab.item_height
+						if list_tab.horizontal then
+							if action.x < pos.x then
+								page_height = -page_height
+							end
+							list_tab.scroll_target = math.min(math.max(list_tab.scroll_target + page_height, 0), list_tab.scroll_max)
+							gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_LINEAR, SET.scroll_time * 0.7, 0, function() end_scrolling(tab, key) end)
+							if not UI.tab[tab].scrolling[key] then
+								UI.tab[tab].scrolling[key] = true
+							end
+						else
+							if action.y > pos.y then
+								page_height = -page_height
+							end
+							list_tab.scroll_target = math.min(math.max(list_tab.scroll_target + page_height, 0), list_tab.scroll_max)
+							gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_LINEAR, SET.scroll_time * 0.7, 0, function() end_scrolling(tab, key) end)
+							if not UI.tab[tab].scrolling[key] then
+								UI.tab[tab].scrolling[key] = true
+							end
 						end
-					else
-						if action.y > pos.y then
-							page_height = -page_height
-						end
-						list_tab.scroll_target = math.min(math.max(list_tab.scroll_target + page_height, 0), list_tab.scroll_max)
-						gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_LINEAR, SET.scroll_time * 0.7, 0, function() end_scrolling(tab, key) end)
-						if not UI.tab[tab].scrolling[key] then
-							UI.tab[tab].scrolling[key] = true
-						end
-					end
-				elseif action_id == hash("touch") and (action.pressed or action.repeated) and not (UI.tab[tab].scrolling_grip_held) then
-					if gui.pick_node(list_tab.scroll_up, action.x, action.y) then
-						list_tab.scroll_target = math.max(list_tab.scroll_target - list_tab.item_height, 0)
-						gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_LINEAR, SET.scroll_time * 0.5, 0, function() end_scrolling(tab, key) end)
-						gui.play_flipbook(list_tab.scroll_up, "scrollbar_button_press")
-						if not UI.tab[tab].scrolling[key] then
-							UI.tab[tab].scrolling[key] = true
-						end
-					elseif gui.pick_node(list_tab.scroll_down, action.x, action.y) then
-						list_tab.scroll_target = math.min(list_tab.scroll_target + list_tab.item_height, list_tab.scroll_max)
-						gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_LINEAR, SET.scroll_time * 0.5, 0, function() end_scrolling(tab, key) end)
-						gui.play_flipbook(list_tab.scroll_down, "scrollbar_button_press")
-						if not UI.tab[tab].scrolling[key] then
-							UI.tab[tab].scrolling[key] = true
-						end
-					elseif list_tab.exclusive_button then
-						for item, button in pairs(list_tab.exclusive_button.list) do
-							if gui.pick_node(button[list_tab.exclusive_button.node_id], action.x, action.y) then
-								if not (item == list_tab.exclusive_button.selected) then
-									local node_id = list_tab.exclusive_button.node_id
-									if list_tab.exclusive_button.list[list_tab.exclusive_button.selected] then
-										gui.play_flipbook(list_tab.exclusive_button.list[list_tab.exclusive_button.selected][node_id], "button_exclusive_unpress")
+					elseif action_id == hash("touch") and not (UI.tab[tab].scrolling_grip_held) then
+						local press_or_repeat = action.pressed or action.repeated
+						if press_or_repeat and gui.pick_node(list_tab.scroll_up, action.x, action.y) then
+							list_tab.scroll_target = math.max(list_tab.scroll_target - list_tab.item_height, 0)
+							gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_LINEAR, SET.scroll_time * 0.5, 0, function() end_scrolling(tab, key) end)
+							gui.play_flipbook(list_tab.scroll_up, "scrollbar_button_press")
+							if not UI.tab[tab].scrolling[key] then
+								UI.tab[tab].scrolling[key] = true
+							end
+						elseif press_or_repeat and gui.pick_node(list_tab.scroll_down, action.x, action.y) then
+							list_tab.scroll_target = math.min(list_tab.scroll_target + list_tab.item_height, list_tab.scroll_max)
+							gui.animate(list_tab.root_node, "position.y", list_tab.scroll_target, gui.EASING_LINEAR, SET.scroll_time * 0.5, 0, function() end_scrolling(tab, key) end)
+							gui.play_flipbook(list_tab.scroll_down, "scrollbar_button_press")
+							if not UI.tab[tab].scrolling[key] then
+								UI.tab[tab].scrolling[key] = true
+							end
+						elseif list_tab.exclusive_button then
+							if (list_tab.exclusive_button.release_only and action.released) or (not list_tab.exclusive_button.release_only and press_or_repeat) then
+								for item, button in pairs(list_tab.exclusive_button.list) do
+									if gui.pick_node(button[list_tab.exclusive_button.node_id], action.x, action.y) then
+										if not (item == list_tab.exclusive_button.selected) or list_tab.exclusive_button.release_only then
+											local node_id = list_tab.exclusive_button.node_id
+											if list_tab.exclusive_button.list[list_tab.exclusive_button.selected] then
+												gui.play_flipbook(list_tab.exclusive_button.list[list_tab.exclusive_button.selected][node_id], "button_exclusive_unpress")
+											end
+											list_tab.exclusive_button.selected = item
+											gui.play_flipbook(button[node_id], "button_exclusive_press")
+											list_tab.exclusive_button.fn(key, item)
+										end
+										break
 									end
-									list_tab.exclusive_button.selected = item
-									gui.play_flipbook(button[node_id], "button_exclusive_press")
 								end
-								list_tab.exclusive_button.fn(key, item)
-								break
 							end
 						end
 					end
 				end
-			end
-			if UI.tab[tab].scrolling_grip_held == key and (not action_id) and not (list_tab.grip_pos_range == 0) then
-				gui.cancel_animation(list_tab.root_node, "position.y")
-				if list_tab.horizontal then
-					list_tab.scroll_grip_position = list_tab.scroll_grip_position - action.dx
-				else
-					list_tab.scroll_grip_position = list_tab.scroll_grip_position + action.dy
+				if UI.tab[tab].scrolling_grip_held == key and (not action_id) and not (list_tab.grip_pos_range == 0) then
+					gui.cancel_animation(list_tab.root_node, "position.y")
+					if list_tab.horizontal then
+						list_tab.scroll_grip_position = list_tab.scroll_grip_position - action.dx
+					else
+						list_tab.scroll_grip_position = list_tab.scroll_grip_position + action.dy
+					end
+					local target_y = math.min(math.max(list_tab.grip_pos_max, list_tab.scroll_grip_position), list_tab.grip_pos_min)
+					gui.set(list_tab.scroll_grip, "position.y", target_y)
+					local target_ratio = 1 - ((list_tab.grip_pos_max - target_y) / list_tab.grip_pos_range)
+					target_y = target_ratio * list_tab.scroll_max
+					gui.set(list_tab.root_node, "position.y", target_y)
+					list_tab.scroll_target = target_y
+					UI.move_list_root(tab, key)
 				end
-				local target_y = math.min(math.max(list_tab.grip_pos_max, list_tab.scroll_grip_position), list_tab.grip_pos_min)
-				gui.set(list_tab.scroll_grip, "position.y", target_y)
-				local target_ratio = 1 - ((list_tab.grip_pos_max - target_y) / list_tab.grip_pos_range)
-				target_y = target_ratio * list_tab.scroll_max
-				gui.set(list_tab.root_node, "position.y", target_y)
-				list_tab.scroll_target = target_y
-				UI.move_list_root(tab, key)
 			end
 		end
 	end

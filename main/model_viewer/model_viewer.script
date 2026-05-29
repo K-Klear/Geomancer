@@ -556,6 +556,16 @@ local function apply_colour_section(colour_key, t)
 	end
 end
 
+local function get_current_colour(t)
+	for key, val in ipairs(MEM.art_data.colour_list) do
+		if ((t >= val.time) and (not val.end_time or (t < val.end_time))) or (key == #MEM.art_data.colour_list - 1) then
+			MOD.previous_colour = nil
+			apply_colour_section(key, t)
+			return
+		end
+	end
+end
+
 local function hide_beatcubes(state)
 	if state == nil then
 		SET.hide_beatcubes = not SET.hide_beatcubes
@@ -739,7 +749,7 @@ end
 local function hide_culling_range(self, _z)
 	local range_val = (_z + 7) / 16
 	current_culling_range = math.floor(range_val)
-	if (not despawn_triggered or MOD.stationary) and (current_culling_range < math.floor(range_val + 0.125)) then
+	if not (despawn_triggered or MOD.stationary) and (current_culling_range < math.floor(range_val + 0.125)) then
 		despawn_triggered = true
 		for key, val in pairs(MOD.culling_ranges.visible_props) do
 			if val and (not key.ranges[current_culling_range + 1]) then
@@ -967,9 +977,7 @@ function update(self, dt)
 				end
 				get_beats(start, spb, beats_per_measure)
 
-				
 				MOD.previous_colour = current_colour
-
 				
 				local beat_time = math.huge
 				if beats_active then
@@ -1050,7 +1058,7 @@ function update(self, dt)
 				end
 
 				hide_culling_range(self, z)
-				if not (current_culling_range == previous_culling_range or MOD.stationary) then
+				if not (current_culling_range == previous_culling_range) then
 					show_culling_range(self, current_culling_range)
 					previous_culling_range = current_culling_range
 				end
@@ -1225,14 +1233,7 @@ local function hide_fog()
 	else
 		msg.post("/fog#fog", hash("enable"))
 	end
-	local t = MOD.preview_start + MOD.total_time * MOD.scrubber_progress
-	for key, val in ipairs(MEM.art_data.colour_list) do
-		if ((t >= val.time) and (not val.end_time or (t < val.end_time))) or (key == #MEM.art_data.colour_list) then
-			MOD.previous_colour = nil
-			apply_colour_section(key, t)
-			break
-		end
-	end
+	get_current_colour(MOD.preview_start + MOD.total_time * MOD.scrubber_progress)
 end
 
 local function hide_obstacles()
@@ -1413,20 +1414,14 @@ local function prepare_preview(self)
 
 	reset_view(hash("preview"))
 	if MOD.stationary and (not MOD.vacuum_preview) then
-		apply_colour_section(1, 0)
+		get_current_colour(MOD.preview_start)
 		show_culling_range(self, 0)
 	end
 end
 
 function on_message(self, message_id, message, sender)
-	if message_id == hash("model_test") then
-		for key, val in ipairs(MOD.test_model) do
-			local new_mesh = factory.create("/model_viewer#create_mesh")
-			local _url = msg.url(nil, new_mesh, "mesh")
-			go.set(_url, "vertices", val.buffer_resource)
-		end
-	end
 	if message_id == hash("show_preview") then
+		G.update_navbar("", true)
 		msg.post(".", hash("enable"))
 		MOD.viewer_active = true
 		msg.post(".", hash("acquire_input_focus"))
@@ -1507,14 +1502,7 @@ function on_message(self, message_id, message, sender)
 		if not (MOD.stationary or MOD.vacuum_preview) then
 			local t = MOD.preview_start + MOD.total_time * MOD.scrubber_progress
 			local z = t * 3
-
-			for key, val in ipairs(MEM.art_data.colour_list) do
-				if ((t >= val.time) and (not val.end_time or (t < val.end_time))) or (key == #MEM.art_data.colour_list - 1) then
-					MOD.previous_colour = nil
-					apply_colour_section(key, t)
-					break
-				end
-			end
+			get_current_colour(t)
 			despawn_triggered = false
 			hide_culling_range(self, z)
 			show_culling_range(self, current_culling_range)
@@ -1554,13 +1542,7 @@ function on_message(self, message_id, message, sender)
 			override_colour()
 		else
 			local t = MOD.preview_start + MOD.total_time * MOD.scrubber_progress
-			for key, val in ipairs(MEM.art_data.colour_list) do
-				if ((t >= val.time) and (not val.end_time or (t < val.end_time))) or (key == #MEM.art_data.colour_list) then
-					MOD.previous_colour = nil
-					apply_colour_section(key, t)
-					break
-				end
-			end
+			get_current_colour(t)
 		end
 		apply_colours_model()
 	elseif message_id == hash("hide_fog") then

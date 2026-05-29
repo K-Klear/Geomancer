@@ -1,5 +1,6 @@
 local UI = require "modules.ui"
 local MEM = require "modules.memory"
+local G = require "modules.global"
 local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_tween_copy"
 local DIALOG_DATA
@@ -16,7 +17,7 @@ function init(self)
 			type = hash("exclusive_button"),
 			node = gui.get_node("copy_tween_exclusive/button_white"),
 			text_node = gui.get_node("copy_tween_exclusive/text"),
-			value_fn = function(i) return model_list[i].name.."/"..model_list[i].transform end,
+			value_fn = function(i) return model_list[i].name end,
 			template = "copy_tween_exclusive;",
 			fn = evaluate_button
 		},
@@ -28,7 +29,7 @@ end
 
 function evaluate_button(button, item)
 	if button == "tween_copy_accept" or button == "enter" then
-		DIALOG.close(DIALOG_NAME, {selected_model = model_list[selected_model].key, transform_index = model_list[selected_model].transform_index})
+		DIALOG.close(DIALOG_NAME, {selected_model = model_list[selected_model].key, tween_index = model_list[selected_model].tween_index})
 		model_list = {}
 		selected_model = nil
 		UI.update_list(DIALOG_NAME, list, 0)
@@ -46,24 +47,22 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		DIALOG.show(DIALOG_DATA, sender)
 		model_list = {}
-		for key, val in ipairs(MEM.art_data.table.propsDictionary[message.model].model_data.transform_list) do
-			if val.tween and not (message.selected_transform == key) then
+		for key, val in ipairs(MEM.art_data.table.propsDictionary[message.model].model_data.tween_list) do
+			if not (message.tween_index == key) then
 				table.insert(model_list, {
-					name = MEM.art_data.table.propsDictionary[message.model].key,
-					transform = val.name or "[no name]",
+					name = MEM.art_data.table.propsDictionary[message.model].key.."/"..G.get_tween_name(val, key),
 					key = message.model,
-					transform_index = key
+					tween_index = key
 				})
 			end
 		end
 		for key, val in ipairs(MEM.art_data.table.propsDictionary) do
-			for k, v in ipairs(val.model_data.transform_list) do
-				if v.tween and not (key == message.model) then
+			if not (key == message.model) then
+				for k, v in ipairs(val.model_data.tween_list or {}) do
 					table.insert(model_list, {
-						name = val.key,
-						transform = v.name or "[no name]",
+						name = MEM.art_data.table.propsDictionary[key].key.."/"..G.get_tween_name(v, k),
 						key = key,
-						transform_index = k
+						tween_index = k
 					})
 				end
 			end

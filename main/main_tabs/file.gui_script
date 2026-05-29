@@ -132,25 +132,30 @@ local function export_art(path)
 	local is_dynamic = {}
 	local model_table = MEM.art_data.table
 	for key, val in ipairs(model_table.propsDictionary) do
-		for k, v in ipairs(val.model_data.transform_list) do
-			for i = #v.tab.components, 1, -1 do
-				if (v.tab.components[i].type == "ScriptedTween") or (v.tab.components[i].type == "LevelEventReceiver") then
-					table.remove(v.tab.components, i)
-				end
-			end
-			if v.tween then
-				local tween_script, save_original = get_tween_script(v.tween, val.key)
+		if #val.model_data.tween_list > 0 then
+			local children_tab = {}
+			for k, v in ipairs(val.model_data.tween_list) do
+				local tween_script, save_original = get_tween_script(v.script, val.key)
 				if tween_script then
-					table.insert(v.tab.components, {type = "ScriptedTween", Script = tween_script, _key_sort = {"type", "Script"}})
-					table.insert(v.tab.components, {type = "LevelEventReceiver", EventId = v.tween.signal,
-					ActionType = "ScriptedTweenTrigger", _key_sort = {"type", "EventId", "ActionType"}})
+					table.insert(children_tab, {
+						_key_sort = {"name", "components", "children"}, name = v.name, components = {
+							{_key_sort = {"type", "values"}, type = "Transform", values = "0,0,0,0,0,0,1,0,0,0"},
+							{_key_sort = {"type", "Script"}, type = "ScriptedTween", Script = tween_script},
+							{_key_sort = {"type", "EventId", "ActionType"}, type = "LevelEventReceiver", EventId = v.signal, ActionType = "ScriptedTweenTrigger"}
+						},
+						children = {}
+					})
 					if save_original then
 						MEM.geomancer_meta.props[val.key] = MEM.geomancer_meta.props[val.key] or {tweens = {}}
-						MEM.geomancer_meta.props[val.key].tweens[tostring(k)] = {table = v.tween, script = tween_script, signal = v.tween.signal}
-						MEM.geomancer_meta.props[val.key].tweens[tostring(k)].table.signal = nil
+						MEM.geomancer_meta.props[val.key].tweens[v.name] = {table = v.script, script = tween_script, signal = v.signal}
 					end
 				end
 			end
+			table.insert(val.object.children, {
+				_key_sort = {"name", "components", "children"}, name = SET.tween_parent_transform_name, components = {
+					{_key_sort = {"type", "values"}, type = "Transform", values = "0,0,0,0,0,0,1,0,0,0"}
+				}, children = children_tab
+			})
 		end
 		if val.hide then
 			MEM.geomancer_meta.props[val.key] = MEM.geomancer_meta.props[val.key] or {}
@@ -344,16 +349,17 @@ local function export_geo(path)
 						if new_data then
 							chunk_export_table.verts = new_data.verts
 							chunk_export_table.tris = new_data.tris
-							chunk_export_table.meshSizes = new_data.meshSizes
+							chunk_export_table.meshSizes = new_data.meshSizes or {0, #new_data.tris}
 							chunk_export_table.verts._pure_array = nil
 							chunk_export_table.tris._pure_array = nil
-							chunk_export_table.meshSizes._pure_array = nil
+							if chunk_export_table.meshSizes then
+								chunk_export_table.meshSizes._pure_array = nil
+							end
 						end
 					end
 				end
 			end
 		end
-		
 		MEM.export_json(MEM.geo_data.table)
 		io.close(f)
 	end
@@ -963,6 +969,13 @@ local function import_changes()
 			MEM.level_data.materialPropertiesSet = level_tab.materialPropertiesSet
 			MEM.level_data.previewTime = level_tab.previewTime
 			MEM.level_data.moveMode = level_tab.moveMode
+			MEM.level_data.customMainMenuColor = {
+				_key_sort = {"Main", "Fog", "Glow", "Enemies"},
+				Main = level_tab.customMainMenuColor.Main,
+				Fog = level_tab.customMainMenuColor.Fog,
+				Glow = level_tab.customMainMenuColor.Glow,
+				Enemies = level_tab.customMainMenuColor.Enemies
+			}
 			G.update_navbar("Level info updated")
 		end
 	end
@@ -1050,7 +1063,7 @@ local function import_changes()
 							break
 						end
 					end
-					if imported_geo then
+					if imported_geo and imported_geo.tris and imported_geo.tris[1] then
 						local chunk_tab
 						for key, val in ipairs(MEM.geo_data.chunks) do
 							if val.id_str == chunk_id then
@@ -1068,9 +1081,20 @@ local function import_changes()
 							table.insert(MEM.geo_data.chunks, chunk_tab)
 						end
 						chunk_tab.modified = true
+						chunk_tab.tris = chunk_tab.tris or {}
+						chunk_tab.verts = chunk_tab.verts or {}
+						chunk_tab.verts_parsed = chunk_tab.verts_parsed or {}
+						chunk_tab.triangles = chunk_tab.triangles or {}
+						chunk_tab.normals_parsed = chunk_tab.normals_parsed or {}
 						chunk_tab.original_size = #chunk_tab.tris
-						local first_vert = imported_geo.tris[original_size + 1] + 1
+
 						local existing_vert_count = #chunk_tab.verts
+						local first_vert = imported_geo.tris[original_size + 1]
+						if first_vert then
+							first_vert = first_vert + 1
+						else
+							first_vert = 1
+						end
 						for i = first_vert, #imported_geo.verts do
 							table.insert(chunk_tab.verts, imported_geo.verts[i])
 							table.insert(chunk_tab.verts_parsed, G.parse_values(imported_geo.verts[i]))
@@ -1667,7 +1691,6 @@ local function evaluate_button(button)
 
 	elseif button == "map_preview" then
 		if MEM.art_data.table then
-			G.update_navbar("", true)
 			msg.post("#", hash("disable"))
 			msg.post("#", hash("release_input_focus"))
 			msg.post("/model_viewer", hash("show_preview"), {source = hash("file_tab"), preview_map = true})

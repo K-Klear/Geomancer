@@ -60,7 +60,7 @@ end
 
 function MOD.create_mesh(mesh_tab)
 	if not mesh_tab.triangles then
-		if SET.recalculate_normals then
+		if not mesh_tab.normals[1] then
 			local verts_parsed
 			if not mesh_tab.verts_parsed then
 				verts_parsed = {}

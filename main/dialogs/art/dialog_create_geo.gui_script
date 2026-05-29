@@ -49,6 +49,10 @@ local function generate_geo(prop_tab, transform_list)
 		offset_y = offset_y + 16 * (chunk_y - 2)
 		chunk_y = 2
 	end
+	if chunk_z < -1 then
+		offset_z = offset_z - 16 * (-1 - chunk_z)
+		chunk_z = -1
+	end
 
 	local chunk_tab, slice_tab
 	if SET.generate_collider_geo then
@@ -59,6 +63,7 @@ local function generate_geo(prop_tab, transform_list)
 			end
 		end
 		if not chunk_tab then
+			print(chunk_z)
 			chunk_tab = {id = {chunk_x, chunk_y, chunk_z}, id_str = chunk_x..","..chunk_y..","..chunk_z, verts = {}, tris = {}, meshSizes = {0, 0}}
 			table.insert(MEM.geo_data.chunks, chunk_tab)
 		end

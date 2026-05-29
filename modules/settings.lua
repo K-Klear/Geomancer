@@ -154,7 +154,7 @@ SET.unload_data_before_loading_zip = true
 SET.unload_data_before_loading_folder = true
 
 SET.preload_models = false
-SET.recalculate_normals = false
+SET.remove_normal_data = true
 
 SET.import_level_changes = true
 SET.import_event_changes = true
@@ -193,13 +193,15 @@ SET.colour_current_enemy_type = vmath.vector4(0.1, 0.1, 0.1, 1)
 SET.colour_signal_filter_selection = vmath.vector4(0.5, 0.5, 0.7, 1)
 SET.colour_selected_transform_parent = vmath.vector4(0.5, 0.5, 0.7, 1)
 
-SET.colour_tween_move = vmath.vector4(0, 0, 0.5, 1)
-SET.colour_tween_rotate = vmath.vector4(0, 0.5, 0, 1)
-SET.colour_tween_scale = vmath.vector4(0.5, 0.5, 0, 1)
+SET.colour_tween_move = vmath.vector4(0.375, 0.375, 0.75, 1)
+SET.colour_tween_rotate = vmath.vector4(0.375, 0.75, 0.375, 1)
+SET.colour_tween_scale = vmath.vector4(0.75, 0.75, 0.375, 1)
 SET.colour_tween_wait = vmath.vector4(0.3, 0.3, 0.3, 1)
 
 -- art
 SET.hide_model_count = false
+SET.confirm_tween_deletion = true
+SET.delete_empty_tweens = true
 
 -- model
 SET.restrict_rotations_to_360 = true
@@ -273,7 +275,9 @@ SET.tween_time_in_beats = false
 SET.tween_padding_start = 0.5
 SET.tween_padding_end = 0.5
 
--- easing  													ALL IS NEW!!!
+SET.tween_parent_transform_name = "_T_W_E_E_N_S_"
+
+-- easing
 SET.easing_node_scale = 0.5
 SET.easing_curve_thickness = 3
 SET.easing_node_colour = vmath.vector4(0, 0, 0, 1)

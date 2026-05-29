@@ -83,9 +83,9 @@ local function change_bounds(node)
 end
 
 local function set_transform_button()
-	local transfrom_pics = {[0] = "button_transform_none", [1] = "button_transform_one", [2] = "button_transform_all"}
-	if not SET.show_single_transform then transfrom_pics[1] = transfrom_pics[0] end
-	gui.play_flipbook(gui.get_node("show_transforms/text"), transfrom_pics[SET.show_transform])
+	local transform_pics = {[0] = "button_transform_none", [1] = "button_transform_one", [2] = "button_transform_all"}
+	if not SET.show_single_transform then transform_pics[1] = transform_pics[0] end
+	gui.play_flipbook(gui.get_node("show_transforms/text"), transform_pics[SET.show_transform])
 	msg.post(".", hash("show_transforms"))
 end
 
@@ -192,15 +192,17 @@ local function delete_timeline()
 	timelines = {}
 	for key, val in pairs(action_bars) do
 		for k, v in ipairs(val) do
-			gui.delete_node(v.bar)
-			gui.delete_node(v.ending)
+			if v.bar then
+				gui.delete_node(v.bar)
+			end
+			if v.ending then
+				gui.delete_node(v.ending)
+			end
 		end
 		gui.delete_node(val[0])
 	end
 	action_bars = {}
 end
-
-
 
 
 local function select_timeline(selection)
@@ -226,28 +228,8 @@ local function create_tween_sections()
 			gui.set_color(new_timeline, colour_unselected_timeline)
 		end
 		for key, val in ipairs(tween_table) do
-			local function add_bar(time)
-				local new_bar = gui.clone(gui.get_node("action_bar"))
-				local new_bar_end = gui.clone(gui.get_node("action_end"))
-				gui.set_parent(new_bar, new_timeline)
-				gui.set_parent(new_bar_end, new_timeline)
-				gui.set_enabled(new_bar, true)
-				gui.set_enabled(new_bar_end, true)
-				if val.type == TWEEN_ACTION_MOVE then
-					gui.set_color(new_bar, SET.colour_tween_move)
-				elseif val.type == TWEEN_ACTION_ROTATE then
-					gui.set_color(new_bar, SET.colour_tween_rotate)
-				elseif val.type == TWEEN_ACTION_SCALE then
-					gui.set_color(new_bar, SET.colour_tween_scale)
-				elseif val.type == TWEEN_ACTION_WAIT then
-					gui.set_color(new_bar, SET.colour_tween_wait)
-				else
-					gui.set_color(new_bar, vmath.vector4(0.5, 0, 0, 1))
-				end
-				table.insert(action_bars[tween_index], {bar = new_bar, ending = new_bar_end, time = time})
-			end
 			if not (val.easing_mid or val.easing_end) then
-				add_bar(val.easing_start or val.duration)
+				table.insert(action_bars[tween_index], {time = val.easing_start or val.duration, type = val.type})
 			end
 		end
 		local new_bar_end = gui.clone(gui.get_node("action_end"))
@@ -265,11 +247,33 @@ local function create_tween_sections()
 		for key, val in ipairs(action_bar) do
 			local start_pos = percent_to_position(time / MOD.total_time)
 			local length = (val.time / MOD.total_time) * POSITION_MAX
+			
+			local new_bar = gui.clone(gui.get_node("action_bar"))
+			gui.set_parent(new_bar, timelines[tween_index])
+			gui.set_enabled(new_bar, true)
+			if val.type == TWEEN_ACTION_MOVE then
+				gui.set_color(new_bar, SET.colour_tween_move)
+			elseif val.type == TWEEN_ACTION_ROTATE then
+				gui.set_color(new_bar, SET.colour_tween_rotate)
+			elseif val.type == TWEEN_ACTION_SCALE then
+				gui.set_color(new_bar, SET.colour_tween_scale)
+			elseif val.type == TWEEN_ACTION_WAIT then
+				gui.set_color(new_bar, SET.colour_tween_wait)
+			else
+				gui.set_color(new_bar, vmath.vector4(0.5, 0, 0, 1))
+			end
 			local end_pos = start_pos + length
-			gui.set(val.bar, "position.x", start_pos)
-			gui.set_size(val.bar, vmath.vector3(length, SET.tween_timeline_bar_height * 0.5, 0))
-			gui.set(val.ending, "position.x", end_pos)
-			gui.set(val.ending, "size.y", SET.tween_timeline_bar_height)
+			action_bars[tween_index].bar = new_bar
+			gui.set(new_bar, "position.x", start_pos)
+			gui.set_size(new_bar, vmath.vector3(length, SET.tween_timeline_bar_height * 0.5, 0))
+			if length > 1 then
+				local new_ending = gui.clone(gui.get_node("action_end"))
+				gui.set_parent(new_ending, timelines[tween_index])
+				gui.set_enabled(new_ending, true)
+				gui.set(new_ending, "position.x", end_pos)
+				gui.set(new_ending, "size.y", SET.tween_timeline_bar_height)
+				action_bars[tween_index].ending = new_ending
+			end
 			if key == 1 then
 				gui.set(action_bars[tween_index][0], "position.x", start_pos)
 			end
@@ -307,8 +311,8 @@ local function start_playback()
 end
 
 local function close_preview()
-	if preview_source == hash("tween_editor") then
-		set_ui(hash("transform"))
+	if preview_source == hash("tween_editor") or preview_source == hash("model_tab") then
+		set_ui(hash("model"))
 	else
 		msg.post(".", hash("reset_tween"))
 		set_ui(hash("map_preview"))
@@ -425,19 +429,18 @@ local function prepare_tween_data(selected_model_index)
 	end
 	if MEM.event_data.table then
 		for key, val in ipairs(MEM.art_data.table.propsDictionary) do
-			if (val.tween or 0) > 0 then
+			if val.model_data.tween_list and #val.model_data.tween_list > 0 then
 				local transform_names = {}
 				local tween_list_small = {}
 				for k, v in ipairs(val.model_data.transform_list) do
 					if not transform_names[v.name] then
 						transform_names[v.name] = k
 					end
-					if v.tween then
-						local expanded = G.expand_repeat_actions(v.tween)
-						expanded.signal = v.tween.signal
-						expanded.housing_transform = k
-						table.insert(tween_list_small, expanded)
-					end
+				end
+				for k, v in ipairs(val.model_data.tween_list) do
+					local expanded = G.expand_repeat_actions(v.script)
+					expanded.signal = v.signal
+					table.insert(tween_list_small, expanded)
 				end
 				for _k, tween_actions in ipairs(tween_list_small) do
 					tween_list[val.key] = tween_list[val.key] or {}
@@ -501,9 +504,7 @@ local function prepare_tween_data(selected_model_index)
 						end
 						time_offset = time_offset + tonumber(v.time)
 					end
-					table.insert(tween_list[val.key], {
-						actions = t, total_time = time_offset, signal = tween_actions.signal, housing_transform = tween_actions.housing_transform
-					})
+					table.insert(tween_list[val.key], {actions = t, total_time = time_offset, signal = tween_actions.signal})
 				end
 			end
 		end
@@ -515,33 +516,31 @@ local function prepare_tween_data(selected_model_index)
 			local ignore_despawn = not (range < math.floor(range_val + 0.125))
 			
 			MOD.culling_ranges[range] = MOD.culling_ranges[range] or {slices = {}, props = {}, signals = {}}
-			local target_prop, target_transform, target_model_index, target_prop_list_index
+			local target_prop, target_tween_index, target_model_index, target_prop_list_index
 			local target_table
 			local range_to_search = range
 			if MOD.stationary then range_to_search = 0 end
 			for k, v in ipairs(MOD.culling_ranges[range_to_search].props) do
 				if ignore_despawn or v.ranges[range_to_search + 1] then
-					if (MEM.art_data.table.propsDictionary[v.model_index].tween or 0) > 0 then
-						local trans_list = MEM.art_data.table.propsDictionary[v.model_index].model_data.transform_list
-						for key, val in ipairs(trans_list) do
-							if val.tween then
-								if val.tween.signal == event_val.payload then
-									v.signal = v.signal or {}
-									local already_done
-									for _k, _v in ipairs(v.signal) do
-										if _v.target_transform == key then
-											already_done = true
-											break
-										end
-									end
-									if not already_done then
-										target_prop = v.name
-										target_model_index = v.model_index
-										target_prop_list_index = v.prop_list_index
-										target_transform = key
-										target_table = v.signal
+					local _tweens = MEM.art_data.table.propsDictionary[v.model_index].model_data.tween_list
+					if _tweens and #_tweens > 0 then
+						for key, val in ipairs(_tweens) do
+							if val.signal == event_val.payload then
+								v.signal = v.signal or {}
+								local already_done
+								for _k, _v in ipairs(v.signal) do
+									if _v.target_tween_index == key then
+										already_done = true
 										break
 									end
+								end
+								if not already_done then
+									target_prop = v.name
+									target_model_index = v.model_index
+									target_prop_list_index = v.prop_list_index
+									target_tween_index = key
+									target_table = v.signal
+									break
 								end
 							end
 						end
@@ -550,10 +549,13 @@ local function prepare_tween_data(selected_model_index)
 				end
 			end
 			table.insert(MOD.culling_ranges[range].signals, {
-				time = start, signal = event_val.payload, target_prop = target_prop, target_transform = target_transform,
+				time = start, signal = event_val.payload, target_prop = target_prop, target_tween_index = target_tween_index,
 				prop_found = not not target_table, target_model_index = target_model_index, target_prop_list_index = target_prop_list_index})
 			if target_table then
-				table.insert(target_table, {signal_tab = MOD.culling_ranges[range].signals[#MOD.culling_ranges[range].signals], time = start, signal = event_val.payload, target_transform = target_transform})
+				table.insert(target_table, {
+					signal_tab = MOD.culling_ranges[range].signals[#MOD.culling_ranges[range].signals],
+					time = start, signal = event_val.payload, target_tween_index = target_tween_index
+				})
 			end
 		end
 	end
@@ -566,7 +568,7 @@ local function prepare_tween_data(selected_model_index)
 						table.remove(val.signals, i)
 					else
 						for k, v in ipairs(tween_list[val.signals[i].target_prop]) do
-							if v.housing_transform == val.signals[i].target_transform then
+							if k == val.signals[i].target_tween_index then
 								val.signals[i].tween = v
 							end
 						end
@@ -646,7 +648,7 @@ local function preview_setup_map()
 	msg.post(".", hash("prepare_preview"))
 end
 
-local function setup_tween_contex(picked_transform, selected_prop)
+local function setup_tween_contex(tween_index, selected_prop)
 	MOD.vacuum_preview = false
 	local tween_start = math.huge
 	MOD.total_time = 0
@@ -665,30 +667,22 @@ local function setup_tween_contex(picked_transform, selected_prop)
 	MOD.total_time = last_tween_end - tween_start + SET.tween_padding_start + SET.tween_padding_end
 	MOD.preview_start = tween_start - SET.tween_padding_start
 
-	if picked_transform then
-		selected_timeline = 0
-	else
-		picked_transform = -1
-	end
-	local current_timeline = 0
-	local existing_timeline = 0
-	for i = 1, #MEM.art_data.table.propsDictionary[MOD.model_index].model_data.transform_list do
-		if MEM.art_data.table.propsDictionary[MOD.model_index].model_data.transform_list[i].tween then
-			current_timeline = current_timeline + 1
-			if i <= picked_transform then
-				selected_timeline = selected_timeline + 1
-			end
-			if not MOD.props_for_preview[selected_prop][current_timeline] then
-				table.remove(MOD.tween_table, current_timeline)
-				table.remove(MOD.tween_table.signals, current_timeline)
-			else
-				existing_timeline = existing_timeline + 1
-				MOD.tween_table[existing_timeline].timeline_id = current_timeline
-			end
+	selected_timeline = tween_index or 1
+	local forbidden_timelines = {}
+	for key, val in ipairs(MEM.art_data.table.propsDictionary[MOD.model_index].model_data.tween_list) do
+		if not MOD.props_for_preview[selected_prop][key] then
+			table.remove(MOD.tween_table, key)
+			table.remove(MOD.tween_table.signals, key)
+			forbidden_timelines[key] = true
 		end
 	end
-	if selected_timeline > existing_timeline then
-		selected_timeline = 1
+	if forbidden_timelines[tween_index] then
+		for key, val in ipairs(MEM.art_data.table.propsDictionary[MOD.model_index].model_data.tween_list) do
+			if not forbidden_timelines[key] then
+				selected_timeline = key
+				break
+			end
+		end
 	end
 
 	create_tween_sections()
@@ -700,23 +694,16 @@ local function setup_tween_contex(picked_transform, selected_prop)
 	msg.post(".", hash("prepare_preview"))
 end
 
-local function setup_tween_vacuum(picked_transform, selected_model_tweens)
+local function setup_tween_vacuum(tween_index, selected_model_tweens)
 	MOD.vacuum_preview = true
 	MOD.play_music = false
 	MOD.tween_table = {signals = {}}
 	MOD.vacuum_signal_tabs = {}
-	
-	if picked_transform then
-		selected_timeline = 0
-	else
-		picked_transform = -1
-	end
+
+	selected_timeline = tween_index or 1
 	local longest_tween = 0
 	for key, val in ipairs(selected_model_tweens) do
 		longest_tween = math.max(longest_tween, val.total_time)
-		if val.housing_transform == picked_transform then
-			selected_timeline = key
-		end
 		table.insert(MOD.tween_table, val.actions)
 		table.insert(MOD.tween_table.signals, 0)
 		local t = {
@@ -731,7 +718,6 @@ local function setup_tween_vacuum(picked_transform, selected_model_tweens)
 	MOD.preview_start = -SET.tween_padding_start
 
 	create_tween_sections()
-
 	
 	MOD.active_signals = {}
 
@@ -762,7 +748,7 @@ local function preview_setup_tween(message, force_vacuum)
 					time = v.time,
 					tween = v.tween,
 					target_prop_list_index = v.target_prop_list_index,
-					target_transform = v.target_transform
+					target_tween_index = v.target_tween_index
 				}
 				if repeat_props[v.target_prop_list_index] then
 					table.insert(MOD.props_for_preview[repeat_props[v.target_prop_list_index]], t)
@@ -775,16 +761,16 @@ local function preview_setup_tween(message, force_vacuum)
 	end
 	table.sort(MOD.props_for_preview, function(a, b) return a[1].target_prop_list_index < b[1].target_prop_list_index end)
 	for key, val in ipairs(MOD.props_for_preview) do
-		table.sort(val, function(a, b) return a.target_transform < b.target_transform end)
+		table.sort(val, function(a, b) return a.target_tween_index < b.target_tween_index end)
 	end
 	if force_vacuum or (#MOD.props_for_preview < 1) then
 		if not message then
 			setup_tween_vacuum(nil, selected_model_tweens)
 		else
-			setup_tween_vacuum(message.selected_transform, selected_model_tweens)
+			setup_tween_vacuum(message.tween_index, selected_model_tweens)
 		end
 	else
-		setup_tween_contex(message.selected_transform, 1)
+		setup_tween_contex(message.tween_index, 1)
 	end
 end
 
@@ -815,7 +801,7 @@ function set_ui(mode)
 	update_time_units_button()
 	show_visibility_box(false)
 	UI.unload_template(TAB_NAME)
-	UI.load_template({"reset_view"}, TAB_NAME)	
+	UI.load_template({"reset_view"}, TAB_NAME)
 	if mode == hash("model") or mode == hash("rotate") or mode == hash("transform") then
 		gui.set_enabled(gui.get_node("toggle_visibility/button_white"), false)
 		gui.set_enabled(gui.get_node("label_model"), false)
@@ -1203,19 +1189,22 @@ local function evaluate_button(button)
 			msg.post(UI.tab.tab_file.path, hash("show"))
 			msg.post(".", hash("hide"))
 		elseif preview_source == hash("tween_editor") then
-			msg.post(UI.tab.dialog_tween.path, hash("tween_preview_closed"), {tween_index = MOD.tween_table[selected_timeline].timeline_id})
-			msg.post(UI.tab.dialog_transform.path, hash("enable"))
+			msg.post(UI.tab.dialog_tween.path, hash("tween_preview_closed"), {tween_index = selected_timeline})
+			msg.post(UI.tab.tab_art.path, hash("enable"))
 			msg.post(".", hash("update_model"), {model = MOD.model_index})
 		elseif preview_source == hash("instance_list") then
 			msg.post(UI.tab.tab_art.path, hash("show"))
 			msg.post(UI.tab.dialog_instance_list.path, hash("reopen"))
 			msg.post(".", hash("hide"))
-		else	-- This could be removed, but I'm keeping in just in case preview_source ever happens to be nil since I missed something
+		elseif preview_source == hash("model_tab") then
+			msg.post(UI.tab.tab_art.path, hash("show"))
+			msg.post(".", hash("hide"))
+		else	-- This could be removed, but I'm keeping in just in case preview_source ever happens to be nil. In case I missed something
 			if MOD.map_preview then
 				msg.post(UI.tab.tab_file.path, hash("show"))
 				msg.post(".", hash("hide"))
 			else
-				msg.post(UI.tab.dialog_tween.path, hash("tween_preview_closed"), {tween_index = MOD.tween_table[selected_timeline].timeline_id})
+				msg.post(UI.tab.dialog_tween.path, hash("tween_preview_closed"), {tween_index = selected_timeline})
 				msg.post(UI.tab.dialog_transform.path, hash("enable"))
 				msg.post(".", hash("update_model"), {model = MOD.model_index})
 			end

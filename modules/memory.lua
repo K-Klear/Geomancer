@@ -38,6 +38,8 @@ local QUOTE_6 = QUOTE..":"
 local TABLE = "table"
 local STRING = "string"
 
+local test = false
+
 function MEM.export_json(json_tab)
 	io.write("{")
 	local function export_table(tab)
@@ -538,8 +540,17 @@ function MEM.parse_tween(tween_script)
 end
 
 
-local tween_count, part_list, transform_list
+local tween_count, part_list, transform_list, tween_list, tween_transform
 local function explore_model_tree(source_tab, part_name, level, parent_tab, is_collider)
+	if source_tab.name == SET.tween_parent_transform_name then
+		for k, v in pairs(parent_tab.tab.children) do
+			if v == source_tab then
+				tween_transform = table.remove(parent_tab.tab.children, k)
+				break
+			end
+		end
+		return
+	end
 	part_name = source_tab.name or part_name
 	table.insert(transform_list, {})
 	local current_transform = transform_list[#transform_list]
@@ -547,6 +558,7 @@ local function explore_model_tree(source_tab, part_name, level, parent_tab, is_c
 		is_collider = true
 	end
 	if source_tab.components then
+		local components_to_remove = {}
 		for k, v in ipairs(source_tab.components) do
 			if v.type == "Transform" then
 				current_transform.position, current_transform.rotation, current_transform.scale = G.parse_transform(v.values)
@@ -557,17 +569,21 @@ local function explore_model_tree(source_tab, part_name, level, parent_tab, is_c
 				current_transform.collider = is_collider
 			elseif v.type == "ScriptedTween" then
 				local tween_script = MEM.parse_tween(v.Script)
+				table.insert(components_to_remove, 1, k)
 				if tween_script then
-					current_transform.tween = tween_script
 					tween_count = tween_count + 1
+					table.insert(tween_list, {script = tween_script, name = part_name})
 				end
 			elseif v.type == "LevelEventReceiver" then
-				if current_transform.tween then
-					current_transform.tween.signal = v.EventId
-				end
+				table.insert(components_to_remove, 1, k)
+				tween_list[tween_count].signal = v.EventId
 			elseif v.type == "MeshFilter" then
 				local mesh_tab = {}
 				for key, val in ipairs(v.subMeshes) do
+					if SET.remove_normal_data then
+						v.normals = {}
+						v.normals._pure_array = "[]"
+					end
 					mesh_tab[key] = {
 						IndexStart = val.IndexStart + 1, IndexEnd = val.IndexCount + val.IndexStart, verts = v.verts, tris = v.tris,
 						normals = v.normals, collider = is_collider}
@@ -586,6 +602,11 @@ local function explore_model_tree(source_tab, part_name, level, parent_tab, is_c
 				end
 			end
 		end
+		if components_to_remove[1] then
+			for k, v in ipairs(components_to_remove) do
+				table.remove(source_tab.components, v)
+			end
+		end
 	end
 	if source_tab.children and source_tab.children[1] then
 		for k, v in ipairs(source_tab.children) do
@@ -594,8 +615,36 @@ local function explore_model_tree(source_tab, part_name, level, parent_tab, is_c
 	end
 end
 
+function MEM.add_metadata(model_tab)
+	part_list, transform_list, tween_list = {}, {}, {}
+	tween_count = 0
+	tween_transform = nil
+	explore_model_tree(model_tab.object, "[no name]", 1)
+	if tween_transform then
+		for key, val in ipairs(tween_transform.children) do
+			for k, v in ipairs(val.components) do
+				if v.type == "ScriptedTween" then
+					local tween_script = MEM.parse_tween(v.Script)
+					if tween_script then
+						tween_count = tween_count + 1
+						table.insert(tween_list, {script = tween_script, name = val.name})
+					end
+				elseif v.type == "LevelEventReceiver" then
+					tween_list[tween_count].signal = v.EventId
+				end
+			end
+		end
+	end
+	table.sort(tween_list, function(a, b) return a.name < b.name end)
+	model_tab.tween = tween_count
+	if #part_list < 1 then
+		model_tab.model_data = {parts = part_list, transform_list = {}, do_not_render = true, tween_list = tween_list}
+	else
+		model_tab.model_data = {parts = part_list, transform_list = transform_list, tween_list = tween_list}
+	end
+end
+
 function MEM.parse_obj(f, name)
-	local str = "{\"key\":\""..name.."\",\"object\":{\"name\":\""..name.."\",\"components\":[{\"type\":\"Transform\",\"values\":\"0,0,0,0,0,0,1,1,1,1\"}],\"children\":["
 
 	local children = {}
 	local current_child = 0
@@ -605,7 +654,7 @@ function MEM.parse_obj(f, name)
 	local handle_lines = {}
 	handle_lines.o = function(line_data)
 		current_child = current_child + 1
-		table.insert(children, {name = line_data[2], verts = {}, normals = {}, tris = {}})
+		table.insert(children, {name = line_data[2], verts = {}, normal_list = {}, normals = {}, tris = {}})
 		vert_count_total = vert_count_total + vert_count_current
 		vert_count_current = 0
 	end
@@ -621,18 +670,6 @@ function MEM.parse_obj(f, name)
 		vert_count_current = vert_count_current + 1
 		table.insert(children[current_child].verts, s)
 	end
-	handle_lines.vn = function(line_data)
-		local s = ""
-		local count = #line_data
-		for i = 2, count do
-			if i < count then
-				s = s..line_data[i]..","
-			else
-				s = s..line_data[i]
-			end
-		end
-		table.insert(children[current_child].normals, s)
-	end
 	handle_lines.f = function(line_data)
 		local polygon_size = #line_data - 1
 		local vertex_1 = G.parse_values(line_data[2], "/")
@@ -644,7 +681,7 @@ function MEM.parse_obj(f, name)
 			table.insert(children[current_child].tris, tonumber(vertex_1[1]) - 1 - vert_count_total)
 		end
 	end
-	
+
 	for line in f:lines() do
 		local line_data = G.parse_values_obj(line)
 		if handle_lines[line_data[1]] then
@@ -652,34 +689,32 @@ function MEM.parse_obj(f, name)
 		end
 	end
 
+	local model_tab = {_key_sort = {"key", "object"}, key = name, object = {
+		_key_sort = {"name", "components", "children"}, name = name, components = {
+			{_key_sort = {"type", "values"}, type = "Transform", values = "0,0,0,0,0,0,1,1,1,1"}
+		}, children = {}
+	}}
 	for key, val in ipairs(children) do
-		local mesh_tab = {}
-		mesh_tab.tris = val.tris
-		mesh_tab.verts = val.verts
-		mesh_tab.normals = val.verts
-		mesh_tab.IndexStart = 1
-		mesh_tab.IndexEnd = #mesh_tab.tris
-
-		MOD.create_mesh(mesh_tab)
-		MOD.test_model = MOD.test_model or {}
-		table.insert(MOD.test_model, mesh_tab)
+		local child_tab = {_key_sort = {"name", "components", "children"}, name = val.name, components = {
+			{_key_sort = {"type", "values"}, type = "Transform", values = "0,0,0,0,0,0,1,1,1,1"},
+			{_key_sort = {"type", "materials"}, type = "MeshRenderer", materials = {"(DoNotEdit)LiveMat_Props"}},
+			{_key_sort = {"type", "verts", "tris", "normals", "subMeshes"}, type = "MeshFilter", verts = {}, tris = {}, normals = {}, subMeshes = {
+				{_key_sort = {"IndexStart", "IndexCount", "Topology", "BaseVertex"}, IndexStart = 0, IndexCount = #val.tris, Topology = "Triangles", BaseVertex = 0}
+			}},
+		}}
+		for k, v in ipairs(val.verts) do
+			table.insert(child_tab.components[3].verts, v)
+		end
+		for k, v in ipairs(val.tris) do
+			table.insert(child_tab.components[3].tris, v)
+		end
+		table.insert(model_tab.object.children, child_tab)
 	end
 
-	msg.post("/model_viewer", hash("model_test"))
+	MEM.add_metadata(model_tab)
+	model_tab.model_data.model_count = 0
+	table.insert(MEM.art_data.table.propsDictionary, model_tab)
 
-	str = str.."]}}"
-end
-
-function MEM.add_metadata(model_tab)
-	part_list, transform_list = {}, {}
-	tween_count = 0
-	explore_model_tree(model_tab.object, "[no name]", 1)
-	model_tab.tween = tween_count
-	if #part_list < 1 then
-		model_tab.model_data = {parts = part_list, transform_list = {}, do_not_render = true}
-	else
-		model_tab.model_data = {parts = part_list, transform_list = transform_list}
-	end
 end
 
 function MEM.create_prop_list(tab, reindex)
@@ -1047,7 +1082,7 @@ function MEM.remove_geomanced_slice(slice_tab)
 end
 
 function MEM.remove_geomanced_chunk(chunk_tab)
-	if chunk_tab.original_size then
+	if chunk_tab.original_size and chunk_tab.tris then
 		for i = chunk_tab.original_size, #chunk_tab.tris - 1 do
 			chunk_tab.tris[i + 1] = nil
 			chunk_tab.triangles[i * 3 + 1] = nil
