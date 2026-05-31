@@ -197,6 +197,7 @@ SET.colour_tween_move = vmath.vector4(0.375, 0.375, 0.75, 1)
 SET.colour_tween_rotate = vmath.vector4(0.375, 0.75, 0.375, 1)
 SET.colour_tween_scale = vmath.vector4(0.75, 0.75, 0.375, 1)
 SET.colour_tween_wait = vmath.vector4(0.3, 0.3, 0.3, 1)
+SET.colour_tween_collision = vmath.vector4(1, 0, 0, 1)
 
 -- art
 SET.hide_model_count = false

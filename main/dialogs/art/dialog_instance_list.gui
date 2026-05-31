@@ -21,7 +21,7 @@ nodes {
     y: 437.0
   }
   size {
-    x: 540.0
+    x: 740.0
     y: 460.0
   }
   type: TYPE_BOX
@@ -38,7 +38,7 @@ nodes {
 }
 nodes {
   position {
-    y: 208.0
+    y: 206.0
   }
   size {
     x: 250.0
@@ -67,8 +67,7 @@ nodes {
 }
 nodes {
   position {
-    x: -91.0
-    y: 124.0
+    y: 167.0
   }
   size {
     x: 935.0
@@ -81,10 +80,10 @@ nodes {
   "\n"
   "Scale (X/Y/Z)\n"
   "\n"
-  "Spawn / despawn time"
+  "Spawn time (chunk)                       Despawn time (chunk)"
   font: "tab_caption"
   id: "list_legend"
-  pivot: PIVOT_NW
+  pivot: PIVOT_N
   outline {
     x: 1.0
     y: 1.0
@@ -104,7 +103,7 @@ nodes {
 nodes {
   position {
     x: -90.0
-    y: 86.0
+    y: 129.0
   }
   type: TYPE_TEMPLATE
   id: "pos_x"
@@ -149,7 +148,7 @@ nodes {
 nodes {
   position {
     x: -30.0
-    y: 86.0
+    y: 129.0
   }
   type: TYPE_TEMPLATE
   id: "pos_y"
@@ -194,7 +193,7 @@ nodes {
 nodes {
   position {
     x: 30.0
-    y: 86.0
+    y: 129.0
   }
   type: TYPE_TEMPLATE
   id: "pos_z"
@@ -239,7 +238,7 @@ nodes {
 nodes {
   position {
     x: -90.0
-    y: 34.0
+    y: 77.0
   }
   type: TYPE_TEMPLATE
   id: "rot_x"
@@ -248,7 +247,7 @@ nodes {
 }
 nodes {
   size {
-    x: 50.0
+    x: 60.0
     y: 30.0
   }
   type: TYPE_BOX
@@ -284,7 +283,7 @@ nodes {
 nodes {
   position {
     x: -30.0
-    y: 34.0
+    y: 77.0
   }
   type: TYPE_TEMPLATE
   id: "rot_y"
@@ -293,7 +292,7 @@ nodes {
 }
 nodes {
   size {
-    x: 50.0
+    x: 60.0
     y: 30.0
   }
   type: TYPE_BOX
@@ -329,7 +328,7 @@ nodes {
 nodes {
   position {
     x: 30.0
-    y: 34.0
+    y: 77.0
   }
   type: TYPE_TEMPLATE
   id: "rot_z"
@@ -338,7 +337,7 @@ nodes {
 }
 nodes {
   size {
-    x: 50.0
+    x: 60.0
     y: 30.0
   }
   type: TYPE_BOX
@@ -374,7 +373,7 @@ nodes {
 nodes {
   position {
     x: -90.0
-    y: -19.0
+    y: 24.0
   }
   type: TYPE_TEMPLATE
   id: "sc_x"
@@ -383,7 +382,7 @@ nodes {
 }
 nodes {
   size {
-    x: 50.0
+    x: 60.0
     y: 30.0
   }
   type: TYPE_BOX
@@ -419,7 +418,7 @@ nodes {
 nodes {
   position {
     x: -30.0
-    y: -19.0
+    y: 24.0
   }
   type: TYPE_TEMPLATE
   id: "sc_y"
@@ -428,7 +427,7 @@ nodes {
 }
 nodes {
   size {
-    x: 50.0
+    x: 60.0
     y: 30.0
   }
   type: TYPE_BOX
@@ -464,7 +463,7 @@ nodes {
 nodes {
   position {
     x: 30.0
-    y: -19.0
+    y: 24.0
   }
   type: TYPE_TEMPLATE
   id: "sc_z"
@@ -473,7 +472,7 @@ nodes {
 }
 nodes {
   size {
-    x: 50.0
+    x: 60.0
     y: 30.0
   }
   type: TYPE_BOX
@@ -508,12 +507,8 @@ nodes {
 }
 nodes {
   position {
-    x: -95.0
-    y: -82.0
-  }
-  scale {
-    x: 0.5
-    y: 0.5
+    x: -200.0
+    y: -49.0
   }
   size {
     x: 60.0
@@ -540,8 +535,52 @@ nodes {
 }
 nodes {
   position {
-    x: -150.0
-    y: -82.0
+    x: -315.0
+    y: -49.0
+  }
+  type: TYPE_TEMPLATE
+  id: "range_low_min"
+  parent: "edit_box"
+  template: "/templates/button_white_tiny.gui"
+}
+nodes {
+  size {
+    x: 30.0
+    y: 30.0
+  }
+  type: TYPE_BOX
+  texture: "UI/button_exclusive"
+  id: "range_low_min/button_white"
+  parent: "range_low_min"
+  overridden_fields: 4
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  size {
+    x: 30.0
+    y: 30.0
+  }
+  type: TYPE_TEXT
+  text: "MIN"
+  font: "main_menu_button_small"
+  id: "range_low_min/text"
+  parent: "range_low_min/button_white"
+  overridden_fields: 1
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -285.0
+    y: -49.0
   }
   type: TYPE_TEMPLATE
   id: "range_low_minus"
@@ -582,8 +621,8 @@ nodes {
 }
 nodes {
   position {
-    x: -40.0
-    y: -82.0
+    x: -110.0
+    y: -49.0
   }
   type: TYPE_TEMPLATE
   id: "range_low_plus"
@@ -624,12 +663,52 @@ nodes {
 }
 nodes {
   position {
-    x: 95.0
-    y: -82.0
+    x: -80.0
+    y: -49.0
   }
+  type: TYPE_TEMPLATE
+  id: "range_low_max"
+  parent: "edit_box"
+  template: "/templates/button_white_tiny.gui"
+}
+nodes {
+  size {
+    x: 30.0
+    y: 30.0
+  }
+  type: TYPE_BOX
+  texture: "UI/button_exclusive"
+  id: "range_low_max/button_white"
+  parent: "range_low_max"
+  overridden_fields: 4
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
   scale {
     x: 0.5
     y: 0.5
+  }
+  size {
+    x: 30.0
+    y: 30.0
+  }
+  type: TYPE_TEXT
+  text: "MAX"
+  font: "main_menu_button_small"
+  id: "range_low_max/text"
+  parent: "range_low_max/button_white"
+  overridden_fields: 1
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 200.0
+    y: -49.0
   }
   size {
     x: 60.0
@@ -656,8 +735,52 @@ nodes {
 }
 nodes {
   position {
-    x: 40.0
-    y: -82.0
+    x: 80.0
+    y: -49.0
+  }
+  type: TYPE_TEMPLATE
+  id: "range_high_min"
+  parent: "edit_box"
+  template: "/templates/button_white_tiny.gui"
+}
+nodes {
+  size {
+    x: 30.0
+    y: 30.0
+  }
+  type: TYPE_BOX
+  texture: "UI/button_exclusive"
+  id: "range_high_min/button_white"
+  parent: "range_high_min"
+  overridden_fields: 4
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  size {
+    x: 30.0
+    y: 30.0
+  }
+  type: TYPE_TEXT
+  text: "MIN"
+  font: "main_menu_button_small"
+  id: "range_high_min/text"
+  parent: "range_high_min/button_white"
+  overridden_fields: 1
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 110.0
+    y: -49.0
   }
   type: TYPE_TEMPLATE
   id: "range_high_minus"
@@ -698,8 +821,8 @@ nodes {
 }
 nodes {
   position {
-    x: 150.0
-    y: -82.0
+    x: 315.0
+    y: -49.0
   }
   type: TYPE_TEMPLATE
   id: "range_high_plus"
@@ -740,8 +863,52 @@ nodes {
 }
 nodes {
   position {
-    x: 170.0
-    y: 37.0
+    x: 285.0
+    y: -49.0
+  }
+  type: TYPE_TEMPLATE
+  id: "range_high_max"
+  parent: "edit_box"
+  template: "/templates/button_white_tiny.gui"
+}
+nodes {
+  size {
+    x: 30.0
+    y: 30.0
+  }
+  type: TYPE_BOX
+  texture: "UI/button_exclusive"
+  id: "range_high_max/button_white"
+  parent: "range_high_max"
+  overridden_fields: 4
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  size {
+    x: 30.0
+    y: 30.0
+  }
+  type: TYPE_TEXT
+  text: "MAX"
+  font: "main_menu_button_small"
+  id: "range_high_max/text"
+  parent: "range_high_max/button_white"
+  overridden_fields: 1
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 181.0
+    y: 64.0
   }
   type: TYPE_TEMPLATE
   id: "prop_view"
@@ -805,6 +972,159 @@ nodes {
   text: "Close"
   id: "instance_accept/text"
   parent: "instance_accept/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 18
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    y: -109.0
+  }
+  scale {
+    x: 0.5
+    y: 0.5
+  }
+  size {
+    x: 60.0
+    y: 30.0
+  }
+  type: TYPE_TEXT
+  text: "The prop will spawn 5 seconds before.\n"
+  "The prop will despawn 158 units after."
+  font: "main_menu_button_small"
+  id: "range_description"
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  parent: "edit_box"
+  layer: "text"
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+}
+nodes {
+  position {
+    y: -47.0
+  }
+  rotation {
+    z: -0.033
+  }
+  type: TYPE_TEMPLATE
+  id: "auto_range"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 130.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  id: "auto_range/button_white"
+  parent: "auto_range"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  type: TYPE_TEXT
+  text: "Reasonable\n"
+  "ranges"
+  font: "main_menu_button_small"
+  id: "auto_range/text"
+  parent: "auto_range/button_white"
+  layer: "text"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 200.0
+    y: -170.0
+  }
+  rotation {
+    z: -0.033
+  }
+  type: TYPE_TEMPLATE
+  id: "next_instance"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "next_instance/button_white"
+  parent: "next_instance"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Next"
+  id: "next_instance/text"
+  parent: "next_instance/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 18
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -200.0
+    y: -170.0
+  }
+  rotation {
+    z: -0.033
+  }
+  type: TYPE_TEMPLATE
+  id: "previous_instance"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 120.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "previous_instance/button_white"
+  parent: "previous_instance"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Previous"
+  id: "previous_instance/text"
+  parent: "previous_instance/button_white"
   layer: "text"
   overridden_fields: 8
   overridden_fields: 18

@@ -580,10 +580,6 @@ local function explore_model_tree(source_tab, part_name, level, parent_tab, is_c
 			elseif v.type == "MeshFilter" then
 				local mesh_tab = {}
 				for key, val in ipairs(v.subMeshes) do
-					if SET.remove_normal_data then
-						v.normals = {}
-						v.normals._pure_array = "[]"
-					end
 					mesh_tab[key] = {
 						IndexStart = val.IndexStart + 1, IndexEnd = val.IndexCount + val.IndexStart, verts = v.verts, tris = v.tris,
 						normals = v.normals, collider = is_collider}
@@ -714,7 +710,6 @@ function MEM.parse_obj(f, name)
 	MEM.add_metadata(model_tab)
 	model_tab.model_data.model_count = 0
 	table.insert(MEM.art_data.table.propsDictionary, model_tab)
-
 end
 
 function MEM.create_prop_list(tab, reindex)

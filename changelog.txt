@@ -21,6 +21,7 @@ To do:
 - Stop messing up the prop groups. And might as well implement my own way of organising them.
 	- Yeah, maybe not... it's a mess
 - Automatic frame-by-frame animation generation
+- Join static prop meshes together to optimise previews
 
 - Option to show prop origin
 - A way to expand a repeat action
@@ -53,10 +54,11 @@ Settings to implement in options:
 - Something for timeline height in map preview
 - probably remove default model z position as is it useless?
 	-Maybe it will see use in tween preview
-SET.remove_normal_data
+SET.remove_normal_data (a default state setting to be precise)
 SET.confirm_tween_deletion
 SET.delete_empty_tweens
 SET.ask_before_deleting_prop
+SET.colour_tween_collision
 
 To-do (geo generation):
 - Fix the collider rendering (depth buffer?)
@@ -66,7 +68,33 @@ To-do (geo generation):
 Done:
 
 Features:
-- It is now possible to create geo (visible and/or invisible) from props, from the Instance dialog
+- The space used for the material list on the Models tab can now be switched between four sub-tabs:
+	- Materials function the same as before
+	- Transform editor is the second subtab, rather than being a separate view
+	- Third subtab is a list of all tweens on the model
+		- Tweens no longer have to be created from a specific transform - Geomancer takes care of that in the background.
+		- Tweens are displayed as [Tween name] ([signal]), sorted by name. Names can be freely changed
+			- Maps saved with older Geomancer version will have their tweens named after the transform they were originally attached to
+		- Tweens are coloured based on the predominant action type, based on length and number of actions
+			- Tweens which target the same transform with the same type of action are coloured red, as that is almost certain to cause issues
+		- You can now jump straight to tween preview with a button at the top of the tween sub-tab
+		- Tweens without actions are automatically deleted (this can be turned off in settings)
+		- The Tween button on the model list has been merged with the static/dynamic button and shows the number of tweens of each prop
+			- Clicking it will no longer open the transform editor, swithcing to the tween submenu instead
+	- The last subtab is Instances, replacing the dialog previously accessed by a button at the bottom of the model list
+		- The list of instances is sorted by Z position and shows their Z / X / Y position and spawn/despawn times in seconds
+		- There are buttons for each entry. Left to right:
+			- Edit properties (wrench icon) opens up a dialog where you can view and adjust position, rotation and scale of the prop instance, as well as spawn and despawn times
+				- The "Reasonable ranges" button automatically sets the times to margins that are generally safe.
+					- They are similar (but not always the same) as the default values set by Pistol Mix
+				- A text box under the spawn/despawn UI describes roughly when the prop comes into view taking draw distance into account, when it spawns/despawns in relation to those times and points out if the prop is likely to either pop-in or despawn prematurely
+					- Note that this is only really accurate for small props placed directly in the player's path, at eye level. Large props will be visible sooner and may need adjustments.
+				- The eye icon opens map preview and jumps to the prop's location.
+				- You can browse through prop instances using the bottoms at the bottom
+			- GEO button opens a geo creation dialog. See below.
+			- View prop (eye icon) opens map preview and jumps to the prop's location.
+			- Delete (trash can icon) deletes the prop instance from the map. Requires confirmation by default
+- It is now possible to create geo (visible and/or invisible) from props, from the Instance subtab
 	- Clicking the "Geo" button at the prop instance of your choice opens a dialog with options:
 		- Select whether to generate visible geo, colliders or both
 		- You may choose to delete the prop afterwards
@@ -75,8 +103,9 @@ Features:
 	- Geomancer keeps track of geo generated this way and will store this information in the geomancer metadata file on export
 		- This allows it to regenerate these changes when importing changes from a previously geomanced map
 		- There are also new buttons on the Geo/Colliders tab used to remove all geo created this way, as long as the metadata file is present
-- You can now delete specific prop instances (trash bin icon in the instances dialog)
-- Made geo rendering in previews more accurate
+- There is a checkbox near the export button to remove the normal data from models when exporting
+	- Normal data is not used by the game in any way and removing it will reduce the map size and speed up loading
+	- The downside is that unlike the game, Geomancer does need normal data for previews and will automatically recalculate it when opening a map, which makes it take longer
 - Obstacles are now shown in preview (can be hidden)
 - Improved how colliders are rendered (textured and transparent)
 	- Collider display can be enabled/disabled independently from geo
@@ -84,6 +113,7 @@ Features:
 	- Red colliders (geo and obstacles) hurt the player when going through them
 	- Yellow colliders (found on some built-in props) only block shots
 		- Props named "PF_CollisionCube_01_Flat" and "PF_CollisionCube_02_tall" are hardcoded to show as appropriately-sized colliders
+- Geo rendering in previews is more accurate to the game
 - The find model dialog now opens with the text field selected
 - Increased the maximum number of tween action repeats to 999
 
@@ -92,8 +122,9 @@ New shortcuts:
 Fixes:
 - Changes to geo made on the Geo / Collisions tab are now shown on the preview
 - Importing changes now imports lobby colours too
-- Tween actions that would appear on the timeline shorter than 1 pixel no longer generate separators, appearing as a solid colour (rather than solid black)
-- Adjusted default tween colours for readability
+- Tween actions that would appear on the timeline shorter than 1 pixel no longer generate separators, appearing as a solid colour rather than solid black
+- Adjusted default tween colours for readability, as they are now used in the Tween subtab too
+	- Note that this change will be overriden if you're using an older configuration file. You'll need to adjust the colours yourself in that case.
 
 Bugs:
 - Fixed an error when opening the model viewer for a map with no props

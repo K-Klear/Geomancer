@@ -1192,7 +1192,7 @@ local function evaluate_button(button)
 			msg.post(UI.tab.dialog_tween.path, hash("tween_preview_closed"), {tween_index = selected_timeline})
 			msg.post(UI.tab.tab_art.path, hash("enable"))
 			msg.post(".", hash("update_model"), {model = MOD.model_index})
-		elseif preview_source == hash("instance_list") then
+		elseif preview_source == hash("instance_dialog") then
 			msg.post(UI.tab.tab_art.path, hash("show"))
 			msg.post(UI.tab.dialog_instance_list.path, hash("reopen"))
 			msg.post(".", hash("hide"))

@@ -2268,6 +2268,9 @@ nodes {
     x: 206.0
     y: -19.0
   }
+  scale {
+    x: 0.7
+  }
   size {
     x: 70.0
     y: 30.0
@@ -2322,14 +2325,14 @@ nodes {
 }
 nodes {
   position {
-    x: 181.0
+    x: 173.0
   }
   size {
     x: 80.0
     y: 20.0
   }
   type: TYPE_TEXT
-  text: "Range"
+  text: "Spawn (s)"
   font: "tab_caption"
   id: "lbl_instance_range"
   pivot: PIVOT_NW
@@ -2343,7 +2346,6 @@ nodes {
     y: 1.0
     z: 1.0
   }
-  line_break: true
   parent: "instances_background"
   layer: "text"
   outline_alpha: 0.0
@@ -2390,7 +2392,49 @@ nodes {
 }
 nodes {
   position {
-    x: 95.0
+    x: 117.0
+    y: 86.0
+  }
+  type: TYPE_TEMPLATE
+  id: "import_models_bulk"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 94.0
+    y: 44.0
+  }
+  type: TYPE_BOX
+  texture: "UI/button_exclusive"
+  id: "import_models_bulk/button_white"
+  parent: "import_models_bulk"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  type: TYPE_TEXT
+  text: "Import\n"
+  "folder"
+  id: "import_models_bulk/text"
+  parent: "import_models_bulk/button_white"
+  overridden_fields: 3
+  overridden_fields: 8
+  overridden_fields: 18
+  overridden_fields: 36
+  overridden_fields: 47
+  template_node_child: true
+  text_leading: 0.8
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 189.0
     y: 86.0
   }
   type: TYPE_TEMPLATE
@@ -2429,7 +2473,7 @@ nodes {
 }
 nodes {
   position {
-    x: 160.0
+    x: 254.0
     y: 86.0
   }
   type: TYPE_TEMPLATE
@@ -2468,7 +2512,7 @@ nodes {
 }
 nodes {
   position {
-    x: 240.0
+    x: 334.0
     y: 86.0
   }
   type: TYPE_TEMPLATE
@@ -2507,7 +2551,7 @@ nodes {
 }
 nodes {
   position {
-    x: 310.0
+    x: 404.0
     y: 86.0
   }
   type: TYPE_TEMPLATE

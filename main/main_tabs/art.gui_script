@@ -9,6 +9,7 @@ local TAB_NAME = "tab_art"
 
 local model_list, part_list, tween_list, instance_list, evaluate_button, evaluate_input, current_material
 local material_buttons = {}
+local select_model
 
 local current_tab = "button_materials"
 local tab_buttons = {}
@@ -78,7 +79,7 @@ end
 function init(self)
 	gui.set_render_order(1)
 	msg.post("#", hash("disable"))
-	UI.load_template({"sort", "button_replace", "button_rename", "button_find", "colour_guide", "import_models",
+	UI.load_template({"sort", "button_replace", "button_rename", "button_find", "colour_guide", "import_models", "import_models_bulk",
 	"button_materials", "button_transforms", "button_tweens", "button_instances"}, TAB_NAME)
 	tab_buttons = {
 		button_materials = gui.get_node("button_materials/button_white"),
@@ -125,6 +126,9 @@ function init(self)
 	gui.delete_node(gui.get_node("mat_label_template"))
 
 	local function get_tween_colour(tween_index)
+		if tween_list[tween_index].collision then
+			return SET.colour_tween_collision
+		end
 		local time = {S = 0, R = 0, T = 0}
 		local count = {S = 0, R = 0, T = 0}
 		for key, val in ipairs(tween_list[tween_index].script) do
@@ -171,10 +175,13 @@ function init(self)
 	UI.disable_list(TAB_NAME, tween_ui_list)
 
 	local function get_range(i)
-		local base_range = math.floor(instance_list[i].position.z / 16)
-		local spawn = instance_list[i].spawn_range
-		local despawn = instance_list[i].despawn_range
-		return (spawn -  base_range).."/"..(despawn - base_range)
+		local max_distance = math.huge
+		if MEM.level_data.songLength then
+			max_distance = tonumber(MEM.level_data.songLength) * 3
+		end
+		local spawn = G.clamp(instance_list[i].spawn_range * 16 - 7, 0, max_distance)
+		local despawn = G.clamp(instance_list[i].despawn_range * 16 + 7, 0, max_distance)
+		return G.round(spawn / 3, 1).."/"..G.round(despawn / 3, 1)
 	end
 
 	local instance_list_tab = {
@@ -409,8 +416,17 @@ local function import_models()
 				local extension_index = string.find(emanelif, "%.")
 				local start_index = string.find(emanelif, "\\")
 				local filename = string.reverse(string.sub(emanelif, extension_index + 1, start_index - 1))
-				MEM.parse_obj(f, filename)
+				local ok, res = pcall(MEM.parse_obj, f, filename)
+				if not ok then 
+					G.update_navbar("Error reading "..filename..". Try reexporting it in Blender.")
+					io.close(f)
+					return
+				end
 				update_lists()
+				model_data = false
+				G.update_navbar("Model "..filename.." added.", true)
+				UI.select_exclusive_button(TAB_NAME, model_list, #MEM.art_data.table.propsDictionary, false, true)
+				select_model(#MEM.art_data.table.propsDictionary)
 			else
 				model_data = f:read("*a")
 			end
@@ -433,7 +449,7 @@ local function import_models()
 		else
 			G.update_navbar("Error reading model data.", true)
 		end
-	else
+	elseif not (model_data == false) then
 		G.update_navbar("Error reading model data.", true)
 	end
 end
@@ -795,11 +811,61 @@ local function update_prop_instance_list(model_index)
 	UI.update_list(TAB_NAME, instance_ui_list, #instance_list)
 end
 
-local function select_model(selected_model)
+local function check_tween_collisions()
+	local transforms = {}
+	for tween_index, val in ipairs(tween_list) do
+		val.collision = nil
+		for key, action in ipairs(val.script) do
+			if action.part then
+				transforms[action.part] = transforms[action.part] or {}
+				transforms[action.part][action.type] = transforms[action.part][action.type] or {}
+				if not transforms[action.part][action.type][tween_index] then
+					transforms[action.part][action.type][tween_index] = true
+					transforms[action.part][action.type].count = (transforms[action.part][action.type].count or 0) + 1
+				end
+			end
+		end
+	end
+	for key, v in pairs(transforms) do
+		for action_type, val in pairs(v) do
+			if val.count > 1 then
+				val.count = nil
+				for k in pairs(val) do
+					tween_list[k].collision = true
+				end
+			end
+		end
+	end
+end
+
+local function sort_tweens()
+	local selected_name
+	if selected_tween > 0 then
+		if selected_tween > #tween_list then selected_tween = #tween_list end
+		selected_name = tween_list[selected_tween].name
+	end
+	table.sort(tween_list, function(a, b) return string.lower(a.name) < string.lower(b.name) end)
+	if selected_name then
+		for key, val in ipairs(tween_list) do
+			if val.name == selected_name then
+				select_tween(key)
+				break
+			end
+		end
+	end
+	check_tween_collisions()
+	UI.update_list(TAB_NAME, tween_ui_list, #tween_list)
+end
+
+function select_model(selected_model)
 	selected_model = selected_model or get_selected_model()
 	UI.update_list(TAB_NAME, part_list, #MEM.art_data.table.propsDictionary[selected_model].model_data.parts)
 	UI.select_exclusive_button(TAB_NAME, part_list, 1)
 	tween_list = MEM.art_data.table.propsDictionary[selected_model].model_data.tween_list
+	UI.update_list(TAB_NAME, tween_ui_list, #tween_list)
+	if #tween_list > 0 then
+		sort_tweens()
+	end
 	update_prop_instance_list(selected_model)
 	change_tab()
 	if MEM.art_data.table.propsDictionary[selected_model].model_data.do_not_render then
@@ -817,26 +883,10 @@ end
 local function delete_tween()
 	table.remove(tween_list, selected_tween)
 	check_tweens()
+	if selected_tween > #tween_list then selected_tween = #tween_list end
 	UI.update_list(TAB_NAME, tween_ui_list, #tween_list)
 	select_tween()
 	G.update_navbar("Tween deleted", true)
-end
-
-local function sort_tweens()
-	local selected_name
-	if selected_tween > 0 then
-		selected_name = tween_list[selected_tween].name
-	end
-	table.sort(tween_list, function(a, b) return a.name < b.name end)
-	if selected_name then
-		for key, val in ipairs(tween_list) do
-			if val.name == selected_name then
-				select_tween(key)
-				break
-			end
-		end
-	end
-	UI.update_list(TAB_NAME, tween_ui_list, #tween_list)
 end
 
 local function remove_prop(item, hold_off_clean_up)
@@ -911,6 +961,7 @@ function on_message(self, message_id, message, sender)
 			end
 			UI.select_exclusive_button(TAB_NAME, model_list, selected_model, true)
 			tween_list = MEM.art_data.table.propsDictionary[selected_model].model_data.tween_list
+			sort_tweens()
 			UI.update_list(TAB_NAME, tween_ui_list, #tween_list)
 			model_for_viewer = selected_model
 			if MEM.art_data.table.propsDictionary[selected_model].model_data.do_not_render then
@@ -1038,11 +1089,32 @@ function on_message(self, message_id, message, sender)
 				select_model(message.selected_model)
 			end
 		elseif message.dialog == "dialog_instance_list" then
-			UI.update_list(TAB_NAME, model_list, #MEM.art_data.table.propsDictionary)
+			if message.prop_index then
+				local instance_index
+				for key, val in ipairs(instance_list) do
+					if val.prop_list_index == message.prop_index then
+						instance_index = key
+						break
+					end
+				end
+				instance_index = instance_index + message.next
+				if instance_index > #instance_list then
+					instance_index = 1
+				elseif instance_index < 1 then
+					instance_index = #instance_list
+				end
+				open_dialog("dialog_instance_list", {model_index = get_selected_model(), prop_index = instance_list[instance_index].prop_list_index})
+			else
+				MEM.create_prop_list(MEM.art_data.table, true)
+				MEM.setup_culling_ranges()
+				update_prop_instance_list(get_selected_model())
+				UI.update_list(TAB_NAME, model_list, #MEM.art_data.table.propsDictionary)
+			end
 		elseif message.dialog == "dialog_tween" then
 			if SET.delete_empty_tweens and #tween_list[selected_tween].script < 1 then
 				delete_tween()
 			else
+				check_tween_collisions()
 				UI.update_list(TAB_NAME, tween_ui_list, #tween_list)
 			end
 			select_tween()
@@ -1096,6 +1168,46 @@ function evaluate_button(button, item)
 		sort_models()
 	elseif button == "import_models" then
 		import_models()
+	elseif button == "import_models_bulk" then
+		local _, path = diags.open_folder(SET.default_path_import_models)
+		local file_list = {}
+		for filename in lfs.dir(path) do
+			print(filename)
+			if string.sub(filename, -4) == ".obj" then
+				table.insert(file_list, {path = path.."\\"..filename, name = string.sub(filename, 1, -4)})
+			end
+		end
+
+		local error_count, import_count = 0, 0
+		local function import_obj(file_data)
+			local f = io.open(file_data.path, "rb")
+			if f then
+				local ok, res = pcall(MEM.parse_obj, f, file_data.name)
+				if not ok then
+					error_count = error_count + 1
+				else
+					import_count = import_count + 1
+				end
+				io.close(f)
+			else
+				error_count = error_count + 1
+			end
+		end
+		
+		for key, val in ipairs(file_list) do
+			print(val.name)
+			import_obj(val)
+		end
+
+		if import_count > 0 then
+			update_lists()
+			G.update_navbar(import_count.." models imported.", true)
+			UI.select_exclusive_button(TAB_NAME, model_list, #MEM.art_data.table.propsDictionary, false, true)
+			select_model(#MEM.art_data.table.propsDictionary)
+		end
+		if error_count > 0 then
+			G.update_navbar(error_count.." models failed to import.")
+		end
 	elseif button == "colour_guide" then
 		sys.open_url("https://mod.io/g/pistol-whip/r/advanced-color-hack-guide")
 	elseif button == "button_replace" then
@@ -1259,7 +1371,7 @@ function evaluate_button(button, item)
 			MEM.art_data.table.propsDictionary[item].hide = not MEM.art_data.table.propsDictionary[item].hide
 			UI.update_list(TAB_NAME, model_list)
 		elseif str == "instance_edit;" then
-			
+			open_dialog("dialog_instance_list", {model_index = get_selected_model(), prop_index = instance_list[item].prop_list_index})
 		elseif str == "geo;" then
 			open_dialog("dialog_create_geo", {model_index = get_selected_model(), prop_index = item})
 		elseif str == "prop_view;" then

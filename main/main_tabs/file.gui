@@ -832,6 +832,67 @@ nodes {
   layer: "text"
   material: "font-df"
 }
+nodes {
+  position {
+    x: 1033.0
+    y: 416.0
+  }
+  type: TYPE_TEMPLATE
+  id: "delete_normals_checkbox"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 48.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "delete_normals_checkbox/button_white"
+  parent: "delete_normals_checkbox"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 48.0
+    y: 48.0
+  }
+  type: TYPE_TEXT
+  text: "X"
+  id: "delete_normals_checkbox/text"
+  parent: "delete_normals_checkbox/button_white"
+  overridden_fields: 4
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 1068.0
+    y: 416.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Delete normals when exporting"
+  font: "main_menu_button_small"
+  id: "label_delete_normals"
+  pivot: PIVOT_W
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  line_break: true
+  layer: "text"
+  material: "font-df"
+}
 layers {
   name: "below"
 }

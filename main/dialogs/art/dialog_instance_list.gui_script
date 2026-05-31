@@ -8,263 +8,155 @@ local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_instance_list"
 local DIALOG_DATA
 
-local prop_scroll_list, evaluate_button, model_index
-local prop_list = {}
+local evaluate_button, model_index, prop_tab, new_properties, max_distance, range_unchanged, prop_index
 
 function init(self)
 	local validation_xyz = {number = true, default = function() return 0 end}
-	
 	DIALOG.setup(DIALOG_NAME)
 	DIALOG_DATA = UI.tab[DIALOG_NAME]
-	UI.load_template({"instance_accept"}, DIALOG_NAME)
-	
-	local props = {
-		{
-			type = hash("field"),
-			node = gui.get_node("pos_x/box"),
-			text_node = gui.get_node("pos_x/text"),
-			value_fn = function(i)
-				return G.round(prop_list[i].position.x, 2)
-			end,
-			template = "pos_x;",
-			validation = validation_xyz,
-			char_limit = 6
-		},
-		{
-			type = hash("field"),
-			node = gui.get_node("pos_y/box"),
-			text_node = gui.get_node("pos_y/text"),
-			value_fn = function(i)
-				return G.round(prop_list[i].position.y, 2)
-			end,
-			template = "pos_y;",
-			validation = validation_xyz,
-			char_limit = 6
-		},
-		{
-			type = hash("field"),
-			node = gui.get_node("pos_z/box"),
-			text_node = gui.get_node("pos_z/text"),
-			value_fn = function(i)
-				return G.round(prop_list[i].position.z, 2)
-			end,
-			template = "pos_z;",
-			validation = validation_xyz,
-			char_limit = 6
-		},
-		
-		{
-			type = hash("field"),
-			node = gui.get_node("rot_x/box"),
-			text_node = gui.get_node("rot_x/text"),
-			value_fn = function(i)
-				return G.round(G.quat_to_euler(prop_list[i].rotation).x, 1)
-			end,
-			template = "rot_x;",
-			validation = validation_xyz,
-			char_limit = 5
-		},
-		{
-			type = hash("field"),
-			node = gui.get_node("rot_y/box"),
-			text_node = gui.get_node("rot_y/text"),
-			value_fn = function(i)
-				return G.round(G.quat_to_euler(prop_list[i].rotation).y, 1)
-			end,
-			template = "rot_y;",
-			validation = validation_xyz,
-			char_limit = 5
-		},
-		{
-			type = hash("field"),
-			node = gui.get_node("rot_z/box"),
-			text_node = gui.get_node("rot_z/text"),
-			value_fn = function(i)
-				return G.round(G.quat_to_euler(prop_list[i].rotation).z, 1)
-			end,
-			template = "rot_z;",
-			validation = validation_xyz,
-			char_limit = 5
-		},
-
-		{
-			type = hash("field"),
-			node = gui.get_node("sc_x/box"),
-			text_node = gui.get_node("sc_x/text"),
-			value_fn = function(i)
-				return G.round(prop_list[i].scale.x, 1)
-			end,
-			template = "sc_x;",
-			validation = validation_xyz,
-			char_limit = 5
-		},
-		{
-			type = hash("field"),
-			node = gui.get_node("sc_y/box"),
-			text_node = gui.get_node("sc_y/text"),
-			value_fn = function(i)
-				return G.round(prop_list[i].scale.y, 1)
-			end,
-			template = "sc_y;",
-			validation = validation_xyz,
-			char_limit = 5
-		},
-		{
-			type = hash("field"),
-			node = gui.get_node("sc_z/box"),
-			text_node = gui.get_node("sc_z/text"),
-			value_fn = function(i)
-				return G.round(prop_list[i].scale.z, 1)
-			end,
-			template = "sc_z;",
-			validation = validation_xyz,
-			char_limit = 5
-		},
-
-		{
-			type = hash("label"),
-			node = gui.get_node("range_low"),
-			value_fn = function(i)
-				local range_val = (prop_list[i].spawn_range * 16 - 7) / 3
-				local str = G.round(math.max(0, range_val), 2).." ("..prop_list[i].spawn_range..")"
-				return str
-			end,
-			template = "range_low;",
-		},
-		{
-			type = hash("label"),
-			node = gui.get_node("range_high"),
-			value_fn = function(i)
-				local range_val = (prop_list[i].despawn_range * 16 + 7) / 3
-				local str = G.round(math.max(0, range_val), 2).." ("..prop_list[i].despawn_range..")"
-				return str
-			end,
-			template = "range_high;",
-		},
-		{
-			type = hash("button"),
-			node = gui.get_node("range_low_minus/button_white"),
-			text_node = gui.get_node("range_low_minus/text"),
-			value_fn = function() return "-" end,
-			template = "range_low_minus;",
-			gfx = hash("button_exclusive")
-		},
-		{
-			type = hash("button"),
-			node = gui.get_node("range_high_minus/button_white"),
-			text_node = gui.get_node("range_high_minus/text"),
-			value_fn = function() return "-" end,
-			template = "range_high_minus;",
-			gfx = hash("button_exclusive")
-		},
-		{
-			type = hash("button"),
-			node = gui.get_node("range_low_plus/button_white"),
-			text_node = gui.get_node("range_low_plus/text"),
-			value_fn = function() return "+" end,
-			template = "range_low_plus;",
-			gfx = hash("button_exclusive")
-		},
-		{
-			type = hash("button"),
-			node = gui.get_node("range_high_plus/button_white"),
-			text_node = gui.get_node("range_high_plus/text"),
-			value_fn = function() return "+" end,
-			template = "range_high_plus;",
-			gfx = hash("button_exclusive")
-		},
-
-		{
-			type = hash("button"),
-			node = gui.get_node("prop_view/button_white"),
-			text_node = gui.get_node("prop_view/text"),
-			value_fn = function() return "" end,
-			template = "prop_view;",
-			gfx = hash("button_exclusive"),
-			enabled = function() return true end
-		},
-		{
-			type = hash("button"),
-			node = gui.get_node("prop_delete/button_white"),
-			text_node = gui.get_node("prop_delete/text"),
-			value_fn = function() return "" end,
-			template = "prop_delete;",
-			gfx = hash("button_exclusive")
-		},
-		{
-			type = hash("button"),
-			node = gui.get_node("geo/button_white"),
-			text_node = gui.get_node("geo/text"),
-			value_fn = function() return "GEO" end,
-			template = "geo;",
-			gfx = hash("button_exclusive")
-		},
-		item_count = 0,
-		scroll_prefix = "prop_"
-	}
-	prop_scroll_list = UI.create_list(DIALOG_NAME, gui.get_node("prop_list"), props)
+	UI.load_template(
+	{"instance_accept", "range_low_minus", "range_low_plus", "range_high_minus", "range_high_plus", "prop_view",
+	"range_low_min", "range_low_max", "range_high_min", "range_high_max", "auto_range", "next_instance", "previous_instance"},
+	DIALOG_NAME)
+	UI.load_text_field("pos_x", 6, DIALOG_NAME, validation_xyz)
+	UI.load_text_field("pos_y", 6, DIALOG_NAME, validation_xyz)
+	UI.load_text_field("pos_z", 6, DIALOG_NAME, validation_xyz)
+	UI.load_text_field("rot_x", 6, DIALOG_NAME, validation_xyz)
+	UI.load_text_field("rot_y", 6, DIALOG_NAME, validation_xyz)
+	UI.load_text_field("rot_z", 6, DIALOG_NAME, validation_xyz)
+	UI.load_text_field("sc_x", 6, DIALOG_NAME, validation_xyz)
+	UI.load_text_field("sc_y", 6, DIALOG_NAME, validation_xyz)
+	UI.load_text_field("sc_z", 6, DIALOG_NAME, validation_xyz)
 end
 
-local function calculate_rotation(item, rot)
-	rot = math.deg(G.sanitise_euler(math.rad(rot))) 
-	prop_list[item].rotation = G.euler_to_quat(rot)
-	prop_list[item].changes.point = true
-	UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
+local function calculate_rotation(rot)
+	rot = math.deg(G.sanitise_euler(math.rad(rot)))
+	new_properties.rotation  = G.euler_to_quat(rot)
+	rot = math.deg(G.sanitise_euler(math.rad(G.quat_to_euler(new_properties.rotation))))
+	gui.set_text(gui.get_node("rot_x/text"), G.round(rot.x, 2))
+	gui.set_text(gui.get_node("rot_y/text"), G.round(rot.y, 2))
+	gui.set_text(gui.get_node("rot_z/text"), G.round(rot.z, 2))
 end
 
-local function evaluate_input(field, text, item)
-	local div = string.find(field, ";")
-	local str = string.sub(field, 1, div)
-	prop_list[item].changes = prop_list[item].changes or {}
-	if str == "pos_x;" then
-		prop_list[item].position.x = text
-		prop_list[item].changes.point = true
-	elseif str == "pos_y;" then
-		prop_list[item].position.y = text
-		prop_list[item].changes.point = true
-	elseif str == "pos_z;" then
-		prop_list[item].position.z = text
-		prop_list[item].changes.point = true
-	elseif str == "rot_x;" then
-		local rot = G.quat_to_euler(prop_list[item].rotation)
+local function evaluate_input(field, text)
+	if field == "pos_x" then
+		new_properties.position.x = text
+	elseif field == "pos_y" then
+		new_properties.position.y = text
+	elseif field == "pos_z" then
+		new_properties.position.z = text
+	elseif field == "rot_x" then
+		local rot = G.quat_to_euler(new_properties.rotation or prop_tab.rotation)
 		rot.x = text
-		calculate_rotation(item, rot)
-	elseif str == "rot_y;" then
-		local rot = G.quat_to_euler(prop_list[item].rotation)
+		calculate_rotation(rot)
+	elseif field == "rot_y" then
+		local rot = G.quat_to_euler(new_properties.rotation or prop_tab.rotation)
 		rot.y = text
-		calculate_rotation(item, rot)
-	elseif str == "rot_z;" then
-		local rot = G.quat_to_euler(prop_list[item].rotation)
+		calculate_rotation(rot)
+	elseif field == "rot_z" then
+		local rot = G.quat_to_euler(new_properties.rotation or prop_tab.rotation)
 		rot.z = text
-		calculate_rotation(item, rot)
-	elseif str == "sc_x;" then
-		prop_list[item].scale.x = text
-		prop_list[item].changes.scale = true
-	elseif str == "sc_y;" then
-		prop_list[item].scale.y = text
-		prop_list[item].changes.scale = true
-	elseif str == "sc_z;" then
-		prop_list[item].scale.z = text
-		prop_list[item].changes.scale = true
+		calculate_rotation(rot)
+	elseif field == "sc_x" then
+		new_properties.scale.x = text
+	elseif field == "sc_y" then
+		new_properties.scale.y = text
+	elseif field == "sc_z" then
+		new_properties.scale.z = text
 	end
 end
 
-local function remove_prop(prop_tab)
+local function get_range_labels()
+	local function rounded_secs(pos)
+		return G.round(pos / 3, 1)
+	end
+	local VIEW_DISTANCE = 48
+	local view_distance_str, spawn_str, despawn_str, tween_str
+	local spawn_pos = G.clamp(prop_tab.spawn_range * 16 - 7, 0, max_distance)
+	gui.set_text(gui.get_node("range_low"), rounded_secs(spawn_pos).." ("..prop_tab.spawn_range..")")
+	local despawn_pos = G.clamp(prop_tab.despawn_range * 16 + 7, 0, max_distance)
+	gui.set_text(gui.get_node("range_high"), rounded_secs(despawn_pos).." ("..prop_tab.despawn_range..")")
+
+	if MEM.level_data.moveMode and MEM.level_data.moveMode == "Stationary" then
+		if prop_tab.spawn_range > 0 then
+			return "The prop is set to spawn at "..rounded_secs(spawn_pos).." seconds which will NOT happen on a stationary map."
+		else
+			return "The prop will spawn on level load and will never despawn because the map is set as stationary."
+		end
+	end
+
+	local prop_pos = new_properties.position.z or prop_tab.position.z
+	local view_start = math.max(0, prop_pos - VIEW_DISTANCE)
+	local view_end = prop_pos + VIEW_DISTANCE
+
+	if view_start > 0 then
+		view_distance_str = "The prop will come into view at roughly "..rounded_secs(view_start).." seconds and "
+	else
+		view_distance_str = "The prop will be visible from the start and "
+	end
+
+	if view_end > max_distance then
+		view_distance_str = view_distance_str.."will still be visible by the time the map ends."
+	else
+		view_distance_str = view_distance_str.."disappear from view at around "..rounded_secs(view_end).." seconds."
+	end
+
+	if spawn_pos == 0 then
+		spawn_str = "It will spawn as the map starts."
+	elseif spawn_pos < view_start then
+		spawn_str = "It will spawn "..rounded_secs(view_start - spawn_pos).." seconds before coming into view."
+	elseif spawn_pos > view_end then
+		spawn_str = "It will spawn "..rounded_secs(spawn_pos - view_end).." seconds after leaving view, so it probably won't be visible at all."
+	else 
+		spawn_str = "It will spawn "..rounded_secs(spawn_pos - view_start).." seconds after coming into view, possibly causing pop-in."
+	end
+
+	if despawn_pos < spawn_pos then
+		despawn_str = "It is set to despawn before it spawns, so it never will."
+	elseif despawn_pos == 0 then
+		despawn_str = "It is set to despawn at the start of the map. No idea what that's going to do."
+	elseif despawn_pos > max_distance - 0.01 then
+		despawn_str = "It will last until the end of the map."
+	elseif despawn_pos > view_end then
+		despawn_str = "It will despawn "..rounded_secs(despawn_pos - view_end).." seconds after leaving view."
+	elseif despawn_pos > prop_pos then
+		despawn_str = "It will despawn "..rounded_secs(despawn_pos - prop_pos).." seconds after moving past the player, which might be visible if the player looks back."
+	elseif view_start < despawn_pos then
+		despawn_str = "It will despawn "..rounded_secs(despawn_pos - view_start).." seconds after coming to view, likely visibly popping out of existence."
+	else
+		despawn_str = "It will despawn "..rounded_secs(view_start - despawn_pos).." seconds before even coming to view, likely not being visible at all."
+	end
+	local tween_count = #MEM.art_data.table.propsDictionary[prop_tab.model_index].model_data.tween_list
+	if tween_count > 1 then
+		tween_str = "The prop has some tweens. That might change things."
+	elseif tween_count == 1 then
+		tween_str = "The prop has a tween. That might change things."
+	else
+		tween_str = "Keep in mind these are just very rough estimates."
+	end
+	return view_distance_str.."\n"..spawn_str.."\n"..despawn_str.."\n"..tween_str
+end
+local function update_range_labels(initial_call)
+	range_unchanged = initial_call
+	gui.set_text(gui.get_node("range_description"), get_range_labels())
+end
+
+local function remove_prop()
 	for k, v in ipairs(MEM.art_data.table.staticProps or {}) do
-		if v == prop_tab then
+		if v == prop_tab.prop_tab then
 			table.remove(MEM.art_data.table.staticProps, k)
 			return
 		end
 	end
 	for k, v in ipairs(MEM.art_data.table.dynamicProps or {}) do
-		if v == prop_tab then
+		if v == prop_tab.prop_tab then
 			table.remove(MEM.art_data.table.dynamicProps, k)
 			return
 		end
 	end
 	for k, v in ipairs(MEM.art_data.table.staticCullingRanges or {}) do
 		for _k, _v in ipairs(v.members) do
-			if _v == prop_tab then
+			if _v == prop_tab.prop_tab then
 				table.remove(v.members, _k)
 				if #v.members < 1 then
 					table.remove(MEM.art_data.table.staticCullingRanges, k)
@@ -275,7 +167,7 @@ local function remove_prop(prop_tab)
 	end
 	for k, v in ipairs(MEM.art_data.table.dynamicCullingRanges or {}) do
 		for _k, _v in ipairs(v.members) do
-			if _v == prop_tab then
+			if _v == prop_tab.prop_tab then
 				table.remove(v.members, _k)
 				if #v.members < 1 then
 					table.remove(MEM.art_data.table.dynamicCullingRanges, k)
@@ -286,197 +178,170 @@ local function remove_prop(prop_tab)
 	end
 end
 
+local function apply_property_changes()
+	local x, y, z, change_happened
+	if next(new_properties.scale) then
+		x = new_properties.scale.x or prop_tab.scale.x
+		y = new_properties.scale.y or prop_tab.scale.y
+		z = new_properties.scale.z or prop_tab.scale.z
+		prop_tab.scale = vmath.vector3(x, y, z)
+		prop_tab.prop_tab.scale = x..","..y..","..z
+		change_happened = true
+	end
+	if next(new_properties.position) or new_properties.rotation then
+		x = new_properties.position.x or prop_tab.position.x
+		y = new_properties.position.y or prop_tab.position.y
+		z = new_properties.position.z or prop_tab.position.z
+		prop_tab.position = vmath.vector3(x, y, z)
+		prop_tab.rotation = new_properties.rotation or prop_tab.rotation
+		local rot_string = prop_tab.rotation.x..","..prop_tab.rotation.y..","..prop_tab.rotation.z..","..prop_tab.rotation.w
+		prop_tab.prop_tab.point = x..","..y..","..z..","..rot_string
+		change_happened = true
+	end
+	if not range_unchanged then
+		local range_str = (prop_tab.spawn_range + 3)..","..(prop_tab.despawn_range - 3)
+		local is_dynamic = MEM.art_data.table.propsDictionary[model_index].dynamic
+		remove_prop()
+		local range_tab
+		if is_dynamic then
+			for k, v in ipairs(MEM.art_data.table.dynamicCullingRanges or {}) do
+				if v.range == range_str then
+					range_tab = v
+					break
+				end
+			end
+		else
+			for k, v in ipairs(MEM.art_data.table.staticCullingRanges or {}) do
+				if v.range == range_str then
+					range_tab = v
+					break
+				end
+			end
+		end
+		if range_tab then
+			table.insert(range_tab.members, prop_tab.prop_tab)
+		else
+			if is_dynamic then
+				MEM.art_data.table.dynamicCullingRanges = MEM.art_data.table.dynamicCullingRanges or {}
+				local t = {
+					range = range_str,
+					_key_sort = {"range", "members"},
+					members = {prop_tab.prop_tab}
+				}
+				table.insert(MEM.art_data.table.dynamicCullingRanges, t)
+			else
+				MEM.art_data.table.staticCullingRanges = MEM.art_data.table.staticCullingRanges or {}
+				local t = {
+					range = range_str,
+					_key_sort = {"range", "members"},
+					members = {prop_tab.prop_tab}
+				}
+				table.insert(MEM.art_data.table.staticCullingRanges, t)
+			end
+		end
+		change_happened = true
+	end
+	if change_happened then
+		new_properties.scale = {}
+		new_properties.position = {}
+		new_properties.rotation = nil
+		range_unchanged = true
+		MEM.setup_culling_ranges()
+	end
+end
+
 function evaluate_button(button, item)
 	if button == "instance_accept" or button == "escape" then
-		for key, val in ipairs(prop_list) do
-			if val.changes then
-				if val.changes.point then
-					local pos = val.position.x..","..val.position.y..","..val.position.z..","
-					local rot = val.rotation.x..","..val.rotation.y..","..val.rotation.z..","..val.rotation.w
-					val.prop_tab.point = pos..rot
-				end
-				if val.changes.scale then
-					val.prop_tab.scale = val.scale.x..","..val.scale.y..","..val.scale.z
-				end
-				if val.changes.range then
-					local range_str = (val.spawn_range + 3)..","..(val.despawn_range - 3)
-					local is_dynamic = MEM.art_data.table.propsDictionary[val.model_index].dynamic
-					remove_prop(val.prop_tab)
-					local range_tab
-					if is_dynamic then
-						for k, v in ipairs(MEM.art_data.table.dynamicCullingRanges or {}) do
-							if v.range == range_str then
-								range_tab = v
-								break
-							end
-						end
-					else
-						for k, v in ipairs(MEM.art_data.table.staticCullingRanges or {}) do
-							if v.range == range_str then
-								range_tab = v
-								break
-							end
-						end
-					end
-					if range_tab then
-						table.insert(range_tab.members, val.prop_tab)
-					else
-						if is_dynamic then
-							MEM.art_data.table.dynamicCullingRanges = MEM.art_data.table.dynamicCullingRanges or {}
-							local t = {
-								range = range_str,
-								_key_sort = {"range", "members"},
-								members = {val.prop_tab}
-							}
-							table.insert(MEM.art_data.table.dynamicCullingRanges, t)
-						else
-							MEM.art_data.table.staticCullingRanges = MEM.art_data.table.staticCullingRanges or {}
-							local t = {
-								range = range_str,
-								_key_sort = {"range", "members"},
-								members = {val.prop_tab}
-							}
-							table.insert(MEM.art_data.table.staticCullingRanges, t)
-						end
-					end
-				end
-				val.changes = nil
-			end
-		end
-		prop_list = {}
-		MEM.create_prop_list(MEM.art_data.table, true)
-		MEM.setup_culling_ranges()
+		apply_property_changes()
 		DIALOG.close(DIALOG_NAME)
-	else
-		local div = string.find(button, ";")
-		local str = string.sub(button, 1, div)
-		if str == "range_low_minus;" then
-			prop_list[item].spawn_range = prop_list[item].spawn_range - 1
-			prop_list[item].changes = prop_list[item].changes or {}
-			prop_list[item].changes.range = true
-			UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
-		elseif str == "range_high_minus;" then
-			prop_list[item].despawn_range = prop_list[item].despawn_range - 1
-			prop_list[item].changes = prop_list[item].changes or {}
-			prop_list[item].changes.range = true
-			UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
-		elseif str == "range_low_plus;" then
-			prop_list[item].spawn_range = prop_list[item].spawn_range + 1
-			prop_list[item].changes = prop_list[item].changes or {}
-			prop_list[item].changes.range = true
-			UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
-		elseif str == "range_high_plus;" then
-			prop_list[item].despawn_range = prop_list[item].despawn_range + 1
-			prop_list[item].changes = prop_list[item].changes or {}
-			prop_list[item].changes.range = true
-			UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
-		elseif str == "prop_view;" then
-			MEM.setup_culling_ranges()
-			MOD.find_prop = vmath.vector3(prop_list[item].position.x, prop_list[item].position.y, 0)
-			G.update_navbar("", true)
-			msg.post("#", hash("disable"))
-			msg.post("#", hash("release_input_focus"))
-			msg.post(UI.tab.tab_art.path, hash("disable"))
-			local pos = prop_list[item].position.z / 3
-			msg.post("/model_viewer", hash("show_preview"), {
-				source = hash("instance_list"), jump_to = pos, preview_map = true
-			})
-		elseif str == "prop_delete;" then
-			if SET.ask_before_deleting_prop then
-				local title = "Are you sure you want to delete this prop?"
-				DIALOG.open(DIALOG_NAME, "dialog_confirm", {title = title, button_1 = "Delete", button_3 = "Cancel", subject = "delete_prop;"..item})
-			else
-				remove_prop(prop_list[item].prop_tab)
-				table.remove(prop_list, item)
-				MEM.art_data.table.propsDictionary[model_index].model_data.model_count = MEM.art_data.table.propsDictionary[model_index].model_data.model_count - 1
-				UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
-				MEM.create_prop_list(MEM.art_data.table, true)
-				MEM.setup_culling_ranges()
-			end
-		elseif str == "geo;" then
-			DIALOG.open(DIALOG_NAME, "dialog_create_geo", {model_index = model_index, prop_index = item})
-		end
+	elseif button == "next_instance" then
+		apply_property_changes()
+		DIALOG.close(DIALOG_NAME, {next = 1, prop_index = prop_index})
+	elseif button == "previous_instance" then
+		apply_property_changes()
+		DIALOG.close(DIALOG_NAME, {next = -1, prop_index = prop_index})
+	elseif button == "range_low_minus" then
+		prop_tab.spawn_range = prop_tab.spawn_range - 1
+		update_range_labels()
+	elseif button == "range_high_minus" then
+		prop_tab.despawn_range = prop_tab.despawn_range - 1
+		update_range_labels()
+	elseif button == "range_low_plus" then
+		prop_tab.spawn_range = prop_tab.spawn_range + 1
+		update_range_labels()
+	elseif button == "range_high_plus" then
+		prop_tab.despawn_range = prop_tab.despawn_range + 1
+		update_range_labels()
+	elseif button == "range_low_min" then
+		prop_tab.spawn_range = 0
+		update_range_labels()
+	elseif button == "range_low_max" then
+		prop_tab.spawn_range = prop_tab.despawn_range
+		update_range_labels()
+	elseif button == "range_high_min" then
+		prop_tab.despawn_range = prop_tab.spawn_range
+		update_range_labels()
+	elseif button == "range_high_max" and max_distance < math.huge then
+		prop_tab.despawn_range = math.ceil((max_distance - 7) / 16)
+		update_range_labels()
+	elseif button == "auto_range" then
+		local prop_pos = new_properties.position.z or prop_tab.position.z
+		prop_tab.despawn_range = math.min(math.ceil((prop_pos + 48 + 9 - 7) / 16), max_distance)
+		prop_tab.spawn_range = math.max(math.ceil((prop_pos - 48 - 9 + 7) / 16) - 1, 0)
+		update_range_labels()
+	elseif button == "prop_view" then
+		apply_property_changes()
+		MEM.setup_culling_ranges()
+		MOD.find_prop = vmath.vector3(prop_tab.position.x, prop_tab.position.y, 0)
+		msg.post("#", hash("disable"))
+		msg.post(UI.tab.tab_art.path, hash("disable"))
+		msg.post("#", hash("release_input_focus"))
+		local pos = prop_tab.position.z / 3
+		msg.post("/model_viewer", hash("show_preview"), {
+			source = hash("instance_dialog"), jump_to = pos, preview_map = true
+		})
 	end
 end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		DIALOG.show(DIALOG_DATA, sender)
-		model_index = message.selected_model
+		model_index = message.model_index
 		local prop_name = MEM.art_data.table.propsDictionary[model_index].key
 		gui.set_text(gui.get_node("title_instance_list"), prop_name)
-		prop_list = {}
-		for key, val in ipairs(MEM.art_data.prop_list) do
-			if val.model_index == model_index then
-				table.insert(prop_list, val)
-			end
+		prop_index = message.prop_index
+		prop_tab = MEM.art_data.prop_list[prop_index]
+		
+		new_properties = {
+			position = {},
+			scale = {}
+		}
+
+		gui.set_text(gui.get_node("pos_x/text"), G.round(prop_tab.position.x, 2))
+		gui.set_text(gui.get_node("pos_y/text"), G.round(prop_tab.position.y, 2))
+		gui.set_text(gui.get_node("pos_z/text"), G.round(prop_tab.position.z, 2))
+		gui.set_text(gui.get_node("sc_x/text"), G.round(prop_tab.scale.x, 2))
+		gui.set_text(gui.get_node("sc_y/text"), G.round(prop_tab.scale.y, 2))
+		gui.set_text(gui.get_node("sc_z/text"), G.round(prop_tab.scale.z, 2))
+
+		local rot = G.quat_to_euler(prop_tab.rotation)
+
+		gui.set_text(gui.get_node("rot_x/text"), G.round(rot.x, 2))
+		gui.set_text(gui.get_node("rot_y/text"), G.round(rot.y, 2))
+		gui.set_text(gui.get_node("rot_z/text"), G.round(rot.z, 2))
+
+		if MEM.level_data.songLength then
+			max_distance = tonumber(MEM.level_data.songLength) * 3
+		else
+			max_distance = math.huge
 		end
-		UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
+
+		update_range_labels(true)
+
 	elseif message_id == hash("reopen") then
 		DIALOG.show(DIALOG_DATA, DIALOG_DATA.parent_tab)
 		msg.post(DIALOG_DATA.parent_tab, hash("release_input_focus"))
 		msg.post("/model_viewer", hash("disable_input"))
-	elseif message_id == hash("dialog_closed") then
-		msg.post("#", hash("acquire_input_focus"))
-		if message.dialog == "dialog_create_geo" then
-			if message.changes then
-				if SET.scale_prop_after_geo then
-					local function scale_to_zero(prop_tab)
-						prop_tab.scale.x = 0
-						prop_tab.scale.y = 0
-						prop_tab.scale.z = 0
-						prop_tab.changes = prop_tab.changes or {}
-						prop_tab.changes.scale = true
-					end
-					if SET.generate_geo_for_all_instances then
-						for key, val in ipairs(prop_list) do
-							scale_to_zero(val)
-						end
-					else
-						scale_to_zero(prop_list[message.prop_index])
-					end
-					UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
-				elseif SET.delete_prop_after_geo then
-					if SET.generate_geo_for_all_instances then
-						for key, val in ipairs(prop_list) do
-							remove_prop(val.prop_tab)
-						end
-						prop_list = {}
-						MEM.art_data.table.propsDictionary[model_index].model_data.model_count = 0
-						MEM.create_prop_list(MEM.art_data.table, true)
-						MEM.setup_culling_ranges()
-						DIALOG.close(DIALOG_NAME)
-					else
-						remove_prop(prop_list[message.prop_index].prop_tab)
-						MEM.art_data.table.propsDictionary[model_index].model_data.model_count = MEM.art_data.table.propsDictionary[model_index].model_data.model_count - 1
-						UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
-						MEM.create_prop_list(MEM.art_data.table, true)
-						MEM.setup_culling_ranges()
-					end
-				end
-			end
-		elseif message.dialog == "dialog_confirm" then  			-- buttons are 1 = delete, 3 = cancel
-			local div = string.find(message.subject, ";")
-			if div then
-				if message.button == 1 then
-					local item = tonumber(string.sub(message.subject, div + 1))
-					remove_prop(prop_list[item].prop_tab)
-					table.remove(prop_list, item)
-					MEM.art_data.table.propsDictionary[model_index].model_data.model_count = MEM.art_data.table.propsDictionary[model_index].model_data.model_count - 1
-					UI.update_list(DIALOG_NAME, prop_scroll_list, #prop_list)
-					MEM.create_prop_list(MEM.art_data.table, true)
-					MEM.setup_culling_ranges()
-				end
-			end
-		end
-	end
-end
-
-function update()
-	if DIALOG_DATA.dialog_open then
-		for list_index in pairs(UI.tab[DIALOG_NAME].scrolling) do
-			UI.move_list_root(DIALOG_NAME, list_index, true)
-		end
 	end
 end
 

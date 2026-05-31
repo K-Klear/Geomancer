@@ -22,7 +22,8 @@ function init(self)
 	gui.set_render_order(1)
 	gui.set_text(gui.get_node("version_label"), "Version "..sys.get_config("project.version"))
 	UI.load_template({"exit", "load_dir", "load_file", "load_zip", "unload_all", "export_all", "export_folder_checkbox", "import_changes",
-	"import_checkbox", "degeomance", "import_level", "import_events", "import_beat", "import_models", "import_geo", "help", "map_preview"}, TAB_NAME)
+	"import_checkbox", "degeomance", "import_level", "import_events", "import_beat", "import_models", "import_geo", "help",
+	"map_preview", "delete_normals_checkbox"}, TAB_NAME)
 	if SET.I_am_Klear then
 		UI.load_template("klear_button", TAB_NAME)
 	else
@@ -35,6 +36,7 @@ function init(self)
 	set_checkbox("import_beat", SET.import_beat_changes)
 	set_checkbox("import_models", SET.import_model_changes)
 	set_checkbox("import_geo", SET.import_geo_changes)
+	set_checkbox("delete_normals_checkbox", SET.remove_normal_data)
 end
 
 local function run_export_fn()
@@ -162,6 +164,21 @@ local function export_art(path)
 			MEM.geomancer_meta.props[val.key].hide = true
 		end
 		is_dynamic[val.key] = val.dynamic
+		if SET.remove_normal_data then
+			local function find_meshes(tab)
+				for k, v in ipairs(tab.components) do
+					if v.type == "MeshFilter" then
+						v.normals = {}
+						v.normals._pure_array = "[]"
+						break
+					end
+				end
+				for k, v in ipairs(tab.children) do
+					find_meshes(v)
+				end
+			end
+			find_meshes(val.object)
+		end
 	end
 	table.insert(model_table.propsDictionary, 1, MEM.art_data.placeholder)
 	model_table.staticProps = model_table.staticProps or {}
@@ -1720,6 +1737,9 @@ local function evaluate_button(button)
 	elseif button == "import_geo" then
 		SET.import_geo_changes = not SET.import_geo_changes
 		set_checkbox("import_geo", SET.import_geo_changes)
+	elseif button == "delete_normals_checkbox" then
+		SET.remove_normal_data = not SET.remove_normal_data
+		set_checkbox("delete_normals_checkbox", SET.remove_normal_data)
 	elseif button == "import_changes" then
 		import_changes()
 	elseif button == "degeomance" then
