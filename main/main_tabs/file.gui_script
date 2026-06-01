@@ -8,7 +8,7 @@ local TAB_NAME = "tab_file"
 local MOD = require "modules.models"
 local SND = require "modules.sound"
 
-local files_to_export
+local files_to_export, load_time
 
 local function set_checkbox(checkbox, value)
 	if value then
@@ -57,9 +57,9 @@ local function run_export_fn()
 		expected_count = expected_count - 1
 	end
 	if export_count < expected_count then
-		G.update_navbar(export_count.." files exported")
+		G.update_navbar(export_count.." files exported in "..G.round(socket.gettime() - load_time, 2).." seconds.")
 	else
-		G.update_navbar(export_count.." files exported")
+		G.update_navbar(export_count.." files exported in "..G.round(socket.gettime() - load_time, 2).." seconds.")
 		G.update_navbar("The export is a full map.")
 	end
 	files_to_export = nil
@@ -479,6 +479,7 @@ local function export_all(overwrite)
 
 			
 			if not overwrite then
+				load_time = socket.gettime()
 				local export_count, expected_count = 0, 10
 				path = path.."\\"..filename_common.."_geomanced"
 				if not lfs.mkdir(path) then
@@ -554,12 +555,27 @@ local function export_all(overwrite)
 					export_count = export_count + 1
 				end
 				if export_count < expected_count then
-					G.update_navbar(export_count.." files exported to "..path)
+					G.update_navbar(export_count.." files exported to "..path.." in "..G.round(socket.gettime() - load_time, 2).." seconds.")
+					G.update_navbar("Export completed ")
 				else
-					G.update_navbar(export_count.." files exported to "..path)
+					G.update_navbar(export_count.." files exported to "..path.." in "..G.round(socket.gettime() - load_time, 2).." seconds.")
 					G.update_navbar("The export is a full map.")
 				end
 			else
+				if not lfs.mkdir("temp") then
+					for i in lfs.dir("temp") do
+						if not (i == "." or i == "..") then
+							os.remove("temp\\"..i)
+						end
+					end
+				end
+				os.exit()
+				--iter, dir_obj = lfs.dir (path)
+
+				
+				local new_dir, err2 = lfs.mkdir("temp")
+				print(del_dir, new_dir, err1, err2)
+				os.exit()
 				G.update_navbar("Starting export", true)
 				files_to_export = {}
 				local full_path
@@ -609,8 +625,10 @@ local function export_all(overwrite)
 					end
 				end
 				if overwrite_count < 1 then
+					load_time = socket.gettime()
 					run_export_fn()
 				elseif not SET.confirm_file_overwrite then
+					load_time = socket.gettime()
 					G.update_navbar("Exporting files to "..path.."\nEXISTING FILES ARE BEING OVERWRITTEN", true)
 					run_export_fn()
 				else
@@ -849,6 +867,7 @@ function on_message(self, message_id, message, sender)
 		if message.dialog == "dialog_confirm" then
 			if message.subject == "overwrite_export" then
 				if message.button == 1 then 			-- buttons are 1 = overwrite, 3 = cancel
+					load_time = socket.gettime()
 					run_export_fn()
 				else
 					files_to_export = nil
@@ -1572,10 +1591,12 @@ local function load_zip(path)
 		get_file_count(archive_name..".geomancer", "geomancer", extracted_files)
 		zip.close(archive)
 
+		local time_elapsed = G.round(socket.gettime() - load_time, 2)
+
 		if loaded_count < expected_count then
-			G.update_navbar("Loaded "..loaded_count.." files.")
+			G.update_navbar("Loaded "..loaded_count.." files in "..time_elapsed.." seconds.")
 		else
-			G.update_navbar("Loaded "..loaded_count.." files. Export should produce a working map.")
+			G.update_navbar("Loaded "..loaded_count.." files in "..time_elapsed.." seconds. Export should produce a working map.")
 		end
 
 		cleanup_after_loading_files()
@@ -1594,7 +1615,8 @@ local function load_file(path)
 	timer.delay(0.01, false, function()
 		local panel = MEM.load_file(path, filename, extension)
 		if panel then
-			G.update_navbar("File loaded successfully")
+			local time_elapsed = G.round(socket.gettime() - load_time, 2)			
+			G.update_navbar("File loaded successfully in "..time_elapsed.." seconds.")
 			msg.post("/navbar#navbar", hash("update_tabs"))
 			check_for_reset()
 			if extension == "pw_event" then
@@ -1665,10 +1687,12 @@ local function load_dir(path)
 		get_file_count(common_name..".pw_geo", "pw_geo", file_list)
 		get_file_count(common_name..".geomancer", "geomancer", file_list)
 
+		local time_elapsed = G.round(socket.gettime() - load_time, 2)
+
 		if loaded_count < expected_count then
-			G.update_navbar("Loaded "..loaded_count.." files.")
+			G.update_navbar("Loaded "..loaded_count.." files in "..time_elapsed.." seconds.")
 		else
-			G.update_navbar("Loaded "..loaded_count.." files. Export should produce a working map.")
+			G.update_navbar("Loaded "..loaded_count.." files in "..time_elapsed.." seconds. Export should produce a working map.")
 		end
 		cleanup_after_loading_files()
 	else
@@ -1751,6 +1775,7 @@ local function evaluate_button(button)
 	elseif button == "load_file" then
 		local num, path = diags.open("pw_meta,pw,pw_beat,pw_event,pw_geo,pw_art,pw_seq,ogg", SET.default_path_load_file)
 		if path then
+			load_time = socket.gettime()
 			load_file(path)
 		end
 	elseif button == "load_zip" then
@@ -1759,6 +1784,7 @@ local function evaluate_button(button)
 			if SET.unload_data_before_loading_zip then
 				unload_all()
 			end
+			load_time = socket.gettime()
 			timer.delay(0.01, false, function()
 				load_zip(path)
 			end)
@@ -1769,6 +1795,7 @@ local function evaluate_button(button)
 			if SET.unload_data_before_loading_folder then
 				unload_all()
 			end
+			load_time = socket.gettime()
 			timer.delay(0.01, false, function()
 				load_dir(path)
 			end)

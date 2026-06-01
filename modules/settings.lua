@@ -48,6 +48,7 @@ local configurable = {
 	"colour_tween_rotate",
 	"colour_tween_scale",
 	"colour_tween_wait",
+	"colour_tween_collision",
 	"use_default_transform_name",
 	"default_transform_name",
 	"add_root_transform_if_missing",

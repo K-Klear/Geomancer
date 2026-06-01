@@ -456,24 +456,24 @@ end
 
 local function count_model_instances(model_name)
 	local count = 0
-	for key, val in ipairs(MEM.art_data.table.staticProps) do
+	for key, val in ipairs(MEM.art_data.table.staticProps or {}) do
 		if val.name == model_name then
 			count = count + 1
 		end
 	end
-	for key, val in ipairs(MEM.art_data.table.dynamicProps) do
+	for key, val in ipairs(MEM.art_data.table.dynamicProps or {}) do
 		if val.name == model_name then
 			count = count + 1
 		end
 	end
-	for key, val in ipairs(MEM.art_data.table.staticCullingRanges) do
+	for key, val in ipairs(MEM.art_data.table.staticCullingRanges or {}) do
 		for k, v in ipairs(val.members) do
 			if v.name == model_name then
 				count = count + 1
 			end
 		end
 	end
-	for key, val in ipairs(MEM.art_data.table.dynamicCullingRanges) do
+	for key, val in ipairs(MEM.art_data.table.dynamicCullingRanges or {}) do
 		for k, v in ipairs(val.members) do
 			if v.name == model_name then
 				count = count + 1
@@ -486,24 +486,24 @@ end
 local function model_replace(selected_model_index, replace_model_index)
 	local old_name = MEM.art_data.table.propsDictionary[selected_model_index].key
 	local new_name = MEM.art_data.table.propsDictionary[replace_model_index].key
-	for key, val in ipairs(MEM.art_data.table.staticProps) do
+	for key, val in ipairs(MEM.art_data.table.staticProps or {}) do
 		if val.name == new_name then
 			val.name = old_name
 		end
 	end
-	for key, val in ipairs(MEM.art_data.table.dynamicProps) do
+	for key, val in ipairs(MEM.art_data.table.dynamicProps or {}) do
 		if val.name == new_name then
 			val.name = old_name
 		end
 	end
-	for key, val in ipairs(MEM.art_data.table.staticCullingRanges) do
+	for key, val in ipairs(MEM.art_data.table.staticCullingRanges or {}) do
 		for k, v in ipairs(val.members) do
 			if v.name == new_name then
 				v.name = old_name
 			end
 		end
 	end
-	for key, val in ipairs(MEM.art_data.table.dynamicCullingRanges) do
+	for key, val in ipairs(MEM.art_data.table.dynamicCullingRanges or {}) do
 		for k, v in ipairs(val.members) do
 			if v.name == new_name then
 				v.name = old_name
@@ -526,7 +526,7 @@ local function model_replace(selected_model_index, replace_model_index)
 	table.remove(MEM.art_data.table.propsDictionary, replace_model_index)
 
 	local new_index = selected_model_index
-	if not (MEM.art_data.table.propsDictionary[selected_model_index] and MEM.art_data.table.propsDictionary[selected_model_index].key == new_name) then
+	if not (MEM.art_data.table.propsDictionary[selected_model_index] and MEM.art_data.table.propsDictionary[selected_model_index].key == old_name) then
 		new_index = new_index - 1
 	end
 	MEM.art_data.table.propsDictionary[new_index].model_data.model_count = count_model_instances(old_name)
@@ -535,10 +535,10 @@ local function model_replace(selected_model_index, replace_model_index)
 	MEM.setup_culling_ranges()
 	
 	msg.post("/model_viewer", hash("update_model"), {model = new_index})
+	update_lists()
 	UI.select_exclusive_button(TAB_NAME, model_list, new_index)
 
 	G.update_navbar("All instances of "..old_name.." have been replaced by "..new_name.." keeping the original model name and properties.", true)
-	update_lists()
 end
 
 local function rename_model(new_name, model_to_rename)
@@ -840,8 +840,8 @@ end
 
 local function sort_tweens()
 	local selected_name
+	if selected_tween > #tween_list then selected_tween = #tween_list end
 	if selected_tween > 0 then
-		if selected_tween > #tween_list then selected_tween = #tween_list end
 		selected_name = tween_list[selected_tween].name
 	end
 	table.sort(tween_list, function(a, b) return string.lower(a.name) < string.lower(b.name) end)
@@ -1172,7 +1172,6 @@ function evaluate_button(button, item)
 		local _, path = diags.open_folder(SET.default_path_import_models)
 		local file_list = {}
 		for filename in lfs.dir(path) do
-			print(filename)
 			if string.sub(filename, -4) == ".obj" then
 				table.insert(file_list, {path = path.."\\"..filename, name = string.sub(filename, 1, -4)})
 			end
@@ -1195,18 +1194,26 @@ function evaluate_button(button, item)
 		end
 		
 		for key, val in ipairs(file_list) do
-			print(val.name)
 			import_obj(val)
 		end
 
 		if import_count > 0 then
 			update_lists()
-			G.update_navbar(import_count.." models imported.", true)
 			UI.select_exclusive_button(TAB_NAME, model_list, #MEM.art_data.table.propsDictionary, false, true)
 			select_model(#MEM.art_data.table.propsDictionary)
+			if import_count > 1 then
+				G.update_navbar(import_count.." models imported.", true)
+			else
+				G.update_navbar("One model imported.", true)
+			end
 		end
-		if error_count > 0 then
+		if error_count > 1 then
 			G.update_navbar(error_count.." models failed to import.")
+		elseif error_count > 0 then
+			G.update_navbar("One model failed to import.")
+		end
+		if import_count + error_count < 1 then
+			G.update_navbar("No model files found.")
 		end
 	elseif button == "colour_guide" then
 		sys.open_url("https://mod.io/g/pistol-whip/r/advanced-color-hack-guide")

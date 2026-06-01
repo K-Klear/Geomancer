@@ -72,6 +72,11 @@ function MEM.export_json(json_tab)
 					if key_count > 1 then
 						io.write(QUOTE..val..QUOTE_6..tab[val]..",")
 					else
+						if not val or not tab[val] then
+							print(val)
+							print(val_type)
+							pprint(tab)
+						end
 						io.write(QUOTE..val..QUOTE_6..tab[val])
 					end
 				end
@@ -697,7 +702,7 @@ function MEM.parse_obj(f, name)
 			{_key_sort = {"type", "verts", "tris", "normals", "subMeshes"}, type = "MeshFilter", verts = {}, tris = {}, normals = {}, subMeshes = {
 				{_key_sort = {"IndexStart", "IndexCount", "Topology", "BaseVertex"}, IndexStart = 0, IndexCount = #val.tris, Topology = "Triangles", BaseVertex = 0}
 			}},
-		}}
+		}, children = {}}
 		for k, v in ipairs(val.verts) do
 			table.insert(child_tab.components[3].verts, v)
 		end

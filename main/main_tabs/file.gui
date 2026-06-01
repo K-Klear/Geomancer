@@ -834,8 +834,8 @@ nodes {
 }
 nodes {
   position {
-    x: 1033.0
-    y: 416.0
+    x: 1036.0
+    y: 410.0
   }
   type: TYPE_TEMPLATE
   id: "delete_normals_checkbox"
@@ -867,8 +867,8 @@ nodes {
 }
 nodes {
   position {
-    x: 1068.0
-    y: 416.0
+    x: 1071.0
+    y: 410.0
   }
   size {
     x: 200.0

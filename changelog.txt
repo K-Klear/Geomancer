@@ -22,13 +22,13 @@ To do:
 	- Yeah, maybe not... it's a mess
 - Automatic frame-by-frame animation generation
 - Join static prop meshes together to optimise previews
-
 - Option to show prop origin
 - A way to expand a repeat action
 - A "note" tween action
 - Show a transform's properties during a tween preview
 - Bulk changing of materials
 - The metronome thing
+- Prevent colliders from showing up in transform editor
 
 - EXPORT INTO A TEMPORARY FOLDER AND ONLY THEN OVERWRITE!
 
@@ -47,7 +47,6 @@ Bugs:
 - A leftover chunk info in .geomancer file from a different version can fuck everything up really bad
 - Files with "." in them trip Geomancer up. Investigate, fix, prevent, whatever. Just make it not be an issue.
 - Importing models will not preserve info in geomancer meta file
-- If sample rate ever becomes 0, things get fucky. Make sure it doesn't
 - Obstacles (and their colliders) are still visible after closing preview
 
 Settings to implement in options:
@@ -58,11 +57,10 @@ SET.remove_normal_data (a default state setting to be precise)
 SET.confirm_tween_deletion
 SET.delete_empty_tweens
 SET.ask_before_deleting_prop
-SET.colour_tween_collision
+
 
 To-do (geo generation):
 - Fix the collider rendering (depth buffer?)
-- Prop deletion
 - Check for max chunk z position and adjust if necessary
 
 Done:
@@ -103,9 +101,14 @@ Features:
 	- Geomancer keeps track of geo generated this way and will store this information in the geomancer metadata file on export
 		- This allows it to regenerate these changes when importing changes from a previously geomanced map
 		- There are also new buttons on the Geo/Colliders tab used to remove all geo created this way, as long as the metadata file is present
+- There is an issue where saving a map without ever clicking "Generate geo" causes props and obstacles to disappear. Geomancer now automatically fixes this by generating empty geo chunks if there are none.
+	- This means that it is no longer necessary to make a large subtractive volume if a map with no geo is desired. Just run the map through Geomancer and it will work.
+- Importing models now allows you to select and .obj file rather than an existing map
+	- Some models may fail to load. Try re-exporting them with blender if that happens
+	- There is also an Import folder button, which will import all .obj files in the selected folder into the map
 - There is a checkbox near the export button to remove the normal data from models when exporting
 	- Normal data is not used by the game in any way and removing it will reduce the map size and speed up loading
-	- The downside is that unlike the game, Geomancer does need normal data for previews and will automatically recalculate it when opening a map, which makes it take longer
+	- Geomancer does use normals for previews and will automatically recalculate them (poorly) when opening a map
 - Obstacles are now shown in preview (can be hidden)
 - Improved how colliders are rendered (textured and transparent)
 	- Collider display can be enabled/disabled independently from geo
@@ -113,9 +116,11 @@ Features:
 	- Red colliders (geo and obstacles) hurt the player when going through them
 	- Yellow colliders (found on some built-in props) only block shots
 		- Props named "PF_CollisionCube_01_Flat" and "PF_CollisionCube_02_tall" are hardcoded to show as appropriately-sized colliders
+			- This only happens when loading map data. If such a model is imported or renamed, it will only show correctly after exporting and reloading the map
 - Geo rendering in previews is more accurate to the game
 - The find model dialog now opens with the text field selected
 - Increased the maximum number of tween action repeats to 999
+- Loading and exporting maps now reports time taken
 
 New shortcuts:
 
@@ -135,11 +140,16 @@ Bugs:
 - Fixed an issue preventing colour changes from being applied to props in stationary maps
 - Correct colour section is now shown when previewing a tween in a stationary map
 - Props no longer despawn in stationary maps
-- Fixed a crash when opening certain models in transform editor 
+- Fixed a crash when opening certain models in transform editor
+- Sample rate is now more stricly enforced to be 100 at minimum
+	- It used to be possible to change the default value to 0 or less by editing the cfg file, causing errors
+- Fixed a crash when replacing a model in a map without any dynamic props
+- Fixed a crash when replacing the last model in the list (again, for good this time, hopefully)
 
 Options:
 - Moved custom colour set to the Colours tab
 - Collider colour setting has been split between strong (geo) and weak (bullet blockers) colliders and moved to the Colours tab
+- "Tween transfom error" colour sets the warning colour of tweens which apply the same action type to the same transform
 - Files -> Include geo data when importing changes
 
 metronome_sound = 1 (0 - nothing, 1 - beep, 2 - click)

@@ -59,7 +59,7 @@ local validation_model_z_position = {
 }
 local validation_default_sample_rate = {
 	integer = true,
-	min = function() return 1 end,
+	min = function() return 100 end,
 	max = function() return 999999 end,
 	default = function() return SET.default_sample_rate end
 }
@@ -129,7 +129,7 @@ tab_list.colours = {buttons = {
 	"background_colour", "colour_active_text_field", "colour_highlight_material", "colour_highlight_dynamic", "colour_highlight_tween",
 	"colour_model_import_selection", "colour_model_replace", "colour_unsupported_obstacle", "colour_current_enemy_set",
 	"colour_selection_change_enemy_type", "colour_highlight_replace_enemy", "colour_current_enemy_type", "colour_tween_move",
-	"colour_tween_rotate", "colour_tween_scale", "colour_tween_wait", "colour_hidden_model", "custom_colour_main", "custom_colour_fog",
+	"colour_tween_rotate", "colour_tween_scale", "colour_tween_wait", "colour_tween_collision", "colour_hidden_model", "custom_colour_main", "custom_colour_fog",
 	"custom_colour_glow", "custom_colour_enemy", "collider_strong_colour", "collider_weak_colour"}, fields = {}
 }
 tab_list.tween = {buttons = {

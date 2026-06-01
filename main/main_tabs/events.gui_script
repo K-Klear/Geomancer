@@ -58,7 +58,7 @@ function init(self)
 	--UI.load_template({"music_preview", "metronome_sound"}, TAB_NAME)
 	local validation = {
 		integer = true,
-		min = function() return 1 end,
+		min = function() return 100 end,
 		default = function() return SET.sample_rate end
 	}
 	UI.load_text_field("sample_rate_field", 5, TAB_NAME, validation)
@@ -203,10 +203,13 @@ local function detect_sample_rate()
 				if not sample_rate_guess then
 					G.update_navbar("Failed to detect sample rate. Using the default value")
 					SET.sample_rate = SET.default_sample_rate
+					if SET.sample_rate < 100 then SET.sample_rate = 100 end
 				elseif sample_rate_guess == 48000 or sample_rate_guess == 44100 then
 					G.update_navbar("Sample rate set to "..sample_rate_guess)
 					SET.sample_rate = sample_rate_guess
+					if SET.sample_rate < 100 then SET.sample_rate = 100 end
 				else
+					if sample_rate_guess < 100 then sample_rate_guess = 100 end
 					G.update_navbar("Sample rate set to "..sample_rate_guess.."\nThis is a non-standard value and might be an error")
 					SET.sample_rate = sample_rate_guess
 				end
@@ -214,9 +217,11 @@ local function detect_sample_rate()
 			else
 				G.update_navbar("Beat data not loaded. Using the default sample rate")
 				SET.sample_rate = SET.default_sample_rate
+				if SET.sample_rate < 100 then SET.sample_rate = 100 end
 			end
 		else
 			SET.sample_rate = SET.default_sample_rate
+			if SET.sample_rate < 100 then SET.sample_rate = 100 end
 		end
 		MEM.event_data.beat_in_seconds = MEM.event_data.table.tempoSections[1].samplesPerBeat / SET.sample_rate
 		UI.update_list(TAB_NAME, tempo_list)
@@ -442,6 +447,7 @@ end
 local function evaluate_input(field, text)
 	if field == "sample_rate_field" then
 		SET.sample_rate = text
+		if SET.sample_rate < 100 then SET.sample_rate = 100 end
 		MEM.event_data.beat_in_seconds = MEM.event_data.table.tempoSections[1].samplesPerBeat / SET.sample_rate
 		UI.update_list(TAB_NAME, nobeat_list)
 		update_event_list(true)
