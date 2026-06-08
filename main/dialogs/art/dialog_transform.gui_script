@@ -23,9 +23,7 @@ local function show_transform_controls(show)
 	}
 	for key, val in ipairs(ui_list) do
 		if show then
-			if not SET.show_transform_edit_warning then
-				UI.load_text_field(val, 8, DIALOG_NAME, validation)
-			end
+			UI.load_text_field(val, 8, DIALOG_NAME, validation)
 		else
 			UI.unload_template(DIALOG_NAME, val)
 		end
@@ -471,11 +469,6 @@ function on_message(self, message_id, message, sender)
 		elseif message.subject == "delete_transform" and message.button == 1 then
 			delete_transform(selected_transform)
 			msg.post("/model_viewer", hash("acquire_input_focus"))
-		elseif message.subject == "edit_warning" then
-			if message.button == 1 then
-				SET.show_transform_edit_warning = false
-				show_transform_controls(true)
-			end
 		elseif message.subject == "rename_transform" and message.text then
 			if message.text == "Colliders" then
 				G.update_navbar("The name \"Colliders\" is reserved for collider data (not supported by custom maps). Choose a different name", true)
@@ -566,10 +559,5 @@ function update()
 end
 
 function on_input(self, action_id, action)
-	if action_id == hash("touch") and SET.show_transform_edit_warning and gui.is_enabled(gui.get_node("label_position")) and action.released and gui.pick_node(gui.get_node("warning_box"), action.x, action.y) then
-		msg.post("/model_viewer", hash("disable_input"))
-		DIALOG.open(DIALOG_NAME, "dialog_confirm", {title = "Changing these values will modify the model file.\nAre you sure?", button_1 = "Yes", button_3 = "Cancel", subject = "edit_warning"})
-		return
-	end
 	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button, evaluate_input)
 end

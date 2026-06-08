@@ -60,9 +60,7 @@ function TRANS.show_transform_controls(show)
 	}
 	for key in pairs(TRANS.controls_list) do
 		if show then
-			if not SET.show_transform_edit_warning then
-				UI.load_text_field(key, 8, TAB_NAME, validation)
-			end
+			UI.load_text_field(key, 8, TAB_NAME, validation)
 		else
 			UI.unload_template(TAB_NAME, key)
 		end

@@ -9,6 +9,7 @@ local configurable = {
 	"colour_hidden_model",
 	"unload_data_before_loading_zip",
 	"unload_data_before_loading_folder",
+	"default_remove_normal_data",
 	"map_preview_partition_size",
 	"tween_padding_start",
 	"tween_padding_end",
@@ -21,7 +22,6 @@ local configurable = {
 	"default_import_beat_changes",
 	"default_import_geo_changes",
 	"default_new_event_sample_offset",
-	"default_show_transform_edit_warning",
 	"default_model_show_grid",
 	"default_show_transform",
 	"default_path_load_zip",
@@ -61,6 +61,8 @@ local configurable = {
 	"tween_part_dialog",
 	"tween_extra_add_buttons",
 	"ask_before_overwriting_tween_file",
+	"delete_empty_tweens",
+	"confirm_tween_deletion",
 	"tween_timeline_bar_height",
 	"easing_node_scale",
 	"easing_curve_thickness",
@@ -84,6 +86,7 @@ local configurable = {
 	"default_sample_rate",
 	"add_opens_edit_box",
 	"hide_model_count",
+	"ask_before_deleting_prop",
 	"mesh_flash_time",
 	"mesh_flash_frequency",
 	"mesh_flash_colour",
@@ -124,7 +127,6 @@ SET.ignore_char_limit = false
 
 -- defaults
 
-SET.default_show_transform_edit_warning = true
 SET.default_model_show_grid = 3
 SET.default_show_transform = 1
 SET.default_new_event_sample_offset = 0
@@ -136,6 +138,7 @@ SET.default_import_model_changes = true
 SET.default_import_beat_changes = true
 SET.default_import_geo_changes = true
 SET.default_tween_time_in_beats = false
+SET.default_remove_normal_data = false
 
 -- file
 
@@ -266,7 +269,6 @@ SET.root_transform_default_name = "Base"
 SET.allow_tweening_base_transform = false
 SET.confirm_transform_delete = true
 SET.allow_mesh_delete = false
-SET.show_transform_edit_warning = true
 
 -- tween
 SET.tween_action_type_dialog = true

@@ -63,7 +63,6 @@ local function generate_geo(prop_tab, transform_list)
 			end
 		end
 		if not chunk_tab then
-			print(chunk_z)
 			chunk_tab = {id = {chunk_x, chunk_y, chunk_z}, id_str = chunk_x..","..chunk_y..","..chunk_z, verts = {}, tris = {}, meshSizes = {0, 0}}
 			table.insert(MEM.geo_data.chunks, chunk_tab)
 		end

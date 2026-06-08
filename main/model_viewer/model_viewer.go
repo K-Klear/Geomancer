@@ -72,3 +72,9 @@ embedded_components {
   data: "prototype: \"/main/model_viewer/obstacle_limbo.go\"\n"
   ""
 }
+embedded_components {
+  id: "create_obstacle_wall"
+  type: "factory"
+  data: "prototype: \"/main/model_viewer/obstacle_wall.go\"\n"
+  ""
+}

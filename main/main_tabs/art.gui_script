@@ -394,7 +394,7 @@ local function open_dialog(dialog, message_tab)
 end
 
 local function import_models()
-	local model_data
+	local model_data, meta_data
 	local num, path = diags.open("zip,pw_art,obj", SET.default_path_import_models)
 	if path then
 		local f = io.open(path, "rb")
@@ -404,11 +404,17 @@ local function import_models()
 				local zip_data = f:read("*a")
 				local archive = zip.open(zip_data)
 				local file_index = zip.get_number_of_entries(archive) - 1
+				local art_found, meta_found
 				for i = 0, file_index do
 					local file = zip.extract_by_index(archive, i)
-					if string.sub(file.name, -6) == "pw_art" then
+					if (not art_found) and string.sub(file.name, -7) == ".pw_art" then
 						model_data = file.content
-						break
+						art_found = true
+						if meta_found then break end
+					elseif (not meta_found) and string.sub(file.name, -10) == ".geomancer" then
+						meta_data = file.content
+						meta_found = true
+						if art_found then break end
 					end
 				end
 			elseif ext == "obj" then
@@ -421,6 +427,9 @@ local function import_models()
 					G.update_navbar("Error reading "..filename..". Try reexporting it in Blender.")
 					io.close(f)
 					return
+				elseif res then
+					io.close(f)
+					return
 				end
 				update_lists()
 				model_data = false
@@ -429,6 +438,19 @@ local function import_models()
 				select_model(#MEM.art_data.table.propsDictionary)
 			else
 				model_data = f:read("*a")
+				local htap = string.reverse(path)
+				local start_index = string.find(htap, "\\")
+				local path_no_file = string.reverse(string.sub(htap, start_index + 1))
+				for i in lfs.dir(path_no_file) do
+					if string.sub(i, -10) == ".geomancer" then
+						io.close(f)
+						f = io.open(path_no_file.."\\"..i, "rb")
+						if f then
+							meta_data = f:read("*a")
+						end
+						break
+					end
+				end
 			end
 		end
 		io.close(f)
@@ -443,6 +465,9 @@ local function import_models()
 			if #model_data < 1 then
 				G.update_navbar("No models found.")
 			else
+				if meta_data then
+					MEM.load_geomancer_data(meta_data, "meta data")
+				end
 				MEM.art_data.models_for_import = model_data
 				open_dialog("dialog_import")
 			end
@@ -990,6 +1015,7 @@ function on_message(self, message_id, message, sender)
 		if message.dialog == "dialog_import" then
 			if message.import then
 				local model_count = 0
+				local dictionary_length = #MEM.art_data.table.propsDictionary
 				for key, val in ipairs(MEM.art_data.models_for_import) do
 					if not MEM.art_data.models_for_import_ignore[val.key] then
 						MEM.add_metadata(val)
@@ -998,6 +1024,7 @@ function on_message(self, message_id, message, sender)
 						model_count = model_count + 1
 					end
 				end
+				MEM.check_metadata_for_tween_scripts(dictionary_length + 1)
 				if model_count < 1 then
 					G.update_navbar("No models added.", true)
 				elseif model_count == 1 then
@@ -1032,11 +1059,6 @@ function on_message(self, message_id, message, sender)
 		elseif message.dialog == "dialog_confirm" then
 			if message.subject == "delete_transform" and message.button == 1 then
 				TRANS.delete_transform()
-			elseif message.subject == "edit_warning" then
-				if message.button == 1 then
-					SET.show_transform_edit_warning = false
-					TRANS.show_transform_controls(true)
-				end
 			elseif message.subject == "delete_model" then
 				if message.button == 1 then	-- 1 is delete, 3 is cancel
 					delete_model(get_selected_model())
@@ -1078,6 +1100,17 @@ function on_message(self, message_id, message, sender)
 				end
 			elseif message.subject == hash("tween_rename") then
 				if message.text then
+					for key, val in ipairs(tween_list) do
+						if val.name == message.text then
+							if key == selected_tween then
+								G.update_navbar("Tween name unchanged", true)
+								return
+							else
+								G.update_navbar("Name already exists. Pick a different one", true)
+								return
+							end
+						end
+					end
 					tween_list[selected_tween].name = message.text
 					G.update_navbar("Tween renamed", true)
 					sort_tweens()
@@ -1173,7 +1206,7 @@ function evaluate_button(button, item)
 		local file_list = {}
 		for filename in lfs.dir(path) do
 			if string.sub(filename, -4) == ".obj" then
-				table.insert(file_list, {path = path.."\\"..filename, name = string.sub(filename, 1, -4)})
+				table.insert(file_list, {path = path.."\\"..filename, name = string.sub(filename, 1, -5)})
 			end
 		end
 
@@ -1182,7 +1215,7 @@ function evaluate_button(button, item)
 			local f = io.open(file_data.path, "rb")
 			if f then
 				local ok, res = pcall(MEM.parse_obj, f, file_data.name)
-				if not ok then
+				if (not ok) or res then
 					error_count = error_count + 1
 				else
 					import_count = import_count + 1
@@ -1202,9 +1235,9 @@ function evaluate_button(button, item)
 			UI.select_exclusive_button(TAB_NAME, model_list, #MEM.art_data.table.propsDictionary, false, true)
 			select_model(#MEM.art_data.table.propsDictionary)
 			if import_count > 1 then
-				G.update_navbar(import_count.." models imported.", true)
+				G.update_navbar(import_count.." models imported.")
 			else
-				G.update_navbar("One model imported.", true)
+				G.update_navbar("One model imported.")
 			end
 		end
 		if error_count > 1 then
@@ -1424,9 +1457,6 @@ function on_input(self, action_id, action)
 					return
 				end
 			end
-		elseif action.released and SET.show_transform_edit_warning and current_tab == "button_transforms" and gui.is_enabled(gui.get_node("label_position")) and gui.pick_node(gui.get_node("warning_box"), action.x, action.y) then
-			open_dialog("dialog_confirm", {title = "Changing these values will modify the model file.\nAre you sure?", button_1 = "Yes", button_3 = "Cancel", subject = "edit_warning"})
-			return
 		end
 		UI.on_input(TAB_NAME, action_id, action, evaluate_button, evaluate_input)
 	else

@@ -1,6 +1,7 @@
 local UI = require "modules.ui"
 local MEM = require "modules.memory"
 local SET = require "modules.settings"
+local MOD = require "modules.models"
 
 local status_text = {"Welcome to Geomancer!", "", "Start by loading a map file, folder or separate files."}
 local status_text_node, status_background, status_font
@@ -66,6 +67,8 @@ function on_message(self, message_id, message, sender)
 end
 
 local function switch_tab(tab)
+	MOD.cursor_locked = false
+	window.set_mouse_lock(false)
 	msg.post(UI.tab[UI.current_tab].path, hash("hide"))
 	msg.post(UI.tab[tab].path, hash("show"))
 	gui.play_flipbook(gui.get_node(UI.current_tab), "tab_normal")

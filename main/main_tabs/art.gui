@@ -1464,23 +1464,6 @@ nodes {
 }
 nodes {
   position {
-    x: 10.0
-    y: -534.0
-  }
-  size {
-    x: 310.0
-    y: 140.0
-  }
-  type: TYPE_BOX
-  id: "warning_box"
-  pivot: PIVOT_SW
-  parent: "transforms_background"
-  inherit_alpha: true
-  size_mode: SIZE_MODE_AUTO
-  visible: false
-}
-nodes {
-  position {
     x: 832.0
     y: 796.0
   }

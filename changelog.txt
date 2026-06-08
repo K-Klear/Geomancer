@@ -21,6 +21,7 @@ To do:
 - Stop messing up the prop groups. And might as well implement my own way of organising them.
 	- Yeah, maybe not... it's a mess
 - Automatic frame-by-frame animation generation
+	- Yeah, maybe not that either. It's funky.
 - Join static prop meshes together to optimise previews
 - Option to show prop origin
 - A way to expand a repeat action
@@ -29,12 +30,10 @@ To do:
 - Bulk changing of materials
 - The metronome thing
 - Prevent colliders from showing up in transform editor
-
-- EXPORT INTO A TEMPORARY FOLDER AND ONLY THEN OVERWRITE!
-
 - Open dialogs such as transform rename with the field already selected
 - Lobby colours are overwritten on change import
-- Make model loading without normals faster... somehow.
+- See if I can calculate normals more efficiently
+- Option to have obstacles disappear as they get closer
 
 Bugs:
 - The check for Spooky and airdrop obstacle signals needs to be more robust
@@ -42,22 +41,13 @@ Bugs:
 - Had a dynamic model refuse to stay dynamic after switching tabs. No idea why.
 	- Actually saw a wrong model turn dynamic. Something's fishy
 		- Might be caused by sorting models - investigate!
-- It's possible to close model viewer while in FPS control mode. Turn it off in that case!
 - Meshes in model viewer tend to disappear. Related to flashing?
 - A leftover chunk info in .geomancer file from a different version can fuck everything up really bad
-- Files with "." in them trip Geomancer up. Investigate, fix, prevent, whatever. Just make it not be an issue.
-- Importing models will not preserve info in geomancer meta file
-- Obstacles (and their colliders) are still visible after closing preview
 
 Settings to implement in options:
 - Something for timeline height in map preview
 - probably remove default model z position as is it useless?
 	-Maybe it will see use in tween preview
-SET.remove_normal_data (a default state setting to be precise)
-SET.confirm_tween_deletion
-SET.delete_empty_tweens
-SET.ask_before_deleting_prop
-
 
 To-do (geo generation):
 - Fix the collider rendering (depth buffer?)
@@ -69,6 +59,7 @@ Features:
 - The space used for the material list on the Models tab can now be switched between four sub-tabs:
 	- Materials function the same as before
 	- Transform editor is the second subtab, rather than being a separate view
+		- Since it's no longer necessary to go through the transform editor to edit tweens, the warning about not accidentally modifying models here has been removed
 	- Third subtab is a list of all tweens on the model
 		- Tweens no longer have to be created from a specific transform - Geomancer takes care of that in the background.
 		- Tweens are displayed as [Tween name] ([signal]), sorted by name. Names can be freely changed
@@ -106,9 +97,12 @@ Features:
 - Importing models now allows you to select and .obj file rather than an existing map
 	- Some models may fail to load. Try re-exporting them with blender if that happens
 	- There is also an Import folder button, which will import all .obj files in the selected folder into the map
+		- Models imported through Pistol Mix have their mesh transforms scale x set to -1. Geomancer modifies the mesh instead to get the same result
 - There is a checkbox near the export button to remove the normal data from models when exporting
 	- Normal data is not used by the game in any way and removing it will reduce the map size and speed up loading
 	- Geomancer does use normals for previews and will automatically recalculate them (poorly) when opening a map
+- Exports with overwrite are now done in a temporary folder first, then moved if there are no errors
+	- This should prevent major errors during export from overwriting the previous copy of the map
 - Obstacles are now shown in preview (can be hidden)
 - Improved how colliders are rendered (textured and transparent)
 	- Collider display can be enabled/disabled independently from geo
@@ -130,6 +124,7 @@ Fixes:
 - Tween actions that would appear on the timeline shorter than 1 pixel no longer generate separators, appearing as a solid colour rather than solid black
 - Adjusted default tween colours for readability, as they are now used in the Tween subtab too
 	- Note that this change will be overriden if you're using an older configuration file. You'll need to adjust the colours yourself in that case.
+- Importing models containing tweens from another map now correctly preserves repeat actions and easings if the .geomancer file is present
 
 Bugs:
 - Fixed an error when opening the model viewer for a map with no props
@@ -145,15 +140,22 @@ Bugs:
 	- It used to be possible to change the default value to 0 or less by editing the cfg file, causing errors
 - Fixed a crash when replacing a model in a map without any dynamic props
 - Fixed a crash when replacing the last model in the list (again, for good this time, hopefully)
+- Fixed an error when parsing filenames with periods
+- Switching tabs disables FPS-style controls if active, preventing loss of cursor
 
 Options:
+- Removed the setting for transform edit warning
 - Moved custom colour set to the Colours tab
 - Collider colour setting has been split between strong (geo) and weak (bullet blockers) colliders and moved to the Colours tab
-- "Tween transfom error" colour sets the warning colour of tweens which apply the same action type to the same transform
-- Files -> Include geo data when importing changes
+- Colours - > Tween transfom error (sets the warning colour of tweens which apply the same action type to the same transform)
+- Files -> Include geo data when importing changes (default state of the checkbox)
+- Files -> Remove normal data when exporting (default state of the checkbox)
+- Events, Models, Rotate -> Confirm prop deletion (skip the confirmation dialog when deleting a prop)
+- Tween/Easing -> Delete empty tweens (tweens without any actions are automatically removed)
+- Tween/Easing -> Confirm deletion of non-empty tweens
+
 
 metronome_sound = 1 (0 - nothing, 1 - beep, 2 - click)
 
 Notes:
 - See if "MEM.event_reloaded" and similar are necessary. Currently load error unloads previous data - is that a bad thing?
-- Check if importing a new enemy type doesn't mess up the bulk replace dialog

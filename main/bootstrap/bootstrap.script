@@ -67,7 +67,6 @@ local function load_old_config()
 		allow_tweening_base_transform = {type = "boolean"},
 		confirm_transform_delete = {type = "boolean"},
 		allow_mesh_delete = {type = "boolean"},
-		show_transform_edit_warning = {type = "boolean"},
 		default_camera_rotation = {type = "number"},
 		default_camera_pitch = {type = "angle_pitch"},
 		default_model_z_position = {type = "number"},
@@ -174,7 +173,6 @@ function init(self)
 						SET[key] = val
 					end
 				end
-				SET.show_transform_edit_warning = SET.default_show_transform_edit_warning
 				SET.model_show_grid = SET.default_model_show_grid
 				SET.show_transform = SET.default_show_transform
 				SET.new_event_sample_offset = SET.default_new_event_sample_offset
@@ -187,6 +185,7 @@ function init(self)
 				SET.import_geo_changes = SET.default_import_geo_changes
 				SET.tween_time_in_beats = SET.default_tween_time_in_beats
 				SET.preview_time_units = SET.default_preview_time_units
+				SET.remove_normal_data = SET.default_remove_normal_data
 				create_cfg = false
 			else
 				load_old_config()

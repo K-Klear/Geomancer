@@ -998,6 +998,28 @@ nodes {
 }
 nodes {
   position {
+    x: 934.0
+    y: 684.0
+  }
+  size {
+    x: 540.0
+    y: 100.0
+  }
+  color {
+    x: 0.502
+    y: 0.502
+    z: 0.502
+  }
+  type: TYPE_TEXT
+  text: "Note: most of these options are setting the default values to use when geomancer is launched and as such won\'t change anything unless the settings are saved and Geomancer is restarted."
+  font: "tab_caption"
+  id: "text8"
+  line_break: true
+  parent: "panel_files"
+  inherit_alpha: true
+}
+nodes {
+  position {
     x: 151.0
     y: 743.0
   }
@@ -1052,7 +1074,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 694.0
+    y: 704.0
   }
   type: TYPE_TEMPLATE
   id: "default_create_folder_on_export"
@@ -1105,7 +1127,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 642.0
+    y: 666.0
   }
   type: TYPE_TEMPLATE
   id: "default_import_changes_from_zip"
@@ -1158,7 +1180,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 592.0
+    y: 626.0
   }
   type: TYPE_TEMPLATE
   id: "default_import_level_changes"
@@ -1211,7 +1233,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 543.0
+    y: 586.0
   }
   type: TYPE_TEMPLATE
   id: "default_import_event_changes"
@@ -1264,7 +1286,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 494.0
+    y: 547.0
   }
   type: TYPE_TEMPLATE
   id: "default_import_model_changes"
@@ -1317,7 +1339,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 447.0
+    y: 507.0
   }
   type: TYPE_TEMPLATE
   id: "default_import_beat_changes"
@@ -1370,7 +1392,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 397.0
+    y: 467.0
   }
   type: TYPE_TEMPLATE
   id: "default_import_geo_changes"
@@ -1423,7 +1445,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 346.0
+    y: 425.0
   }
   type: TYPE_TEMPLATE
   id: "preload_models"
@@ -1475,30 +1497,8 @@ nodes {
 }
 nodes {
   position {
-    x: 934.0
-    y: 684.0
-  }
-  size {
-    x: 540.0
-    y: 100.0
-  }
-  color {
-    x: 0.502
-    y: 0.502
-    z: 0.502
-  }
-  type: TYPE_TEXT
-  text: "Note: most of these options are setting the default values to use when geomancer is launched and as such won\'t change anything unless the settings are saved and Geomancer is restarted."
-  font: "tab_caption"
-  id: "text8"
-  line_break: true
-  parent: "panel_files"
-  inherit_alpha: true
-}
-nodes {
-  position {
     x: 177.0
-    y: 303.0
+    y: 389.0
   }
   size {
     x: 200.0
@@ -1515,7 +1515,7 @@ nodes {
 nodes {
   position {
     x: 668.0
-    y: 299.0
+    y: 385.0
   }
   type: TYPE_TEMPLATE
   id: "map_preview_partition_size"
@@ -1551,7 +1551,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 261.0
+    y: 354.0
   }
   type: TYPE_TEMPLATE
   id: "unload_data_before_loading_zip"
@@ -1604,7 +1604,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 214.0
+    y: 314.0
   }
   type: TYPE_TEMPLATE
   id: "unload_data_before_loading_folder"
@@ -1647,6 +1647,59 @@ nodes {
   id: "unload_data_before_loading_folder/label"
   line_break: true
   parent: "unload_data_before_loading_folder/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 151.0
+    y: 272.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_remove_normal_data"
+  parent: "panel_files"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "default_remove_normal_data/button_white"
+  parent: "default_remove_normal_data"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "default_remove_normal_data/text"
+  parent: "default_remove_normal_data/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 900.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Remove normal data when exporting"
+  font: "main_menu_button_small"
+  id: "default_remove_normal_data/label"
+  line_break: true
+  parent: "default_remove_normal_data/button_white"
   overridden_fields: 3
   overridden_fields: 4
   overridden_fields: 8
@@ -2832,59 +2885,6 @@ nodes {
 }
 nodes {
   position {
-    x: 702.0
-    y: 288.0
-  }
-  type: TYPE_TEMPLATE
-  id: "show_transform_edit_warning"
-  parent: "panel_transform"
-  inherit_alpha: true
-  template: "/templates/button_white_checkbox.gui"
-}
-nodes {
-  type: TYPE_BOX
-  id: "show_transform_edit_warning/button_white"
-  parent: "show_transform_edit_warning"
-  slice9 {
-    x: 30.0
-    y: 30.0
-    z: 30.0
-    w: 30.0
-  }
-  overridden_fields: 22
-  template_node_child: true
-}
-nodes {
-  type: TYPE_TEXT
-  id: "show_transform_edit_warning/text"
-  parent: "show_transform_edit_warning/button_white"
-  overridden_fields: 3
-  template_node_child: true
-}
-nodes {
-  scale {
-    x: 2.0
-    y: 2.0
-  }
-  size {
-    x: 500.0
-    y: 100.0
-  }
-  type: TYPE_TEXT
-  text: "Show a warning text before allowing transform edits"
-  font: "main_menu_button_small"
-  id: "show_transform_edit_warning/label"
-  line_break: true
-  parent: "show_transform_edit_warning/button_white"
-  overridden_fields: 3
-  overridden_fields: 4
-  overridden_fields: 8
-  overridden_fields: 10
-  overridden_fields: 18
-  template_node_child: true
-}
-nodes {
-  position {
     x: 173.0
     y: 510.0
   }
@@ -3088,7 +3088,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 627.0
+    y: 634.0
   }
   type: TYPE_TEMPLATE
   id: "restrict_rotations_to_360"
@@ -3141,7 +3141,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 571.0
+    y: 589.0
   }
   type: TYPE_TEMPLATE
   id: "tween_action_type_dialog"
@@ -3194,7 +3194,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 520.0
+    y: 547.0
   }
   type: TYPE_TEMPLATE
   id: "tween_part_dialog"
@@ -3247,7 +3247,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 467.0
+    y: 501.0
   }
   type: TYPE_TEMPLATE
   id: "tween_extra_add_buttons"
@@ -3300,7 +3300,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 422.0
+    y: 456.0
   }
   type: TYPE_TEMPLATE
   id: "ask_before_overwriting_tween_file"
@@ -3352,8 +3352,114 @@ nodes {
 }
 nodes {
   position {
+    x: 109.0
+    y: 410.0
+  }
+  type: TYPE_TEMPLATE
+  id: "delete_empty_tweens"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "delete_empty_tweens/button_white"
+  parent: "delete_empty_tweens"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "delete_empty_tweens/text"
+  parent: "delete_empty_tweens/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 550.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Delete empty tweens"
+  font: "main_menu_button_small"
+  id: "delete_empty_tweens/label"
+  line_break: true
+  parent: "delete_empty_tweens/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 109.0
+    y: 369.0
+  }
+  type: TYPE_TEMPLATE
+  id: "confirm_tween_deletion"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "confirm_tween_deletion/button_white"
+  parent: "confirm_tween_deletion"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "confirm_tween_deletion/text"
+  parent: "confirm_tween_deletion/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 550.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Confirm deletion of non-empty tweens"
+  font: "main_menu_button_small"
+  id: "confirm_tween_deletion/label"
+  line_break: true
+  parent: "confirm_tween_deletion/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
     x: 88.0
-    y: 368.0
+    y: 317.0
   }
   size {
     x: 200.0
@@ -3370,7 +3476,7 @@ nodes {
 nodes {
   position {
     x: 489.0
-    y: 364.0
+    y: 313.0
   }
   type: TYPE_TEMPLATE
   id: "tween_timeline_bar_height"
@@ -3669,7 +3775,7 @@ nodes {
 nodes {
   position {
     x: 198.0
-    y: 312.0
+    y: 261.0
   }
   size {
     x: 400.0
@@ -3686,7 +3792,7 @@ nodes {
 nodes {
   position {
     x: 398.0
-    y: 309.0
+    y: 258.0
   }
   type: TYPE_TEMPLATE
   id: "default_tween_time_in_beats"
@@ -3720,7 +3826,7 @@ nodes {
 nodes {
   position {
     x: 88.0
-    y: 257.0
+    y: 206.0
   }
   size {
     x: 200.0
@@ -3737,7 +3843,7 @@ nodes {
 nodes {
   position {
     x: 688.0
-    y: 253.0
+    y: 202.0
   }
   type: TYPE_TEMPLATE
   id: "tween_padding_start"
@@ -3773,7 +3879,7 @@ nodes {
 nodes {
   position {
     x: 764.0
-    y: 253.0
+    y: 202.0
   }
   type: TYPE_TEMPLATE
   id: "tween_padding_end"
@@ -4410,7 +4516,7 @@ nodes {
 nodes {
   position {
     x: 272.0
-    y: 667.0
+    y: 691.0
   }
   size {
     x: 200.0
@@ -4427,7 +4533,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 590.0
+    y: 649.0
   }
   type: TYPE_TEMPLATE
   id: "autodetect_sample_rate"
@@ -4480,7 +4586,7 @@ nodes {
 nodes {
   position {
     x: 86.0
-    y: 534.0
+    y: 593.0
   }
   size {
     x: 200.0
@@ -4497,7 +4603,7 @@ nodes {
 nodes {
   position {
     x: 368.0
-    y: 532.0
+    y: 591.0
   }
   type: TYPE_TEMPLATE
   id: "default_sample_rate"
@@ -4533,7 +4639,7 @@ nodes {
 nodes {
   position {
     x: 86.0
-    y: 477.0
+    y: 536.0
   }
   size {
     x: 200.0
@@ -4550,7 +4656,7 @@ nodes {
 nodes {
   position {
     x: 366.0
-    y: 475.0
+    y: 534.0
   }
   type: TYPE_TEMPLATE
   id: "default_new_event_sample_offset"
@@ -4586,7 +4692,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 403.0
+    y: 462.0
   }
   type: TYPE_TEMPLATE
   id: "add_opens_edit_box"
@@ -4639,7 +4745,7 @@ nodes {
 nodes {
   position {
     x: 923.0
-    y: 667.0
+    y: 691.0
   }
   size {
     x: 200.0
@@ -4656,7 +4762,7 @@ nodes {
 nodes {
   position {
     x: 726.0
-    y: 590.0
+    y: 649.0
   }
   type: TYPE_TEMPLATE
   id: "hide_model_count"
@@ -4709,7 +4815,7 @@ nodes {
 nodes {
   position {
     x: 703.0
-    y: 526.0
+    y: 585.0
   }
   size {
     x: 200.0
@@ -4727,7 +4833,7 @@ nodes {
 nodes {
   position {
     x: 1035.0
-    y: 524.0
+    y: 583.0
   }
   type: TYPE_TEMPLATE
   id: "mesh_flash_time"
@@ -4763,7 +4869,7 @@ nodes {
 nodes {
   position {
     x: 703.0
-    y: 444.0
+    y: 503.0
   }
   size {
     x: 200.0
@@ -4781,7 +4887,7 @@ nodes {
 nodes {
   position {
     x: 1033.0
-    y: 442.0
+    y: 501.0
   }
   type: TYPE_TEMPLATE
   id: "mesh_flash_frequency"
@@ -4817,7 +4923,7 @@ nodes {
 nodes {
   position {
     x: 703.0
-    y: 370.0
+    y: 429.0
   }
   size {
     x: 200.0
@@ -4835,7 +4941,7 @@ nodes {
 nodes {
   position {
     x: 993.0
-    y: 367.0
+    y: 426.0
   }
   type: TYPE_TEMPLATE
   id: "mesh_flash_colour"
@@ -4858,7 +4964,7 @@ nodes {
 nodes {
   position {
     x: 1042.0
-    y: 368.0
+    y: 427.0
   }
   type: TYPE_TEMPLATE
   id: "mesh_flash_alpha"
@@ -4889,6 +4995,59 @@ nodes {
   parent: "mesh_flash_alpha/box"
   overridden_fields: 4
   overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 726.0
+    y: 364.0
+  }
+  type: TYPE_TEMPLATE
+  id: "ask_before_deleting_prop"
+  parent: "panel_events"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "ask_before_deleting_prop/button_white"
+  parent: "ask_before_deleting_prop"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "ask_before_deleting_prop/text"
+  parent: "ask_before_deleting_prop/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 500.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Confirm prop deletion"
+  font: "main_menu_button_small"
+  id: "ask_before_deleting_prop/label"
+  line_break: true
+  parent: "ask_before_deleting_prop/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
   template_node_child: true
 }
 nodes {

@@ -17,6 +17,12 @@ function G.update_navbar(text, clear)
 	msg.post("/navbar#navbar", hash("update_status"), {text = text, clear = clear})
 end
 
+function G.check_geomancer_version(version_str, desired)
+	if not version_str then return end
+	local version_num = string.gsub(version_str, "[^%d%.]", "")
+	return tonumber(version_num) >= desired
+end
+
 function G.parse_values_obj(str)
 	local spaces = {}
 	spaces[0] = 0

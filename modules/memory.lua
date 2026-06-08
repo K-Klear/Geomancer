@@ -38,8 +38,6 @@ local QUOTE_6 = QUOTE..":"
 local TABLE = "table"
 local STRING = "string"
 
-local test = false
-
 function MEM.export_json(json_tab)
 	io.write("{")
 	local function export_table(tab)
@@ -384,15 +382,19 @@ function MEM.parse_chunk_data(chunk_tab)
 				IndexStart = 1,
 				IndexEnd = #val.tris,
 			}
-			MOD.create_mesh(t)
-			table.insert(chunks, {
-				buffer_resource = t.buffer_resource, id = id, id_str = val.id, triangles = triangles, verts_parsed = verts_parsed,
-				normals_parsed = normals, verts = val.verts, tris = val.tris, meshSizes = val.meshSizes
-			})
-			if #val.meshSizes > 2 then
-				val.meshSizes[2] = val.meshSizes[2] + val.meshSizes[3]
-				val.meshSizes[3] = nil
-				val.meshSizes._pure_array = nil
+			if #triangles > 0 then
+				MOD.create_mesh(t)
+				table.insert(chunks, {
+					buffer_resource = t.buffer_resource, id = id, id_str = val.id, triangles = triangles, verts_parsed = verts_parsed,
+					normals_parsed = normals, verts = val.verts, tris = val.tris, meshSizes = val.meshSizes
+				})
+				if #val.meshSizes > 2 then
+					val.meshSizes[2] = val.meshSizes[2] + val.meshSizes[3]
+					val.meshSizes[3] = nil
+					val.meshSizes._pure_array = nil
+				end
+			else
+				G.update_navbar("Error loading chunk with id "..id[1].." "..id[2].." "..id[3])
 			end
 		else
 			table.insert(chunks, {id = id, id_str = val.id, empty = true})
@@ -646,7 +648,12 @@ function MEM.add_metadata(model_tab)
 end
 
 function MEM.parse_obj(f, name)
-
+	for key, val in ipairs(MEM.art_data.table.propsDictionary) do
+		if name == val.key then
+			G.update_navbar("Model with the name "..name.." already exists. Rename it first")
+			return true
+		end
+	end
 	local children = {}
 	local current_child = 0
 	local vert_count_total = 0
@@ -662,10 +669,14 @@ function MEM.parse_obj(f, name)
 	handle_lines.v = function(line_data)
 		local s = ""
 		for i = 2, 4 do
+			local next_vert = line_data[i]
+			if i == 2 then
+				next_vert = -tonumber(next_vert)
+			end
 			if i < 4 then
-				s = s..line_data[i]..","
+				s = s..next_vert..","
 			else
-				s = s..line_data[i]
+				s = s..next_vert
 			end
 		end
 		vert_count_current = vert_count_current + 1
@@ -678,8 +689,8 @@ function MEM.parse_obj(f, name)
 			local vertex = G.parse_values(line_data[tris + 2], "/")
 			table.insert(children[current_child].tris, tonumber(vertex[1]) - 1 - vert_count_total)
 			vertex = G.parse_values(line_data[tris + 3], "/")
-			table.insert(children[current_child].tris, tonumber(vertex[1]) - 1 - vert_count_total)
 			table.insert(children[current_child].tris, tonumber(vertex_1[1]) - 1 - vert_count_total)
+			table.insert(children[current_child].tris, tonumber(vertex[1]) - 1 - vert_count_total)
 		end
 	end
 
@@ -1047,15 +1058,15 @@ function MEM.remove_geomanced_slice(slice_tab)
 			slice_tab[2].normals_parsed[j + 2 - triangles_first] = nil
 			slice_tab[2].normals_parsed[j + 3 - triangles_first] = nil
 		end
-		local highest_vert = 1
+		local highest_vert = 0
 		for k, v in ipairs(slice_tab[1].tris) do
 			highest_vert = math.max(highest_vert, v + 1)
 		end
 		for i = highest_vert + 1, #slice_tab[1].verts do
 			slice_tab[1].verts[i] = nil
-			slice_tab[1].verts_parsed = nil
+			slice_tab[1].verts_parsed[i] = nil
 			slice_tab[2].verts[i] = nil
-			slice_tab[2].verts_parsed = nil
+			slice_tab[2].verts_parsed[i] = nil
 		end
 		if slice_tab[1].buffer_resource then
 			MOD.buffer_resource_released(slice_tab[1].buffer_resource)
@@ -1082,7 +1093,7 @@ function MEM.remove_geomanced_slice(slice_tab)
 end
 
 function MEM.remove_geomanced_chunk(chunk_tab)
-	if chunk_tab.original_size and chunk_tab.tris then
+	if chunk_tab.original_size and chunk_tab.tris and (chunk_tab.original_size < #chunk_tab.tris) then
 		for i = chunk_tab.original_size, #chunk_tab.tris - 1 do
 			chunk_tab.tris[i + 1] = nil
 			chunk_tab.triangles[i * 3 + 1] = nil
@@ -1092,13 +1103,13 @@ function MEM.remove_geomanced_chunk(chunk_tab)
 			chunk_tab.normals_parsed[i * 3 + 2] = nil
 			chunk_tab.normals_parsed[i * 3 + 3] = nil
 		end
-		local highest_vert = 1
+		local highest_vert = 0
 		for k, v in ipairs(chunk_tab.tris) do
 			highest_vert = math.max(highest_vert, v + 1)
 		end
 		for i = highest_vert + 1, #chunk_tab.verts do
 			chunk_tab.verts[i] = nil
-			chunk_tab.verts_parsed = nil
+			chunk_tab.verts_parsed[i] = nil
 		end
 		if chunk_tab.buffer_resource then
 			MOD.buffer_resource_released(chunk_tab.buffer_resource)
@@ -1113,6 +1124,81 @@ function MEM.remove_geomanced_chunk(chunk_tab)
 		return 1
 	else
 		return 0
+	end
+end
+
+function MEM.get_tween_script(tween_data, model_name)
+	if not tween_data then return end
+	local str = ""
+	local deletion_count, save_original
+	tween_data, deletion_count, save_original = G.expand_repeat_actions(tween_data)
+	if model_name then
+		if deletion_count > 1 then
+			G.update_navbar(deletion_count.." invalid repeat actions have been removed from tween of "..model_name)
+		elseif deletion_count > 0 then
+			G.update_navbar("An invalid repeat action has been removed from tween of "..model_name)
+		end
+	end
+	for key, val in ipairs(tween_data) do
+		if val.type == "W" then
+			str = str..val.type..val.time..";"
+		else
+			if val.easing then
+				local node_values = G.separate_easing(val)
+				for k, v in ipairs(node_values) do
+					str = str..val.type..val.part..";"..v.s.x..","..v.s.y..","..v.s.z..";"..v.e.x..","..v.e.y..","..v.e.z..";"..v.t..";"
+				end
+			else
+				str = str..val.type..val.part..";"..val.start_state.x..","..val.start_state.y..","
+				str = str..val.start_state.z..";"..val.end_state.x..","..val.end_state.y..","..val.end_state.z..";"..val.time..";"
+			end
+		end
+	end
+	return str, save_original
+end
+
+function MEM.check_metadata_for_tween_scripts(first_key)
+	if not MEM.geomancer_meta then return end
+	local new_format = G.check_geomancer_version(MEM.geomancer_meta.version, 0.984)
+	for key, val in ipairs(MEM.art_data.table.propsDictionary) do
+		if key >= first_key then
+			if MEM.geomancer_meta.props[val.key] then
+				val.hide = MEM.geomancer_meta.props[val.key].hide
+				if MEM.geomancer_meta.props[val.key].tweens then
+					if new_format then
+						for k, v in ipairs(val.model_data.tween_list) do
+							local saved_version = MEM.geomancer_meta.props[val.key].tweens[v.name]
+							if saved_version then
+								local old_script = MEM.get_tween_script(v.script)
+								if old_script == saved_version.script then
+									v.script = saved_version.table
+								end
+							end
+						end
+					else
+						local saved_scripts = {}
+						for k, v in pairs(MEM.geomancer_meta.props[val.key].tweens) do
+							if v.signal then
+								saved_scripts[v.signal] = saved_scripts[v.signal] or {}
+								table.insert(saved_scripts[v.signal], v)
+							end
+						end
+						for k, v in ipairs(val.model_data.tween_list) do
+							if saved_scripts[v.signal] then
+								local old_script = MEM.get_tween_script(v.script)
+								for _key, _val in ipairs(saved_scripts[v.signal]) do
+									if old_script == _val.script then
+										v.script = _val.table
+										table.remove(saved_scripts[v.signal], _key)
+										break
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
 	end
 end
 

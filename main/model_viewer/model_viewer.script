@@ -1339,6 +1339,10 @@ local function create_obstacles()
 		local new_obstacle
 		if val.type == "LimboTall" or val.type == "LimboShort" then
 			new_obstacle = factory.create("#create_obstacle_limbo", vmath.vector3(val.position.x, 0, val.position.z))
+		elseif val.type == "TunnelShort" or val.type == "TunnelTall" then
+			new_obstacle = factory.create("#create_obstacle_limbo", vmath.vector3(val.position.x, 0, val.position.z), nil, nil, vmath.vector3(1, 1, 4.2))
+		elseif val.type == "Wall" then
+			new_obstacle = factory.create("#create_obstacle_wall", vmath.vector3(val.position.x, 0, val.position.z), nil, nil, vmath.vector3(1, 1, 4.2))
 		else
 			new_obstacle = factory.create("#create_obstacle", vmath.vector3(val.position.x, 0, val.position.z))
 		end
