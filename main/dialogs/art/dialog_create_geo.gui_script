@@ -33,8 +33,6 @@ local function generate_geo(prop_tab, transform_list)
 	local offset_y = prop_tab.position.y % 16
 	local offset_z = prop_tab.position.z % 16
 
-	--if chunk_x < -3 or chunk_x > 2 or chunk_y < -3 or chunk_y > 2 then
-	
 	if chunk_x < -3 then
 		offset_x = offset_x - 16 * (-3 - chunk_x)
 		chunk_x = -3
@@ -49,9 +47,17 @@ local function generate_geo(prop_tab, transform_list)
 		offset_y = offset_y + 16 * (chunk_y - 2)
 		chunk_y = 2
 	end
+	local chunk_count = math.huge
+	if MEM.level_data.songLength then
+		chunk_count = math.ceil(((MEM.level_data.songLength * 3) - 4) / 16)
+	end
+	
 	if chunk_z < -1 then
 		offset_z = offset_z - 16 * (-1 - chunk_z)
 		chunk_z = -1
+	elseif chunk_z > chunk_count then
+		offset_z = offset_z + 16 * (chunk_z - chunk_count)
+		chunk_z = chunk_count
 	end
 
 	local chunk_tab, slice_tab

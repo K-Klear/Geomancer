@@ -158,7 +158,7 @@ SET.unload_data_before_loading_zip = true
 SET.unload_data_before_loading_folder = true
 
 SET.preload_models = false
-SET.remove_normal_data = true
+SET.remove_normal_data = false
 
 SET.import_level_changes = true
 SET.import_event_changes = true

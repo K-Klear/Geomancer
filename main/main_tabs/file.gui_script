@@ -36,7 +36,7 @@ function init(self)
 	set_checkbox("import_beat", SET.import_beat_changes)
 	set_checkbox("import_models", SET.import_model_changes)
 	set_checkbox("import_geo", SET.import_geo_changes)
-	set_checkbox("delete_normals_checkbox", SET.remove_normal_data)
+	set_checkbox("delete_normals_checkbox", SET.default_remove_normal_data)
 end
 
 local function run_export_fn()
@@ -292,7 +292,6 @@ end
 local function export_geo(path)
 	local f = G.safe_output(path)
 	if f then
-
 
 		local chunk_count = 1
 		if MEM.level_data.songLength then

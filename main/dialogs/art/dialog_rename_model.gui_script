@@ -51,6 +51,8 @@ function on_message(self, message_id, message, sender)
 		model_to_rename = message.model_to_rename
 		model_name = MEM.art_data.table.propsDictionary[model_to_rename].key
 		gui.set_text(gui.get_node("field_rename_model/text"), model_name)
+		local field_pos = gui.get_screen_position(gui.get_node("field_rename_model/text"))
+		UI.on_input(DIALOG_NAME, hash("touch"), {released = true, x = field_pos.x, y = field_pos.y}, evaluate_button, evaluate_input)
 	end
 end
 

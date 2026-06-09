@@ -101,6 +101,7 @@ function on_message(self, message_id, message, sender)
 				table.insert(import_list, val.key)
 			end
 		end
+		table.sort(import_list, function(a, b) return string.lower(a) < string.lower(b) end)
 		if #import_list == 0 then
 			DIALOG.close(DIALOG_NAME)
 			G.update_navbar("No new models found. Import aborted.")

@@ -190,8 +190,14 @@ end
 local function text_field_clicked(text_field)
 	active_text_field = text_field
 	gui.set_color(active_text_field.node, SET.colour_active_text_field)
-	text_field_text = gui.get_text(active_text_field.text)
-	active_text_field.previous_text = text_field_text
+	if UI.shift_held then
+		text_field_text = ""
+		active_text_field.previous_text = gui.get_text(active_text_field.text)
+		gui.set_text(active_text_field.text, text_field_text)
+	else
+		text_field_text = gui.get_text(active_text_field.text)
+		active_text_field.previous_text = text_field_text
+	end
 	cursor_visible = false
 	text_field_cursor()
 end

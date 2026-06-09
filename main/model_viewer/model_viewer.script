@@ -640,6 +640,7 @@ local function reset_view(mode)
 end
 
 local function show_culling_range(self, range)
+	print(range, #MOD.culling_ranges)
 	for key, val in ipairs(MOD.culling_ranges[range].slices) do
 		if not val.model then
 			local new_slice, new_mesh = create_slice_model(self, val, val.mesh_index == 1)

@@ -471,9 +471,32 @@ end
 function load.pw_geo(data, filename)
 	local tab = MEM.parse_json(data)
 	if MEM.check(tab, "pw_geo", filename) then
+
+		local chunk_count = 1
+		if MEM.level_data.songLength then
+			chunk_count = math.ceil(((MEM.level_data.songLength * 3) - 4) / 16)
+		end
+		local function add_empty(id)
+			return {meshSizes = {0, 0}, _key_sort = {"id", "verts", "meshSizes", "tris"}, tris = {}, id = id, verts = {}}
+		end
+		local chunk_index = 0
+		for chunk_z = -1, chunk_count do
+			if not tab.chunkSlices[chunk_z + 2] then
+				tab.chunkSlices[chunk_z + 2] = add_empty(tostring(chunk_z))
+			end
+			for chunk_y = -3, 2 do
+				for chunk_x = -3, 2 do
+					chunk_index = chunk_index + 1
+					if not tab.chunkData[chunk_index] then
+						tab.chunkData[chunk_index] = add_empty(chunk_x..","..chunk_y..","..chunk_z)
+					end
+				end
+			end
+		end
 		local chunks = MEM.parse_chunk_data(tab.chunkData)
 		local slices = MEM.parse_slice_data(tab.chunkSlices)
 		MEM.geo_data = {table = tab, filename = filename, chunks = chunks, slices = slices}
+		MEM.setup_culling_ranges()
 		UI.tab.tab_geo.state = true
 		return true
 	else

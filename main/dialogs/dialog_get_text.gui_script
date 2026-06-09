@@ -40,6 +40,8 @@ function on_message(self, message_id, message, sender)
 		output_text = message.default_text
 		gui.set_text(gui.get_node("dialog_get_text_title"), message.title)
 		gui.set_text(gui.get_node("get_text_field/text"), message.default_text)
+		local field_pos = gui.get_screen_position(gui.get_node("get_text_field/text"))
+		UI.on_input(DIALOG_NAME, hash("touch"), {released = true, x = field_pos.x, y = field_pos.y}, evaluate_button, evaluate_input)
 	end
 end
 

@@ -13,7 +13,6 @@ To do:
 - Custom sequence name support
 	- Add a new section for sequences found among the enemies/in the sequence file?
 - Add a cfg for default easing and number of nodes
-- Shift-click fields to delete contents
 - have validation check if the value is function or just a value and remove all the dumb anonymous functions returning always the same thing
 - Add a warning if no export happens before closing
 - Store signals during model preview as hashes to make update() a tad faster.
@@ -29,11 +28,14 @@ To do:
 - Show a transform's properties during a tween preview
 - Bulk changing of materials
 - The metronome thing
+- Volume settings
 - Prevent colliders from showing up in transform editor
-- Open dialogs such as transform rename with the field already selected
 - Lobby colours are overwritten on change import
 - See if I can calculate normals more efficiently
 - Option to have obstacles disappear as they get closer
+- Remove the old transform dialog
+- Use the generic get text dialog instead of the old rename model dialog
+- Import tweens in a way that is smarter than just outright overwriting the model data
 
 Bugs:
 - The check for Spooky and airdrop obstacle signals needs to be more robust
@@ -42,16 +44,16 @@ Bugs:
 	- Actually saw a wrong model turn dynamic. Something's fishy
 		- Might be caused by sorting models - investigate!
 - Meshes in model viewer tend to disappear. Related to flashing?
-- A leftover chunk info in .geomancer file from a different version can fuck everything up really bad
+- Mouse position doesn't get locked when middle-clikcing the model preview for some reason
 
 Settings to implement in options:
 - Something for timeline height in map preview
 - probably remove default model z position as is it useless?
 	-Maybe it will see use in tween preview
 
-To-do (geo generation):
+To-do:
 - Fix the collider rendering (depth buffer?)
-- Check for max chunk z position and adjust if necessary
+- Colliders do not despawn properly
 
 Done:
 
@@ -117,6 +119,7 @@ Features:
 - Loading and exporting maps now reports time taken
 
 New shortcuts:
+- Holding down shift when clicking a text field will now remove its contents before selecting it
 
 Fixes:
 - Changes to geo made on the Geo / Collisions tab are now shown on the preview
@@ -125,6 +128,8 @@ Fixes:
 - Adjusted default tween colours for readability, as they are now used in the Tween subtab too
 	- Note that this change will be overriden if you're using an older configuration file. You'll need to adjust the colours yourself in that case.
 - Importing models containing tweens from another map now correctly preserves repeat actions and easings if the .geomancer file is present
+- Rename dialogs now open with the text field already selected
+- When picking models to import from a different map, the list is now sorted alphabetically
 
 Bugs:
 - Fixed an error when opening the model viewer for a map with no props
