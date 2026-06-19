@@ -245,6 +245,129 @@ nodes {
   overridden_fields: 8
   template_node_child: true
 }
+nodes {
+  position {
+    x: 337.0
+    y: 291.0
+  }
+  type: TYPE_TEMPLATE
+  id: "slider_x"
+  inherit_alpha: true
+  template: "/templates/slider_vertical.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "slider_x/background"
+  parent: "slider_x"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "slider_x/handle"
+  parent: "slider_x/background"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "slider_x/line"
+  parent: "slider_x/background"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -21.0
+    y: 254.0
+  }
+  type: TYPE_TEXT
+  id: "slider_x/text"
+  pivot: PIVOT_E
+  parent: "slider_x/background"
+  overridden_fields: 1
+  overridden_fields: 14
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 373.0
+    y: 243.0
+  }
+  type: TYPE_TEMPLATE
+  id: "slider_y"
+  inherit_alpha: true
+  template: "/templates/slider_horizontal.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "slider_y/background"
+  parent: "slider_y"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "slider_y/handle"
+  parent: "slider_y/background"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "slider_y/line"
+  parent: "slider_y/background"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 228.0
+    y: -29.0
+  }
+  type: TYPE_TEXT
+  id: "slider_y/text"
+  pivot: PIVOT_W
+  parent: "slider_y/background"
+  overridden_fields: 1
+  overridden_fields: 14
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 939.0
+    y: 291.0
+  }
+  type: TYPE_TEMPLATE
+  id: "slider_z"
+  inherit_alpha: true
+  template: "/templates/slider_vertical.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "slider_z/background"
+  parent: "slider_z"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "slider_z/handle"
+  parent: "slider_z/background"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "slider_z/line"
+  parent: "slider_z/background"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 22.0
+    y: 254.0
+  }
+  type: TYPE_TEXT
+  id: "slider_z/text"
+  pivot: PIVOT_W
+  parent: "slider_z/background"
+  overridden_fields: 1
+  overridden_fields: 14
+  template_node_child: true
+}
 layers {
   name: "below"
 }

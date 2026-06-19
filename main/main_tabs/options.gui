@@ -1016,6 +1016,7 @@ nodes {
   id: "text8"
   line_break: true
   parent: "panel_files"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -1510,6 +1511,7 @@ nodes {
   id: "lbl_map_preview_partition_size"
   pivot: PIVOT_W
   parent: "panel_files"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -2566,6 +2568,7 @@ nodes {
   id: "lbl_custom colour"
   pivot: PIVOT_W
   parent: "panel_colours"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -2676,6 +2679,7 @@ nodes {
   id: "lbl_collider_colour"
   pivot: PIVOT_W
   parent: "panel_colours"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -3069,6 +3073,7 @@ nodes {
   id: "text4"
   line_break: true
   parent: "panel_transform"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -3471,6 +3476,7 @@ nodes {
   id: "label_tween_timeline_bar_height"
   pivot: PIVOT_W
   parent: "panel_tween"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -3524,6 +3530,7 @@ nodes {
   id: "lbl_easing_node_scale"
   pivot: PIVOT_W
   parent: "panel_tween"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -3577,6 +3584,7 @@ nodes {
   id: "lbl_easing_curve_thickness"
   pivot: PIVOT_W
   parent: "panel_tween"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -3630,6 +3638,7 @@ nodes {
   id: "lbl_easing_node_colour"
   pivot: PIVOT_W
   parent: "panel_tween"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -3673,6 +3682,7 @@ nodes {
   id: "lbl_easing_node_highlight_colour"
   pivot: PIVOT_W
   parent: "panel_tween"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -3713,6 +3723,7 @@ nodes {
   id: "lbl_easing_curve_colour"
   pivot: PIVOT_W
   parent: "panel_tween"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -3753,6 +3764,7 @@ nodes {
   id: "lbl_tween"
   pivot: PIVOT_W
   parent: "panel_tween"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -3770,6 +3782,7 @@ nodes {
   id: "lbl_easing"
   pivot: PIVOT_W
   parent: "panel_tween"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -3787,6 +3800,7 @@ nodes {
   id: "lbl_default_tween_time_in_beats"
   line_break: true
   parent: "panel_tween"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -3838,6 +3852,7 @@ nodes {
   id: "label_tween_padding_start"
   pivot: PIVOT_W
   parent: "panel_tween"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -3941,6 +3956,7 @@ nodes {
   id: "lbl_model_rotation_sensitivity"
   pivot: PIVOT_W
   parent: "panel_model_viewer"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -3994,6 +4010,7 @@ nodes {
   id: "lbl_model_move_sensitivity"
   pivot: PIVOT_W
   parent: "panel_model_viewer"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -4047,6 +4064,7 @@ nodes {
   id: "lbl_run_speed_multiplier"
   pivot: PIVOT_W
   parent: "panel_model_viewer"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -4100,6 +4118,7 @@ nodes {
   id: "lbl_default_camera_rotation"
   pivot: PIVOT_W
   parent: "panel_model_viewer"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -4153,6 +4172,7 @@ nodes {
   id: "lbl_default_camera_pitch"
   pivot: PIVOT_W
   parent: "panel_model_viewer"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -4206,6 +4226,7 @@ nodes {
   id: "lbl_default_model_z_position"
   pivot: PIVOT_W
   parent: "panel_model_viewer"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -4259,6 +4280,7 @@ nodes {
   id: "lbl_model_show_grid"
   pivot: PIVOT_W
   parent: "panel_model_viewer"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -4309,6 +4331,7 @@ nodes {
   id: "lbl_show_transform"
   pivot: PIVOT_W
   parent: "panel_model_viewer"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -4358,6 +4381,7 @@ nodes {
   id: "lbl_default_colour_set"
   pivot: PIVOT_W
   parent: "panel_model_viewer"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -4411,6 +4435,7 @@ nodes {
   id: "lbl_max_desync"
   pivot: PIVOT_W
   parent: "panel_model_viewer"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -4464,6 +4489,7 @@ nodes {
   id: "lbl_default_preview_time_units"
   pivot: PIVOT_W
   parent: "panel_model_viewer"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -4528,6 +4554,7 @@ nodes {
   id: "lbl_events"
   pivot: PIVOT_W
   parent: "panel_events"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -4598,6 +4625,7 @@ nodes {
   id: "lbl_default_sample_rate"
   pivot: PIVOT_W
   parent: "panel_events"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -4651,6 +4679,7 @@ nodes {
   id: "lbl_new_event_sample_offset"
   pivot: PIVOT_W
   parent: "panel_events"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -4757,6 +4786,7 @@ nodes {
   id: "lbl_models"
   pivot: PIVOT_W
   parent: "panel_events"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -4828,6 +4858,7 @@ nodes {
   id: "lbl_mesh_flash_time"
   pivot: PIVOT_W
   parent: "panel_events"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -4882,6 +4913,7 @@ nodes {
   id: "lbl_mesh_flash_frequency"
   pivot: PIVOT_W
   parent: "panel_events"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -4936,6 +4968,7 @@ nodes {
   id: "lbl_mesh_flash_colour"
   pivot: PIVOT_W
   parent: "panel_events"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -5064,6 +5097,7 @@ nodes {
   font: "main_menu_button_small"
   id: "lbl_rotate"
   parent: "panel_events"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -5135,6 +5169,7 @@ nodes {
   id: "lbl_default_rotation_rounding"
   pivot: PIVOT_W
   parent: "panel_events"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -5186,6 +5221,239 @@ nodes {
   inherit_alpha: true
   size_mode: SIZE_MODE_AUTO
   visible: false
+}
+nodes {
+  position {
+    x: 75.0
+    y: 595.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Metronome sound"
+  font: "main_menu_button_small"
+  id: "lbl_metronome_sound"
+  pivot: PIVOT_W
+  parent: "panel_sound"
+  layer: "text"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 382.0
+    y: 592.0
+  }
+  type: TYPE_TEMPLATE
+  id: "metronome_sound"
+  parent: "panel_sound"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 48.0
+  }
+  type: TYPE_BOX
+  id: "metronome_sound/button_white"
+  parent: "metronome_sound"
+  layer: "below"
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Click"
+  id: "metronome_sound/text"
+  parent: "metronome_sound/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 92.0
+    y: 535.0
+  }
+  type: TYPE_TEMPLATE
+  id: "default_metronome_on"
+  parent: "panel_sound"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "default_metronome_on/button_white"
+  parent: "default_metronome_on"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "default_metronome_on/text"
+  parent: "default_metronome_on/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 500.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Metronome on by default"
+  font: "main_menu_button_small"
+  id: "default_metronome_on/label"
+  line_break: true
+  parent: "default_metronome_on/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 640.0
+    y: 496.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Master volume\n"
+  "\n"
+  "\n"
+  "Music volume\n"
+  "\n"
+  "\n"
+  "Metronome volume"
+  font: "main_menu_button_small"
+  id: "lbl_volume"
+  pivot: PIVOT_N
+  parent: "panel_sound"
+  layer: "text"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 373.0
+    y: 444.0
+  }
+  type: TYPE_TEMPLATE
+  id: "volume_general"
+  parent: "panel_sound"
+  inherit_alpha: true
+  template: "/templates/slider_horizontal.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "volume_general/background"
+  parent: "volume_general"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "volume_general/handle"
+  parent: "volume_general/background"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "volume_general/line"
+  parent: "volume_general/background"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "volume_general/text"
+  parent: "volume_general/background"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 373.0
+    y: 335.0
+  }
+  type: TYPE_TEMPLATE
+  id: "volume_music"
+  parent: "panel_sound"
+  inherit_alpha: true
+  template: "/templates/slider_horizontal.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "volume_music/background"
+  parent: "volume_music"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "volume_music/handle"
+  parent: "volume_music/background"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "volume_music/line"
+  parent: "volume_music/background"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "volume_music/text"
+  parent: "volume_music/background"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 373.0
+    y: 233.0
+  }
+  type: TYPE_TEMPLATE
+  id: "volume_metronome"
+  parent: "panel_sound"
+  inherit_alpha: true
+  template: "/templates/slider_horizontal.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "volume_metronome/background"
+  parent: "volume_metronome"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "volume_metronome/handle"
+  parent: "volume_metronome/background"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  id: "volume_metronome/line"
+  parent: "volume_metronome/background"
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "volume_metronome/text"
+  parent: "volume_metronome/background"
+  template_node_child: true
 }
 nodes {
   position {
@@ -5375,6 +5643,7 @@ nodes {
   id: "lbl_degeomance_sequence"
   line_break: true
   parent: "panel_misc"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -5429,6 +5698,7 @@ nodes {
   id: "lbl_degeomance_glitched_enemy"
   line_break: true
   parent: "panel_misc"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -5480,6 +5750,7 @@ nodes {
   id: "lbl_degeomance_skull"
   line_break: true
   parent: "panel_misc"
+  layer: "text"
   inherit_alpha: true
 }
 nodes {
@@ -5550,6 +5821,7 @@ nodes {
   font: "tab_caption"
   id: "text"
   parent: "files"
+  layer: "text"
   inherit_alpha: true
   outline_alpha: 0.0
   shadow_alpha: 0.25
@@ -5588,6 +5860,7 @@ nodes {
   font: "tab_caption"
   id: "text3"
   parent: "paths"
+  layer: "text"
   inherit_alpha: true
   outline_alpha: 0.0
   shadow_alpha: 0.25
@@ -5631,6 +5904,7 @@ nodes {
   font: "tab_caption"
   id: "text7"
   parent: "events"
+  layer: "text"
   inherit_alpha: true
   outline_alpha: 0.0
   shadow_alpha: 0.25
@@ -5673,6 +5947,7 @@ nodes {
   font: "tab_caption"
   id: "text6"
   parent: "model_viewer"
+  layer: "text"
   inherit_alpha: true
   outline_alpha: 0.0
   shadow_alpha: 0.25
@@ -5711,6 +5986,7 @@ nodes {
   font: "tab_caption"
   id: "text2"
   parent: "transform"
+  layer: "text"
   inherit_alpha: true
   outline_alpha: 0.0
   shadow_alpha: 0.25
@@ -5753,6 +6029,7 @@ nodes {
   font: "tab_caption"
   id: "text5"
   parent: "tween"
+  layer: "text"
   inherit_alpha: true
   outline_alpha: 0.0
   shadow_alpha: 0.25
@@ -5791,6 +6068,7 @@ nodes {
   font: "tab_caption"
   id: "text1"
   parent: "colours"
+  layer: "text"
   inherit_alpha: true
   outline_alpha: 0.0
   shadow_alpha: 0.25
@@ -5833,6 +6111,7 @@ nodes {
   font: "tab_caption"
   id: "text10"
   parent: "sound"
+  layer: "text"
   inherit_alpha: true
   outline_alpha: 0.0
   shadow_alpha: 0.25
@@ -5875,6 +6154,7 @@ nodes {
   font: "tab_caption"
   id: "text9"
   parent: "misc"
+  layer: "text"
   inherit_alpha: true
   outline_alpha: 0.0
   shadow_alpha: 0.25

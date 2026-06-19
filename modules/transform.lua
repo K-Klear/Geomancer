@@ -180,6 +180,7 @@ local function rebuild_transform_list()
 	MEM.art_data.table.propsDictionary[model_index].model_data.parts = part_list
 	MEM.art_data.table.propsDictionary[model_index].model_data.transform_list = new_list
 	transform_list = new_list
+	TRANS.update_lists()
 	UI.update_list(TAB_NAME, list, #transform_list)
 	msg.post("/model_viewer", hash("update_model"), {model = model_index, no_flash = true, keep_camera = true})
 	timer.delay(0, false, function()

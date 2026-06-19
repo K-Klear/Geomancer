@@ -1,7 +1,10 @@
 local SET = require "modules.settings"
 local COL = require "modules.colours"
+local SND = require "modules.sound"
 
 local proxy_is_loaded, settings_are_loaded
+
+math.randomseed(os.time())
 
 local function start()
 	if settings_are_loaded and proxy_is_loaded then
@@ -186,6 +189,19 @@ function init(self)
 				SET.tween_time_in_beats = SET.default_tween_time_in_beats
 				SET.preview_time_units = SET.default_preview_time_units
 				SET.remove_normal_data = SET.default_remove_normal_data
+				SET.metronome_on = SET.default_metronome_on
+
+				if SET.allow_stupid_metronome_sounds then
+					for key, val in ipairs(SND.metronome_stupid_sound_list) do
+						table.insert(SND.metronome_sound_list, val)
+					end
+				end
+				SND.metronome_stupid_sound_list = nil
+				if not SND.metronome_sound_list[SET.metronome_sound] then
+					SET.metronome_sound = 1
+				end
+
+				
 				create_cfg = false
 			else
 				load_old_config()

@@ -538,7 +538,6 @@ function evaluate_button(button, item)
 			msg.post("#", hash("disable"))
 			msg.post("#", hash("release_input_focus"))
 			msg.post(UI.tab.tab_art.path, hash("disable"))
-			msg.post(UI.tab.dialog_transform.path, hash("disable"))
 			msg.post("/model_viewer", hash("show_preview"), {source = hash("tween_editor"), model = model_index, tween_index = tween_index})
 		end
 	elseif button == "dialog_tween_transform" and #tween_actions > 0 then
@@ -741,7 +740,6 @@ function on_message(self, message_id, message, sender)
 		display_total_time()
 	elseif message_id == hash("hide") then
 		cleanup_on_close()
-		msg.post(UI.tab.dialog_transform.path, hash("hide"))
 	elseif message_id == hash("tween_preview_closed") then
 		tween_index = message.tween_index
 		tween_tab = MEM.art_data.table.propsDictionary[model_index].model_data.tween_list[tween_index]

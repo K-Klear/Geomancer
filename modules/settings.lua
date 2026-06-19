@@ -99,7 +99,13 @@ local configurable = {
 	"degeomance_glitched_enemy",
 	"degeomance_skull",
 	"confirm_degeomance",
-	"I_am_Klear"
+	"I_am_Klear",
+	"allow_stupid_metronome_sounds",
+	"metronome_sound",
+	"default_metronome_on",
+	"volume_general",
+	"volume_music",
+	"volume_metronome"
 }
 
 function SET.save_config()
@@ -253,7 +259,7 @@ SET.mesh_flash_frequency = 1
 SET.mesh_flash_colour = vmath.vector4(1, 0, 0, 0.4)
 
 SET.map_preview_partition_size = 10
-SET.max_desync = 0.15
+SET.max_desync = 0.05
 
 SET.preview_time_units = 1
 SET.default_preview_time_units = 1
@@ -296,6 +302,14 @@ SET.rotate_multiple_axes = true
 SET.default_rotation_rounding = 15
 
 -- sound
+
 SET.metronome_sound = 1
+SET.metronome_on = true
+SET.default_metronome_on = false
+SET.volume_general = 1
+SET.volume_music = 1
+SET.volume_metronome = 1
+
+
 
 return SET

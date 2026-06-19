@@ -1158,7 +1158,7 @@ nodes {
 }
 nodes {
   size {
-    x: 280.0
+    x: 336.0
     y: 128.0
   }
   type: TYPE_BOX
@@ -1174,45 +1174,11 @@ nodes {
 }
 nodes {
   position {
-    x: -252.0
-    y: -84.0
-  }
-  type: TYPE_TEMPLATE
-  id: "hide_geo"
-  parent: "visibility_box_buttons"
-  inherit_alpha: true
-  template: "/templates/button_enemy.gui"
-}
-nodes {
-  size {
-    x: 56.0
-    y: 56.0
-  }
-  type: TYPE_BOX
-  id: "hide_geo/button_white"
-  parent: "hide_geo"
-  overridden_fields: 3
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  texture: "UI/button_show_geo"
-  id: "hide_geo/text"
-  parent: "hide_geo/button_white"
-  overridden_fields: 3
-  overridden_fields: 9
-  overridden_fields: 38
-  template_node_child: true
-  size_mode: SIZE_MODE_AUTO
-}
-nodes {
-  position {
-    x: -140.0
+    x: -308.0
     y: -28.0
   }
   type: TYPE_TEMPLATE
-  id: "hide_props"
+  id: "hide_obstacles"
   parent: "visibility_box_buttons"
   inherit_alpha: true
   template: "/templates/button_enemy.gui"
@@ -1223,17 +1189,17 @@ nodes {
     y: 56.0
   }
   type: TYPE_BOX
-  id: "hide_props/button_white"
-  parent: "hide_props"
+  id: "hide_obstacles/button_white"
+  parent: "hide_obstacles"
   overridden_fields: 3
   overridden_fields: 4
   template_node_child: true
 }
 nodes {
   type: TYPE_BOX
-  texture: "UI/find_prop"
-  id: "hide_props/text"
-  parent: "hide_props/button_white"
+  texture: "UI/button_show_obstacles"
+  id: "hide_obstacles/text"
+  parent: "hide_obstacles/button_white"
   overridden_fields: 3
   overridden_fields: 9
   overridden_fields: 38
@@ -1242,7 +1208,7 @@ nodes {
 }
 nodes {
   position {
-    x: -196.0
+    x: -252.0
     y: -28.0
   }
   type: TYPE_TEMPLATE
@@ -1276,11 +1242,11 @@ nodes {
 }
 nodes {
   position {
-    x: -28.0
-    y: -84.0
+    x: -196.0
+    y: -28.0
   }
   type: TYPE_TEMPLATE
-  id: "hide_grid"
+  id: "hide_props"
   parent: "visibility_box_buttons"
   inherit_alpha: true
   template: "/templates/button_enemy.gui"
@@ -1291,17 +1257,17 @@ nodes {
     y: 56.0
   }
   type: TYPE_BOX
-  id: "hide_grid/button_white"
-  parent: "hide_grid"
+  id: "hide_props/button_white"
+  parent: "hide_props"
   overridden_fields: 3
   overridden_fields: 4
   template_node_child: true
 }
 nodes {
   type: TYPE_BOX
-  texture: "UI/button_show_grid"
-  id: "hide_grid/text"
-  parent: "hide_grid/button_white"
+  texture: "UI/find_prop"
+  id: "hide_props/text"
+  parent: "hide_props/button_white"
   overridden_fields: 3
   overridden_fields: 9
   overridden_fields: 38
@@ -1311,40 +1277,6 @@ nodes {
 nodes {
   position {
     x: -140.0
-    y: -84.0
-  }
-  type: TYPE_TEMPLATE
-  id: "hide_fog"
-  parent: "visibility_box_buttons"
-  inherit_alpha: true
-  template: "/templates/button_enemy.gui"
-}
-nodes {
-  size {
-    x: 56.0
-    y: 56.0
-  }
-  type: TYPE_BOX
-  id: "hide_fog/button_white"
-  parent: "hide_fog"
-  overridden_fields: 3
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  texture: "UI/button_show_background"
-  id: "hide_fog/text"
-  parent: "hide_fog/button_white"
-  overridden_fields: 3
-  overridden_fields: 9
-  overridden_fields: 38
-  template_node_child: true
-  size_mode: SIZE_MODE_AUTO
-}
-nodes {
-  position {
-    x: -84.0
     y: -28.0
   }
   type: TYPE_TEMPLATE
@@ -1379,6 +1311,142 @@ nodes {
 nodes {
   position {
     x: -84.0
+    y: -28.0
+  }
+  type: TYPE_TEMPLATE
+  id: "toggle_metronome"
+  parent: "visibility_box_buttons"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "toggle_metronome/button_white"
+  parent: "toggle_metronome"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/button_no_metronome"
+  id: "toggle_metronome/text"
+  parent: "toggle_metronome/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -308.0
+    y: -84.0
+  }
+  type: TYPE_TEMPLATE
+  id: "hide_geo"
+  parent: "visibility_box_buttons"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "hide_geo/button_white"
+  parent: "hide_geo"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/button_show_geo"
+  id: "hide_geo/text"
+  parent: "hide_geo/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -252.0
+    y: -84.0
+  }
+  type: TYPE_TEMPLATE
+  id: "hide_colliders"
+  parent: "visibility_box_buttons"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "hide_colliders/button_white"
+  parent: "hide_colliders"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/button_hide_colliders"
+  id: "hide_colliders/text"
+  parent: "hide_colliders/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -196.0
+    y: -84.0
+  }
+  type: TYPE_TEMPLATE
+  id: "hide_fog"
+  parent: "visibility_box_buttons"
+  inherit_alpha: true
+  template: "/templates/button_enemy.gui"
+}
+nodes {
+  size {
+    x: 56.0
+    y: 56.0
+  }
+  type: TYPE_BOX
+  id: "hide_fog/button_white"
+  parent: "hide_fog"
+  overridden_fields: 3
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_BOX
+  texture: "UI/button_show_background"
+  id: "hide_fog/text"
+  parent: "hide_fog/button_white"
+  overridden_fields: 3
+  overridden_fields: 9
+  overridden_fields: 38
+  template_node_child: true
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: -140.0
     y: -84.0
   }
   type: TYPE_TEMPLATE
@@ -1430,45 +1498,11 @@ nodes {
 }
 nodes {
   position {
-    x: -252.0
-    y: -28.0
-  }
-  type: TYPE_TEMPLATE
-  id: "hide_obstacles"
-  parent: "visibility_box_buttons"
-  inherit_alpha: true
-  template: "/templates/button_enemy.gui"
-}
-nodes {
-  size {
-    x: 56.0
-    y: 56.0
-  }
-  type: TYPE_BOX
-  id: "hide_obstacles/button_white"
-  parent: "hide_obstacles"
-  overridden_fields: 3
-  overridden_fields: 4
-  template_node_child: true
-}
-nodes {
-  type: TYPE_BOX
-  texture: "UI/button_show_obstacles"
-  id: "hide_obstacles/text"
-  parent: "hide_obstacles/button_white"
-  overridden_fields: 3
-  overridden_fields: 9
-  overridden_fields: 38
-  template_node_child: true
-  size_mode: SIZE_MODE_AUTO
-}
-nodes {
-  position {
-    x: -196.0
+    x: -84.0
     y: -84.0
   }
   type: TYPE_TEMPLATE
-  id: "hide_colliders"
+  id: "hide_grid"
   parent: "visibility_box_buttons"
   inherit_alpha: true
   template: "/templates/button_enemy.gui"
@@ -1479,17 +1513,17 @@ nodes {
     y: 56.0
   }
   type: TYPE_BOX
-  id: "hide_colliders/button_white"
-  parent: "hide_colliders"
+  id: "hide_grid/button_white"
+  parent: "hide_grid"
   overridden_fields: 3
   overridden_fields: 4
   template_node_child: true
 }
 nodes {
   type: TYPE_BOX
-  texture: "UI/button_hide_colliders"
-  id: "hide_colliders/text"
-  parent: "hide_colliders/button_white"
+  texture: "UI/button_show_grid"
+  id: "hide_grid/text"
+  parent: "hide_grid/button_white"
   overridden_fields: 3
   overridden_fields: 9
   overridden_fields: 38

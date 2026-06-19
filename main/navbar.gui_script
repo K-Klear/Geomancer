@@ -2,6 +2,7 @@ local UI = require "modules.ui"
 local MEM = require "modules.memory"
 local SET = require "modules.settings"
 local MOD = require "modules.models"
+local SND = require "modules.sound"
 
 local status_text = {"Welcome to Geomancer!", "", "Start by loading a map file, folder or separate files."}
 local status_text_node, status_background, status_font

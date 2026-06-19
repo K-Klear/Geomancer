@@ -77,9 +77,6 @@ images {
   image: "/assets/gfx/icon_delete.png"
 }
 images {
-  image: "/assets/gfx/path.png"
-}
-images {
   image: "/assets/gfx/model_viewer/playback_icons/play.png"
 }
 images {
@@ -177,6 +174,18 @@ images {
 }
 images {
   image: "/assets/gfx/icon_edit.png"
+}
+images {
+  image: "/assets/gfx/slider_handle.png"
+}
+images {
+  image: "/assets/gfx/slider_line_volume.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/button_metronome.png"
+}
+images {
+  image: "/assets/gfx/model_viewer/button_no_metronome.png"
 }
 animations {
   id: "button_white_down"

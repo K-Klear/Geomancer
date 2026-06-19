@@ -10,6 +10,7 @@ local TAB_NAME = "tab_art"
 local model_list, part_list, tween_list, instance_list, evaluate_button, evaluate_input, current_material
 local material_buttons = {}
 local select_model
+local update_lists
 
 local current_tab = "button_materials"
 local tab_buttons = {}
@@ -91,6 +92,7 @@ function init(self)
 	gui.set_enabled(gui.get_node("transforms_background"), false)
 	gui.set_enabled(gui.get_node("tweens_background"), false)
 	gui.set_enabled(gui.get_node("instances_background"), false)
+	TRANS.update_lists = update_lists
 	transform_ui_list = TRANS.init(evaluate_button)
 	UI.disable_list(TAB_NAME, transform_ui_list)
 	
@@ -379,7 +381,7 @@ local function update_materials()
 	end
 end
 
-local function update_lists()
+function update_lists()
 	UI.update_list(TAB_NAME, model_list, #MEM.art_data.table.propsDictionary)
 	if get_selected_model() > 0 then
 		local part_table = MEM.art_data.table.propsDictionary[get_selected_model()].model_data.parts
@@ -841,7 +843,7 @@ local function check_tween_collisions()
 	for tween_index, val in ipairs(tween_list) do
 		val.collision = nil
 		for key, action in ipairs(val.script) do
-			if action.part then
+			if action.part and not (action.type == "X" or action.type == "W") then
 				transforms[action.part] = transforms[action.part] or {}
 				transforms[action.part][action.type] = transforms[action.part][action.type] or {}
 				if not transforms[action.part][action.type][tween_index] then
@@ -1048,12 +1050,6 @@ function on_message(self, message_id, message, sender)
 				rename_model(message.new_name, message.model_to_rename)
 				update_lists()
 			end
-		elseif message.dialog == "dialog_transform" then
-			msg.post(".", hash("enable"))
-			update_lists()
-			check_tweens()
-			msg.post("/model_viewer", hash("show"), {model = get_selected_model()})
-			msg.post("/model_viewer", hash("show_part"), {selected_part = get_selected_part()})
 		elseif message.dialog == "dialog_parent_transform" and message.new_parent then
 			TRANS.new_parent(message.new_parent)
 		elseif message.dialog == "dialog_confirm" then
@@ -1328,7 +1324,7 @@ function evaluate_button(button, item)
 				break
 			end
 		end
-		table.insert(tween_list, {signal = "tween", script = {}, name = new_name})
+		table.insert(tween_list, {signal = "signal", script = {}, name = new_name})
 		select_tween(#tween_list)
 		sort_tweens()
 		open_dialog("dialog_tween", {model_index = selected_model, tween_index = selected_tween})

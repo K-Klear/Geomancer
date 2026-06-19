@@ -19,7 +19,6 @@ instances {
   children: "instance_list"
   children: "rename"
   children: "replace"
-  children: "transform"
   children: "transform_parent"
   children: "tween"
 }
@@ -390,14 +389,6 @@ embedded_instances {
   data: "components {\n"
   "  id: \"dialog_replace_model\"\n"
   "  component: \"/main/dialogs/art/dialog_replace_model.gui\"\n"
-  "}\n"
-  ""
-}
-embedded_instances {
-  id: "transform"
-  data: "components {\n"
-  "  id: \"dialog_transform\"\n"
-  "  component: \"/main/dialogs/art/dialog_transform.gui\"\n"
   "}\n"
   ""
 }

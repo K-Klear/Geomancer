@@ -117,18 +117,55 @@ local function export_art(path)
 	local model_table = MEM.art_data.table
 	for key, val in ipairs(model_table.propsDictionary) do
 		if #val.model_data.tween_list > 0 then
-			local children_tab = {}
+
+
+			local transform_names = {}
+			local function get_transform_names(tab)
+				transform_names[tab.name] = true
+				for k, v in ipairs(tab.children) do
+					get_transform_names(v)
+				end
+			end
+			get_transform_names(val.object)
+			local function get_new_transform_name(name)
+				if not transform_names[name] then
+					transform_names[name] = true
+					return name
+				end
+				local index = 1
+				repeat
+					local new_name = name..index
+					if not transform_names[new_name] then
+						transform_names[new_name] = true
+						return new_name
+					end
+					index = index + 1
+				until false
+			end
+			
+			local children_tab = {
+				{
+					_key_sort = {"name", "components", "children"}, name = SET.tween_parent_transform_name, components = {
+						{_key_sort = {"type", "values"}, type = "Transform", values = "0,0,0,0,0,0,1,1,1,1"},
+					},
+					children = {}
+				}
+			}
+			local current_child = children_tab[1].children
 			for k, v in ipairs(val.model_data.tween_list) do
 				local tween_script, save_original = MEM.get_tween_script(v.script, val.key)
 				if tween_script then
-					table.insert(children_tab, {
+					v.name = get_new_transform_name(v.name)
+					table.insert(current_child, {
 						_key_sort = {"name", "components", "children"}, name = v.name, components = {
-							{_key_sort = {"type", "values"}, type = "Transform", values = "0,0,0,0,0,0,1,0,0,0"},
+							{_key_sort = {"type", "values"}, type = "Transform", values = "0,0,0,0,0,0,1,1,1,1"},
 							{_key_sort = {"type", "Script"}, type = "ScriptedTween", Script = tween_script},
-							{_key_sort = {"type", "EventId", "ActionType"}, type = "LevelEventReceiver", EventId = v.signal, ActionType = "ScriptedTweenTrigger"}
+							{_key_sort = {"type", "EventId", "ActionType"}, type = "LevelEventReceiver", EventId = v.signal, ActionType = "ScriptedTweenTrigger"},
 						},
 						children = {}
 					})
+					current_child = current_child[1].children
+					
 					if save_original then
 						MEM.geomancer_meta.props[val.key] = MEM.geomancer_meta.props[val.key] or {tweens = {}}
 						local tween_actions = {}
@@ -139,11 +176,19 @@ local function export_art(path)
 					end
 				end
 			end
-			table.insert(val.object.children, {
+
+			table.insert(current_child, {
 				_key_sort = {"name", "components", "children"}, name = SET.tween_parent_transform_name, components = {
-					{_key_sort = {"type", "values"}, type = "Transform", values = "0,0,0,0,0,0,1,0,0,0"}
-				}, children = children_tab
+					{_key_sort = {"type", "values"}, type = "Transform", values = "0,0,0,0,0,0,1,1,1,1"}
+				},
+				children = {}
 			})
+			current_child = current_child[1].children
+
+			local other_transforms = val.object.children[1]
+			val.object.children = children_tab
+			current_child[1] = other_transforms
+
 		end
 		if val.hide then
 			MEM.geomancer_meta.props[val.key] = MEM.geomancer_meta.props[val.key] or {}
@@ -1722,7 +1767,7 @@ local function evaluate_button(button)
 	if button == "exit" then
 		os.exit(1)
 	elseif button == "klear_button" then
-
+		G.update_navbar("This button doesn't currently do anything. Also you are not Klear. Stop pretending.", true)
 	elseif button == "map_preview" then
 		if MEM.art_data.table then
 			msg.post("#", hash("disable"))

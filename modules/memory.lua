@@ -70,11 +70,6 @@ function MEM.export_json(json_tab)
 					if key_count > 1 then
 						io.write(QUOTE..val..QUOTE_6..tab[val]..",")
 					else
-						if not val or not tab[val] then
-							print(val)
-							print(val_type)
-							pprint(tab)
-						end
 						io.write(QUOTE..val..QUOTE_6..tab[val])
 					end
 				end
@@ -570,13 +565,41 @@ function MEM.parse_tween(tween_script)
 end
 
 
-local tween_count, part_list, transform_list, tween_list, tween_transform
+local tween_count, part_list, transform_list, tween_list
+
+local function extract_tweens(tween_transform, parent_tab_children)
+	repeat
+		for key, val in ipairs(tween_transform.components) do
+			if val.type == "ScriptedTween" then
+				local tween_script = MEM.parse_tween(val.Script)
+				if tween_script then
+					tween_count = tween_count + 1
+					table.insert(tween_list, {script = tween_script, name = tween_transform.name})
+				end
+			elseif val.type == "LevelEventReceiver" then
+				tween_list[tween_count].signal = val.EventId
+			end
+		end
+		tween_transform = tween_transform.children[1]
+	until (not tween_transform) or (tween_transform.name == SET.tween_parent_transform_name)
+	return tween_transform
+end
+
 local function explore_model_tree(source_tab, part_name, level, parent_tab, is_collider)
 	if source_tab.name == SET.tween_parent_transform_name then
-		for k, v in pairs(parent_tab.tab.children) do
+		local other_transforms
+		for k, v in ipairs(parent_tab.tab.children) do
 			if v == source_tab then
-				tween_transform = table.remove(parent_tab.tab.children, k)
+				other_transforms = extract_tweens(table.remove(parent_tab.tab.children, k))
 				break
+			end
+		end
+		if other_transforms then
+			for k, v in ipairs(other_transforms.children) do
+				table.insert(parent_tab.tab.children, v)
+			end
+			for k, v in ipairs(parent_tab.tab.children) do
+				explore_model_tree(v, part_name, level + 1, parent_tab, is_collider)
 			end
 		end
 		return
@@ -644,23 +667,7 @@ end
 function MEM.add_metadata(model_tab)
 	part_list, transform_list, tween_list = {}, {}, {}
 	tween_count = 0
-	tween_transform = nil
 	explore_model_tree(model_tab.object, "[no name]", 1)
-	if tween_transform then
-		for key, val in ipairs(tween_transform.children) do
-			for k, v in ipairs(val.components) do
-				if v.type == "ScriptedTween" then
-					local tween_script = MEM.parse_tween(v.Script)
-					if tween_script then
-						tween_count = tween_count + 1
-						table.insert(tween_list, {script = tween_script, name = val.name})
-					end
-				elseif v.type == "LevelEventReceiver" then
-					tween_list[tween_count].signal = v.EventId
-				end
-			end
-		end
-	end
 	table.sort(tween_list, function(a, b) return a.name < b.name end)
 	model_tab.tween = tween_count
 	if #part_list < 1 then

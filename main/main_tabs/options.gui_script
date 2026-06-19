@@ -3,8 +3,12 @@ local G = require "modules.global"
 local SET = require "modules.settings"
 local COL = require "modules.colours"
 local MEM = require "modules.memory"
+local SND = require "modules.sound"
 local DIALOG = UI.DIALOG
 local TAB_NAME = "tab_options"
+
+local evaluate_slider
+local sound_preview_held, sound_preview_timer
 
 local validation_bar = {integer = true,	default = function() return SET.tween_timeline_bar_height end}
 local validation_node_scale = {number = true, min = function() return 0.1 end, max = function() return 4 end, default = function() return SET.easing_node_scale end}
@@ -167,7 +171,7 @@ fields = {
 }}
 tab_list.misc = {buttons = {"bulk_sequence_sort", "ignore_char_limit", "confirm_degeomance", "degeomance_sequence",
 "degeomance_glitched_enemy", "degeomance_skull"}, fields = {}}
-tab_list.sound = {buttons = {}, fields = {}}
+tab_list.sound = {buttons = {"metronome_sound", "default_metronome_on"}, fields = {}, sliders = {"volume_metronome", "volume_general", "volume_music"}}
 
 local function set_checkbox(checkbox, value)
 	if value then
@@ -207,6 +211,9 @@ local function switch_tab(tab_name)
 	UI.load_template("save_changes", TAB_NAME)
 	for key, val in ipairs(tab_list[tab_name].fields) do
 		UI.load_text_field(val.name, val.char_limit, TAB_NAME, val.validation or validation)
+	end
+	for key, val in ipairs(tab_list[tab_name].sliders or {}) do
+		UI.slider_set_properties(val, TAB_NAME, {disabled = not (tab_name == "sound")})
 	end
 	gui.set_enabled(gui.get_node("panel_"..active_tab), false)
 	gui.set_enabled(gui.get_node("panel_"..tab_name), true)
@@ -348,6 +355,17 @@ function init(self)
 	gui.set_text(gui.get_node("degeomance_sequence/text"), SET.degeomance_sequence)
 	gui.set_text(gui.get_node("degeomance_glitched_enemy/text"), internal_to_pretty[SET.degeomance_glitched_enemy])
 	gui.set_text(gui.get_node("degeomance_skull/text"), internal_to_pretty[SET.degeomance_skull])
+	-- sound
+	gui.set_text(gui.get_node("metronome_sound/text"), SND.metronome_sound_list[SET.metronome_sound].name)
+	set_checkbox("default_metronome_on", SET.default_metronome_on)
+
+	local slider_text_fn = function(val) return (val * 100).." %" end
+	UI.load_slider("volume_general", TAB_NAME, slider_text_fn, 16, 100)
+	UI.slider_set_properties("volume_general", TAB_NAME, {disabled = true, value = SET.volume_general})
+	UI.load_slider("volume_music", TAB_NAME, slider_text_fn, 16, 100)
+	UI.slider_set_properties("volume_music", TAB_NAME, {disabled = true, value = SET.volume_music})
+	UI.load_slider("volume_metronome", TAB_NAME, slider_text_fn, 16, 100)
+	UI.slider_set_properties("volume_metronome", TAB_NAME, {disabled = true, value = SET.volume_metronome})
 	
 	for key, val in pairs(tab_list) do
 		gui.set_enabled(gui.get_node("panel_"..key), false)
@@ -355,8 +373,21 @@ function init(self)
 	switch_tab("files")
 end
 
+local function stop_music_preview()
+	if sound_preview_held then
+		sound_preview_held = false
+		if sound_preview_timer then
+			timer.cancel(sound_preview_timer)
+			sound_preview_timer = nil
+		else
+			SND.stop_music()
+		end
+	end
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == hash("hide") then
+		stop_music_preview()
 		msg.post("#", hash("disable"))
 		msg.post("#", hash("release_input_focus"))
 		DIALOG.close_all(TAB_NAME)
@@ -386,6 +417,19 @@ function on_message(self, message_id, message, sender)
 				gui.set_text(gui.get_node(message.hide_illegal.."/text"), enemy_names[message.new_type])
 			end
 		end
+	end
+end
+
+function evaluate_slider(slider, value)
+	if slider == "volume_general" then
+		SET.volume_general = value
+		sound.set_group_gain(hash("master"), value)
+	elseif slider == "volume_metronome" then
+		SET.volume_metronome = value
+		sound.set_group_gain(hash("metronome"), value)
+	elseif slider == "volume_music" then
+		SET.volume_music = value
+		sound.set_group_gain(hash("music"), value)
 	end
 end
 
@@ -512,10 +556,28 @@ local function evaluate_button(button)
 			SET[button] = not SET[button]
 			set_checkbox(button, SET[button])
 		end
+	elseif active_tab == "sound" then
+		if button == "metronome_sound" then
+			SET.metronome_sound = SET.metronome_sound + 1
+			if SET.metronome_sound > #SND.metronome_sound_list then
+				SET.metronome_sound = 1
+			end
+			if not SND.metronome_sound_list[SET.metronome_sound].rick then
+				SND.metronome_tick()
+			end
+			gui.set_text(gui.get_node("metronome_sound/text"), SND.metronome_sound_list[SET.metronome_sound].name)
+		else
+			SET[button] = not SET[button]
+			set_checkbox(button, SET[button])
+		end
 	end
 end
 
 function on_input(self, action_id, action)
+	if sound_preview_held and action.released then
+		stop_music_preview()
+		sound_preview_held = false
+	end
 	if action_id == hash("touch") and action.pressed then
 		for key, val in pairs(tab_list) do
 			if gui.pick_node(gui.get_node(key), action.x, action.y) then
@@ -523,6 +585,26 @@ function on_input(self, action_id, action)
 				return
 			end
 		end
+		if active_tab == "sound" then
+			if gui.pick_node(gui.get_node("volume_general/background"), action.x, action.y) then
+				sound.play("/sound#general_test")
+				sound_preview_held = true
+				sound_preview_timer = timer.delay(0.5, true, function() sound.play("/sound#general_test") end)
+			elseif gui.pick_node(gui.get_node("volume_music/background"), action.x, action.y) then
+				if SND.play_music(MEM.level_data.previewTime) then
+					sound_preview_held = true
+				else
+					sound.play("/sound#music_test")
+					sound_preview_held = true
+					sound_preview_timer = timer.delay(0.5, true, function() sound.play("/sound#music_test") end)
+				end
+			elseif gui.pick_node(gui.get_node("volume_metronome/background"), action.x, action.y) then
+				SND.metronome_tick()
+				sound_preview_held = true
+				local delay = MEM.event_data.beat_in_seconds or 0.5
+				sound_preview_timer = timer.delay(delay, true, SND.metronome_tick)
+			end
+		end
 	end
-	UI.on_input(TAB_NAME, action_id, action, evaluate_button, evaluate_input)
+	UI.on_input(TAB_NAME, action_id, action, evaluate_button, evaluate_input, false, evaluate_slider)
 end

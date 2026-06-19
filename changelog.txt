@@ -44,7 +44,7 @@ Bugs:
 	- Actually saw a wrong model turn dynamic. Something's fishy
 		- Might be caused by sorting models - investigate!
 - Meshes in model viewer tend to disappear. Related to flashing?
-- Mouse position doesn't get locked when middle-clikcing the model preview for some reason
+- It's now impossible to set only selected transform as visible (the buttons on the model preview)
 
 Settings to implement in options:
 - Something for timeline height in map preview
@@ -58,109 +58,26 @@ To-do:
 Done:
 
 Features:
-- The space used for the material list on the Models tab can now be switched between four sub-tabs:
-	- Materials function the same as before
-	- Transform editor is the second subtab, rather than being a separate view
-		- Since it's no longer necessary to go through the transform editor to edit tweens, the warning about not accidentally modifying models here has been removed
-	- Third subtab is a list of all tweens on the model
-		- Tweens no longer have to be created from a specific transform - Geomancer takes care of that in the background.
-		- Tweens are displayed as [Tween name] ([signal]), sorted by name. Names can be freely changed
-			- Maps saved with older Geomancer version will have their tweens named after the transform they were originally attached to
-		- Tweens are coloured based on the predominant action type, based on length and number of actions
-			- Tweens which target the same transform with the same type of action are coloured red, as that is almost certain to cause issues
-		- You can now jump straight to tween preview with a button at the top of the tween sub-tab
-		- Tweens without actions are automatically deleted (this can be turned off in settings)
-		- The Tween button on the model list has been merged with the static/dynamic button and shows the number of tweens of each prop
-			- Clicking it will no longer open the transform editor, swithcing to the tween submenu instead
-	- The last subtab is Instances, replacing the dialog previously accessed by a button at the bottom of the model list
-		- The list of instances is sorted by Z position and shows their Z / X / Y position and spawn/despawn times in seconds
-		- There are buttons for each entry. Left to right:
-			- Edit properties (wrench icon) opens up a dialog where you can view and adjust position, rotation and scale of the prop instance, as well as spawn and despawn times
-				- The "Reasonable ranges" button automatically sets the times to margins that are generally safe.
-					- They are similar (but not always the same) as the default values set by Pistol Mix
-				- A text box under the spawn/despawn UI describes roughly when the prop comes into view taking draw distance into account, when it spawns/despawns in relation to those times and points out if the prop is likely to either pop-in or despawn prematurely
-					- Note that this is only really accurate for small props placed directly in the player's path, at eye level. Large props will be visible sooner and may need adjustments.
-				- The eye icon opens map preview and jumps to the prop's location.
-				- You can browse through prop instances using the bottoms at the bottom
-			- GEO button opens a geo creation dialog. See below.
-			- View prop (eye icon) opens map preview and jumps to the prop's location.
-			- Delete (trash can icon) deletes the prop instance from the map. Requires confirmation by default
-- It is now possible to create geo (visible and/or invisible) from props, from the Instance subtab
-	- Clicking the "Geo" button at the prop instance of your choice opens a dialog with options:
-		- Select whether to generate visible geo, colliders or both
-		- You may choose to delete the prop afterwards
-		- Alternatively it can be automatically scaled to 0 to make it invisible, but still present in the map in case you want to reference it later
-		- If there's more than one instance of this prop, you can generate geo from all of them at the same time
-	- Geomancer keeps track of geo generated this way and will store this information in the geomancer metadata file on export
-		- This allows it to regenerate these changes when importing changes from a previously geomanced map
-		- There are also new buttons on the Geo/Colliders tab used to remove all geo created this way, as long as the metadata file is present
-- There is an issue where saving a map without ever clicking "Generate geo" causes props and obstacles to disappear. Geomancer now automatically fixes this by generating empty geo chunks if there are none.
-	- This means that it is no longer necessary to make a large subtractive volume if a map with no geo is desired. Just run the map through Geomancer and it will work.
-- Importing models now allows you to select and .obj file rather than an existing map
-	- Some models may fail to load. Try re-exporting them with blender if that happens
-	- There is also an Import folder button, which will import all .obj files in the selected folder into the map
-		- Models imported through Pistol Mix have their mesh transforms scale x set to -1. Geomancer modifies the mesh instead to get the same result
-- There is a checkbox near the export button to remove the normal data from models when exporting
-	- Normal data is not used by the game in any way and removing it will reduce the map size and speed up loading
-	- Geomancer does use normals for previews and will automatically recalculate them (poorly) when opening a map
-- Exports with overwrite are now done in a temporary folder first, then moved if there are no errors
-	- This should prevent major errors during export from overwriting the previous copy of the map
-- Obstacles are now shown in preview (can be hidden)
-- Improved how colliders are rendered (textured and transparent)
-	- Collider display can be enabled/disabled independently from geo
-	- Obstacles have collider graphics attached
-	- Red colliders (geo and obstacles) hurt the player when going through them
-	- Yellow colliders (found on some built-in props) only block shots
-		- Props named "PF_CollisionCube_01_Flat" and "PF_CollisionCube_02_tall" are hardcoded to show as appropriately-sized colliders
-			- This only happens when loading map data. If such a model is imported or renamed, it will only show correctly after exporting and reloading the map
-- Geo rendering in previews is more accurate to the game
-- The find model dialog now opens with the text field selected
-- Increased the maximum number of tween action repeats to 999
-- Loading and exporting maps now reports time taken
+- Added a metronome which can be enabled/disabled in previews (off by default)
+- Added slider bars to the Rotate tab
 
 New shortcuts:
-- Holding down shift when clicking a text field will now remove its contents before selecting it
 
 Fixes:
-- Changes to geo made on the Geo / Collisions tab are now shown on the preview
-- Importing changes now imports lobby colours too
-- Tween actions that would appear on the timeline shorter than 1 pixel no longer generate separators, appearing as a solid colour rather than solid black
-- Adjusted default tween colours for readability, as they are now used in the Tween subtab too
-	- Note that this change will be overriden if you're using an older configuration file. You'll need to adjust the colours yourself in that case.
-- Importing models containing tweens from another map now correctly preserves repeat actions and easings if the .geomancer file is present
-- Rename dialogs now open with the text field already selected
-- When picking models to import from a different map, the list is now sorted alphabetically
+- Default "Maximum allowed desync" value changed from 0.15 to 0.05
+- It is no longer possible to click buttons when mouse cursor is locked (middle-click on a model view)
+- Default signal of new tweens is now "signal", same as the default when creating a new event
 
 Bugs:
-- Fixed an error when opening the model viewer for a map with no props
-- Fixed a bug preventing geo and props from despawning correctly when jumping around on the timeline
-- Model viewer input is now correctly disabled when returning to the prop instance dialog
-- Fixed an issue preventing enemy type from changing
-- Material set "2089 - Alien Planet" is now named correctly
-- Fixed an issue preventing colour changes from being applied to props in stationary maps
-- Correct colour section is now shown when previewing a tween in a stationary map
-- Props no longer despawn in stationary maps
-- Fixed a crash when opening certain models in transform editor
-- Sample rate is now more stricly enforced to be 100 at minimum
-	- It used to be possible to change the default value to 0 or less by editing the cfg file, causing errors
-- Fixed a crash when replacing a model in a map without any dynamic props
-- Fixed a crash when replacing the last model in the list (again, for good this time, hopefully)
-- Fixed an error when parsing filenames with periods
-- Switching tabs disables FPS-style controls if active, preventing loss of cursor
+- Fixed an issue preventing tween metadata from being preserved in case the tween needed to be renamed on export
+- Music/graphic desyncs now resume playing at the correct time if playback speed is not 1x
+- Beat length (used as an alternate time unit in tweens) is now correctly updated if the first beat section gets modified
 
 Options:
-- Removed the setting for transform edit warning
-- Moved custom colour set to the Colours tab
-- Collider colour setting has been split between strong (geo) and weak (bullet blockers) colliders and moved to the Colours tab
-- Colours - > Tween transfom error (sets the warning colour of tweens which apply the same action type to the same transform)
-- Files -> Include geo data when importing changes (default state of the checkbox)
-- Files -> Remove normal data when exporting (default state of the checkbox)
-- Events, Models, Rotate -> Confirm prop deletion (skip the confirmation dialog when deleting a prop)
-- Tween/Easing -> Delete empty tweens (tweens without any actions are automatically removed)
-- Tween/Easing -> Confirm deletion of non-empty tweens
-
-
-metronome_sound = 1 (0 - nothing, 1 - beep, 2 - click)
+- The Sound tab finally has some stuff in it:
+	- Cycle through different metronome sounds
+	- Choose whether the metronome is on or off by default
+	- Volume sliders: Master, Music and Metronome
 
 Notes:
 - See if "MEM.event_reloaded" and similar are necessary. Currently load error unloads previous data - is that a bad thing?

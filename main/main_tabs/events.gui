@@ -107,7 +107,7 @@ nodes {
 nodes {
   position {
     x: 154.0
-    y: 73.0
+    y: 66.0
   }
   type: TYPE_TEMPLATE
   id: "nobeat_add"
@@ -140,7 +140,7 @@ nodes {
 nodes {
   position {
     x: 414.0
-    y: 73.0
+    y: 66.0
   }
   type: TYPE_TEMPLATE
   id: "event_add"
@@ -173,7 +173,7 @@ nodes {
 nodes {
   position {
     x: 795.0
-    y: 74.0
+    y: 67.0
   }
   type: TYPE_TEMPLATE
   id: "tempo_add"
@@ -1093,7 +1093,7 @@ nodes {
 nodes {
   position {
     x: 569.0
-    y: 73.0
+    y: 66.0
   }
   type: TYPE_TEMPLATE
   id: "event_add_multiple"
@@ -1157,7 +1157,7 @@ nodes {
 nodes {
   position {
     x: 595.0
-    y: 141.0
+    y: 152.0
   }
   type: TYPE_TEMPLATE
   id: "event_filter"
@@ -1170,7 +1170,7 @@ nodes {
   }
   size {
     x: 130.0
-    y: 48.0
+    y: 40.0
   }
   type: TYPE_BOX
   id: "event_filter/button_white"
@@ -1184,6 +1184,49 @@ nodes {
   text: "Filter"
   id: "event_filter/text"
   parent: "event_filter/button_white"
+  overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 595.0
+    y: 111.0
+  }
+  type: TYPE_TEMPLATE
+  id: "event_delete_shown"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  position {
+    x: 14.0
+    y: 5.0
+  }
+  size {
+    x: 130.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "event_delete_shown/button_white"
+  parent: "event_delete_shown"
+  overridden_fields: 1
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.6
+    y: 0.6
+  }
+  size {
+    x: 180.0
+    y: 70.0
+  }
+  type: TYPE_TEXT
+  text: "Delete shown"
+  id: "event_delete_shown/text"
+  parent: "event_delete_shown/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
   overridden_fields: 8
   template_node_child: true
 }

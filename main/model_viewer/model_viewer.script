@@ -3,6 +3,7 @@ local SET = require "modules.settings"
 local G = require "modules.global"
 local MOD = require "modules.models"
 local COL = require "modules.colours"
+local SND = require "modules.sound"
 
 local MODEL_CAMERA = "/model_camera"
 local CAMERA_TARGET = "/camera_target"
@@ -15,6 +16,9 @@ local TWEEN_ACTION_ROTATE = hash("R")
 
 local NOBEAT_START = hash("nobeat_start")
 local NOBEAT_END = hash("nobeat_end")
+
+local all_beats = {}
+local beat_index = 1
 
 local material_list = {}
 
@@ -640,7 +644,6 @@ local function reset_view(mode)
 end
 
 local function show_culling_range(self, range)
-	print(range, #MOD.culling_ranges)
 	for key, val in ipairs(MOD.culling_ranges[range].slices) do
 		if not val.model then
 			local new_slice, new_mesh = create_slice_model(self, val, val.mesh_index == 1)
@@ -948,7 +951,7 @@ function update(self, dt)
 					local playtime = socket.gettime() - MOD.desync_check_start
 					local delay = playtime - desync_check_playtime
 					if delay > SET.max_desync then
-						local time = desync_check_scrubber + (playtime / MOD.total_time)
+						local time = desync_check_scrubber + (playtime * SND.playback_speed / MOD.total_time)
 						msg.post(".", hash("move_scrubber"), {time = time})
 					end
 					desync_check_playtime = desync_check_playtime + dt
@@ -960,6 +963,11 @@ function update(self, dt)
 						apply_colour_section(math.max(i - 1, 1), t)
 						break
 					end
+				end
+
+				if MOD.playback and SET.metronome_on and ((all_beats[beat_index] or math.huge) < (t + SND.metronome_sound_list[SET.metronome_sound].offset)) then
+					SND.metronome_tick()
+					beat_index = beat_index + 1
 				end
 
 				local beats_active = true
@@ -1399,6 +1407,46 @@ local function create_beatcubes()
 	until num < 1
 end
 
+local function get_all_beats()
+	all_beats = {}
+	beat_index = 1
+	local beat_active = true
+	local song_lenght = MEM.level_data.songLength or MEM.event_track[#MEM.event_track].time + 5
+	song_lenght = tonumber(song_lenght)
+	local all_done
+	for key, val in ipairs(MEM.event_track) do
+		if val.type == NOBEAT_START then
+			beat_active = false
+		elseif val.type == NOBEAT_END then
+			beat_active = true
+		elseif val.type == hash("tempo_section") then
+			local beat_time = val.time
+			local next_event = key + 1
+			repeat
+				if beat_active then
+					table.insert(all_beats, beat_time)
+				end
+				beat_time = beat_time + val.spb
+				if beat_time > MEM.event_track[next_event].time then
+					local next_type = MEM.event_track[next_event].type
+					if not next_type then
+						all_done = true
+						break
+					elseif next_type == NOBEAT_START then
+						beat_active = false
+					elseif next_type == NOBEAT_END then
+						beat_active = true
+					elseif next_type == hash("tempo_section") then
+						break
+					end
+					next_event = next_event + 1
+				end
+			until beat_time > song_lenght
+			if all_done then break end
+		end
+	end
+end
+
 local function prepare_preview(self)
 	if MOD.map_preview then
 		tween_padding_start = 0
@@ -1412,6 +1460,7 @@ local function prepare_preview(self)
 	if MEM.event_data.table then
 		local first_tempo = MEM.event_data.table.tempoSections[1]
 		get_beats(first_tempo.startSample / SET.sample_rate, first_tempo.samplesPerBeat / SET.sample_rate, first_tempo.beatsPerMeasure)
+		get_all_beats()
 	else
 		get_beats(0, 1, 4)
 	end
@@ -1500,12 +1549,34 @@ function on_message(self, message_id, message, sender)
 		desync_check_playtime = 0
 		MOD.desync_check_start = socket.gettime()
 		desync_check_scrubber = MOD.scrubber_progress
+		local t = MOD.preview_start + MOD.total_time * MOD.scrubber_progress
+		for key, val in ipairs(all_beats) do
+			if val > t then
+				beat_index = key
+				break
+			end
+		end
+	elseif message_id == hash("metronome_enabled") and MOD.playback then
+		local t = MOD.preview_start + MOD.total_time * MOD.scrubber_progress
+		for i = beat_index, #all_beats do
+			if all_beats[i] > t then
+				beat_index = i
+				break
+			end
+		end
 	elseif message_id == hash("move_geo") then
 		go.set("/geo_base", "position.z", message.z)
 		go.set("/static_prop_base", "position.z", message.z)
 	elseif message_id == hash("scrubber_moved") then
+		local t = MOD.preview_start + MOD.total_time * MOD.scrubber_progress
+		beat_index = 1
+		for key, val in ipairs(all_beats) do
+			if val > t then
+				beat_index = key
+				break
+			end
+		end
 		if not (MOD.stationary or MOD.vacuum_preview) then
-			local t = MOD.preview_start + MOD.total_time * MOD.scrubber_progress
 			local z = t * 3
 			get_current_colour(t)
 			despawn_triggered = false

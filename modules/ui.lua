@@ -32,6 +32,8 @@ UI.tab = {
 
 local mouse_held, r_ctr_held, l_ctr_held, l_shift_held, r_shift_held
 
+local active_slider
+
 local hover = {}
 
 local button_gfx = {}
@@ -65,6 +67,83 @@ function UI.load_template(template, tab)
 	local node = gui.get_node(template.."/button_white")
 	local text = gui.get_node(template.."/text")
 	table.insert(UI.tab[tab].buttons, {template = template, node = node, text = text, gfx = gui.get_flipbook(node)})
+end
+
+function UI.load_slider(template, tab, text_fn, margin, sections, multiplier, vertical)
+	margin = margin or 16
+	multiplier = multiplier or 1
+	UI.tab[tab].sliders = UI.tab[tab].sliders or {}
+
+	local background = gui.get_node(template.."/background")
+	local handle = gui.get_node(template.."/handle")
+	local pos = gui.get_position(background)
+	local scale = gui.get(background, "scale.y")
+	local size = gui.get_size(background) * scale
+	if vertical then
+		pos.y = pos.y + size.y - margin * scale-- * 2 -- I really don't know why this is the way it is. Should be same as horizontal
+	else
+		pos.x = pos.x + size.x - margin * scale
+	end
+	local aux_node = gui.new_box_node(pos, vmath.vector3(1))
+	gui.set_visible(aux_node, false)
+	table.insert(UI.tab[tab].sliders, {
+		template = template, background = background, handle = handle, min = gui.get_node(template.."/line"), vertical = vertical,
+		max = aux_node,	margin = margin, text_fn = text_fn, text = gui.get_node(template.."/text"), sections = sections,
+		multiplier = multiplier
+	})
+end
+
+function UI.set_slider_value(slider_tab, tab, value, screen_coord, slider_fn)
+	local min, max
+	if slider_tab.vertical then
+		min = gui.get_screen_position(slider_tab.min).y
+		max = gui.get_screen_position(slider_tab.max).y
+	else
+		min = gui.get_screen_position(slider_tab.min).x
+		max = gui.get_screen_position(slider_tab.max).x
+	end
+	local pos = gui.get_screen_position(slider_tab.handle)
+	local range = max - min
+	if screen_coord then
+		if slider_tab.vertical then
+			pos.y = math.max(min, math.min(max, screen_coord))
+			value = (pos.y - min) / range
+		else
+			pos.x = math.max(min, math.min(max, screen_coord))
+			value = (pos.x - min) / range
+		end
+	end
+	if slider_tab.sections > 0 then
+		local half_section = 0.5 / slider_tab.sections
+		value = math.floor((value + half_section) * slider_tab.sections)
+		value = value / slider_tab.sections
+		if slider_tab.vertical then
+			pos.y = (range * value) + min
+		else
+			pos.x = (range * value) + min
+		end
+	end
+	gui.set_screen_position(slider_tab.handle, pos)
+	gui.set_text(slider_tab.text, slider_tab.text_fn(value * slider_tab.multiplier))
+	if slider_fn then slider_fn(slider_tab.template, value * slider_tab.multiplier) end
+end
+
+function UI.slider_set_properties(template, tab, props)
+	for key, val in ipairs(UI.tab[tab].sliders) do
+		if val.template == template then
+			if val == active_slider then
+				active_slider = nil
+			end
+			for k, v in pairs(props) do
+				val[k] = v
+				if k == "value" then
+					val[k] = val[k] / val.multiplier
+					UI.set_slider_value(val, tab, val[k])
+				end
+			end
+			return
+		end
+	end
 end
 
 function UI.load_text_field(template, char_limit, tab, validation)
@@ -803,7 +882,7 @@ local function exit_text_field(text_field_fn)
 	end
 end
 
-function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_text_fields)
+function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_text_fields, slider_fn)
 	mouse_held = action.pressed or (mouse_held and not action.released)
 	if action_id == hash("lctrl") then
 		l_ctr_held = not action.released
@@ -834,8 +913,37 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_
 			return
 		end
 	end
-	if MOD.is_dragged then
+	if MOD.is_dragged or MOD.cursor_locked then
 		return
+	end
+	if UI.tab[tab].sliders then
+		if action.x then
+			if active_slider then
+				if action_id == hash("touch") and action.released then
+					active_slider = nil
+					return
+				end
+				local coord = action.screen_x
+				if active_slider.vertical then
+					coord = action.screen_y
+				end
+				UI.set_slider_value(active_slider, tab, false, coord, slider_fn)
+				return
+			else
+				if action_id == hash("touch") and action.pressed then
+					for key, slider_tab in ipairs(UI.tab[tab].sliders) do
+						if (not slider_tab.disabled) and gui.pick_node(slider_tab.background, action.x, action.y) then
+							active_slider = slider_tab
+							local coord = action.screen_x
+							if active_slider.vertical then
+								coord = action.screen_y
+							end
+							UI.set_slider_value(active_slider, tab, false, coord, slider_fn)
+						end
+					end
+				end
+			end
+		end
 	end
 	if action_id == hash("escape") and action.pressed then
 		if active_text_field then

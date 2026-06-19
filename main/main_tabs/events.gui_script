@@ -54,7 +54,8 @@ end
 function init(self)
 	gui.set_render_order(1)
 	msg.post("#", hash("disable"))
-	UI.load_template({"sample_48000", "sample_44100", "nobeat_add", "event_add", "event_add_multiple", "tempo_add", "event_filter"}, TAB_NAME)
+	UI.load_template({"sample_48000", "sample_44100", "nobeat_add", "event_add", "event_add_multiple", "tempo_add",
+	"event_filter", "event_delete_shown"}, TAB_NAME)
 	--UI.load_template({"music_preview", "metronome_sound"}, TAB_NAME)
 	local validation = {
 		integer = true,
@@ -313,12 +314,28 @@ function on_message(self, message_id, message, sender)
 				MEM.event_data.table.tempoSections[item].samplesPerBeat = message.spb
 				MEM.event_data.table.tempoSections[item].beatsPerMeasure = message.signature
 				MEM.event_data.table.tempoSections[item]._key_sort = {"startSample", "samplesPerBeat", "beatsPerMeasure"}
+				MEM.event_data.beat_in_seconds = MEM.event_data.table.tempoSections[1].samplesPerBeat / SET.sample_rate
 			end
 			table.sort(MEM.event_data.table.tempoSections, sort_f)
 			UI.update_list(TAB_NAME, tempo_list, #MEM.event_data.table.tempoSections)
 		elseif message.dialog == "dialog_filter" then
 			update_event_list()
 			update_filter_text()
+		elseif message.dialog == "dialog_confirm" then
+			if message.subject == "mass_delete" then
+				if message.button == 1 then  			-- buttons are 1 = delete, 3 = cancel
+					local count = 0
+					for key = #events_aux, 1, -1 do
+						table.remove(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events, events_aux[key])
+						count = count + 1
+					end
+					MEM.event_data.filter = {}
+					update_event_list()
+					update_filter_text()
+					G.update_navbar(count.." events deleted.")
+				end
+			end
+			msg.post("#", hash("acquire_input_focus"))
 		end
 	elseif message_id == hash("detect_sample_rate") then
 		MEM.event_data.sample_rate_set = false
@@ -402,6 +419,22 @@ local function evaluate_button(button, item)
 		end
 	elseif button == "event_filter" then
 		DIALOG.open(TAB_NAME, "dialog_filter", {event_track = MEM.event_data.event_track_index})
+	elseif button == "event_delete_shown" then
+
+		local event_count = #MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events
+		local events_filtered = 0
+		local str
+		if next(MEM.event_data.filter) then
+			for key, val in ipairs(MEM.event_data.table.eventsData[MEM.event_data.event_track_index].events) do
+				if MEM.event_data.filter[val.payload] then
+					events_filtered = events_filtered + 1
+				end
+			end
+			str = "Are you sure you want to delete "..(event_count - events_filtered).." out of "..event_count.."\nevents?"
+		else
+			str = "Are you sure you want to delete ALL events?"
+		end
+		DIALOG.open(TAB_NAME, "dialog_confirm", {title = str, button_1 = "Delete", button_3 = "Cancel", subject = "mass_delete"})
 	elseif button == "music_preview" then
 		if SND.music_is_playing then
 			msg.post("/sound", hash("stop_music"))
