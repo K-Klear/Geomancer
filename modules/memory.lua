@@ -517,6 +517,10 @@ local function parse_tween_action(script)
 	elseif action.type == "T" or action.type == "R" or action.type == "S" then
 		str_start = string.find(script, ";")
 		action.part = string.sub(script, 2, str_start - 1)
+		local slash = string.find(string.reverse(action.part), "/")
+		if slash then
+			action.part = string.sub(action.part, -slash + 1)
+		end
 		str_end = string.find(script, ",", str_start + 1)
 		x = string.sub(script, str_start + 1, str_end - 1)
 		str_start = str_end
@@ -1157,7 +1161,7 @@ function MEM.remove_geomanced_chunk(chunk_tab)
 	end
 end
 
-function MEM.get_tween_script(tween_data, model_name)
+function MEM.get_tween_script(tween_data, model_name, transform_path_beginning, transform_paths)
 	if not tween_data then return end
 	local str = ""
 	local deletion_count, save_original
@@ -1173,13 +1177,17 @@ function MEM.get_tween_script(tween_data, model_name)
 		if val.type == "W" then
 			str = str..val.type..val.time..";"
 		else
+			local transform_path = val.part
+			if transform_path_beginning then
+				transform_path = transform_path_beginning..transform_paths[val.part]
+			end
 			if val.easing then
 				local node_values = G.separate_easing(val)
 				for k, v in ipairs(node_values) do
-					str = str..val.type..val.part..";"..v.s.x..","..v.s.y..","..v.s.z..";"..v.e.x..","..v.e.y..","..v.e.z..";"..v.t..";"
+					str = str..val.type..transform_path..";"..v.s.x..","..v.s.y..","..v.s.z..";"..v.e.x..","..v.e.y..","..v.e.z..";"..v.t..";"
 				end
 			else
-				str = str..val.type..val.part..";"..val.start_state.x..","..val.start_state.y..","
+				str = str..val.type..transform_path..";"..val.start_state.x..","..val.start_state.y..","
 				str = str..val.start_state.z..";"..val.end_state.x..","..val.end_state.y..","..val.end_state.z..";"..val.time..";"
 			end
 		end

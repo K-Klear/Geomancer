@@ -911,6 +911,7 @@ local function delete_tween()
 	table.remove(tween_list, selected_tween)
 	check_tweens()
 	if selected_tween > #tween_list then selected_tween = #tween_list end
+	check_tween_collisions()
 	UI.update_list(TAB_NAME, tween_ui_list, #tween_list)
 	select_tween()
 	G.update_navbar("Tween deleted", true)
@@ -988,6 +989,7 @@ function on_message(self, message_id, message, sender)
 			end
 			UI.select_exclusive_button(TAB_NAME, model_list, selected_model, true)
 			tween_list = MEM.art_data.table.propsDictionary[selected_model].model_data.tween_list
+			UI.update_list(TAB_NAME, tween_ui_list, #tween_list)
 			sort_tweens()
 			UI.update_list(TAB_NAME, tween_ui_list, #tween_list)
 			model_for_viewer = selected_model
@@ -1142,10 +1144,11 @@ function on_message(self, message_id, message, sender)
 		elseif message.dialog == "dialog_tween" then
 			if SET.delete_empty_tweens and #tween_list[selected_tween].script < 1 then
 				delete_tween()
-			else
-				check_tween_collisions()
-				UI.update_list(TAB_NAME, tween_ui_list, #tween_list)
 			end
+			check_tweens()
+			check_tween_collisions()
+			UI.update_list(TAB_NAME, tween_ui_list, #tween_list)
+			UI.update_list(TAB_NAME, model_list, #MEM.art_data.table.propsDictionary)
 			select_tween()
 		elseif message.dialog == "dialog_create_geo" then
 			if message.changes then

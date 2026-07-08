@@ -117,8 +117,18 @@ local function export_art(path)
 	local model_table = MEM.art_data.table
 	for key, val in ipairs(model_table.propsDictionary) do
 		if #val.model_data.tween_list > 0 then
-
-
+			local other_transforms = val.object.children[1]
+			local transform_paths = {}
+			local function get_transform_path(tab, t_path)
+				t_path = t_path.."/"..tab.name
+				if not transform_paths[tab.name] then
+					transform_paths[tab.name] = t_path
+				end
+				for k, v in ipairs(tab.children) do
+					get_transform_path(v, t_path)
+				end
+			end
+			get_transform_path(other_transforms, "")
 			local transform_names = {}
 			local function get_transform_names(tab)
 				transform_names[tab.name] = true
@@ -152,10 +162,20 @@ local function export_art(path)
 				}
 			}
 			local current_child = children_tab[1].children
+			local transform_path_full = ""
 			for k, v in ipairs(val.model_data.tween_list) do
-				local tween_script, save_original = MEM.get_tween_script(v.script, val.key)
+				v.name = get_new_transform_name(v.name)
+				transform_path_full = transform_path_full..v.name.."/"
+			end
+			transform_path_full = transform_path_full..SET.tween_parent_transform_name
+			for k, v in ipairs(val.model_data.tween_list) do
+				local slash = 0
+				for i = 1, k do
+					slash = string.find(transform_path_full, "/", slash + 1) or 0
+				end
+				local transform_path = string.sub(transform_path_full, slash + 1)
+				local tween_script, save_original = MEM.get_tween_script(v.script, val.key, transform_path, transform_paths)
 				if tween_script then
-					v.name = get_new_transform_name(v.name)
 					table.insert(current_child, {
 						_key_sort = {"name", "components", "children"}, name = v.name, components = {
 							{_key_sort = {"type", "values"}, type = "Transform", values = "0,0,0,0,0,0,1,1,1,1"},
@@ -185,7 +205,6 @@ local function export_art(path)
 			})
 			current_child = current_child[1].children
 
-			local other_transforms = val.object.children[1]
 			val.object.children = children_tab
 			current_child[1] = other_transforms
 

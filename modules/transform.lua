@@ -422,6 +422,7 @@ function TRANS.invalid_model()
 end
 
 function TRANS.show(model_index)
+	SET.show_single_transform = true
 	if true then return end
 	if SET.add_root_transform_if_missing then
 		local function check_children(transform_tab)

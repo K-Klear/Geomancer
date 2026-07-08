@@ -44,7 +44,7 @@ Bugs:
 	- Actually saw a wrong model turn dynamic. Something's fishy
 		- Might be caused by sorting models - investigate!
 - Meshes in model viewer tend to disappear. Related to flashing?
-- It's now impossible to set only selected transform as visible (the buttons on the model preview)
+- Somehow tweens got duplicated. Is it because the signals were numbers?!
 
 Settings to implement in options:
 - Something for timeline height in map preview
@@ -58,26 +58,18 @@ To-do:
 Done:
 
 Features:
-- Added a metronome which can be enabled/disabled in previews (off by default)
-- Added slider bars to the Rotate tab
 
 New shortcuts:
 
 Fixes:
-- Default "Maximum allowed desync" value changed from 0.15 to 0.05
-- It is no longer possible to click buttons when mouse cursor is locked (middle-click on a model view)
-- Default signal of new tweens is now "signal", same as the default when creating a new event
+- It is once again possible to only display the selected transform visualisation, when on the transform subtab
 
 Bugs:
-- Fixed an issue preventing tween metadata from being preserved in case the tween needed to be renamed on export
-- Music/graphic desyncs now resume playing at the correct time if playback speed is not 1x
-- Beat length (used as an alternate time unit in tweens) is now correctly updated if the first beat section gets modified
+- Fixed a crash caused by tween list not being reset properly
+- The number of tweens on the model list is updated correctly after a new tween is created
+- Tween target collisions get checked after a tween is deleted
 
 Options:
-- The Sound tab finally has some stuff in it:
-	- Cycle through different metronome sounds
-	- Choose whether the metronome is on or off by default
-	- Volume sliders: Master, Music and Metronome
 
 Notes:
 - See if "MEM.event_reloaded" and similar are necessary. Currently load error unloads previous data - is that a bad thing?
