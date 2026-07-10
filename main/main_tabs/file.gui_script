@@ -117,41 +117,10 @@ local function export_art(path)
 	local model_table = MEM.art_data.table
 	for key, val in ipairs(model_table.propsDictionary) do
 		if #val.model_data.tween_list > 0 then
-			local other_transforms = val.object.children[1]
-			local transform_paths = {}
-			local function get_transform_path(tab, t_path)
-				t_path = t_path.."/"..tab.name
-				if not transform_paths[tab.name] then
-					transform_paths[tab.name] = t_path
-				end
-				for k, v in ipairs(tab.children) do
-					get_transform_path(v, t_path)
-				end
-			end
-			get_transform_path(other_transforms, "")
-			local transform_names = {}
-			local function get_transform_names(tab)
-				transform_names[tab.name] = true
-				for k, v in ipairs(tab.children) do
-					get_transform_names(v)
-				end
-			end
-			get_transform_names(val.object)
-			local function get_new_transform_name(name)
-				if not transform_names[name] then
-					transform_names[name] = true
-					return name
-				end
-				local index = 1
-				repeat
-					local new_name = name..index
-					if not transform_names[new_name] then
-						transform_names[new_name] = true
-						return new_name
-					end
-					index = index + 1
-				until false
-			end
+			--local other_transforms = val.object.children[1]
+			local other_transforms = val.object.children
+			
+			local transform_paths = MEM.get_transform_paths(val.object)
 			
 			local children_tab = {
 				{
@@ -164,7 +133,6 @@ local function export_art(path)
 			local current_child = children_tab[1].children
 			local transform_path_full = ""
 			for k, v in ipairs(val.model_data.tween_list) do
-				v.name = get_new_transform_name(v.name)
 				transform_path_full = transform_path_full..v.name.."/"
 			end
 			transform_path_full = transform_path_full..SET.tween_parent_transform_name
@@ -206,7 +174,10 @@ local function export_art(path)
 			current_child = current_child[1].children
 
 			val.object.children = children_tab
-			current_child[1] = other_transforms
+			for k, v in ipairs(other_transforms) do
+				current_child[k] = v
+			end
+			--current_child[1] = other_transforms
 
 		end
 		if val.hide then

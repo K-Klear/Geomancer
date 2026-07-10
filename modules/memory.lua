@@ -589,24 +589,33 @@ local function extract_tweens(tween_transform, parent_tab_children)
 	return tween_transform
 end
 
+local test = false
+
 local function explore_model_tree(source_tab, part_name, level, parent_tab, is_collider)
+	if test then
+		print(source_tab.name, level)
+	end
 	if source_tab.name == SET.tween_parent_transform_name then
 		local other_transforms
+		print(#parent_tab.tab.children)
 		for k, v in ipairs(parent_tab.tab.children) do
 			if v == source_tab then
 				other_transforms = extract_tweens(table.remove(parent_tab.tab.children, k))
+				--other_transforms = extract_tweens(table.remove(parent_tab.tab.children, k))
 				break
 			end
 		end
 		if other_transforms then
+			print(#parent_tab.tab.children)
 			for k, v in ipairs(other_transforms.children) do
 				table.insert(parent_tab.tab.children, v)
 			end
+			print(#parent_tab.tab.children)
 			for k, v in ipairs(parent_tab.tab.children) do
-				explore_model_tree(v, part_name, level + 1, parent_tab, is_collider)
+				explore_model_tree(v, part_name, level + 0, parent_tab, is_collider)
 			end
 		end
-		return
+		return true
 	end
 	part_name = source_tab.name or part_name
 	table.insert(transform_list, {})
@@ -663,7 +672,9 @@ local function explore_model_tree(source_tab, part_name, level, parent_tab, is_c
 	end
 	if source_tab.children and source_tab.children[1] then
 		for k, v in ipairs(source_tab.children) do
-			explore_model_tree(v, part_name, level + 1, current_transform, is_collider)
+			if explore_model_tree(v, part_name, level + 1, current_transform, is_collider) then
+				return true
+			end
 		end
 	end
 end
@@ -671,8 +682,9 @@ end
 function MEM.add_metadata(model_tab)
 	part_list, transform_list, tween_list = {}, {}, {}
 	tween_count = 0
+	test = model_tab.key == "PF_Steam_Constant_Optimized"
 	explore_model_tree(model_tab.object, "[no name]", 1)
-	table.sort(tween_list, function(a, b) return a.name < b.name end)
+	table.sort(tween_list, function(a, b) return string.lower(a.name) < string.lower(b.name) end)
 	model_tab.tween = tween_count
 	if #part_list < 1 then
 		model_tab.model_data = {parts = part_list, transform_list = {}, do_not_render = true, tween_list = tween_list}
@@ -1179,6 +1191,9 @@ function MEM.get_tween_script(tween_data, model_name, transform_path_beginning, 
 		else
 			local transform_path = val.part
 			if transform_path_beginning then
+				if not transform_paths[val.part] then
+					print(val.part)
+				end
 				transform_path = transform_path_beginning..transform_paths[val.part]
 			end
 			if val.easing then
@@ -1195,6 +1210,19 @@ function MEM.get_tween_script(tween_data, model_name, transform_path_beginning, 
 	return str, save_original
 end
 
+function MEM.get_transform_paths(transform_tab)
+	local transform_paths = {}
+	local function get_transform_path(tab, t_path)
+		t_path = t_path.."/"..tab.name
+		transform_paths[tab.name] = t_path
+		for k, v in ipairs(tab.children) do
+			get_transform_path(v, t_path)
+		end
+	end
+	get_transform_path(transform_tab, "")
+	return transform_paths
+end
+
 function MEM.check_metadata_for_tween_scripts(first_key)
 	if not MEM.geomancer_meta then return end
 	local new_format = G.check_geomancer_version(MEM.geomancer_meta.version, 0.984)
@@ -1204,12 +1232,28 @@ function MEM.check_metadata_for_tween_scripts(first_key)
 				val.hide = MEM.geomancer_meta.props[val.key].hide
 				if MEM.geomancer_meta.props[val.key].tweens then
 					if new_format then
+						local transform_path_full = ""
+						for k, v in ipairs(val.model_data.tween_list) do
+							transform_path_full = transform_path_full..v.name.."/"
+						end
+						transform_path_full = transform_path_full..SET.tween_parent_transform_name
 						for k, v in ipairs(val.model_data.tween_list) do
 							local saved_version = MEM.geomancer_meta.props[val.key].tweens[v.name]
 							if saved_version then
-								local old_script = MEM.get_tween_script(v.script)
+
+
+								local slash = 0
+								for i = 1, k do
+									slash = string.find(transform_path_full, "/", slash + 1) or 0
+								end
+								local transform_path = string.sub(transform_path_full, slash + 1)
+								local transform_paths = MEM.get_transform_paths(val.object)
+								
+								local old_script = MEM.get_tween_script(v.script, nil, transform_path, transform_paths)
 								if old_script == saved_version.script then
 									v.script = saved_version.table
+								else
+									print("still broklen")
 								end
 							end
 						end

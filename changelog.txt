@@ -27,13 +27,10 @@ To do:
 - A "note" tween action
 - Show a transform's properties during a tween preview
 - Bulk changing of materials
-- The metronome thing
-- Volume settings
 - Prevent colliders from showing up in transform editor
 - Lobby colours are overwritten on change import
 - See if I can calculate normals more efficiently
 - Option to have obstacles disappear as they get closer
-- Remove the old transform dialog
 - Use the generic get text dialog instead of the old rename model dialog
 - Import tweens in a way that is smarter than just outright overwriting the model data
 
@@ -44,7 +41,8 @@ Bugs:
 	- Actually saw a wrong model turn dynamic. Something's fishy
 		- Might be caused by sorting models - investigate!
 - Meshes in model viewer tend to disappear. Related to flashing?
-- Somehow tweens got duplicated. Is it because the signals were numbers?!
+- Somehow tweens got duplicated (probably fixed now that tween transforms don't get renamed)
+- Changes to transform somehow don't get saved when swithcing to materials and back?
 
 Settings to implement in options:
 - Something for timeline height in map preview
@@ -63,6 +61,7 @@ New shortcuts:
 
 Fixes:
 - It is once again possible to only display the selected transform visualisation, when on the transform subtab
+- Tweens can have the exact same name as a transform.
 
 Bugs:
 - Fixed a crash caused by tween list not being reset properly
