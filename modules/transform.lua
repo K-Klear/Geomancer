@@ -450,29 +450,6 @@ function TRANS.show(model_index)
 	--msg.post("/model_viewer", hash("set_ui"), {mode = hash("transform")})
 end
 
-function on_message(self, message_id, message, sender)
-	if message_id == hash("show") then
-		
-	elseif message_id == hash("hide") then
-		close_cleanup()
-	elseif message_id == hash("dialog_closed") then
-		msg.post("#", hash("acquire_input_focus"))
-		msg.post("/model_viewer", hash("show"))
-		if message.dialog == "dialog_tween" then
-			UI.update_list(TAB_NAME, list, #transform_list)
-			msg.post("/model_viewer", hash("set_ui"), {mode = hash("transform")})
-			msg.post("/art#tab_art", hash("check_tweens"))
-		elseif message.dialog == "dialog_parent_transform" and message.new_parent then
-
-
-		elseif message.subject == "rename_transform" and message.text then
-
-		elseif message.subject == "new_transform" or message.subject == "new_transform_parent" then
-
-		end
-	end
-end
-
 local function set_transform_data()
 	local trans = transform_list[selected_transform]
 	local pos = tostring(trans.position.x)..","..tostring(trans.position.y)..","..tostring(trans.position.z)..","

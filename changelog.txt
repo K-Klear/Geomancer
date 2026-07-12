@@ -41,7 +41,6 @@ Bugs:
 	- Actually saw a wrong model turn dynamic. Something's fishy
 		- Might be caused by sorting models - investigate!
 - Meshes in model viewer tend to disappear. Related to flashing?
-- Somehow tweens got duplicated (probably fixed now that tween transforms don't get renamed)
 - Changes to transform somehow don't get saved when swithcing to materials and back?
 
 Settings to implement in options:
@@ -60,13 +59,13 @@ Features:
 New shortcuts:
 
 Fixes:
-- It is once again possible to only display the selected transform visualisation, when on the transform subtab
-- Tweens can have the exact same name as a transform.
+- Transform names are checked for some special characters which would break addressing
+- Transform name is checks when creating a new transform, not just when renaming one
+- Geomancer is now smarter when adding tweens, reducing map size
+- Obstacles don't persist after closing map preview opened through the instance list
 
 Bugs:
-- Fixed a crash caused by tween list not being reset properly
-- The number of tweens on the model list is updated correctly after a new tween is created
-- Tween target collisions get checked after a tween is deleted
+
 
 Options:
 

@@ -117,68 +117,51 @@ local function export_art(path)
 	local model_table = MEM.art_data.table
 	for key, val in ipairs(model_table.propsDictionary) do
 		if #val.model_data.tween_list > 0 then
-			--local other_transforms = val.object.children[1]
-			local other_transforms = val.object.children
-			
-			local transform_paths = MEM.get_transform_paths(val.object)
-			
-			local children_tab = {
-				{
-					_key_sort = {"name", "components", "children"}, name = SET.tween_parent_transform_name, components = {
-						{_key_sort = {"type", "values"}, type = "Transform", values = "0,0,0,0,0,0,1,1,1,1"},
-					},
-					children = {}
-				}
-			}
-			local current_child = children_tab[1].children
-			local transform_path_full = ""
+			local transform_list = MEM.get_transform_paths(val.object)
 			for k, v in ipairs(val.model_data.tween_list) do
-				transform_path_full = transform_path_full..v.name.."/"
-			end
-			transform_path_full = transform_path_full..SET.tween_parent_transform_name
-			for k, v in ipairs(val.model_data.tween_list) do
-				local slash = 0
-				for i = 1, k do
-					slash = string.find(transform_path_full, "/", slash + 1) or 0
+				local found_transform
+				for action_key, action in ipairs(v.script) do
+					if action.part then
+						found_transform = found_transform or action.part
+						if not (found_transform == action.part and transform_list[found_transform].unused) then
+							found_transform = nil
+							break
+						end
+					end
 				end
-				local transform_path = string.sub(transform_path_full, slash + 1)
-				local tween_script, save_original = MEM.get_tween_script(v.script, val.key, transform_path, transform_paths)
+				local tween_script, save_original
+				if found_transform then
+					transform_list[found_transform].unused = false
+					tween_script, save_original = MEM.get_tween_script(v.script, val.key)
+				else
+					tween_script, save_original = MEM.get_tween_script(v.script, val.key, transform_list)
+				end
 				if tween_script then
-					table.insert(current_child, {
-						_key_sort = {"name", "components", "children"}, name = v.name, components = {
-							{_key_sort = {"type", "values"}, type = "Transform", values = "0,0,0,0,0,0,1,1,1,1"},
-							{_key_sort = {"type", "Script"}, type = "ScriptedTween", Script = tween_script},
-							{_key_sort = {"type", "EventId", "ActionType"}, type = "LevelEventReceiver", EventId = v.signal, ActionType = "ScriptedTweenTrigger"},
-						},
-						children = {}
-					})
-					current_child = current_child[1].children
-					
+					if found_transform then
+						local script = {_key_sort = {"type", "Script", "Name"}, type = "ScriptedTween", Script = tween_script, Name = v.name}
+						local event_id = {_key_sort = {"type", "EventId", "ActionType"}, type = "LevelEventReceiver", EventId = v.signal, ActionType = "ScriptedTweenTrigger"}
+						table.insert(transform_list[found_transform].tab.components, script)
+						table.insert(transform_list[found_transform].tab.components, event_id)
+					else
+						table.insert(val.object.children, {
+							_key_sort = {"name", "components", "children"}, name = v.name, components = {
+								{_key_sort = {"type", "values"}, type = "Transform", values = "0,0,0,0,0,0,1,1,1,1"},
+								{_key_sort = {"type", "Script", "Name"}, type = "ScriptedTween", Script = tween_script, Name = v.name},
+								{_key_sort = {"type", "EventId", "ActionType"}, type = "LevelEventReceiver", EventId = v.signal, ActionType = "ScriptedTweenTrigger"},
+							},
+							children = {}
+						})
+					end
 					if save_original then
 						MEM.geomancer_meta.props[val.key] = MEM.geomancer_meta.props[val.key] or {tweens = {}}
 						local tween_actions = {}
 						for _key, _val in ipairs(v.script) do
 							table.insert(tween_actions, _val)
 						end
-						MEM.geomancer_meta.props[val.key].tweens[v.name] = {table = tween_actions, script = tween_script, signal = v.signal}
+						MEM.geomancer_meta.props[val.key].tweens[v.name] = {table = tween_actions, signal = v.signal}
 					end
 				end
 			end
-
-			table.insert(current_child, {
-				_key_sort = {"name", "components", "children"}, name = SET.tween_parent_transform_name, components = {
-					{_key_sort = {"type", "values"}, type = "Transform", values = "0,0,0,0,0,0,1,1,1,1"}
-				},
-				children = {}
-			})
-			current_child = current_child[1].children
-
-			val.object.children = children_tab
-			for k, v in ipairs(other_transforms) do
-				current_child[k] = v
-			end
-			--current_child[1] = other_transforms
-
 		end
 		if val.hide then
 			MEM.geomancer_meta.props[val.key] = MEM.geomancer_meta.props[val.key] or {}
@@ -1402,7 +1385,9 @@ local function import_changes()
 			end
 			MEM.create_prop_list(MEM.art_data.table, true)
 		end
-		MEM.geomancer_meta.geo = nil
+		if MEM.geomancer_meta then
+			MEM.geomancer_meta.geo = nil
+		end
 		check_geomancer_meta()
 		G.update_navbar("Model data updated")
 	end

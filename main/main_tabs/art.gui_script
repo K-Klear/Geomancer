@@ -690,26 +690,15 @@ end
 local function degeomance()
 	local tween_count, dynamic_count, material_count = 0, 0, 0
 	for key, val in ipairs(MEM.art_data.table.propsDictionary) do
-		if val.tween then
-			local function remove_tweens(tab)
-				for i = #tab.components, 1, -1 do
-					if tab.components[i].type == "LevelEventReceiver" or tab.components[i].type == "ScriptedTween" then
-						table.remove(tab.components, i)
-					end
-				end
-				if tab.children then
-					for k, v in ipairs(tab.children) do
-						remove_tweens(v)
-					end
-				end
-			end
-			remove_tweens(val.object)
-			for k, v in ipairs(val.model_data.transform_list) do
-				v.tween = nil
-			end
+		if val.model_data.tween_list then
+			val.model_data.tween_list = {}
 			tween_count = tween_count + val.tween
 			val.tween = 0
+			UI.update_list(TAB_NAME, model_list, #MEM.art_data.table.propsDictionary)
+			selected_tween = 0
+			UI.update_list(TAB_NAME, tween_ui_list, #tween_list)
 		end
+		--select_tween(0)
 		if val.dynamic then
 			set_model_as_dynamic(key, false)
 			dynamic_count = dynamic_count + 1
@@ -1082,19 +1071,34 @@ function on_message(self, message_id, message, sender)
 				end
 			end
 		elseif message.dialog == "dialog_get_text" then
+			local function check_transform_name(name)
+				local error
+				if (not name) or (name == "") then
+					error = "You need to enter a name"
+				elseif name == "Colliders" then
+					error = "The name \"Colliders\" is reserved for collider data (not supported by custom maps). Choose a different name"
+				elseif name == SET.tween_parent_transform_name then
+					error = "The name "..SET.tween_parent_transform_name.." is reserved by Geomancer. Choose a different name"
+				elseif string.find(name, "/") then
+					error = "Transform name cannot include \"/\""
+				elseif string.find(name, "%.") then
+					error = "Transform name cannot include \".\""
+				end
+				return error
+			end
 			if message.subject == "rename_transform" and message.text then
-				if message.text == "Colliders" then
-					G.update_navbar("The name \"Colliders\" is reserved for collider data (not supported by custom maps). Choose a different name", true)
-				elseif message.text == SET.tween_parent_transform_name then
-					G.update_navbar("The name "..SET.tween_parent_transform_name.." is reserved by Geomancer. Choose a different name", true)
+				local error = check_transform_name(message.text)
+				if error then
+					G.update_navbar(error, true)
 				else
 					TRANS.rename_transform(message.text)
 				end
 			elseif message.subject == "new_transform" or message.subject == "new_transform_parent" then
-				if message.text then
-					TRANS.add_transform(message.text, nil, message.subject == "new_transform_parent")
+				local error = check_transform_name(message.text)
+				if error then
+					G.update_navbar(error, true)
 				else
-					G.update_navbar("Transform not added", true)
+					TRANS.add_transform(message.text, nil, message.subject == "new_transform_parent")
 				end
 			elseif message.subject == hash("tween_rename") then
 				if message.text then
@@ -1420,7 +1424,7 @@ function evaluate_button(button, item)
 			msg.post("#", hash("release_input_focus"))
 			local pos = instance_list[item].position.z / 3
 			msg.post("/model_viewer", hash("show_preview"), {
-				source = hash("model_tab"), jump_to = pos, preview_map = true
+				source = hash("model_tab_view_prop"), jump_to = pos, preview_map = true
 			})
 		elseif str == "prop_delete;" then
 			if SET.ask_before_deleting_prop then

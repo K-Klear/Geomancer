@@ -568,10 +568,9 @@ function MEM.parse_tween(tween_script)
 	end
 end
 
-
 local tween_count, part_list, transform_list, tween_list
 
-local function extract_tweens(tween_transform, parent_tab_children)
+local function extract_tweens(tween_transform)
 	repeat
 		for key, val in ipairs(tween_transform.components) do
 			if val.type == "ScriptedTween" then
@@ -585,38 +584,12 @@ local function extract_tweens(tween_transform, parent_tab_children)
 			end
 		end
 		tween_transform = tween_transform.children[1]
-	until (not tween_transform) or (tween_transform.name == SET.tween_parent_transform_name)
+	until not tween_transform
 	return tween_transform
 end
 
-local test = false
-
+local transforms_to_remove
 local function explore_model_tree(source_tab, part_name, level, parent_tab, is_collider)
-	if test then
-		print(source_tab.name, level)
-	end
-	if source_tab.name == SET.tween_parent_transform_name then
-		local other_transforms
-		print(#parent_tab.tab.children)
-		for k, v in ipairs(parent_tab.tab.children) do
-			if v == source_tab then
-				other_transforms = extract_tweens(table.remove(parent_tab.tab.children, k))
-				--other_transforms = extract_tweens(table.remove(parent_tab.tab.children, k))
-				break
-			end
-		end
-		if other_transforms then
-			print(#parent_tab.tab.children)
-			for k, v in ipairs(other_transforms.children) do
-				table.insert(parent_tab.tab.children, v)
-			end
-			print(#parent_tab.tab.children)
-			for k, v in ipairs(parent_tab.tab.children) do
-				explore_model_tree(v, part_name, level + 0, parent_tab, is_collider)
-			end
-		end
-		return true
-	end
 	part_name = source_tab.name or part_name
 	table.insert(transform_list, {})
 	local current_transform = transform_list[#transform_list]
@@ -625,6 +598,7 @@ local function explore_model_tree(source_tab, part_name, level, parent_tab, is_c
 	end
 	if source_tab.components then
 		local components_to_remove = {}
+		local contains_mesh = false
 		for k, v in ipairs(source_tab.components) do
 			if v.type == "Transform" then
 				current_transform.position, current_transform.rotation, current_transform.scale = G.parse_transform(v.values)
@@ -638,12 +612,13 @@ local function explore_model_tree(source_tab, part_name, level, parent_tab, is_c
 				table.insert(components_to_remove, 1, k)
 				if tween_script then
 					tween_count = tween_count + 1
-					table.insert(tween_list, {script = tween_script, name = part_name})
+					table.insert(tween_list, {script = tween_script, name = v.Name or part_name})
 				end
 			elseif v.type == "LevelEventReceiver" then
 				table.insert(components_to_remove, 1, k)
 				tween_list[tween_count].signal = v.EventId
 			elseif v.type == "MeshFilter" then
+				contains_mesh = true
 				local mesh_tab = {}
 				for key, val in ipairs(v.subMeshes) do
 					mesh_tab[key] = {
@@ -659,22 +634,26 @@ local function explore_model_tree(source_tab, part_name, level, parent_tab, is_c
 				end
 				current_transform.mesh_count = #mesh_tab
 			elseif v.type == "MeshRenderer" then
+				contains_mesh = true
 				for key, val in ipairs(v.materials) do
 					table.insert(part_list, {name = part_name, tab = v.materials, index = key, collider = is_collider})
 				end
 			end
 		end
 		if components_to_remove[1] then
-			for k, v in ipairs(components_to_remove) do
-				table.remove(source_tab.components, v)
+			if next(source_tab.children) or contains_mesh then
+				for k, v in ipairs(components_to_remove) do
+					table.remove(source_tab.components, v)
+				end
+			else
+				table.insert(transforms_to_remove, {transform_tab = source_tab, parent_tab = parent_tab.tab})
+				transform_list[#transform_list] = nil
 			end
 		end
 	end
 	if source_tab.children and source_tab.children[1] then
 		for k, v in ipairs(source_tab.children) do
-			if explore_model_tree(v, part_name, level + 1, current_transform, is_collider) then
-				return true
-			end
+			explore_model_tree(v, part_name, level + 1, current_transform, is_collider)
 		end
 	end
 end
@@ -682,8 +661,38 @@ end
 function MEM.add_metadata(model_tab)
 	part_list, transform_list, tween_list = {}, {}, {}
 	tween_count = 0
-	test = model_tab.key == "PF_Steam_Constant_Optimized"
+
+	-- Get rid of the _T_W_E_E_N_S_ transforms I introduced in v0.99 and then promptly got rid of.
+	-- It was a stupid-ass decision I already regret. Next time I come across this comment, I'm just
+	-- gonna get rid of this whole mess and hope nobody made any maps in the week this has been a thing.
+	
+	for key, val in ipairs(model_tab.object.children) do
+		if val.name == SET.tween_parent_transform_name then
+			local function next_child(tab)
+				if tab.name == SET.tween_parent_transform_name then
+					for k, v in ipairs(tab.children) do
+						table.insert(model_tab.object.children, v)
+					end
+					table.remove(model_tab.object.children, key)
+				else
+					extract_tweens(tab)
+					next_child(tab.children[1])
+				end
+			end
+			next_child(val.children[1])
+		end
+	end
+	transforms_to_remove = {}
 	explore_model_tree(model_tab.object, "[no name]", 1)
+	for key, val in ipairs(transforms_to_remove) do
+		for k, v in ipairs(val.parent_tab.children) do
+			if v == val.transform_tab then
+				table.remove(val.parent_tab.children, k)
+				break
+			end
+		end
+	end
+	
 	table.sort(tween_list, function(a, b) return string.lower(a.name) < string.lower(b.name) end)
 	model_tab.tween = tween_count
 	if #part_list < 1 then
@@ -1173,7 +1182,7 @@ function MEM.remove_geomanced_chunk(chunk_tab)
 	end
 end
 
-function MEM.get_tween_script(tween_data, model_name, transform_path_beginning, transform_paths)
+function MEM.get_tween_script(tween_data, model_name, transform_paths)
 	if not tween_data then return end
 	local str = ""
 	local deletion_count, save_original
@@ -1190,11 +1199,8 @@ function MEM.get_tween_script(tween_data, model_name, transform_path_beginning, 
 			str = str..val.type..val.time..";"
 		else
 			local transform_path = val.part
-			if transform_path_beginning then
-				if not transform_paths[val.part] then
-					print(val.part)
-				end
-				transform_path = transform_path_beginning..transform_paths[val.part]
+			if transform_paths then
+				transform_path = transform_paths[val.part].path
 			end
 			if val.easing then
 				local node_values = G.separate_easing(val)
@@ -1211,16 +1217,18 @@ function MEM.get_tween_script(tween_data, model_name, transform_path_beginning, 
 end
 
 function MEM.get_transform_paths(transform_tab)
-	local transform_paths = {}
+	local transforms = {}
 	local function get_transform_path(tab, t_path)
 		t_path = t_path.."/"..tab.name
-		transform_paths[tab.name] = t_path
+		transforms[tab.name] = {path = t_path, unused = true, tab = tab}
 		for k, v in ipairs(tab.children) do
 			get_transform_path(v, t_path)
 		end
 	end
-	get_transform_path(transform_tab, "")
-	return transform_paths
+	for k, v in ipairs(transform_tab.children) do
+		get_transform_path(v, "..")
+	end
+	return transforms
 end
 
 function MEM.check_metadata_for_tween_scripts(first_key)
@@ -1232,28 +1240,13 @@ function MEM.check_metadata_for_tween_scripts(first_key)
 				val.hide = MEM.geomancer_meta.props[val.key].hide
 				if MEM.geomancer_meta.props[val.key].tweens then
 					if new_format then
-						local transform_path_full = ""
-						for k, v in ipairs(val.model_data.tween_list) do
-							transform_path_full = transform_path_full..v.name.."/"
-						end
-						transform_path_full = transform_path_full..SET.tween_parent_transform_name
 						for k, v in ipairs(val.model_data.tween_list) do
 							local saved_version = MEM.geomancer_meta.props[val.key].tweens[v.name]
 							if saved_version then
-
-
-								local slash = 0
-								for i = 1, k do
-									slash = string.find(transform_path_full, "/", slash + 1) or 0
-								end
-								local transform_path = string.sub(transform_path_full, slash + 1)
-								local transform_paths = MEM.get_transform_paths(val.object)
-								
-								local old_script = MEM.get_tween_script(v.script, nil, transform_path, transform_paths)
-								if old_script == saved_version.script then
+								local old_script = MEM.get_tween_script(v.script)
+								local saved_script = MEM.get_tween_script(saved_version.table)
+								if old_script == saved_script then
 									v.script = saved_version.table
-								else
-									print("still broklen")
 								end
 							end
 						end

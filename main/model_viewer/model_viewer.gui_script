@@ -318,6 +318,9 @@ end
 local function close_preview()
 	if preview_source == hash("tween_editor") or preview_source == hash("model_tab") then
 		set_ui(hash("model"))
+	elseif preview_source == hash("model_tab_view_prop") then
+		msg.post(".", hash("reset_tween"))
+		set_ui(hash("model"))
 	else
 		msg.post(".", hash("reset_tween"))
 		set_ui(hash("map_preview"))
@@ -1211,6 +1214,9 @@ local function evaluate_button(button)
 			msg.post(UI.tab.dialog_instance_list.path, hash("reopen"))
 			msg.post(".", hash("hide"))
 		elseif preview_source == hash("model_tab") then
+			msg.post(UI.tab.tab_art.path, hash("show"))
+			msg.post(".", hash("hide"))
+		elseif preview_source == hash("model_tab_view_prop") then
 			msg.post(UI.tab.tab_art.path, hash("show"))
 			msg.post(".", hash("hide"))
 		else	-- This could be removed, but I'm keeping in just in case preview_source ever happens to be nil. In case I missed something
