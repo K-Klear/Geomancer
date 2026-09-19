@@ -20,7 +20,7 @@ end
 
 function init(self)
 	gui.set_render_order(1)
-	gui.set_text(gui.get_node("version_label"), "Version "..sys.get_config("project.version"))
+	gui.set_text(gui.get_node("version_label"), "Version "..sys.get_config_string("project.version"))
 	UI.load_template({"exit", "load_dir", "load_file", "load_zip", "unload_all", "export_all", "export_folder_checkbox", "import_changes",
 	"import_checkbox", "degeomance", "import_level", "import_events", "import_beat", "import_models", "import_geo", "help",
 	"map_preview", "delete_normals_checkbox"}, TAB_NAME)
@@ -478,7 +478,7 @@ local function export_all(overwrite)
 			filename_poster = filename_poster or filename_common..".png"
 			filename_ogg = filename_ogg or filename_common..".ogg"
 			
-			MEM.geomancer_meta = {version = sys.get_config("project.version"), props = {}, geo = {chunks = {}, slices = {}}}
+			MEM.geomancer_meta = {version = sys.get_config_string("project.version"), props = {}, geo = {chunks = {}, slices = {}}}
 
 
 			

@@ -83,7 +83,13 @@ local desync_check_playtime
 
 local tween_padding_start = 0
 
-local active_tweens = {}
+local active_tweens, active_animations = {}, {}
+
+local OBSTACLE_DATA = {
+	RisePillar = {offset = -4, duration = 0.25},
+	PillarDrop = {offset = 37, duration = 0.15},
+	AirDrop = {pillar = "#create_obstacle_airdrop"}
+}
 
 local CAMERA_POSITION = vmath.vector3(0, 1.75, 0)
 
@@ -812,6 +818,22 @@ local function undo_tween(signal_tab)
 	end
 end
 
+local function apply_obstacle_animation(signal_tab, time)
+	local time_diff = time - signal_tab.time
+	local y_pos
+	local offset = OBSTACLE_DATA[signal_tab.signal].offset
+	local duration = OBSTACLE_DATA[signal_tab.signal].duration
+	if time_diff < 0 then
+		y_pos = OBSTACLE_DATA[signal_tab.signal].offset
+	elseif time_diff > OBSTACLE_DATA[signal_tab.signal].duration then
+		y_pos = 0
+	else
+		local fract = (duration - time_diff) / duration
+		y_pos = fract * offset
+	end
+	go.set(signal_tab.go, "position.y", y_pos)
+end
+
 local function apply_tween(signal_tab, time, full_reset)
 	if not signal_tab.transforms then
 		return
@@ -1043,7 +1065,6 @@ function update(self, dt)
 							end
 						end
 					end
-					--[[
 					for key, v in pairs(MOD.culling_ranges.visible_obstacles) do
 						if beat_flash then
 							go.set(key.url, "flash.x", beat_flash)
@@ -1057,7 +1078,6 @@ function update(self, dt)
 							go.set(key.url, "flash.w", 0)
 						end
 					end
-					--]]
 					if not whiteout_flash then
 						whiteout_in_progress = false
 					end
@@ -1073,18 +1093,25 @@ function update(self, dt)
 				end
 
 				for key, val in ipairs(MOD.culling_ranges[current_culling_range - 1].signals or {}) do
-					if not (val.used_up or active_tweens[val]) then
+					if not (val.used_up or active_tweens[val] or active_animations[val]) then
 						if t - val.time > 0 then
-							if (t - (val.time + val.tween.total_time) < 0) or (t - (val.time + val.tween.total_time) > 0) then
+							if val.obstacle then
+								active_animations[val] = true
+							elseif (t - (val.time + val.tween.total_time) < 0) or (t - (val.time + val.tween.total_time) > 0) then
 								active_tweens[val] = true
 							end
 						end
 					end
 				end
 				for key, val in ipairs(MOD.culling_ranges[current_culling_range].signals or {}) do
-					if not (val.used_up or active_tweens[val]) then
+					if not (val.used_up or active_tweens[val] or active_animations[val]) then
 						if t - val.time > 0 then
-							if (t - (val.time + val.tween.total_time) < 0) or (t - (val.time + val.tween.total_time) > 0) then
+							if val.obstacle then
+								active_animations[val] = true
+								if val.signal == "PillarDrop" then
+									SND.play_sound("/sound#airdrop")
+								end
+							elseif (t - (val.time + val.tween.total_time) < 0) or (t - (val.time + val.tween.total_time) > 0) then
 								active_tweens[val] = true
 							end
 						end
@@ -1092,6 +1119,9 @@ function update(self, dt)
 				end
 				for key, val in pairs(active_tweens) do
 					apply_tween(key, t)
+				end
+				for key, val in pairs(active_animations) do
+					apply_obstacle_animation(key, t)
 				end
 			end
 		end
@@ -1161,6 +1191,7 @@ end
 
 local function reset_signals()
 	active_tweens = {}
+	active_animations = {}
 	for range, range_tab in pairs(MOD.culling_ranges) do
 		if range_tab.signals then
 			for key, val in ipairs(range_tab.signals) do
@@ -1214,7 +1245,7 @@ local function show_model(self, model_index, no_flash, keep_camera)
 end
 
 local function apply_all_tweens()
-	active_tweens = {}
+	active_tweens, active_animations = {}, {}
 	local t = MOD.preview_start + MOD.total_time * MOD.scrubber_progress
 	for range, range_tab in pairs(MOD.culling_ranges) do
 		if range_tab.signals then
@@ -1223,11 +1254,14 @@ local function apply_all_tweens()
 				if val.transforms then
 					apply_tween(val, t, true)
 				end
+				if val.obstacle then
+					apply_obstacle_animation(val, t)
+				end
 				if (not val.used_up) and (t - val.time > 0) then
-					if (t - (val.time + val.tween.total_time) < 0) or (t - (val.time + val.tween.total_time) > 0) then
-						if val.transforms then
-							active_tweens[val] = true
-						end
+					if val.obstacle then-- and ((t - val.time < 0) or (t - val.time > 0)) then
+						active_animations[val] = true
+					elseif (t - (val.time + val.tween.total_time) < 0) or (t - (val.time + val.tween.total_time) > 0) then
+						active_tweens[val] = true
 					end
 				end
 			end
@@ -1353,7 +1387,21 @@ local function create_obstacles()
 		elseif val.type == "Wall" then
 			new_obstacle = factory.create("#create_obstacle_wall", vmath.vector3(val.position.x, 0, val.position.z), nil, nil, vmath.vector3(1, 1, 4.2))
 		else
-			new_obstacle = factory.create("#create_obstacle", vmath.vector3(val.position.x, 0, val.position.z))
+			if MEM.level_data then
+				if MEM.level_data.obstacleSet == "Spooky" then
+					new_obstacle = factory.create("#create_obstacle_spooky", vmath.vector3(val.position.x, -4, val.position.z))
+				elseif MEM.level_data.obstacleSet == "AirDrop" then
+					new_obstacle = factory.create("#create_obstacle_airdrop", vmath.vector3(val.position.x, 10, val.position.z))
+				elseif MEM.level_data.obstacleSet == "Vaporwave" then
+					new_obstacle = factory.create("#create_obstacle_spooky", vmath.vector3(val.position.x, 0, val.position.z))
+				end
+			end
+			if not new_obstacle then
+				new_obstacle = factory.create("#create_obstacle", vmath.vector3(val.position.x, 0, val.position.z))
+			end
+			if val.signal then
+				val.signal.signal_tab.go = new_obstacle
+			end
 		end
 		msg.post(new_obstacle, hash("disable"))
 		val.model = new_obstacle

@@ -105,7 +105,8 @@ local configurable = {
 	"default_metronome_on",
 	"volume_general",
 	"volume_music",
-	"volume_metronome"
+	"volume_metronome",
+	"force_skull_with_sequence_change"
 }
 
 function SET.save_config()
@@ -296,6 +297,7 @@ SET.easing_curve_colour = vmath.vector4(0, 0, 0.8, 1)
 
 -- beat
 SET.bulk_sequence_sort = false
+SET.force_skull_with_sequence_change = true
 
 -- enemy rotation
 SET.rotate_multiple_axes = true

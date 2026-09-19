@@ -1461,7 +1461,7 @@ function on_input(self, action_id, action)
 				end
 			end
 		end
-		UI.on_input(TAB_NAME, action_id, action, evaluate_button, evaluate_input)
+		UI.on_input(TAB_NAME, action_id, action, evaluate_button, evaluate_input, not (current_tab == "button_transforms"))
 	else
 		UI.on_input(TAB_NAME, action_id, action, evaluate_button, evaluate_input)
 	end

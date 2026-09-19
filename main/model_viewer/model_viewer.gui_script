@@ -290,7 +290,7 @@ end
 local function stop_playback(go_to_end)
 	MOD.playback = false
 	MOD.desync_check_start = nil
-	gui.cancel_animation(scrubber, "position.x")
+	gui.cancel_animations(scrubber, "position.x")
 	if go_to_end then
 		move_scrubber(1)
 	end
@@ -522,7 +522,6 @@ local function prepare_tween_data(selected_model_index)
 			local start = event_val.startSample / SET.sample_rate
 			local range_val = (start * 3 + 7) / 16
 			local range = math.min(math.floor(range_val), MOD.max_culling_range)
-
 			local ignore_despawn = not (range < math.floor(range_val + 0.125))
 			
 			MOD.culling_ranges[range] = MOD.culling_ranges[range] or {slices = {}, props = {}, signals = {}}
@@ -530,42 +529,60 @@ local function prepare_tween_data(selected_model_index)
 			local target_table
 			local range_to_search = range
 			if MOD.stationary then range_to_search = 0 end
-			for k, v in ipairs(MOD.culling_ranges[range_to_search].props) do
-				if ignore_despawn or v.ranges[range_to_search + 1] then
-					local _tweens = MEM.art_data.table.propsDictionary[v.model_index].model_data.tween_list
-					if _tweens and #_tweens > 0 then
-						for key, val in ipairs(_tweens) do
-							if val.signal == event_val.payload then
-								v.signal = v.signal or {}
-								local already_done
-								for _k, _v in ipairs(v.signal) do
-									if _v.target_tween_index == key then
-										already_done = true
+			local spooky, airdrop
+			if MEM.level_data then
+				spooky = (event_val.payload == "RisePillar") and (MEM.level_data.obstacleSet == "Spooky")
+				airdrop = (event_val.payload == "PillarDrop") and (MEM.level_data.obstacleSet == "AirDrop")
+			end
+			if spooky or airdrop then
+				for k, v in ipairs(MOD.culling_ranges[range_to_search].obstacles) do
+					if v.type == "Sidestep" and not v.signal then
+						table.insert(MOD.culling_ranges[range].signals, {time = start, signal = event_val.payload, obstacle = event_val.payload})
+						v.signal = {
+							signal_tab = MOD.culling_ranges[range].signals[#MOD.culling_ranges[range].signals],
+							time = start, signal = event_val.payload
+						}
+						break
+					end
+				end
+			else
+				for k, v in ipairs(MOD.culling_ranges[range_to_search].props) do
+					if ignore_despawn or v.ranges[range_to_search + 1] then
+						local _tweens = MEM.art_data.table.propsDictionary[v.model_index].model_data.tween_list
+						if _tweens and #_tweens > 0 then
+							for key, val in ipairs(_tweens) do
+								if val.signal == event_val.payload then
+									v.signal = v.signal or {}
+									local already_done
+									for _k, _v in ipairs(v.signal) do
+										if _v.target_tween_index == key then
+											already_done = true
+											break
+										end
+									end
+									if not already_done then
+										target_prop = v.name
+										target_model_index = v.model_index
+										target_prop_list_index = v.prop_list_index
+										target_tween_index = key
+										target_table = v.signal
 										break
 									end
 								end
-								if not already_done then
-									target_prop = v.name
-									target_model_index = v.model_index
-									target_prop_list_index = v.prop_list_index
-									target_tween_index = key
-									target_table = v.signal
-									break
-								end
 							end
+							if target_prop then break end
 						end
-						if target_prop then break end
 					end
 				end
-			end
-			table.insert(MOD.culling_ranges[range].signals, {
-				time = start, signal = event_val.payload, target_prop = target_prop, target_tween_index = target_tween_index,
-				prop_found = not not target_table, target_model_index = target_model_index, target_prop_list_index = target_prop_list_index})
-			if target_table then
-				table.insert(target_table, {
-					signal_tab = MOD.culling_ranges[range].signals[#MOD.culling_ranges[range].signals],
-					time = start, signal = event_val.payload, target_tween_index = target_tween_index
-				})
+				table.insert(MOD.culling_ranges[range].signals, {
+					time = start, signal = event_val.payload, target_prop = target_prop, target_tween_index = target_tween_index,
+					prop_found = not not target_table, target_model_index = target_model_index, target_prop_list_index = target_prop_list_index})
+				if target_table then
+					table.insert(target_table, {
+						signal_tab = MOD.culling_ranges[range].signals[#MOD.culling_ranges[range].signals],
+						time = start, signal = event_val.payload, target_tween_index = target_tween_index
+					})
+				end
 			end
 		end
 	end
@@ -583,7 +600,7 @@ local function prepare_tween_data(selected_model_index)
 							end
 						end
 					end
-				else
+				elseif not val.signals[i].obstacle then
 					table.remove(val.signals, i)
 				end
 			end

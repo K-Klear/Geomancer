@@ -108,20 +108,22 @@ local seq = {
 		"Walk_Stop_Shoot"
 	},
 	{
+		"FlyingSkull Short",
+	},
+	{
 		"__Flying_ATTACK",
 		"Zig_shoot _Zag_shoot",
 		"Strafe_shoot_retreat",
 		"FWD_RGHT_FWD_SHT",
 		"STRAFE SHOOT x3",
---		"High_FlyingSkull Basic",
---		"ONBEAT_High_FlyingSkull",
---		"FlyingSkull Basic",
---		"FlyingSkull Short"
---		"DefaultEnemySequence_Jetpack",
+		--		"High_FlyingSkull Basic",
+		--		"ONBEAT_High_FlyingSkull",
+		--		"FlyingSkull Basic",
+		--		"DefaultEnemySequence_Jetpack",
 		"BeatSpawn_Jetpack_Stationary",
 		"_Run Roll Shoot",
---		"__SniperJoeTest",
---		"ImmediateDespawn",
+		--		"__SniperJoeTest",
+		--		"ImmediateDespawn",
 		"CrookedTestSequence",
 		"EmptyEnemySequence 1",
 		"Run_Slide_Shoot_01",
@@ -142,7 +144,8 @@ seq[6].name = "Run"
 seq[7].name = "Stationary"
 seq[8].name = "Strafe"
 seq[9].name = "Uncategorised"
-seq[10].name = "Extra sequences"
+seq[10].name = "Flying Skull"
+seq[11].name = "Extra sequences"
 
 local sequences = {}
 local sequence_types = {}

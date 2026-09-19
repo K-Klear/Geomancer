@@ -1,7 +1,7 @@
 embedded_components {
   id: "model"
   type: "model"
-  data: "mesh: \"/assets/models/guiding_cubes_7.dae\"\n"
+  data: "mesh: \"/assets/models/guiding_cubes_112.glb\"\n"
   "name: \"{{NAME}}\"\n"
   "materials {\n"
   "  name: \"default\"\n"

@@ -23,6 +23,10 @@ SND.metronome_stupid_sound_list = {
 
 local rick_count = 0
 
+function SND.play_sound(sound_path)
+	sound.play(sound_path, {delay = 0.22, speed = SND.playback_speed})
+end
+
 function SND.metronome_tick()
 	local props
 	if SND.metronome_sound_list[SET.metronome_sound].random_pitch then

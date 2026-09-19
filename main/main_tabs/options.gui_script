@@ -169,7 +169,7 @@ fields = {
 	{name = "mesh_flash_alpha", char_limit = 3, validation = validation_mesh_flash_alpha},
 	{name = "default_rotation_rounding", char_limit = 4, validation = validation_default_rotation_rounding}
 }}
-tab_list.misc = {buttons = {"bulk_sequence_sort", "ignore_char_limit", "confirm_degeomance", "degeomance_sequence",
+tab_list.misc = {buttons = {"bulk_sequence_sort", "force_skull_with_sequence_change", "ignore_char_limit", "confirm_degeomance", "degeomance_sequence",
 "degeomance_glitched_enemy", "degeomance_skull"}, fields = {}}
 tab_list.sound = {buttons = {"metronome_sound", "default_metronome_on"}, fields = {}, sliders = {"volume_metronome", "volume_general", "volume_music"}}
 
@@ -350,6 +350,7 @@ function init(self)
 	gui.set_text(gui.get_node("default_rotation_rounding/text"), SET.default_rotation_rounding)
 	-- misc
 	set_checkbox("bulk_sequence_sort", SET.bulk_sequence_sort)
+	set_checkbox("force_skull_with_sequence_change", SET.force_skull_with_sequence_change)
 	set_checkbox("ignore_char_limit", SET.ignore_char_limit)
 	set_checkbox("confirm_degeomance", SET.confirm_degeomance)
 	gui.set_text(gui.get_node("degeomance_sequence/text"), SET.degeomance_sequence)

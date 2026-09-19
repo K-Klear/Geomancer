@@ -210,3 +210,9 @@ embedded_components {
   "group: \"metronome\"\n"
   ""
 }
+embedded_components {
+  id: "airdrop"
+  type: "sound"
+  data: "sound: \"/assets/sounds/airdrop.wav\"\n"
+  ""
+}

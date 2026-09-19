@@ -106,6 +106,9 @@ local seq = {
 		"Walk_Stop_Shoot"
 	},
 	{
+		"FlyingSkull Short",
+	},
+	{
 		"__Flying_ATTACK",
 		"Zig_shoot _Zag_shoot",
 		"Strafe_shoot_retreat",
@@ -114,7 +117,6 @@ local seq = {
 --		"High_FlyingSkull Basic",
 --		"ONBEAT_High_FlyingSkull",
 --		"FlyingSkull Basic",
---		"FlyingSkull Short"
 --		"DefaultEnemySequence_Jetpack",
 		"BeatSpawn_Jetpack_Stationary",
 		"_Run Roll Shoot",
@@ -140,7 +142,8 @@ seq[6].name = "Run"
 seq[7].name = "Stationary"
 seq[8].name = "Strafe"
 seq[9].name = "Uncategorised"
-seq[10].name = "Extra sequences"
+seq[10].name = "Flying Skull"
+seq[11].name = "Extra sequences"
 
 local sequences = {}
 local sequence_types = {}

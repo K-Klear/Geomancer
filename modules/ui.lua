@@ -1090,7 +1090,7 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_
 					end
 				end
 				if UI.tab[tab].scrolling_grip_held == key and (not action_id) and not (list_tab.grip_pos_range == 0) then
-					gui.cancel_animation(list_tab.root_node, "position.y")
+					gui.cancel_animations(list_tab.root_node, "position.y")
 					if list_tab.horizontal then
 						list_tab.scroll_grip_position = list_tab.scroll_grip_position - action.dx
 					else
@@ -1122,10 +1122,12 @@ function UI.on_input(tab, action_id, action, button_fn, text_field_fn, suppress_
 						end
 					end
 				end
-				for key, val in ipairs(UI.tab[tab].fields) do
-					if gui.pick_node(val.node, action.x, action.y) then
-						if not val.stencil or gui.pick_node(val.stencil, action.x, action.y) then
-							text_field_clicked(val)
+				if not suppress_text_fields then
+					for key, val in ipairs(UI.tab[tab].fields) do
+						if gui.pick_node(val.node, action.x, action.y) then
+							if not val.stencil or gui.pick_node(val.stencil, action.x, action.y) then
+								text_field_clicked(val)
+							end
 						end
 					end
 				end

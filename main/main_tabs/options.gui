@@ -998,8 +998,8 @@ nodes {
 }
 nodes {
   position {
-    x: 934.0
-    y: 684.0
+    x: 962.0
+    y: 705.0
   }
   size {
     x: 540.0
@@ -5472,7 +5472,7 @@ nodes {
 nodes {
   position {
     x: 151.0
-    y: 569.0
+    y: 632.0
   }
   type: TYPE_TEMPLATE
   id: "bulk_sequence_sort"
@@ -5515,6 +5515,59 @@ nodes {
   id: "bulk_sequence_sort/label"
   line_break: true
   parent: "bulk_sequence_sort/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 151.0
+    y: 560.0
+  }
+  type: TYPE_TEMPLATE
+  id: "force_skull_with_sequence_change"
+  parent: "panel_misc"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "force_skull_with_sequence_change/button_white"
+  parent: "force_skull_with_sequence_change"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "force_skull_with_sequence_change/text"
+  parent: "force_skull_with_sequence_change/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 700.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "After changing an enemy\'s sequence to \"FlyingSkull Short\",\n"
+  "change enemy type to Flying Skull"
+  font: "main_menu_button_small"
+  id: "force_skull_with_sequence_change/label"
+  parent: "force_skull_with_sequence_change/button_white"
   overridden_fields: 3
   overridden_fields: 4
   overridden_fields: 8
@@ -5846,6 +5899,11 @@ nodes {
   }
 }
 nodes {
+  scale {
+    x: 0.95
+    y: 0.95
+    z: 0.95
+  }
   size {
     x: 200.0
     y: 100.0

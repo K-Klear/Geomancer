@@ -1,7 +1,7 @@
 embedded_components {
   id: "transform_model"
   type: "model"
-  data: "mesh: \"/assets/models/transform.dae\"\n"
+  data: "mesh: \"/assets/models/transform.glb\"\n"
   "name: \"{{NAME}}\"\n"
   "materials {\n"
   "  name: \"default\"\n"

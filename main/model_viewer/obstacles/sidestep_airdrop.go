@@ -1,11 +1,11 @@
 embedded_components {
   id: "model"
   type: "model"
-  data: "mesh: \"/assets/models/limbo.dae\"\n"
+  data: "mesh: \"/assets/models/sidestep_airdrop.glb\"\n"
   "name: \"{{NAME}}\"\n"
   "materials {\n"
   "  name: \"default\"\n"
-  "  material: \"/render/prop_materials/prop.material\"\n"
+  "  material: \"/render/prop_materials/obstacle.material\"\n"
   "  textures {\n"
   "    sampler: \"tex0\"\n"
   "    texture: \"/assets/gfx/textures/prop.png\"\n"
@@ -13,15 +13,14 @@ embedded_components {
   "}\n"
   "create_go_bones: false\n"
   ""
-  rotation {
-    y: 0.70710677
-    w: 0.70710677
+  position {
+    x: 0.38
   }
 }
 embedded_components {
   id: "collider"
   type: "model"
-  data: "mesh: \"/assets/models/limbo_collider.dae\"\n"
+  data: "mesh: \"/assets/models/sidestep_collider.glb\"\n"
   "name: \"{{NAME}}\"\n"
   "materials {\n"
   "  name: \"default\"\n"
@@ -33,8 +32,4 @@ embedded_components {
   "}\n"
   "create_go_bones: false\n"
   ""
-  rotation {
-    y: 0.70710677
-    w: 0.70710677
-  }
 }

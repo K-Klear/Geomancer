@@ -146,6 +146,29 @@ function init(self)
 	UI.load_template({"sidestep", "limbo_short", "limbo_tall", "wall", "tunnel_short", "tunnel_tall", "button_replace_bulk", "button_sequence_bulk"}, TAB_NAME)
 end
 
+local function change_enemy_type(enemy_data, new_type)
+	local previous_type_internal = enemy_data.enemyType
+	local previous_type
+	for key, val in pairs(internal_names) do
+		if val == previous_type_internal then
+			previous_type = key
+			break
+		end
+	end
+	enemy_data.enemyType = internal_names[new_type]
+	MEM.beat_data.enemy_types[new_type] = true
+	local type_found
+	for key, val in ipairs(MEM.beat_data.enemy_list) do
+		if val.type == previous_type_internal then
+			type_found = true
+			break
+		end
+	end
+	MEM.beat_data.enemy_types[previous_type] = type_found
+	UI.update_list(TAB_NAME, enemy_list)
+	update_enemy(selected_enemy)
+end
+
 function on_message(self, message_id, message, sender)
 	if message_id == hash("hide") then
 		msg.post("#", hash("disable"))
@@ -193,8 +216,12 @@ function on_message(self, message_id, message, sender)
 			update_enemy(selected_enemy)
 		elseif message.dialog == "dialog_change_sequence" then
 			if message.sequence then
-				G.update_navbar("Sequence changed to "..message.sequence, true)
 				local enemy_data = get_enemy_data(selected_enemy)
+				G.update_navbar("Sequence changed to "..message.sequence, true)
+				if SET.force_skull_with_sequence_change and message.sequence == "FlyingSkull Short" and not (enemy_data.enemyType == "FlyingBomb") then
+					change_enemy_type(enemy_data, "skull")
+					G.update_navbar("Enemy type changed to Flying Skull")
+				end
 				enemy_data.enemySequence = message.sequence
 				UI.update_list(TAB_NAME, enemy_list)
 				gui.set_text(gui.get_node("selected_enemy_sequence/text"), message.sequence)
@@ -202,11 +229,21 @@ function on_message(self, message_id, message, sender)
 		elseif message.dialog == "dialog_bulk_sequence" then
 			if message.sequence and message.existing_sequence then
 				G.update_navbar("Replacing all instances of "..message.existing_sequence.." with "..message.sequence, true)
+				local non_skull_count = 0
 				for key, val in ipairs(MEM.beat_data.enemy_list) do
 					local enemy_data = MEM.beat_data.table.beatData[val.beat_data_key].targets[val.enemies_key]
 					if enemy_data.enemySequence ==  message.existing_sequence then
 						enemy_data.enemySequence = message.sequence
+						if SET.force_skull_with_sequence_change and message.sequence == "FlyingSkull Short" and not (enemy_data.enemyType == "FlyingBomb") then
+							change_enemy_type(enemy_data, "skull")
+							non_skull_count = non_skull_count + 1
+						end
 					end 
+				end
+				if non_skull_count > 1 then
+					G.update_navbar(non_skull_count.." enemies had their type set to \"Flying Skull\"")
+				elseif non_skull_count > 0 then
+					G.update_navbar("An enemy had its type set to Flying Skull")
 				end
 				UI.update_list(TAB_NAME, enemy_list)
 				if selected_enemy then
@@ -215,28 +252,8 @@ function on_message(self, message_id, message, sender)
 			end
 		elseif message.dialog == "dialog_change_enemy_type" then
 			if message.new_type then
+				change_enemy_type(get_enemy_data(selected_enemy), message.new_type)
 				G.update_navbar("Enemy type changed to "..enemy_names[message.new_type], true)
-				local enemy_data = get_enemy_data(selected_enemy)
-				local previous_type_internal = enemy_data.enemyType
-				local previous_type
-				for key, val in pairs(internal_names) do
-					if val == previous_type_internal then
-						previous_type = key
-						break
-					end
-				end
-				enemy_data.enemyType = internal_names[message.new_type]
-				MEM.beat_data.enemy_types[message.new_type] = true
-				local type_found
-				for key, val in ipairs(MEM.beat_data.enemy_list) do
-					if val.type == previous_type_internal then
-						type_found = true
-						break
-					end
-				end
-				MEM.beat_data.enemy_types[previous_type] = type_found
-				UI.update_list(TAB_NAME, enemy_list)
-				update_enemy(selected_enemy)
 			end
 		end
 		msg.post("#", hash("acquire_input_focus"))
