@@ -819,6 +819,7 @@ local function undo_tween(signal_tab)
 end
 
 local function apply_obstacle_animation(signal_tab, time)
+	if not signal_tab.go then return end
 	local time_diff = time - signal_tab.time
 	local y_pos
 	local offset = OBSTACLE_DATA[signal_tab.signal].offset
@@ -1195,6 +1196,7 @@ local function reset_signals()
 	for range, range_tab in pairs(MOD.culling_ranges) do
 		if range_tab.signals then
 			for key, val in ipairs(range_tab.signals) do
+				val.go = nil
 				val.used_up = false
 				val.transforms = nil
 			end
@@ -1371,13 +1373,13 @@ local function delete_obstacles()
 				v.enabled = nil
 				v.url = nil
 				v.collider = nil
+				v.signal = nil
 			end
 		end
 	end
 end
 
 local function create_obstacles()
-	delete_obstacles()
 	for key, val in ipairs(MEM.beat_data.obstacle_list) do
 		local new_obstacle
 		if val.type == "LimboTall" or val.type == "LimboShort" then

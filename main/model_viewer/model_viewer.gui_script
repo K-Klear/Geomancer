@@ -319,12 +319,11 @@ local function close_preview()
 	if preview_source == hash("tween_editor") or preview_source == hash("model_tab") then
 		set_ui(hash("model"))
 	elseif preview_source == hash("model_tab_view_prop") then
-		msg.post(".", hash("reset_tween"))
 		set_ui(hash("model"))
 	else
-		msg.post(".", hash("reset_tween"))
 		set_ui(hash("map_preview"))
 	end
+	msg.post(".", hash("reset_tween"))	
 	MOD.map_preview = false
 	MOD.tween_preview = false
 	MOD.vacuum_preview = false
@@ -664,7 +663,6 @@ local function preview_setup_map()
 	MOD.total_time = song_length
 	
 	create_tween_sections()
-	msg.post(".", hash("prepare_obstacles"))
 	if not MOD.scrubber_progress then
 		move_scrubber(0)
 	else
@@ -672,6 +670,7 @@ local function preview_setup_map()
 	end
 	prepare_tween_data()
 	set_ui(hash("map_preview"))
+	msg.post(".", hash("prepare_obstacles"))
 	msg.post(".", hash("prepare_preview"))
 end
 
@@ -716,8 +715,11 @@ local function setup_tween_contex(tween_index, selected_prop)
 
 	MOD.active_signals = {}
 
+	--timer.delay(0.5, false, function() move_scrubber(0) end)
 	move_scrubber(0)
 	set_ui(hash("tween_context"))
+
+	msg.post(".", hash("prepare_obstacles"))
 	msg.post(".", hash("prepare_preview"))
 end
 

@@ -305,7 +305,6 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
-		print(sender)
 		DIALOG.show(DIALOG_DATA, sender)
 		model_index = message.model_index
 		local prop_name = MEM.art_data.table.propsDictionary[model_index].key

@@ -306,7 +306,7 @@ SET.default_rotation_rounding = 15
 -- sound
 
 SET.metronome_sound = 1
-SET.metronome_on = true
+SET.metronome_on = false
 SET.default_metronome_on = false
 SET.volume_general = 1
 SET.volume_music = 1

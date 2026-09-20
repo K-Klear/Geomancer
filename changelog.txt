@@ -55,19 +55,16 @@ To-do:
 Done:
 
 Features:
-- Added "FlyingSkull Short" to the list of possible sequences (towards the end of the list, under its own header)
-	- Using this sequence will automatically change the enemy type to Flying Skull. This can be turned off in options.
-- Spooky and AirDrop obstacles are now animated in preview, the later producing a sound when landing
 
 New shortcuts:
 
 Fixes:
 
 Bugs:
-- Fixed an issue preventing edit instance dialog from opening in some cases
+- Obstacles are now shown when entering preview from a tween
+- Metronome is correctly off by default
 
 Options:
-Miscellaneous -> After changing an enemy's sequence to "FlyingSkull Short" change enemy type to Flying Skull
 
 
 Notes:
