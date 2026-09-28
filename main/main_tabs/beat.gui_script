@@ -201,17 +201,19 @@ function on_message(self, message_id, message, sender)
 		UI.update_list(TAB_NAME, enemy_list, 0)
 	elseif message_id == hash("dialog_closed") then
 		if message.dialog == "dialog_replace_enemy" and message.enemy_to_replace then
-			G.update_navbar("Replacing "..enemy_names[message.enemy_to_replace].." with "..enemy_names[message.new_type]..".", true)
+			local enemy_count = 0
 			local internal_old = internal_names[message.enemy_to_replace]
 			local internal_new = internal_names[message.new_type]
 			for key, val in ipairs(MEM.beat_data.enemy_list) do
 				local enemy_data = MEM.beat_data.table.beatData[val.beat_data_key].targets[val.enemies_key]
 				if enemy_data.enemyType == internal_old then
+					enemy_count = enemy_count + 1
 					enemy_data.enemyType = internal_new
 				end 
 			end
 			MEM.beat_data.enemy_types[message.new_type] = true
 			MEM.beat_data.enemy_types[message.enemy_to_replace] = false
+			G.update_navbar("Replaced "..enemy_count.." "..enemy_names[message.enemy_to_replace].." with "..enemy_names[message.new_type]..".", true)
 			UI.update_list(TAB_NAME, enemy_list)
 			update_enemy(selected_enemy)
 		elseif message.dialog == "dialog_change_sequence" then
@@ -228,12 +230,13 @@ function on_message(self, message_id, message, sender)
 			end
 		elseif message.dialog == "dialog_bulk_sequence" then
 			if message.sequence and message.existing_sequence then
-				G.update_navbar("Replacing all instances of "..message.existing_sequence.." with "..message.sequence, true)
 				local non_skull_count = 0
+				local change_count = 0
 				for key, val in ipairs(MEM.beat_data.enemy_list) do
 					local enemy_data = MEM.beat_data.table.beatData[val.beat_data_key].targets[val.enemies_key]
 					if enemy_data.enemySequence ==  message.existing_sequence then
 						enemy_data.enemySequence = message.sequence
+						change_count = change_count + 1
 						if SET.force_skull_with_sequence_change and message.sequence == "FlyingSkull Short" and not (enemy_data.enemyType == "FlyingBomb") then
 							change_enemy_type(enemy_data, "skull")
 							non_skull_count = non_skull_count + 1
@@ -245,6 +248,7 @@ function on_message(self, message_id, message, sender)
 				elseif non_skull_count > 0 then
 					G.update_navbar("An enemy had its type set to Flying Skull")
 				end
+				G.update_navbar("Replaced "..change_count.." instances of "..message.existing_sequence.." with "..message.sequence, true)
 				UI.update_list(TAB_NAME, enemy_list)
 				if selected_enemy then
 					gui.set_text(gui.get_node("selected_enemy_sequence/text"), get_enemy_data(selected_enemy).enemySequence)

@@ -12,7 +12,7 @@ local close_button, timeline, scrubber, time_display, time_tween, time_length, s
 
 local get_current_transform, previous_transform_name
 local current_bounding_node
-local colour_unselected_timeline = vmath.vector4(0.6, 0.6, 0.6, 1)
+local colour_unselected_timeline = vmath.vector4(0.5, 0.5, 0.5, 1)
 
 local move_scrubber
 local mouse_wheel_scroll_target = 0
@@ -130,6 +130,10 @@ local function update_view(update_scubber)
 		time_to_display = time_to_display * SET.sample_rate
 		song_length_converted = song_length_converted * SET.sample_rate
 		tween_start = tween_start * SET.sample_rate
+	elseif SET.preview_time_units == 4 and MOD.seconds_per_beat then
+		time_to_display = time_to_display / MOD.seconds_per_beat
+		song_length_converted = song_length_converted / MOD.seconds_per_beat
+		tween_start = tween_start / MOD.seconds_per_beat
 	end
 
 	gui.set_text(time_display, string.format("%.1f", time_to_display).." / "..string.format("%.1f", song_length_converted))
@@ -144,6 +148,8 @@ local function update_time_units_button(update_text)
 		gui.set_text(gui.get_node("time_units/text"), "Distance")
 	elseif SET.preview_time_units == 3 then
 		gui.set_text(gui.get_node("time_units/text"), "Samples")
+	elseif SET.preview_time_units == 4 then
+		gui.set_text(gui.get_node("time_units/text"), "Beats")
 	else
 		SET.preview_time_units = 1
 		gui.set_text(gui.get_node("time_units/text"), "Seconds")
@@ -768,6 +774,7 @@ local function preview_setup_tween(message, force_vacuum)
 
 	MOD.props_for_preview = {}
 	local repeat_props = {}
+	local prop_to_show
 
 	for key, val in pairs(MOD.culling_ranges) do
 		for k, v in ipairs(val.signals or {}) do
@@ -785,6 +792,9 @@ local function preview_setup_tween(message, force_vacuum)
 					table.insert(MOD.props_for_preview, {t})
 					repeat_props[v.target_prop_list_index] = #MOD.props_for_preview
 				end
+				if not prop_to_show and (message.tween_index == v.target_tween_index) then
+					prop_to_show = #MOD.props_for_preview
+				end
 			end
 		end
 	end
@@ -799,7 +809,7 @@ local function preview_setup_tween(message, force_vacuum)
 			setup_tween_vacuum(message.tween_index, selected_model_tweens)
 		end
 	else
-		setup_tween_contex(message.tween_index, 1)
+		setup_tween_contex(message.tween_index, prop_to_show or 1)
 	end
 end
 
@@ -1148,6 +1158,9 @@ local function evaluate_button(button)
 		MOD.find_prop = true
 	elseif button == "time_units" then
 		SET.preview_time_units = SET.preview_time_units + 1
+		if SET.preview_time_units == 4 and not (MEM.event_data.table) then
+			SET.preview_time_units = SET.preview_time_units + 1
+		end
 		update_time_units_button(true)
 	elseif button == "playback_back" then
 		local current_action, start_time = get_current_action()

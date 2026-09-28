@@ -32,6 +32,7 @@ local configurable = {
 	"default_path_import_model_data",
 	"default_path_import_models",
 	"default_path_save_tween",
+	"default_path_model_export",
 	"background_colour",
 	"colour_active_text_field",
 	"colour_highlight_material",
@@ -157,6 +158,7 @@ SET.default_path_export_overwrite = ""
 SET.default_path_import_models = ""
 SET.default_path_import_model_data = ""
 SET.default_path_save_tween = ""
+SET.default_path_model_export = ""
 SET.confirm_file_overwrite = true
 SET.import_changes_from_zip = false
 SET.create_folder_on_export = true
@@ -214,6 +216,8 @@ SET.colour_tween_collision = vmath.vector4(1, 0, 0, 1)
 SET.hide_model_count = false
 SET.confirm_tween_deletion = true
 SET.delete_empty_tweens = true
+SET.export_all_models = false
+SET.apply_transforms_when_exporting = true
 
 -- model
 SET.restrict_rotations_to_360 = true

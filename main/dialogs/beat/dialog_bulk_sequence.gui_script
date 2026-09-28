@@ -158,7 +158,7 @@ for key, val in ipairs(seq) do
 	end
 end
 
-seq = nil
+seq = nil	-- just freeing the memory
 
 function init(self)
 	DIALOG.setup(DIALOG_NAME)

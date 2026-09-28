@@ -115,6 +115,9 @@ end
 local function export_art(path)
 	local is_dynamic = {}
 	local model_table = MEM.art_data.table
+
+	local components_to_remove = {}
+	
 	for key, val in ipairs(model_table.propsDictionary) do
 		if #val.model_data.tween_list > 0 then
 			local transform_list = MEM.get_transform_paths(val.object)
@@ -140,8 +143,11 @@ local function export_art(path)
 					if found_transform then
 						local script = {_key_sort = {"type", "Script", "Name"}, type = "ScriptedTween", Script = tween_script, Name = v.name}
 						local event_id = {_key_sort = {"type", "EventId", "ActionType"}, type = "LevelEventReceiver", EventId = v.signal, ActionType = "ScriptedTweenTrigger"}
-						table.insert(transform_list[found_transform].tab.components, script)
-						table.insert(transform_list[found_transform].tab.components, event_id)
+						local component_tab = transform_list[found_transform].tab.components
+						table.insert(component_tab, script)
+						table.insert(components_to_remove, {tab = component_tab, component = component_tab[#component_tab]})
+						table.insert(component_tab, event_id)
+						table.insert(components_to_remove, {tab = component_tab, component = component_tab[#component_tab]})
 					else
 						table.insert(val.object.children, {
 							_key_sort = {"name", "components", "children"}, name = v.name, components = {
@@ -151,6 +157,7 @@ local function export_art(path)
 							},
 							children = {}
 						})
+						table.insert(components_to_remove, {tab = val.object.children, component = val.object.children[#val.object.children]})
 					end
 					if save_original then
 						MEM.geomancer_meta.props[val.key] = MEM.geomancer_meta.props[val.key] or {tweens = {}}
@@ -293,6 +300,14 @@ local function export_art(path)
 	end
 
 	table.remove(model_table.propsDictionary, 1)
+	for key, val in ipairs(components_to_remove) do
+		for k, v in ipairs(val.tab) do
+			if v == val.component then
+				table.remove(val.tab, k)
+				break
+			end
+		end
+	end
 	model_table.staticProps = model_table.staticProps or {}
 	model_table.dynamicProps = model_table.dynamicProps or {}
 	model_table.staticCullingRanges = model_table.staticCullingRanges or {}
@@ -440,9 +455,9 @@ local function export_all(overwrite)
 	if UI.tab.tab_level.state or UI.tab.tab_event.state or UI.tab.tab_geo.state or UI.tab.tab_beat.state or UI.tab.tab_meta.state or UI.tab.tab_art.state then
 		local _, path
 		if overwrite then
-			_, path = diags.open_folder(SET.default_path_export)
-		else
 			_, path = diags.open_folder(SET.default_path_export_overwrite)
+		else
+			_, path = diags.open_folder(SET.default_path_export)
 		end
 		if path then
 			local function get_name(s)
@@ -479,9 +494,7 @@ local function export_all(overwrite)
 			filename_ogg = filename_ogg or filename_common..".ogg"
 			
 			MEM.geomancer_meta = {version = sys.get_config_string("project.version"), props = {}, geo = {chunks = {}, slices = {}}}
-
-
-			
+		
 			if not overwrite then
 				load_time = socket.gettime()
 				local export_count, expected_count = 0, 10

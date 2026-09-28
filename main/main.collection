@@ -14,6 +14,7 @@ instances {
 instances {
   id: "art"
   prototype: "/main/main_tabs/art.go"
+  children: "export_model"
   children: "find"
   children: "import"
   children: "instance_list"
@@ -518,4 +519,12 @@ embedded_instances {
   scale3 {
     z: -1.0
   }
+}
+embedded_instances {
+  id: "export_model"
+  data: "components {\n"
+  "  id: \"dialog_export_model\"\n"
+  "  component: \"/main/dialogs/art/dialog_export_model.gui\"\n"
+  "}\n"
+  ""
 }

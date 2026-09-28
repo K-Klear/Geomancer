@@ -190,6 +190,7 @@ path_list.export_overwrite = "default_path_export_overwrite"
 path_list.import_models = "default_path_import_models"
 path_list.tween = "default_path_save_tween"
 path_list.import_changes = "default_path_import_model_data"
+path_list.model_export = "default_path_model_export"
 
 for key, val in pairs(path_list) do
 	table.insert(tab_list.paths.buttons, "change_path_"..key)
@@ -272,6 +273,7 @@ function init(self)
 	gui.set_text(gui.get_node("default_path_import_changes"), SET.default_path_import_model_data)
 	gui.set_text(gui.get_node("default_path_import_models"), SET.default_path_import_models)
 	gui.set_text(gui.get_node("default_path_tween"), SET.default_path_save_tween)
+	gui.set_text(gui.get_node("default_path_model_export"), SET.default_path_model_export)
 	-- colours
 	for key, val in ipairs(tab_list.colours.buttons) do
 		gui.set_color(gui.get_node(val.."/text"), SET[val])
@@ -331,8 +333,10 @@ function init(self)
 		gui.set_text(gui.get_node("default_preview_time_units/text"), "Seconds")
 	elseif SET.default_preview_time_units == 2 then
 		gui.set_text(gui.get_node("default_preview_time_units/text"), "Distance")
-	else
+	elseif SET.default_preview_time_units == 3 then
 		gui.set_text(gui.get_node("default_preview_time_units/text"), "Samples")
+	else
+		gui.set_text(gui.get_node("default_preview_time_units/text"), "Beats")
 	end
 	-- events etc
 	set_checkbox("autodetect_sample_rate", SET.autodetect_sample_rate)
@@ -507,15 +511,17 @@ local function evaluate_button(button)
 			end
 		elseif button == "default_preview_time_units" then
 			SET.default_preview_time_units = SET.default_preview_time_units + 1
-			if SET.default_preview_time_units > 3 then
+			if SET.default_preview_time_units > 4 then
 				SET.default_preview_time_units = 1
 			end
 			if SET.default_preview_time_units == 1 then
 				gui.set_text(gui.get_node("default_preview_time_units/text"), "Seconds")
 			elseif SET.default_preview_time_units == 2 then
 				gui.set_text(gui.get_node("default_preview_time_units/text"), "Distance")
-			else
+			elseif SET.default_preview_time_units == 3 then
 				gui.set_text(gui.get_node("default_preview_time_units/text"), "Samples")
+			else
+				gui.set_text(gui.get_node("default_preview_time_units/text"), "Beats")
 			end
 		elseif button == "show_transform" then
 			SET.default_show_transform = SET.default_show_transform + 1

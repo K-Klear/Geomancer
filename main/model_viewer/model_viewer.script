@@ -1530,7 +1530,11 @@ function on_message(self, message_id, message, sender)
 		MOD.viewer_active = true
 		msg.post(".", hash("acquire_input_focus"))
 		show_grid(self)
-		msg.post("/fog#fog", hash("enable"))
+		if SET.hide_fog then
+			msg.post("/fog#fog", hash("disable"))
+		else
+			msg.post("/fog#fog", hash("enable"))
+		end
 		show_transforms()
 		delete_model(self)
 	elseif message_id == hash("show_model_preview") then

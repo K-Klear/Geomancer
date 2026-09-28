@@ -7,7 +7,6 @@ To do:
 - Reset buttons when a panel loses focus
 - animations for moving/adding tween actions to make it more clear what's happening.
 - Automatically resize text for text fields (and maybe buttons)
-- Maybe "delete all" buttons for the event tab
 - Custom dialog transparency?
 - Show enemy position in the beat editor as a picture rather than text
 - Custom sequence name support
@@ -32,16 +31,14 @@ To do:
 - See if I can calculate normals more efficiently
 - Option to have obstacles disappear as they get closer
 - Use the generic get text dialog instead of the old rename model dialog
-- Import tweens in a way that is smarter than just outright overwriting the model data
+- Colour editor, with easing functions and separate changes for colours
+- Pick lobby colours from existing colour sections
 
 Bugs:
 - The check for Spooky and airdrop obstacle signals needs to be more robust
 	- That is to say, it needs to happen on every export, not just while degeomancing, plus it needs to be smarter
-- Had a dynamic model refuse to stay dynamic after switching tabs. No idea why.
-	- Actually saw a wrong model turn dynamic. Something's fishy
-		- Might be caused by sorting models - investigate!
 - Meshes in model viewer tend to disappear. Related to flashing?
-- Changes to transform somehow don't get saved when swithcing to materials and back?
+- Crash when clicking transform button in tween editor while a text field is active (CANNOT REPRODUCE)
 
 Settings to implement in options:
 - Something for timeline height in map preview
@@ -51,20 +48,36 @@ Settings to implement in options:
 To-do:
 - Fix the collider rendering (depth buffer?)
 - Colliders do not despawn properly
+- Defaults are NOT chosen smartly in tween editor. The target transform keeps resetting for instance
+
+
+
 
 Done:
 
 Features:
+- Time units in preview can now be set to "Beats". This only takes into account the first tempo section in the map.
 
 New shortcuts:
 
 Fixes:
+- Default export paths with and without overwrite were switched
+- Fog will stay disabled after closing and reopening preview
+- Bulk replacing enemy types and sequences now reports the number of enemies that were changed
+- Tween preview will now show the earliest prop instance which uses the active tween
+- Inactive tween timeline background is now darker to differentiate it from wait actions
 
 Bugs:
-- Obstacles are now shown when entering preview from a tween
-- Metronome is correctly off by default
+- Fixed an error when attempting to degeomance as map without ever opening the art tab
+- Fixed an error caused by canceling directory selection when bulk-importing models
+- Fixed a crash when geomancer tried to change transform properties with no transform selected
+- Fixed an bug causing tweens to double after erxporting a map twice
 
-Options:
+New options:
+Default paths -> Model export
+
+
+
 
 
 Notes:

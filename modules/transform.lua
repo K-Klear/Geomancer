@@ -473,6 +473,7 @@ local function display_euler()
 end
 
 function TRANS.evaluate_input(field, text)
+	if not selected_transform then return end
 	if field == "transform_position_x" then
 		transform_list[selected_transform].position.x = text
 		gui.set_text(gui.get_node("transform_position_x/text"), G.round(text, 4))

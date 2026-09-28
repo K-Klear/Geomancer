@@ -7,7 +7,8 @@ local TRANS = require "modules.transform"
 local DIALOG = UI.DIALOG
 local TAB_NAME = "tab_art"
 
-local model_list, part_list, tween_list, instance_list, evaluate_button, evaluate_input, current_material
+local model_list, part_list, instance_list, evaluate_button, evaluate_input, current_material
+local tween_list = {}
 local material_buttons = {}
 local select_model
 local update_lists
@@ -80,7 +81,7 @@ end
 function init(self)
 	gui.set_render_order(1)
 	msg.post("#", hash("disable"))
-	UI.load_template({"sort", "button_replace", "button_rename", "button_find", "colour_guide", "import_models", "import_models_bulk",
+	UI.load_template({"sort", "button_replace", "button_rename", "button_find", "colour_guide", "import_models", "export_model", "import_models_bulk",
 	"button_materials", "button_transforms", "button_tweens", "button_instances"}, TAB_NAME)
 	tab_buttons = {
 		button_materials = gui.get_node("button_materials/button_white"),
@@ -877,7 +878,7 @@ function select_model(selected_model)
 	selected_model = selected_model or get_selected_model()
 	UI.update_list(TAB_NAME, part_list, #MEM.art_data.table.propsDictionary[selected_model].model_data.parts)
 	UI.select_exclusive_button(TAB_NAME, part_list, 1)
-	tween_list = MEM.art_data.table.propsDictionary[selected_model].model_data.tween_list
+	tween_list = MEM.art_data.table.propsDictionary[selected_model].model_data.tween_list or {}
 	UI.update_list(TAB_NAME, tween_ui_list, #tween_list)
 	if #tween_list > 0 then
 		sort_tweens()
@@ -977,7 +978,7 @@ function on_message(self, message_id, message, sender)
 				selected_model = 1
 			end
 			UI.select_exclusive_button(TAB_NAME, model_list, selected_model, true)
-			tween_list = MEM.art_data.table.propsDictionary[selected_model].model_data.tween_list
+			tween_list = MEM.art_data.table.propsDictionary[selected_model].model_data.tween_list or {}
 			UI.update_list(TAB_NAME, tween_ui_list, #tween_list)
 			sort_tweens()
 			UI.update_list(TAB_NAME, tween_ui_list, #tween_list)
@@ -1206,6 +1207,7 @@ function evaluate_button(button, item)
 		import_models()
 	elseif button == "import_models_bulk" then
 		local _, path = diags.open_folder(SET.default_path_import_models)
+		if not path then return end
 		local file_list = {}
 		for filename in lfs.dir(path) do
 			if string.sub(filename, -4) == ".obj" then
@@ -1251,6 +1253,8 @@ function evaluate_button(button, item)
 		if import_count + error_count < 1 then
 			G.update_navbar("No model files found.")
 		end
+	elseif button == "export_model" then
+		open_dialog("dialog_export_model", {model_index = get_selected_model()})
 	elseif button == "colour_guide" then
 		sys.open_url("https://mod.io/g/pistol-whip/r/advanced-color-hack-guide")
 	elseif button == "button_replace" then

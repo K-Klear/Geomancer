@@ -2344,8 +2344,11 @@ nodes {
   template: "/templates/button_white_small.gui"
 }
 nodes {
+  position {
+    x: -7.0
+  }
   size {
-    x: 70.0
+    x: 56.0
     y: 44.0
   }
   type: TYPE_BOX
@@ -2359,8 +2362,9 @@ nodes {
 }
 nodes {
   scale {
-    x: 0.75
-    y: 0.75
+    x: 0.6
+    y: 0.6
+    z: 0.6
   }
   type: TYPE_TEXT
   text: "Import"
@@ -2383,8 +2387,11 @@ nodes {
   template: "/templates/button_white_small.gui"
 }
 nodes {
+  position {
+    x: -33.0
+  }
   size {
-    x: 94.0
+    x: 56.0
     y: 44.0
   }
   type: TYPE_BOX
@@ -2398,8 +2405,12 @@ nodes {
 }
 nodes {
   scale {
-    x: 0.75
-    y: 0.75
+    x: 0.6
+    y: 0.6
+  }
+  size {
+    x: 160.0
+    y: 70.0
   }
   type: TYPE_TEXT
   text: "Import\n"
@@ -2407,6 +2418,56 @@ nodes {
   id: "import_models_bulk/text"
   parent: "import_models_bulk/button_white"
   overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 18
+  overridden_fields: 36
+  overridden_fields: 47
+  template_node_child: true
+  text_leading: 0.8
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 173.0
+    y: 86.0
+  }
+  type: TYPE_TEMPLATE
+  id: "export_model"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  position {
+    x: -33.0
+  }
+  size {
+    x: 56.0
+    y: 44.0
+  }
+  type: TYPE_BOX
+  texture: "UI/button_exclusive"
+  id: "export_model/button_white"
+  parent: "export_model"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 9
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 0.6
+    y: 0.6
+  }
+  size {
+    x: 160.0
+    y: 70.0
+  }
+  type: TYPE_TEXT
+  text: "Export"
+  id: "export_model/text"
+  parent: "export_model/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
   overridden_fields: 8
   overridden_fields: 18
   overridden_fields: 36
@@ -2425,8 +2486,11 @@ nodes {
   template: "/templates/button_white_small.gui"
 }
 nodes {
+  position {
+    x: 2.0
+  }
   size {
-    x: 50.0
+    x: 44.0
     y: 44.0
   }
   type: TYPE_BOX
