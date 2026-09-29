@@ -15,7 +15,7 @@ input_method = HiddenInputField
 
 [project]
 title = Geomancer
-version = 0.9933
+version = 0.9934
 developer = Klear
 write_log_file = 2
 dependencies#0 = https://github.com/britzl/defold-png/archive/master.zip
@@ -54,4 +54,7 @@ max_count = 4096
 
 [resource]
 max_resources = 8192
+
+[label]
+max_count = 256
 

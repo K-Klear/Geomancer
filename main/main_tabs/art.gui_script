@@ -164,7 +164,11 @@ function init(self)
 			node = gui.get_node("tween_exclusive/button_white"),
 			text_node = gui.get_node("tween_exclusive/text"),
 			value_fn = function(i)
-				return tween_list[i].name.." ("..tween_list[i].signal..")"
+				if SET.show_tween_signal_alongside_name then
+					return tween_list[i].name.." ("..tween_list[i].signal..")"
+				else
+					return tween_list[i].name
+				end
 			end,
 			template = "tween_exclusive;",
 			tint = get_tween_colour,
@@ -598,6 +602,8 @@ local function rename_model(new_name, model_to_rename)
 			end
 		end
 	end
+	MEM.create_prop_list(MEM.art_data.table, true)
+	MEM.setup_culling_ranges()
 	G.update_navbar(old_name.." renamed to "..new_name, true)
 end
 
@@ -1003,6 +1009,8 @@ function on_message(self, message_id, message, sender)
 		msg.post("/model_viewer", hash("remove_model"))
 	elseif message_id == hash("check_tweens") then
 		check_tweens()
+	elseif message_id == hash("sort_tweens") then
+		sort_tweens()
 	elseif message_id == hash("dialog_closed") then
 		msg.post("#", hash("acquire_input_focus"))
 		msg.post("/model_viewer", hash("show"))
@@ -1175,7 +1183,7 @@ function on_message(self, message_id, message, sender)
 							remove_prop(key, key < #instance_list)
 						end
 					else
-						remove_prop(message.prop_index.prop_tab)
+						remove_prop(message.prop_index)
 					end
 					MEM.create_prop_list(MEM.art_data.table, true)
 					MEM.setup_culling_ranges()
@@ -1254,7 +1262,8 @@ function evaluate_button(button, item)
 			G.update_navbar("No model files found.")
 		end
 	elseif button == "export_model" then
-		open_dialog("dialog_export_model", {model_index = get_selected_model()})
+		G.update_navbar("This function is not finished yet. Comming soon though", true)
+		--open_dialog("dialog_export_model", {model_index = get_selected_model()})
 	elseif button == "colour_guide" then
 		sys.open_url("https://mod.io/g/pistol-whip/r/advanced-color-hack-guide")
 	elseif button == "button_replace" then
@@ -1329,12 +1338,36 @@ function evaluate_button(button, item)
 			existing_names[val.name] = true
 		end
 		local new_name
-		for i = 1, 99999 do
-			new_name = "Tween_"..i
-			if not existing_names[new_name] then
-				break
+		if SET.change_tween_name_with_signal then
+			if not (existing_names.signal) then
+				new_name = "signal"
+			else
+				for i = 1, 99999 do
+					if i > 9 then
+						new_name = "signal_"..i
+					else
+						new_name = "signal_0"..i
+					end
+					if not existing_names[new_name] then
+						break
+					end
+				end
+			end
+		else
+			for i = 1, 99999 do
+				if i > 9 then
+					new_name = "Tween_"..i
+				else
+					new_name = "Tween_0"..i
+				end
+				if not existing_names[new_name] then
+					break
+				end
 			end
 		end
+
+		if not new_name then new_name = "You're dumb and broke Geomancer" end
+
 		table.insert(tween_list, {signal = "signal", script = {}, name = new_name})
 		select_tween(#tween_list)
 		sort_tweens()

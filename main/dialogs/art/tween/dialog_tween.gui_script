@@ -438,6 +438,32 @@ end
 local function evaluate_field(field, text, item)
 	if field == "tween_signal" then
 		tween_tab.signal = text
+		if SET.change_tween_name_with_signal then
+			local existing_names = {}
+			for key, val in ipairs(MEM.art_data.table.propsDictionary[model_index].model_data.transform_list) do
+				existing_names[val.name] = true
+			end
+			for key, val in ipairs(MEM.art_data.table.propsDictionary[model_index].model_data.tween_list) do
+				if not (val == tween_tab) then
+					existing_names[val.name] = true
+				end
+			end
+			local new_name = text
+			if existing_names[new_name] then
+				for i = 1, 99999 do
+					if i > 9 then
+						new_name = text.."_"..i
+					else
+						new_name = text.."_0"..i
+					end
+					if not existing_names[new_name] then
+						break
+					end
+				end
+			end
+			tween_tab.name = new_name
+			msg.post("/art#tab_art", hash("sort_tweens"))
+		end
 	else
 		local div = string.find(field, ";")
 		local str = string.sub(field, 1, div)

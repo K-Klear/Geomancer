@@ -3209,8 +3209,44 @@ nodes {
 }
 nodes {
   position {
+    x: 316.0
+    y: 713.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Tweens"
+  font: "main_menu_button_small"
+  id: "lbl_tween"
+  pivot: PIVOT_W
+  parent: "panel_tween"
+  layer: "text"
+  inherit_alpha: true
+}
+nodes {
+  position {
+    x: 944.0
+    y: 713.0
+  }
+  size {
+    x: 200.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Easing"
+  font: "main_menu_button_small"
+  id: "lbl_easing"
+  pivot: PIVOT_W
+  parent: "panel_tween"
+  layer: "text"
+  inherit_alpha: true
+}
+nodes {
+  position {
     x: 109.0
-    y: 634.0
+    y: 674.0
   }
   type: TYPE_TEMPLATE
   id: "restrict_rotations_to_360"
@@ -3263,7 +3299,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 589.0
+    y: 629.0
   }
   type: TYPE_TEMPLATE
   id: "tween_action_type_dialog"
@@ -3316,7 +3352,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 547.0
+    y: 587.0
   }
   type: TYPE_TEMPLATE
   id: "tween_part_dialog"
@@ -3369,7 +3405,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 501.0
+    y: 541.0
   }
   type: TYPE_TEMPLATE
   id: "tween_extra_add_buttons"
@@ -3422,7 +3458,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 456.0
+    y: 496.0
   }
   type: TYPE_TEMPLATE
   id: "ask_before_overwriting_tween_file"
@@ -3475,7 +3511,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 410.0
+    y: 450.0
   }
   type: TYPE_TEMPLATE
   id: "delete_empty_tweens"
@@ -3528,7 +3564,7 @@ nodes {
 nodes {
   position {
     x: 109.0
-    y: 369.0
+    y: 409.0
   }
   type: TYPE_TEMPLATE
   id: "confirm_tween_deletion"
@@ -3581,7 +3617,7 @@ nodes {
 nodes {
   position {
     x: 88.0
-    y: 317.0
+    y: 264.0
   }
   size {
     x: 200.0
@@ -3599,7 +3635,7 @@ nodes {
 nodes {
   position {
     x: 489.0
-    y: 313.0
+    y: 261.0
   }
   type: TYPE_TEMPLATE
   id: "tween_timeline_bar_height"
@@ -3635,7 +3671,7 @@ nodes {
 nodes {
   position {
     x: 785.0
-    y: 625.0
+    y: 665.0
   }
   size {
     x: 200.0
@@ -3653,7 +3689,7 @@ nodes {
 nodes {
   position {
     x: 1056.0
-    y: 621.0
+    y: 661.0
   }
   type: TYPE_TEMPLATE
   id: "easing_node_scale"
@@ -3689,7 +3725,7 @@ nodes {
 nodes {
   position {
     x: 785.0
-    y: 563.0
+    y: 603.0
   }
   size {
     x: 200.0
@@ -3707,7 +3743,7 @@ nodes {
 nodes {
   position {
     x: 1056.0
-    y: 559.0
+    y: 599.0
   }
   type: TYPE_TEMPLATE
   id: "easing_curve_thickness"
@@ -3743,7 +3779,7 @@ nodes {
 nodes {
   position {
     x: 785.0
-    y: 489.0
+    y: 529.0
   }
   size {
     x: 200.0
@@ -3761,7 +3797,7 @@ nodes {
 nodes {
   position {
     x: 1085.0
-    y: 485.0
+    y: 525.0
   }
   rotation {
     x: -0.614
@@ -3787,7 +3823,7 @@ nodes {
 nodes {
   position {
     x: 785.0
-    y: 425.0
+    y: 465.0
   }
   size {
     x: 200.0
@@ -3805,7 +3841,7 @@ nodes {
 nodes {
   position {
     x: 1085.0
-    y: 421.0
+    y: 461.0
   }
   type: TYPE_TEMPLATE
   id: "easing_node_highlight_colour"
@@ -3828,7 +3864,7 @@ nodes {
 nodes {
   position {
     x: 785.0
-    y: 363.0
+    y: 351.0
   }
   size {
     x: 200.0
@@ -3846,7 +3882,7 @@ nodes {
 nodes {
   position {
     x: 1085.0
-    y: 359.0
+    y: 399.0
   }
   type: TYPE_TEMPLATE
   id: "easing_curve_colour"
@@ -3868,44 +3904,8 @@ nodes {
 }
 nodes {
   position {
-    x: 316.0
-    y: 692.0
-  }
-  size {
-    x: 200.0
-    y: 100.0
-  }
-  type: TYPE_TEXT
-  text: "Tweens"
-  font: "main_menu_button_small"
-  id: "lbl_tween"
-  pivot: PIVOT_W
-  parent: "panel_tween"
-  layer: "text"
-  inherit_alpha: true
-}
-nodes {
-  position {
-    x: 944.0
-    y: 692.0
-  }
-  size {
-    x: 200.0
-    y: 100.0
-  }
-  type: TYPE_TEXT
-  text: "Easing"
-  font: "main_menu_button_small"
-  id: "lbl_easing"
-  pivot: PIVOT_W
-  parent: "panel_tween"
-  layer: "text"
-  inherit_alpha: true
-}
-nodes {
-  position {
     x: 198.0
-    y: 261.0
+    y: 217.0
   }
   size {
     x: 400.0
@@ -3923,7 +3923,7 @@ nodes {
 nodes {
   position {
     x: 398.0
-    y: 258.0
+    y: 214.0
   }
   type: TYPE_TEMPLATE
   id: "default_tween_time_in_beats"
@@ -3957,7 +3957,7 @@ nodes {
 nodes {
   position {
     x: 88.0
-    y: 206.0
+    y: 174.0
   }
   size {
     x: 200.0
@@ -3975,7 +3975,7 @@ nodes {
 nodes {
   position {
     x: 688.0
-    y: 202.0
+    y: 170.0
   }
   type: TYPE_TEMPLATE
   id: "tween_padding_start"
@@ -4011,7 +4011,7 @@ nodes {
 nodes {
   position {
     x: 764.0
-    y: 202.0
+    y: 170.0
   }
   type: TYPE_TEMPLATE
   id: "tween_padding_end"
@@ -4042,6 +4042,112 @@ nodes {
   parent: "tween_padding_end/box"
   overridden_fields: 4
   overridden_fields: 8
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 109.0
+    y: 368.0
+  }
+  type: TYPE_TEMPLATE
+  id: "change_tween_name_with_signal"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "change_tween_name_with_signal/button_white"
+  parent: "change_tween_name_with_signal"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "change_tween_name_with_signal/text"
+  parent: "change_tween_name_with_signal/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 550.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Tween name is set to its signal"
+  font: "main_menu_button_small"
+  id: "change_tween_name_with_signal/label"
+  line_break: true
+  parent: "change_tween_name_with_signal/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 109.0
+    y: 327.0
+  }
+  type: TYPE_TEMPLATE
+  id: "show_tween_signal_alongside_name"
+  parent: "panel_tween"
+  inherit_alpha: true
+  template: "/templates/button_white_checkbox.gui"
+}
+nodes {
+  type: TYPE_BOX
+  id: "show_tween_signal_alongside_name/button_white"
+  parent: "show_tween_signal_alongside_name"
+  slice9 {
+    x: 30.0
+    y: 30.0
+    z: 30.0
+    w: 30.0
+  }
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "show_tween_signal_alongside_name/text"
+  parent: "show_tween_signal_alongside_name/button_white"
+  overridden_fields: 3
+  template_node_child: true
+}
+nodes {
+  scale {
+    x: 2.0
+    y: 2.0
+  }
+  size {
+    x: 550.0
+    y: 100.0
+  }
+  type: TYPE_TEXT
+  text: "Show tween\'s signal alongside its name"
+  font: "main_menu_button_small"
+  id: "show_tween_signal_alongside_name/label"
+  line_break: true
+  parent: "show_tween_signal_alongside_name/button_white"
+  overridden_fields: 3
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 18
   template_node_child: true
 }
 nodes {

@@ -138,7 +138,8 @@ tab_list.colours = {buttons = {
 }
 tab_list.tween = {buttons = {
 	"restrict_rotations_to_360", "tween_action_type_dialog", "tween_part_dialog", "tween_extra_add_buttons", "ask_before_overwriting_tween_file",
-	"delete_empty_tweens", "confirm_tween_deletion", "easing_node_colour", "easing_node_highlight_colour", "easing_curve_colour", "default_tween_time_in_beats"},
+	"delete_empty_tweens", "confirm_tween_deletion", "easing_node_colour", "easing_node_highlight_colour", "easing_curve_colour",
+	"default_tween_time_in_beats", "change_tween_name_with_signal", "show_tween_signal_alongside_name"},
 	fields = {{name = "tween_timeline_bar_height", char_limit = 3, validation = validation_bar},
 	{name = "easing_node_scale", char_limit = 3, validation = validation_node_scale},
 	{name = "easing_curve_thickness", char_limit = 3, validation = validation_curve_thickness},
@@ -300,6 +301,8 @@ function init(self)
 	set_checkbox("ask_before_overwriting_tween_file", SET.ask_before_overwriting_tween_file)
 	set_checkbox("delete_empty_tweens", SET.delete_empty_tweens)
 	set_checkbox("confirm_tween_deletion", SET.confirm_tween_deletion)
+	set_checkbox("change_tween_name_with_signal", SET.change_tween_name_with_signal)
+	set_checkbox("show_tween_signal_alongside_name", SET.show_tween_signal_alongside_name)
 	if SET.default_tween_time_in_beats then
 		gui.set_text(gui.get_node("default_tween_time_in_beats/text"), "Beats")
 	else

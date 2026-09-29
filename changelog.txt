@@ -33,12 +33,14 @@ To do:
 - Use the generic get text dialog instead of the old rename model dialog
 - Colour editor, with easing functions and separate changes for colours
 - Pick lobby colours from existing colour sections
+- keys in a saved tween are strings for some reason. Might happen elsewhere too. 
 
 Bugs:
 - The check for Spooky and airdrop obstacle signals needs to be more robust
 	- That is to say, it needs to happen on every export, not just while degeomancing, plus it needs to be smarter
 - Meshes in model viewer tend to disappear. Related to flashing?
 - Crash when clicking transform button in tween editor while a text field is active (CANNOT REPRODUCE)
+- Replacing a model doesn't update transforms and also throws errors from model_viewer
 
 Settings to implement in options:
 - Something for timeline height in map preview
@@ -51,34 +53,29 @@ To-do:
 - Defaults are NOT chosen smartly in tween editor. The target transform keeps resetting for instance
 
 
-
-
 Done:
 
 Features:
-- Time units in preview can now be set to "Beats". This only takes into account the first tempo section in the map.
+
+- Copy tween dialog now shows the signal too
 
 New shortcuts:
 
 Fixes:
-- Default export paths with and without overwrite were switched
-- Fog will stay disabled after closing and reopening preview
-- Bulk replacing enemy types and sequences now reports the number of enemies that were changed
-- Tween preview will now show the earliest prop instance which uses the active tween
-- Inactive tween timeline background is now darker to differentiate it from wait actions
+
+- Fixed some issues with the beat time measure in preview
+- Default tween names under 10 now have a zero before their number so they get sorted correctly
+- Tweens with stupidly large number of actions now make preview give up on fully drawing the timeline rather than causing a crash
 
 Bugs:
-- Fixed an error when attempting to degeomance as map without ever opening the art tab
-- Fixed an error caused by canceling directory selection when bulk-importing models
-- Fixed a crash when geomancer tried to change transform properties with no transform selected
-- Fixed an bug causing tweens to double after erxporting a map twice
+
+- Fixed a crash when deleting a prop after generating geo out of it
+- Fixed an issue preventing preview from opening after renaming a prop with a tween
 
 New options:
-Default paths -> Model export
 
-
-
-
+Tween/Easing -> Tween name is set to its signal
+Tween/Easing -> Show tween's signal alongside its name
 
 Notes:
 - See if "MEM.event_reloaded" and similar are necessary. Currently load error unloads previous data - is that a bad thing?

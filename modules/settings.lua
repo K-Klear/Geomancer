@@ -107,7 +107,9 @@ local configurable = {
 	"volume_general",
 	"volume_music",
 	"volume_metronome",
-	"force_skull_with_sequence_change"
+	"force_skull_with_sequence_change",
+	"change_tween_name_with_signal",
+	"show_tween_signal_alongside_name"
 }
 
 function SET.save_config()
@@ -289,6 +291,9 @@ SET.ask_before_overwriting_tween_file = true
 SET.tween_time_in_beats = false
 SET.tween_padding_start = 0.5
 SET.tween_padding_end = 0.5
+
+SET.change_tween_name_with_signal = false
+SET.show_tween_signal_alongside_name = true
 
 SET.tween_parent_transform_name = "_T_W_E_E_N_S_"
 

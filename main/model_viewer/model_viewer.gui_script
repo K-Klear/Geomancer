@@ -130,10 +130,14 @@ local function update_view(update_scubber)
 		time_to_display = time_to_display * SET.sample_rate
 		song_length_converted = song_length_converted * SET.sample_rate
 		tween_start = tween_start * SET.sample_rate
-	elseif SET.preview_time_units == 4 and MOD.seconds_per_beat then
-		time_to_display = time_to_display / MOD.seconds_per_beat
-		song_length_converted = song_length_converted / MOD.seconds_per_beat
-		tween_start = tween_start / MOD.seconds_per_beat
+	elseif SET.preview_time_units == 4 then
+		local first_tempo = MEM.event_data.table.tempoSections[1]
+		local start = first_tempo.startSample / SET.sample_rate
+		local spb = first_tempo.samplesPerBeat / SET.sample_rate
+		if start < 0 then start = start + spb end
+		time_to_display = (time_to_display / spb) + start
+		song_length_converted = (song_length_converted / spb) + start
+		tween_start = (tween_start / spb) + start
 	end
 
 	gui.set_text(time_display, string.format("%.1f", time_to_display).." / "..string.format("%.1f", song_length_converted))
@@ -258,8 +262,11 @@ local function create_tween_sections()
 		for key, val in ipairs(action_bar) do
 			local start_pos = percent_to_position(time / MOD.total_time)
 			local length = (val.time / MOD.total_time) * POSITION_MAX
-			
-			local new_bar = gui.clone(gui.get_node("action_bar"))
+			--local new_bar = gui.clone(gui.get_node("action_bar"))
+			local err, new_bar = pcall(gui.clone, gui.get_node("action_bar"))
+			if not err then
+				return
+			end
 			gui.set_parent(new_bar, timelines[tween_index])
 			gui.set_enabled(new_bar, true)
 			if val.type == TWEEN_ACTION_MOVE then
