@@ -557,18 +557,21 @@ local function model_replace(selected_model_index, replace_model_index)
 	MEM.art_data.table.propsDictionary[selected_model_index] = MEM.art_data.table.propsDictionary[replace_model_index]
 	table.remove(MEM.art_data.table.propsDictionary, replace_model_index)
 
-	local new_index = selected_model_index
-	if not (MEM.art_data.table.propsDictionary[selected_model_index] and MEM.art_data.table.propsDictionary[selected_model_index].key == old_name) then
-		new_index = new_index - 1
+	local new_index
+	for key, val in ipairs(MEM.art_data.table.propsDictionary) do
+		if val.key == old_name then
+			new_index = key
+			break
+		end
 	end
+
 	MEM.art_data.table.propsDictionary[new_index].model_data.model_count = count_model_instances(old_name)
 
 	MEM.create_prop_list(MEM.art_data.table, true)
 	MEM.setup_culling_ranges()
-	
-	msg.post("/model_viewer", hash("update_model"), {model = new_index})
 	update_lists()
-	UI.select_exclusive_button(TAB_NAME, model_list, new_index)
+	UI.select_exclusive_button(TAB_NAME, model_list, new_index, false, true)
+	select_model(new_index)
 
 	G.update_navbar("All instances of "..old_name.." have been replaced by "..new_name.." keeping the original model name and properties.", true)
 end

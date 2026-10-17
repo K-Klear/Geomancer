@@ -5,7 +5,7 @@ embedded_components {
   "name: \"{{NAME}}\"\n"
   "materials {\n"
   "  name: \"default\"\n"
-  "  material: \"/render/prop_materials/obstacle.material\"\n"
+  "  material: \"/render/other_materials/obstacle_fade.material\"\n"
   "  textures {\n"
   "    sampler: \"tex0\"\n"
   "    texture: \"/assets/gfx/textures/prop.png\"\n"

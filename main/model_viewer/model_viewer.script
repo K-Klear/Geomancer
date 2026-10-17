@@ -25,6 +25,7 @@ local material_list = {}
 go.property("geo_material", resource.material("/render/prop_materials/geo.material"))
 
 go.property("shader_collider", resource.material("/render/prop_materials/collider.material"))
+go.property("shader_obstacle_fade", resource.material("/render/other_materials/obstacle_fade.material"))
 
 go.property("shader_prop", resource.material("/render/prop_materials/prop.material"))
 go.property("shader_glow", resource.material("/render/prop_materials/glow.material"))
@@ -698,7 +699,7 @@ local function show_culling_range(self, range)
 
 	for key, val in ipairs(MOD.culling_ranges[range].obstacles) do
 		if val.model and (not val.enabled) then
-			if not SET.hide_obstacles then
+			if SET.hide_obstacles < 3 then
 				msg.post(val.url, hash("enable"))
 			end
 			if not SET.hide_colliders then
@@ -1281,15 +1282,21 @@ local function hide_fog()
 	get_current_colour(MOD.preview_start + MOD.total_time * MOD.scrubber_progress)
 end
 
-local function hide_obstacles()
-	SET.hide_obstacles = not SET.hide_obstacles
-	if SET.hide_obstacles then
-		for key in pairs(MOD.culling_ranges.visible_obstacles) do
-			msg.post(key.url, hash("disable"))
+local function hide_obstacles(self)
+	if SET.hide_obstacles == 1 then
+		for key, val in ipairs(MEM.beat_data.obstacle_list) do
+			go.set(val.url, "material", self.shader_prop)
+			if MOD.culling_ranges.visible_obstacles[val] then
+				msg.post(val.url, hash("enable"))
+			end
+		end
+	elseif SET.hide_obstacles == 2 then
+		for key, val in ipairs(MEM.beat_data.obstacle_list) do
+			go.set(val.url, "material", self.shader_obstacle_fade)
 		end
 	else
 		for key in pairs(MOD.culling_ranges.visible_obstacles) do
-			msg.post(key.url, hash("enable"))
+			msg.post(key.url, hash("disable"))
 		end
 	end
 end
@@ -1678,7 +1685,7 @@ function on_message(self, message_id, message, sender)
 	elseif message_id == hash("hide_fog") then
 		hide_fog()
 	elseif message_id == hash("hide_obstacles") then
-		hide_obstacles()
+		hide_obstacles(self)
 	elseif message_id == hash("hide_props") then
 		hide_props()
 	elseif message_id == hash("hide_geo") then

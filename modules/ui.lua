@@ -18,16 +18,16 @@ UI.input_enabled = true
 UI.current_tab = "tab_file"
 
 UI.tab = {
-	tab_file = {path = "/file#tab_file", state = "active", render_order = 1, buttons = {}, fields = {}},
-	tab_level = {path = "/level#tab_level", state = false, render_order = 1, buttons = {}, fields = {}},
-	tab_event = {path = "/event#tab_event", state = false, render_order = 1, buttons = {}, fields = {}},
-	tab_beat = {path = "/beat#tab_beat", state = false, render_order = 1, buttons = {}, fields = {}},
-	tab_geo = {path = "/geo#tab_geo", state = false, render_order = 1, buttons = {}, fields = {}},
-	tab_meta = {path = "/meta#tab_meta", state = false, render_order = 1, buttons = {}, fields = {}},
-	tab_rotate = {path = "/rotate#tab_rotate", state = true, render_order = 1, buttons = {}, fields = {}},
-	tab_art = {path = "/art#tab_art", state = false, render_order = 1, buttons = {}, fields = {}},
-	model_viewer = {path = "/model_viewer#model_viewer1", render_order = 2, buttons = {}, fields = {}},
-	tab_options = {path = "/options#options", state = true, render_order = 1, buttons = {}, fields = {}}
+	tab_file = {path = "main:/file#tab_file", state = "active", render_order = 1, buttons = {}, fields = {}},
+	tab_level = {path = "main:/level#tab_level", state = false, render_order = 1, buttons = {}, fields = {}},
+	tab_event = {path = "main:/event#tab_event", state = false, render_order = 1, buttons = {}, fields = {}},
+	tab_beat = {path = "main:/beat#tab_beat", state = false, render_order = 1, buttons = {}, fields = {}},
+	tab_geo = {path = "main:/geo#tab_geo", state = false, render_order = 1, buttons = {}, fields = {}},
+	tab_meta = {path = "main:/meta#tab_meta", state = false, render_order = 1, buttons = {}, fields = {}},
+	tab_rotate = {path = "main:/rotate#tab_rotate", state = true, render_order = 1, buttons = {}, fields = {}},
+	tab_art = {path = "main:/art#tab_art", state = false, render_order = 1, buttons = {}, fields = {}},
+	model_viewer = {path = "main:/model_viewer#model_viewer1", render_order = 2, buttons = {}, fields = {}},
+	tab_options = {path = "main:/options#options", state = true, render_order = 1, buttons = {}, fields = {}}
 }
 
 local mouse_held, r_ctr_held, l_ctr_held, l_shift_held, r_shift_held
@@ -239,7 +239,12 @@ local function text_field_input(action_id, action)
 		gui.set_text(active_text_field.text, text_field_text)
 		reset_cursor_timer()
 	elseif action_id == hash("paste") then
-		local pasted_text = string.sub(clipboard.paste(), 1, active_text_field.char_limit)
+		local pasted_text
+		if SET.ignore_char_limit then
+			pasted_text = clipboard.paste()
+		else
+			pasted_text = string.sub(clipboard.paste(), 1, active_text_field.char_limit)
+		end
 		text_field_text = pasted_text
 		gui.set_text(active_text_field.text, pasted_text)
 		reset_cursor_timer()

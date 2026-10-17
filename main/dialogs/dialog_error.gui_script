@@ -1,0 +1,139 @@
+local UI = require "modules.ui"
+local MEM = require "modules.memory"
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "dialog_error"
+local DIALOG_DATA
+
+local error_intro = "Geomancer encountered an unexpected error and needs to be shut down. Sorry about that!\n\n"
+local error_nothing_loaded = "It seems no map data is currently loaded, so hopefully nothing got lost\n\n"
+local error_crash_during_loading = "The crash happened while a map was being loaded, so hopefully no work was lost.\n\n"
+local error_export = "Currently loaded map data is now being exported to a safe location. Please wait.\n\n...\n\n"
+local error_export_success = "The export seems to have finished without any issues. Please check the map carefully to make sure nothing got corrupted before overwriting any backups you might have.\n\n"
+local error_export_fail = "Unfortunately, one more more files failed to export correctly. Any changes you made before this error are likely lost.\n\n"
+local error_log_fail = "Cannot make a copy of the log. The file log.txt should have the info, but it will get overwritten next time you launch Geomancer so please copy it somewhere safe manually"
+local error_log_1 = "Log file with information about the error has been saved to "
+local error_log_1b = "The exported map and the log file with information about the error have been saved to "
+local error_log_2 = ". Please send me the log along with a description of what you were doing when the error happened and ideally also the map you were working on.\n\n"
+
+function init(self)
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+end
+
+local function evaluate_button(button)
+	if button == "dialog_error_accept" then
+		os.exit(1)
+	end
+end
+
+local log_path, error_string, data_str
+
+local function copy_log()
+	if sys.exists("log.txt") then
+		local f = io.open("log.txt", "rb")
+		if f then
+			local data = f:read("*a")
+			io.close(f)
+			f = io.output(log_path.."\\log_"..data_str..".txt")
+			io.write(data)
+			io.close(f)
+			return true
+		end
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		msg.post("/model_viewer", hash("disable_input"))
+		DIALOG.show(DIALOG_DATA, message.current_tab)
+		UI.load_template("dialog_error_accept", DIALOG_NAME)
+
+		local change_time = lfs.attributes("log.txt", "modification")
+
+		local level_loaded = not not next(MEM.level_data)
+		local events_loaded = not not MEM.event_data.table
+		local art_loaded = not not MEM.art_data.table
+		local beat_loaded = not not MEM.beat_data.table
+		local geo_loaded = not not MEM.geo_data.table
+		local metadata_loaded = not not next(MEM.meta_data)
+		local poster_loaded = not not MEM.poster
+		local music_loaded = not not MEM.music_raw
+		local sequences_loaded = not not MEM.sequence_data.string
+
+		print("__________________")
+		print("Geomancer version:", sys.get_config_string("project.version"))
+		print("Last open tab:", message.current_tab)
+		if MEM.loading_in_progress then
+			print("Geomancer crashed while loading")
+		end
+		print("__________________")
+		print("Loaded data:")
+		print("Level", level_loaded)
+		print("Events", events_loaded)
+		print("Art", art_loaded)
+		print("Beat", beat_loaded)
+		print("Geo", geo_loaded)
+		print("Music", music_loaded)
+		print("Poster", poster_loaded)
+		print("Sequences", sequences_loaded)
+		print("Metadata", metadata_loaded)
+		print("__________________")
+		
+		error_string = error_intro
+		local try_export = level_loaded or events_loaded or art_loaded or beat_loaded or geo_loaded
+		if MEM.loading_in_progress then
+			try_export = false
+			error_string = error_string..error_crash_during_loading
+		elseif try_export then
+			error_string = error_string..error_export
+		else
+			error_string = error_string..error_nothing_loaded
+		end
+		local date = os.date("*t")
+		data_str = date.year.."_"..date.month.."-"..date.day.."_"..date.hour.."-"..date.min.."-"..date.sec
+		log_path = "_crash_report_"..data_str
+		if not lfs.mkdir(log_path) then
+			try_export = false
+		end
+		if try_export and not SET.I_am_Klear then
+			gui.set_text(gui.get_node("dialog_error_body"), error_string)
+			timer.delay(0.3, false, function()
+				msg.post(UI.tab.tab_file.path, hash("emergency_export"), {path = log_path})
+			end)
+			return
+		end
+
+		if copy_log() then
+			gui.set_text(gui.get_node("dialog_error_body"), error_string..error_log_1..log_path..error_log_2)
+			timer.delay(1, false, function() sys.open_url(log_path) end)
+		else
+			gui.set_text(gui.get_node("dialog_error_body"), error_string..error_log_fail..error_log_2)
+		end
+	elseif message_id == hash("export_finished") then
+		if not message.no_crash then
+			print(message.export_count)
+		end
+		local log_copied = copy_log()
+		if message.no_crash and message.export_count then
+			error_string = error_string..error_export_success
+			if log_copied then
+				error_string = error_string..error_log_1..log_path..error_log_2
+			else
+				error_string = error_string..error_log_fail..error_log_2
+			end
+		else
+			error_string = error_string..error_export_fail
+			if log_copied then
+				error_string = error_string..error_log_1..log_path..error_log_2
+			else
+				error_string = error_string..error_log_fail..error_log_2
+			end
+		end
+		gui.set_text(gui.get_node("dialog_error_body"), error_string)
+		timer.delay(1, false, function() sys.open_url(log_path) end)
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button)
+end

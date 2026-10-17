@@ -1072,6 +1072,8 @@ function load.ogg(data, filename)
 	MEM.music = SND.load_music(data)
 	if MEM.music then
 		return true
+	else
+		MEM.music_raw = nil
 	end
 end
 

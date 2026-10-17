@@ -4,6 +4,7 @@ local DIALOG_NAME = "colour_picker"
 local DIALOG_DATA
 
 local G = require "modules.global"
+local COL = require "modules.colours"
 
 local mouse_held_hue, mouse_held_colour = false, false
 local red, green, blue, hue, saturation, value = 1, 1, 1, 0, 0, 1
@@ -57,12 +58,7 @@ local function set_colour_fields()
 	gui.set_text(gui.get_node("field_hue/text"), G.round((1 - hue) * 360, 0))
 	gui.set_text(gui.get_node("field_saturation/text"), G.round(saturation * 100, 0))
 	gui.set_text(gui.get_node("field_value/text"), G.round(value * 100, 0))
-	local function get_hex(num)
-		local str = string.format("%x", G.round(num * 255, 0))
-		if #str == 1 then str = "0"..str end
-		return str
-	end
-	gui.set_text(gui.get_node("field_hex/text"), get_hex(picked_colour.x)..get_hex(picked_colour.y)..get_hex(picked_colour.z))
+	gui.set_text(gui.get_node("field_hex/text"), COL.get_hex(picked_colour))
 
 	gui.set(gui.get_node("hue_cursor"), "position.y", -400 * (1 - hue))
 	gui.set_position(gui.get_node("colour_cursor"), vmath.vector3(saturation * 400, value * 400, 0))

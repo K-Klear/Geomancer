@@ -25,14 +25,11 @@ To do:
 - A way to expand a repeat action
 - A "note" tween action
 - Show a transform's properties during a tween preview
-- Bulk changing of materials
 - Prevent colliders from showing up in transform editor
 - Lobby colours are overwritten on change import
 - See if I can calculate normals more efficiently
-- Option to have obstacles disappear as they get closer
 - Use the generic get text dialog instead of the old rename model dialog
 - Colour editor, with easing functions and separate changes for colours
-- Pick lobby colours from existing colour sections
 - keys in a saved tween are strings for some reason. Might happen elsewhere too. 
 
 Bugs:
@@ -40,7 +37,7 @@ Bugs:
 	- That is to say, it needs to happen on every export, not just while degeomancing, plus it needs to be smarter
 - Meshes in model viewer tend to disappear. Related to flashing?
 - Crash when clicking transform button in tween editor while a text field is active (CANNOT REPRODUCE)
-- Replacing a model doesn't update transforms and also throws errors from model_viewer
+- Had a tween fail to load from a file. No errors though. Weird.
 
 Settings to implement in options:
 - Something for timeline height in map preview
@@ -51,31 +48,53 @@ To-do:
 - Fix the collider rendering (depth buffer?)
 - Colliders do not despawn properly
 - Defaults are NOT chosen smartly in tween editor. The target transform keeps resetting for instance
-
+- Allow longer signals
+- Seconds option for new/edited tempo sections
+- The first tempo section gets *always* replaced? Maybe that's correct. Hmmm....
+- Ability to add props form the instances subtab
+- Handle errors if the ogg is messed up. mod.io/g/pistol-whip/m/paris should help with testing that.
 
 Done:
 
 Features:
-
-- Copy tween dialog now shows the signal too
+- Add event and Add multiple events dialogs:
+	- The start and offset times can now be entered in beats in addition to samples and seconds
+		- This only considers the first tempo section in the map
+		- The tempo section's start time is taken into account. Beat 0 corresponds to it (or the next beat if it's negative), beat 1 is the first beat after the start of the tempo section
+			- This means entering an integer as an event start (beats) should result in the signal being on-beat
+			- Offset in beats just uses the length of a beat as a unit and ignores the start time.
+	- Repeats can now be created in groups of multiple events sent on the same sample
+- New Tempo section dialog:
+	- You can set tempo in seconds/beat (how long each beat lasts in seconds)
+	- Start of the tempo section can be set in samples, seconds and beats
+		- That last one means "how many beats of the previous tempo section after the start of the previous tempo section"
+			- It is only available if the tempo section you're editing is not currently the first one
+			- You can set this to a negative number, though this will change the ordering and the value will be recalculated with respect to the (newly) previous tempo section
+	- Newly added tempo sections are now set to start four beats after the previous one
+	- Start time cannot be lower than negative samples per beat
+	- There is now a hard limit of 6000 BPM.
+	
+- Obstacles now fade when near the camera so they don't obstruct the view
+	- You can cycle between this, hidden and visible always in the view settings in the top right corner
+	- Transparent models (props, colliders, obstacles) sometimes render in wrong order. I'll see about fixing that later. Transparency is hard =/
+- You can now pick from colours present in the map to set the lobby colours
 
 New shortcuts:
 
 Fixes:
-
-- Fixed some issues with the beat time measure in preview
-- Default tween names under 10 now have a zero before their number so they get sorted correctly
-- Tweens with stupidly large number of actions now make preview give up on fully drawing the timeline rather than causing a crash
+- Using tab to move between transform property fields is now guaranteed to follow the correct order
+- Replacing geo colliders now correctly shows the change in preview
+- Copy/pasting into a text field no longer gets truncated to the character limit it is set to be ignored
+- Loading a tween from a file will now correctly change the signal (and not just text box)
+- Replacing a model will now update the transform tree and tween list, which could previously cause errors
+- The model replace dialog now resets correctly when opened multiple times
 
 Bugs:
-
-- Fixed a crash when deleting a prop after generating geo out of it
-- Fixed an issue preventing preview from opening after renaming a prop with a tween
+- Fixed a crash when selecting "Tween only" from the prop list in tween preview
+- Fixed a crash when attempting to load a directory which doesn't contain valid map files
+- Fixed a crash when loading a corrupted music file
 
 New options:
-
-Tween/Easing -> Tween name is set to its signal
-Tween/Easing -> Show tween's signal alongside its name
 
 Notes:
 - See if "MEM.event_reloaded" and similar are necessary. Currently load error unloads previous data - is that a bad thing?

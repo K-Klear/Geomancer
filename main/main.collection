@@ -59,6 +59,7 @@ embedded_instances {
 embedded_instances {
   id: "level"
   children: "enemy"
+  children: "lobby_colour"
   children: "material"
   children: "obstacles"
   data: "components {\n"
@@ -525,6 +526,22 @@ embedded_instances {
   data: "components {\n"
   "  id: \"dialog_export_model\"\n"
   "  component: \"/main/dialogs/art/dialog_export_model.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "lobby_colour"
+  data: "components {\n"
+  "  id: \"dialog_colour_lobby\"\n"
+  "  component: \"/main/dialogs/level/dialog_colour_lobby.gui\"\n"
+  "}\n"
+  ""
+}
+embedded_instances {
+  id: "error"
+  data: "components {\n"
+  "  id: \"dialog_error\"\n"
+  "  component: \"/main/dialogs/dialog_error.gui\"\n"
   "}\n"
   ""
 }

@@ -1,18 +1,40 @@
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
 local SET = require "modules.settings"
+local G = require "modules.global"
 local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_event_multiple"
 local DIALOG_DATA
 
-local start_sample, max_sample, signal, offset, repeats, default_signal
+local start_sample, max_sample, signal, offset, repeats, batch, default_signal
 
 local function samples_to_seconds(samples)
-	return math.floor((samples / SET.sample_rate) * 1000) * 0.001
+	return G.round(samples / SET.sample_rate, 4)
 end
 
 local function seconds_to_samples(seconds)
 	return math.floor(seconds * SET.sample_rate)
+end
+
+local function samples_to_beats(samples, no_start_time)
+	local spb = MEM.event_data.table.tempoSections[1].samplesPerBeat
+	if no_start_time then
+		return G.round(samples / spb, 4)
+	end
+	local startSample = MEM.event_data.table.tempoSections[1].startSample
+	if startSample < 0 then startSample = startSample + spb end
+	return G.round((samples - startSample) / spb, 4) + 0
+end
+
+local function beats_to_samples(beats, no_start_time)
+	local spb = MEM.event_data.table.tempoSections[1].samplesPerBeat
+	if no_start_time then
+		return math.floor(math.max(beats * spb, 0))
+	end
+	beats = beats - 0
+	local startSample = MEM.event_data.table.tempoSections[1].startSample
+	if startSample < 0 then startSample = startSample + spb end
+	return math.floor(math.max(beats * spb + startSample, 0))
 end
 
 function init(self)
@@ -31,6 +53,12 @@ function init(self)
 		max = function() return samples_to_seconds(max_sample) end,
 		default = function() return 0 end
 	}
+	local validation_beats = {
+		number = true,
+		min = function() return samples_to_beats(0) end,
+		max = function() return samples_to_beats(max_sample) end,
+		default = function() return math.max(samples_to_beats(0), 0) end
+	}
 	local validation_sample_offset = {
 		integer = true,
 		min = function() return -max_sample end,
@@ -43,6 +71,12 @@ function init(self)
 		max = function() return samples_to_seconds(max_sample) end,
 		default = function() return 0 end
 	}
+	local validation_beats_offset = {
+		number = true,
+		min = function() return samples_to_beats(-max_sample, true) end,
+		max = function() return samples_to_beats(max_sample, true) end,
+		default = function() return 1 end
+	}
 	local validation_signal = {
 		text = true,
 		json_safe = true,
@@ -54,19 +88,26 @@ function init(self)
 		min = function() return 1 end,
 		default = function() return 2 end
 	}
+	local validation_batch = {
+		integer = true,
+		min = function() return 1 end,
+		default = function() return 1 end
+	}
 	UI.load_text_field("event_start_sample", 10, DIALOG_NAME, validation_sample)
 	UI.load_text_field("event_start_seconds", 10, DIALOG_NAME, validation_seconds)
+	UI.load_text_field("event_start_beats", 10, DIALOG_NAME, validation_beats)
 	UI.load_text_field("event_offset_sample", 10, DIALOG_NAME, validation_sample_offset)
 	UI.load_text_field("event_offset_seconds", 10, DIALOG_NAME, validation_seconds_offset)
+	UI.load_text_field("event_offset_beats", 10, DIALOG_NAME, validation_beats_offset)
 
 	UI.load_text_field("event_signal", 15, DIALOG_NAME, validation_signal)
-
 	UI.load_text_field("event_repeat", 3, DIALOG_NAME, validation_repeat)
+	UI.load_text_field("event_batch", 3, DIALOG_NAME, validation_batch)
 end
 
 local function evaluate_button(button)
 	if button == "dialog_event_accept" or button == "enter" then
-		DIALOG.close(DIALOG_NAME, {start_sample = start_sample, signal = signal, offset = offset, repeats = repeats})
+		DIALOG.close(DIALOG_NAME, {start_sample = start_sample, signal = signal, offset = offset, repeats = repeats, batch = batch})
 	elseif button == "dialog_event_cancel" or button == "escape" then
 		DIALOG.close(DIALOG_NAME)
 	end
@@ -78,8 +119,10 @@ local function recalculate_values()
 	end
 	gui.set_text(gui.get_node("event_start_sample/text"), start_sample)
 	gui.set_text(gui.get_node("event_start_seconds/text"), samples_to_seconds(start_sample))
+	gui.set_text(gui.get_node("event_start_beats/text"), samples_to_beats(start_sample))
 	gui.set_text(gui.get_node("event_offset_sample/text"), offset)
 	gui.set_text(gui.get_node("event_offset_seconds/text"), samples_to_seconds(offset))
+	gui.set_text(gui.get_node("event_offset_beats/text"), samples_to_beats(offset, true))
 end
 
 local function evaluate_input(field, text)
@@ -87,14 +130,20 @@ local function evaluate_input(field, text)
 		start_sample = text
 	elseif field == "event_start_seconds" then
 		start_sample = seconds_to_samples(text)
+	elseif field == "event_start_beats" then
+		start_sample = beats_to_samples(text)
 	elseif field == "event_signal" then
 		signal = text
 	elseif field == "event_offset_sample" then
 		offset = text
 	elseif field == "event_offset_seconds" then
 		offset = seconds_to_samples(text)
+	elseif field == "event_offset_beats" then
+		offset = beats_to_samples(text, true)
 	elseif field == "event_repeat" then
 		repeats = text
+	elseif field == "event_batch" then
+		batch = text
 	end
 	recalculate_values()
 end
@@ -107,12 +156,14 @@ function on_message(self, message_id, message, sender)
 		default_signal = signal
 		offset = 0
 		repeats = 2
+		batch = 1
 		if MEM.level_data.songLength then
 			max_sample = tonumber(MEM.level_data.songLength) * SET.sample_rate
 		else
 			max_sample = 1/0
 		end
 		gui.set_text(gui.get_node("event_repeat/text"), repeats)
+		gui.set_text(gui.get_node("event_batch/text"), batch)
 		gui.set_text(gui.get_node("event_signal/text"), signal)
 		recalculate_values()
 	end

@@ -257,7 +257,7 @@ SET.show_transform = 1
 
 SET.hide_geo = false
 SET.hide_colliders = true
-SET.hide_obstacles = false
+SET.hide_obstacles = 2
 
 SET.tween_timeline_bar_height = 20 -- make this 6+
 

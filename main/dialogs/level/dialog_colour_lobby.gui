@@ -1,0 +1,384 @@
+script: "/main/dialogs/level/dialog_colour_lobby.gui_script"
+fonts {
+  name: "main_menu_button"
+  font: "/assets/fonts/final/main_menu_button.font"
+}
+fonts {
+  name: "colour_picker_font"
+  font: "/assets/fonts/final/colour_picker_font.font"
+}
+textures {
+  name: "UI"
+  texture: "/assets/gfx/UI.atlas"
+}
+nodes {
+  position {
+    x: 550.0
+    y: 419.0
+  }
+  size {
+    x: 620.0
+    y: 760.0
+  }
+  type: TYPE_BOX
+  texture: "UI/panel_green"
+  id: "edit_box"
+  layer: "list_background"
+  slice9 {
+    x: 40.0
+    y: 40.0
+    z: 40.0
+    w: 40.0
+  }
+  alpha: 0.9
+}
+nodes {
+  position {
+    y: 346.0
+  }
+  size {
+    x: 250.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "Colour sections"
+  font: "main_menu_button"
+  id: "title_colours"
+  pivot: PIVOT_N
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  parent: "edit_box"
+  layer: "text"
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+  material: "font-df"
+}
+nodes {
+  position {
+    x: -216.0
+    y: 297.0
+  }
+  size {
+    x: 417.0
+    y: 532.0
+  }
+  type: TYPE_BOX
+  texture: "UI/empty_pixel"
+  id: "colour_lobby_list"
+  pivot: PIVOT_NW
+  parent: "edit_box"
+  clipping_mode: CLIPPING_MODE_STENCIL
+  clipping_visible: false
+}
+nodes {
+  position {
+    x: 313.0
+    y: -428.0
+  }
+  type: TYPE_BOX
+  texture: "UI/scrollbar_button"
+  id: "colour_lobby_scroll_up"
+  parent: "colour_lobby_list"
+  layer: "below"
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 313.0
+    y: -569.0
+  }
+  rotation {
+    z: 180.0
+  }
+  type: TYPE_BOX
+  texture: "UI/scrollbar_button"
+  id: "colour_lobby_scroll_down"
+  parent: "colour_lobby_list"
+  layer: "below"
+  size_mode: SIZE_MODE_AUTO
+}
+nodes {
+  position {
+    x: 313.0
+    y: -466.0
+  }
+  size {
+    x: 32.0
+    y: 34.0
+  }
+  color {
+    x: 0.502
+    y: 0.502
+    z: 0.502
+  }
+  type: TYPE_BOX
+  texture: "UI/scrollbar"
+  id: "colour_lobby_scroll_background"
+  pivot: PIVOT_N
+  parent: "colour_lobby_list"
+  layer: "below"
+  slice9 {
+    x: 6.0
+    y: 6.0
+    z: 6.0
+    w: 6.0
+  }
+}
+nodes {
+  position {
+    x: 313.0
+    y: -466.0
+  }
+  size {
+    x: 24.0
+    y: 34.0
+  }
+  type: TYPE_BOX
+  texture: "UI/scrollbar"
+  id: "colour_lobby_scroll_grip"
+  pivot: PIVOT_N
+  parent: "colour_lobby_list"
+  layer: "below"
+  slice9 {
+    x: 6.0
+    y: 6.0
+    z: 6.0
+    w: 6.0
+  }
+}
+nodes {
+  position {
+    y: -22.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_lobby_exclusive"
+  parent: "colour_lobby_list"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 385.0
+    y: 44.0
+  }
+  type: TYPE_BOX
+  texture: "UI/button_exclusive"
+  id: "colour_lobby_exclusive/button_white"
+  pivot: PIVOT_W
+  parent: "colour_lobby_exclusive"
+  layer: "below"
+  slice9 {
+    x: 6.0
+    y: 6.0
+    z: 6.0
+    w: 6.0
+  }
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 9
+  overridden_fields: 14
+  overridden_fields: 20
+  overridden_fields: 22
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 5.0
+  }
+  size {
+    x: 160.0
+    y: 30.0
+  }
+  type: TYPE_TEXT
+  text: " MAIN     FOG    GLOW  ENEMY"
+  font: "colour_picker_font"
+  id: "colour_lobby_exclusive/text"
+  pivot: PIVOT_W
+  parent: "colour_lobby_exclusive/button_white"
+  layer: "text"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 10
+  overridden_fields: 14
+  overridden_fields: 18
+  overridden_fields: 20
+  overridden_fields: 47
+  template_node_child: true
+  material: "font-df"
+}
+nodes {
+  position {
+    x: 5.0
+    y: -5.0
+  }
+  size {
+    x: 90.0
+    y: 34.0
+  }
+  color {
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_BOX
+  texture: "UI/white_pixel"
+  id: "main"
+  pivot: PIVOT_NW
+  parent: "colour_lobby_list"
+  layer: "dialog"
+}
+nodes {
+  position {
+    x: 100.0
+    y: -5.0
+  }
+  size {
+    x: 90.0
+    y: 34.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.502
+  }
+  type: TYPE_BOX
+  texture: "UI/white_pixel"
+  id: "fog"
+  pivot: PIVOT_NW
+  parent: "colour_lobby_list"
+  layer: "dialog"
+}
+nodes {
+  position {
+    x: 195.0
+    y: -5.0
+  }
+  size {
+    x: 90.0
+    y: 34.0
+  }
+  color {
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_BOX
+  texture: "UI/white_pixel"
+  id: "glow"
+  pivot: PIVOT_NW
+  parent: "colour_lobby_list"
+  layer: "dialog"
+}
+nodes {
+  position {
+    x: 290.0
+    y: -5.0
+  }
+  size {
+    x: 90.0
+    y: 34.0
+  }
+  color {
+    x: 0.502
+    y: 0.0
+    z: 0.502
+  }
+  type: TYPE_BOX
+  texture: "UI/white_pixel"
+  id: "enemy"
+  pivot: PIVOT_NW
+  parent: "colour_lobby_list"
+  layer: "dialog"
+}
+nodes {
+  position {
+    x: -120.0
+    y: -298.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_lobby_accept"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 160.0
+    y: 72.0
+  }
+  type: TYPE_BOX
+  id: "colour_lobby_accept/button_white"
+  parent: "colour_lobby_accept"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Use section"
+  id: "colour_lobby_accept/text"
+  parent: "colour_lobby_accept/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 120.0
+    y: -298.0
+  }
+  type: TYPE_TEMPLATE
+  id: "colour_lobby_cancel"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 160.0
+    y: 72.0
+  }
+  type: TYPE_BOX
+  id: "colour_lobby_cancel/button_white"
+  parent: "colour_lobby_cancel"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Cancel"
+  id: "colour_lobby_cancel/text"
+  parent: "colour_lobby_cancel/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+layers {
+  name: "list_background"
+}
+layers {
+  name: "below"
+}
+layers {
+  name: "dialog"
+}
+layers {
+  name: "text"
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT
+materials {
+  name: "font-df"
+  material: "/builtins/fonts/font-df.material"
+}

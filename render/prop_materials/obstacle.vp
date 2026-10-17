@@ -1,17 +1,17 @@
 attribute highp vec4 position;
 attribute mediump vec3 normal;
 
-uniform mediump mat4 mtx_worldview;
-uniform mediump mat4 mtx_proj;
-uniform mediump mat4 mtx_world;
+uniform highp mat4 mtx_worldview;
+uniform highp mat4 mtx_proj;
+uniform highp mat4 mtx_world;
 uniform mediump vec4 flash;
 
 varying mediump vec3 var_normal;
 varying mediump vec2 var_texcoord0;
 varying mediump float d;
 varying mediump vec4 f;
-varying mediump vec4 pos;
-varying mediump vec4 pos_worldview;
+varying highp vec4 pos;
+varying highp vec4 pos_worldview;
 
 varying mediump vec3 norm;
 
@@ -34,7 +34,7 @@ float determinant(mat4 m) {
 
 void main()
 {
-    vec4 p = mtx_worldview * (vec4(position.xyz, 1.0));
+    vec4 p = mtx_worldview * vec4(position.xyz, 1.0);
 
     f = flash;
     d = determinant(mtx_worldview);

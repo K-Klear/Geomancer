@@ -3,6 +3,7 @@ local UI = require "modules.ui"
 local DIALOG = UI.DIALOG
 local SND = require "modules.sound"
 local COL = require "modules.colours"
+local G = require "modules.global"
 local TAB_NAME = "tab_level"
 
 local enemy_set_names = {}
@@ -85,7 +86,7 @@ end
 function init(self)
 	gui.set_render_order(1)
 	UI.load_template({"btn_enemies", "btn_obstacles", "btn_materials", "btn_movement", "preview_test",
-	"lobby_main", "lobby_fog", "lobby_glow", "lobby_enemy"}, TAB_NAME)
+	"lobby_main", "lobby_fog", "lobby_glow", "lobby_enemy", "btn_lobby_colour"}, TAB_NAME)
 	local validation = {
 		integer = true,
 		min = function() return 0 end,
@@ -188,6 +189,19 @@ function on_message(self, message_id, message, sender)
 				gui.set_color(gui.get_node(message.colour_id.."/text"), message.colour)
 			end
 			msg.post("#", hash("acquire_input_focus"))
+		elseif message.dialog == "dialog_colours_lobby" then
+			if message.colour_index then
+				local colours = MEM.art_data.colours[message.colour_index]
+				MEM.level_data.customMainMenuColor.Main = COL.get_hex(colours.main)
+				MEM.level_data.customMainMenuColor.Fog = COL.get_hex(colours.fog)
+				MEM.level_data.customMainMenuColor.Glow = COL.get_hex(colours.glow)
+				MEM.level_data.customMainMenuColor.Enemies = COL.get_hex(colours.enemy)
+				gui.set_color(gui.get_node("lobby_main/text"), colours.main)
+				gui.set_color(gui.get_node("lobby_fog/text"), colours.fog)
+				gui.set_color(gui.get_node("lobby_glow/text"), colours.glow)
+				gui.set_color(gui.get_node("lobby_enemy/text"), colours.enemy)
+			end
+			msg.post("#", hash("acquire_input_focus"))
 		end
 	end
 end
@@ -227,6 +241,8 @@ local function evaluate_button(button)
 	elseif button == "lobby_enemy" then
 		local colour = COL.str_to_colour(MEM.level_data.customMainMenuColor.Enemies)
 		DIALOG.open(TAB_NAME, "colour_picker", {rgb = colour, colour_id = button})
+	elseif button == "btn_lobby_colour" then
+		DIALOG.open(TAB_NAME, "dialog_colours_lobby")
 	end
 end
 

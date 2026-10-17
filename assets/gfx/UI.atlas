@@ -187,6 +187,9 @@ images {
 images {
   image: "/assets/gfx/model_viewer/button_no_metronome.png"
 }
+images {
+  image: "/assets/gfx/model_viewer/button_fade_obstacles.png"
+}
 animations {
   id: "button_white_down"
   images {

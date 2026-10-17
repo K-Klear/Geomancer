@@ -1,6 +1,7 @@
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
 local SET = require "modules.settings"
+local G = require "modules.global"
 local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_event"
 local DIALOG_DATA
@@ -8,11 +9,26 @@ local DIALOG_DATA
 local start_sample, max_sample, signal, item_index, default_signal
 
 local function samples_to_seconds(samples)
-	return math.floor((samples / SET.sample_rate) * 1000) * 0.001
+	return G.round(samples / SET.sample_rate, 4)
 end
 
 local function seconds_to_samples(seconds)
 	return math.floor(seconds * SET.sample_rate)
+end
+
+local function samples_to_beats(samples)
+	local spb = MEM.event_data.table.tempoSections[1].samplesPerBeat
+	local startSample = MEM.event_data.table.tempoSections[1].startSample
+	if startSample < 0 then startSample = startSample + spb end
+	return G.round((samples - startSample) / spb, 4) + 0
+end
+
+local function beats_to_samples(beats)
+	local spb = MEM.event_data.table.tempoSections[1].samplesPerBeat
+	beats = beats - 0
+	local startSample = MEM.event_data.table.tempoSections[1].startSample
+	if startSample < 0 then startSample = startSample + spb end
+	return math.floor(math.max(beats * spb + startSample, 0))
 end
 
 function init(self)
@@ -33,6 +49,13 @@ function init(self)
 		default = function() return 0 end
 	}
 	UI.load_text_field("event_start_seconds", 10, DIALOG_NAME, validation)
+	validation = {
+		number = true,
+		min = function() return samples_to_beats(0) end,
+		max = function() return samples_to_beats(max_sample) end,
+		default = function() return math.max(samples_to_beats(0), 0) end
+	}
+	UI.load_text_field("event_start_beats", 10, DIALOG_NAME, validation)
 	validation = {
 		text = true,
 		json_safe = true,
@@ -56,6 +79,7 @@ local function recalculate_values()
 	end
 	gui.set_text(gui.get_node("event_start_sample/text"), start_sample)
 	gui.set_text(gui.get_node("event_start_seconds/text"), samples_to_seconds(start_sample))
+	gui.set_text(gui.get_node("event_start_beats/text"), samples_to_beats(start_sample))
 	gui.set_text(gui.get_node("event_signal/text"), signal)
 end
 
@@ -64,6 +88,8 @@ local function evaluate_input(field, text)
 		start_sample = text
 	elseif field == "event_start_seconds" then
 		start_sample = seconds_to_samples(text)
+	elseif field == "event_start_beats" then
+		start_sample = beats_to_samples(text)
 	elseif field == "event_signal" then
 		signal = text
 	end

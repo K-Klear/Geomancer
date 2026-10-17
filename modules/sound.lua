@@ -1,5 +1,6 @@
 local SND = {}
 local SET = require "modules.settings"
+local G = require "modules.global"
 
 SND.music_is_playing = false
 SND.music_loaded = false
@@ -77,8 +78,25 @@ function SND.load_music(data)
 		resource.release("/music"..music_resource_index..".ogg")
 	end
 	music_resource_index = music_resource_index + 1
-	msg.post("/sound", hash("music_loaded"))
-	return resource.create_sound_data("/music"..music_resource_index..".ogg", {data = data})
+	local works, res = pcall(resource.create_sound_data, "/music"..music_resource_index..".ogg", {data = data})
+	if works then
+		msg.post("/sound", hash("music_loaded"))
+		return res
+	else
+		local f = io.open("log.txt", "rb")
+		if f then
+			local log_text = f:read("*a")
+			local error_location = string.find(log_text, "ERROR:GAMESYS:")
+			io.close(f)
+			os.remove("log.txt")
+			f = io.output("log.txt")
+			io.write(string.sub(log_text, 1, error_location - 1))
+			io.write("Music failed to load. Error was suppressed.")
+			io.close(f)
+		end
+		G.update_navbar("Error loading music. The .ogg file might be corrupted")
+	end
+	--return resource.create_sound_data("/music"..music_resource_index..".ogg", {data = data})
 end
 
 function SND.unload_music()

@@ -1,0 +1,84 @@
+local MEM = require "modules.memory"
+local UI = require "modules.ui"
+local COL = require "modules.colours"
+local MOD = require "modules.models"
+local SET = require "modules.settings"
+
+local DIALOG = UI.DIALOG
+local DIALOG_NAME = "dialog_colours_lobby"
+local DIALOG_DATA
+
+local colour_list, evaluate_button
+local button_text = " MAIN     FOG    GLOW  ENEMY"
+
+local selected_colour_index = 1
+
+function init(self)
+	DIALOG.setup(DIALOG_NAME)
+	DIALOG_DATA = UI.tab[DIALOG_NAME]
+	UI.load_template({"colour_lobby_cancel", "colour_lobby_accept"}, DIALOG_NAME)
+	local colours = {
+		{
+			type = hash("exclusive_button"),
+			node = gui.get_node("colour_lobby_exclusive/button_white"),
+			text_node = gui.get_node("colour_lobby_exclusive/text"),
+			value_fn = function() return button_text end,
+			template = "colour_lobby_exclusive;",
+			fn = evaluate_button
+		},
+		{
+			type = hash("background"),
+			node = gui.get_node("main"),
+			tint = function(i) return MEM.art_data.colours[i].main end
+		},
+		{
+			type = hash("background"),
+			node = gui.get_node("fog"),
+			tint = function(i) return MEM.art_data.colours[i].fog end
+		},
+		{
+			type = hash("background"),
+			node = gui.get_node("glow"),
+			tint = function(i) return MEM.art_data.colours[i].glow end
+		},
+		{
+			type = hash("background"),
+			node = gui.get_node("enemy"),
+			tint = function(i) return MEM.art_data.colours[i].enemy end
+		},
+		item_count = 0,
+		scroll_prefix = "colour_lobby_"
+	}
+	colour_list = UI.create_list(DIALOG_NAME, gui.get_node("colour_lobby_list"), colours)
+end
+
+function evaluate_button(button, item)
+	if button == "colour_lobby_cancel" or button == "escape" then
+		DIALOG.close(DIALOG_NAME)
+	elseif button == "colour_lobby_accept" or button == "enter" then
+		DIALOG.close(DIALOG_NAME, {colour_index = selected_colour_index})
+	elseif button == colour_list then
+		selected_colour_index = item
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		DIALOG.show(DIALOG_DATA, sender)
+		UI.update_list(DIALOG_NAME, colour_list, #MEM.art_data.colours)
+		selected_colour_index = 1
+		UI.select_exclusive_button(DIALOG_NAME, colour_list, 1)
+	end
+end
+
+function update()
+	if DIALOG_DATA.dialog_open then
+		for list_index in pairs(UI.tab[DIALOG_NAME].scrolling) do
+			UI.move_list_root(DIALOG_NAME, list_index, true)
+		end
+	end
+end
+
+function on_input(self, action_id, action)
+	UI.on_input(DIALOG_NAME, action_id, action, evaluate_button)
+end

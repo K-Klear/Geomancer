@@ -51,6 +51,9 @@ end
 TRANS.controls_list = {transform_position_x = true, transform_position_y = true, transform_position_z = true,
 transform_rotation_x = true, transform_rotation_y = true, transform_rotation_z = true,
 transform_scale_x = true, transform_scale_y = true, transform_scale_z = true}
+local transform_list_sorted = {"transform_position_x", "transform_position_y", "transform_position_z",
+	"transform_rotation_x", "transform_rotation_y", "transform_rotation_z",
+	"transform_scale_x", "transform_scale_y", "transform_scale_z"}
 function TRANS.show_transform_controls(show)
 	local validation = {
 		number = true,
@@ -58,13 +61,13 @@ function TRANS.show_transform_controls(show)
 		max = function() return 999 end,
 		default = function() return 0 end
 	}
-	for key in pairs(TRANS.controls_list) do
+	for key, val in ipairs(transform_list_sorted) do
 		if show then
-			UI.load_text_field(key, 8, TAB_NAME, validation)
+			UI.load_text_field(val, 8, TAB_NAME, validation)
 		else
-			UI.unload_template(TAB_NAME, key)
+			UI.unload_template(TAB_NAME, val)
 		end
-		gui.set_enabled(gui.get_node(key.."/box"), show)
+		gui.set_enabled(gui.get_node(val.."/box"), show)
 		gui.set_enabled(gui.get_node("label_position"), show)
 		gui.set_enabled(gui.get_node("label_rotation"), show)
 		gui.set_enabled(gui.get_node("label_scale"), show)

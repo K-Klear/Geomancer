@@ -1,18 +1,46 @@
 local MEM = require "modules.memory"
 local UI = require "modules.ui"
 local SET = require "modules.settings"
+local G = require "modules.global"
 local DIALOG = UI.DIALOG
 local DIALOG_NAME = "dialog_tempo"
 local DIALOG_DATA
 
 local start_sample, max_sample, BPM, spb, signature, item_index
+local previous_start, previous_spb
 
 local function spb_to_BPM(_spb)
-	return math.floor(((SET.sample_rate * 60) / _spb) * 1000) * 0.001
+	return G.round((SET.sample_rate * 60) / _spb, 4)
 end
 
 local function BPM_to_spb(_BPM)
 	return (60 / _BPM) * SET.sample_rate
+end
+
+local function sample_to_beat(sample)
+	if not previous_start then
+		return 0
+	else
+		return (sample - previous_start) / previous_spb
+	end
+end
+
+local function get_previous_beat()
+	local previous_section
+	for key, val in ipairs(MEM.event_data.table.tempoSections) do
+		if val.startSample > start_sample then
+			break
+		else
+			if not (item_index == key) then
+				previous_section = key
+			end
+		end
+	end
+	if previous_section then
+		previous_start, previous_spb = MEM.event_data.table.tempoSections[previous_section].startSample, MEM.event_data.table.tempoSections[previous_section].samplesPerBeat
+	else
+		previous_start, previous_spb = nil, nil
+	end
 end
 
 function init(self)
@@ -21,14 +49,37 @@ function init(self)
 	UI.load_template({"dialog_tempo_cancel", "dialog_tempo_accept"}, DIALOG_NAME)
 	local validation = {
 		integer = true,
-		--min = function() return 0 end,
+		min = function() return -spb end,
 		max = function() return max_sample end,
 		default = function() return 0 end
 	}
 	UI.load_text_field("tempo_start", 10, DIALOG_NAME, validation)
 	validation = {
 		number = true,
+		min = function() return -spb / SET.sample_rate end,
+		max = function() return max_sample / SET.sample_rate end,
+		default = function() return 0 end
+	}
+	UI.load_text_field("tempo_start_seconds", 10, DIALOG_NAME, validation)
+
+	validation = {
+		number = true,
+		min = function() return sample_to_beat(-spb) end,
+		max = function() return sample_to_beat(max_sample) end,
+		default = function() return 0 end
+	}
+	UI.load_text_field("tempo_start_beats", 10, DIALOG_NAME, validation)
+	validation = {
+		number = true,
+		min = function() return 0.01 end,
+		max = function() return 60 end,
+		default = function() return BPM_to_spb(120) / SET.sample_rate end
+	}
+	UI.load_text_field("tempo_SPB", 9, DIALOG_NAME, validation)
+	validation = {
+		number = true,
 		min = function() return 1 end,
+		max = function() return 6000 end,
 		default = function() return 120 end
 	}
 	UI.load_text_field("tempo_BPM", 9, DIALOG_NAME, validation)
@@ -49,20 +100,35 @@ local function evaluate_button(button)
 end
 
 local function recalculate_values()
-	if start_sample > max_sample then
-		start_sample = max_sample
-	end
+	start_sample = math.min(start_sample, max_sample)
+	get_previous_beat()
 	gui.set_text(gui.get_node("tempo_start/text"), start_sample)
+	gui.set_text(gui.get_node("tempo_start_seconds/text"), G.round(start_sample / SET.sample_rate, 4))
+	if previous_start then
+		gui.set_text(gui.get_node("tempo_start_beats/text"), G.round(sample_to_beat(start_sample), 4))
+	else
+		gui.set_text(gui.get_node("tempo_start_beats/text"), "N/A")
+	end
 	gui.set_text(gui.get_node("tempo_BPM/text"), BPM)
+	gui.set_text(gui.get_node("tempo_SPB/text"), G.round(spb / SET.sample_rate, 4))
 	gui.set_text(gui.get_node("tempo_signature/text"), signature)
 end
 
 local function evaluate_input(field, text)
 	if field == "tempo_start" then
 		start_sample = text
+	elseif field == "tempo_start_seconds" then
+		start_sample = math.floor(text * SET.sample_rate)
+	elseif field == "tempo_start_beats" then
+		if previous_start then
+			start_sample = previous_start + math.floor(previous_spb * text)
+		end
 	elseif field == "tempo_BPM" then
 		BPM = text
 		spb = BPM_to_spb(BPM)
+	elseif field == "tempo_SPB" then
+		spb = text * SET.sample_rate
+		BPM = spb_to_BPM(spb)
 	elseif field == "tempo_signature" then
 		signature = text
 	end

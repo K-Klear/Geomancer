@@ -209,9 +209,6 @@ nodes {
   template_node_child: true
 }
 nodes {
-  position {
-    x: 12.0
-  }
   type: TYPE_TEXT
   text: "Stationary"
   id: "btn_movement/text"
@@ -392,7 +389,7 @@ nodes {
 nodes {
   position {
     x: 820.0
-    y: 157.0
+    y: 230.0
   }
   type: TYPE_TEMPLATE
   id: "lobby_main"
@@ -414,7 +411,7 @@ nodes {
 nodes {
   position {
     x: 910.0
-    y: 157.0
+    y: 230.0
   }
   type: TYPE_TEMPLATE
   id: "lobby_fog"
@@ -436,7 +433,7 @@ nodes {
 nodes {
   position {
     x: 1000.0
-    y: 157.0
+    y: 230.0
   }
   type: TYPE_TEMPLATE
   id: "lobby_glow"
@@ -458,7 +455,7 @@ nodes {
 nodes {
   position {
     x: 1090.0
-    y: 157.0
+    y: 230.0
   }
   type: TYPE_TEMPLATE
   id: "lobby_enemy"
@@ -480,7 +477,7 @@ nodes {
 nodes {
   position {
     x: 958.0
-    y: 227.0
+    y: 300.0
   }
   size {
     x: 200.0
@@ -492,6 +489,49 @@ nodes {
   font: "main_menu_button_small"
   id: "lbl_lobby_colour"
   inherit_alpha: true
+}
+nodes {
+  position {
+    x: 861.0
+    y: 150.0
+  }
+  type: TYPE_TEMPLATE
+  id: "btn_lobby_colour"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  position {
+    x: 90.0
+    y: 9.0
+  }
+  size {
+    x: 280.0
+    y: 60.0
+  }
+  type: TYPE_BOX
+  id: "btn_lobby_colour/button_white"
+  parent: "btn_lobby_colour"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 14
+  overridden_fields: 38
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 200.0
+    y: 70.0
+  }
+  type: TYPE_TEXT
+  text: "Pick from the map"
+  id: "btn_lobby_colour/text"
+  parent: "btn_lobby_colour/button_white"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 14
+  overridden_fields: 18
+  template_node_child: true
 }
 layers {
   name: "below"

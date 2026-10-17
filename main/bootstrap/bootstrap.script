@@ -1,16 +1,53 @@
 local SET = require "modules.settings"
 local COL = require "modules.colours"
 local SND = require "modules.sound"
+local UI = require "modules.ui"
+local DIALOG = UI.DIALOG
 
 local proxy_is_loaded, settings_are_loaded
 
+local log_size = 0
+local debug_timer
+
 math.randomseed(os.time())
+
+local function check_log()
+	local log_size_current = lfs.attributes("log.txt", "size")
+	if log_size_current > log_size then
+		for line in io.lines("log.txt") do
+			if string.sub(line, 1, 6) == "ERROR:" then
+				timer.cancel(debug_timer)
+				local current_tab = UI.current_tab
+				local safety = 20
+				repeat
+					if UI.tab[current_tab].child_dialog then
+						current_tab = UI.tab[current_tab].child_dialog
+					end
+					safety = safety - 1
+				until (not UI.tab[current_tab].child_dialog) or safety < 0
+				msg.post("main:/navbar#navbar", hash("release_input_focus"))
+				msg.post(UI.tab[current_tab].path, hash("release_input_focus"))
+				msg.post(UI.tab.dialog_error.path, hash("show"), {current_tab = UI.tab[current_tab].path})
+				UI.tab.dialog_error.render_order = 15
+				UI.tab.dialog_error.parent_name = current_tab
+				UI.tab[current_tab].child_dialog = "dialog_error"
+				msg.post("#", hash("acquire_input_focus"))
+				return
+			end
+		end
+		log_size = log_size_current
+	end
+end
 
 local function start()
 	if settings_are_loaded and proxy_is_loaded then
 		msg.post("#main", "enable")
 		msg.post("#main", "acquire_input_focus")
 		msg.post("@render:", hash("use_camera_mine"))
+		debug_timer = timer.delay(1, true, check_log)
+		if not SET.I_am_Klear then
+			
+		end
 	end
 end
 

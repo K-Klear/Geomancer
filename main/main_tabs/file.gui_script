@@ -451,13 +451,15 @@ local function export_binary(path, data)
 	end
 end
 
-local function export_all(overwrite)
+local function export_all(overwrite, path)
 	if UI.tab.tab_level.state or UI.tab.tab_event.state or UI.tab.tab_geo.state or UI.tab.tab_beat.state or UI.tab.tab_meta.state or UI.tab.tab_art.state then
-		local _, path
-		if overwrite then
-			_, path = diags.open_folder(SET.default_path_export_overwrite)
-		else
-			_, path = diags.open_folder(SET.default_path_export)
+		local _
+		if not path then
+			if overwrite then
+				_, path = diags.open_folder(SET.default_path_export_overwrite)
+			else
+				_, path = diags.open_folder(SET.default_path_export)
+			end
 		end
 		if path then
 			local function get_name(s)
@@ -577,6 +579,7 @@ local function export_all(overwrite)
 				else
 					G.update_navbar(export_count.." files exported to "..path.." in "..G.round(socket.gettime() - load_time, 2).." seconds.")
 					G.update_navbar("The export is a full map.")
+					return export_count
 				end
 			else
 				local i = 0
@@ -880,6 +883,9 @@ function on_message(self, message_id, message, sender)
 		msg.post("#", hash("acquire_input_focus"))
 	elseif message_id == hash("export_all") then
 		export_all(not SET.create_folder_on_export)
+	elseif message_id == hash("emergency_export") then
+		local works, export_count = pcall(export_all, false, message.path)
+		msg.post(sender, hash("export_finished"), {no_crash = works, export_count = export_count or 0})
 	elseif message_id == hash("dialog_closed") then
 		msg.post("#", hash("acquire_input_focus"))
 		if message.dialog == "dialog_confirm" then
@@ -1070,14 +1076,14 @@ local function import_changes()
 							local slice_tab = slice_tab_both_meshes[2]
 							slice_tab_both_meshes.modified = true
 							slice_tab_both_meshes.original_size = #slice_tab.tris
-							local first_vert = imported_geo.tris[original_size + 1] + 1
+							local first_tris = imported_geo.tris[original_size + 1] + 1
 							local existing_vert_count = #slice_tab.verts
-							for i = first_vert, #imported_geo.verts do
+							for i = first_tris, #imported_geo.verts do
 								table.insert(slice_tab.verts, imported_geo.verts[i])
 								local parsed_vert = G.parse_values(imported_geo.verts[i])
 								table.insert(slice_tab.verts_parsed, parsed_vert)
 							end
-							local tris_offset = existing_vert_count - first_vert + 1
+							local tris_offset = existing_vert_count - first_tris + 1
 							local verts_parsed = slice_tab.verts_parsed
 							for i = original_size + 1, #imported_geo.tris, 3 do
 								table.insert(slice_tab.tris, imported_geo.tris[i] + tris_offset)
@@ -1134,17 +1140,17 @@ local function import_changes()
 							chunk_tab.original_size = #chunk_tab.tris
 
 							local existing_vert_count = #chunk_tab.verts
-							local first_vert = imported_geo.tris[original_size + 1]
-							if first_vert then
-								first_vert = first_vert + 1
+							local first_tris = imported_geo.tris[original_size + 1]
+							if first_tris then
+								first_tris = first_tris + 1
 							else
-								first_vert = 1
+								first_tris = 1
 							end
-							for i = first_vert, #imported_geo.verts do
+							for i = first_tris, #imported_geo.verts do
 								table.insert(chunk_tab.verts, imported_geo.verts[i])
 								table.insert(chunk_tab.verts_parsed, G.parse_values(imported_geo.verts[i]))
 							end
-							local tris_offset = existing_vert_count - first_vert + 1
+							local tris_offset = existing_vert_count - first_tris + 1
 							local verts_parsed = chunk_tab.verts_parsed
 
 						
@@ -1690,8 +1696,14 @@ local function load_dir(path)
 				loaded_count = loaded_count + 1
 				if filename_art then
 					common_name = string.sub(filename_art, 1, -18)
+				else
+					G.update_navbar("level.pw not found.")
+					return
 				end
 			end
+		else
+			G.update_navbar("level.pw not found.")
+			return
 		end
 		
 		local function get_file_count(expected_filename, extension, _file_list)
@@ -1751,11 +1763,151 @@ local function unload_all()
 	msg.post("/navbar#navbar", hash("update_tabs"))
 end
 
+local function klear_export_geo(slice_tab)
+	local path = SET.default_path_model_export.."\\geo\\slice_"..slice_tab[1].id..".obj"
+	local f = G.safe_output(path)
+	if f then
+		io.write("# Exported from [mapname] by Geomancer")
+		io.write("\no slice_"..slice_tab[1].id)
+		local offset_v, offset_n = 1, 1
+
+		for k, v in ipairs(slice_tab[1].verts_parsed) do
+			io.write("\nv "..(-v[1]).." "..v[2].." "..v[3])
+		end
+		for k, v in ipairs(slice_tab[1].normals_parsed) do
+			local mod = k % 3
+			if mod == 1 then
+				io.write("\nvn ")
+			end
+			io.write(v.." ")
+		end
+		for k, v in ipairs(slice_tab[2].normals_parsed) do
+			local mod = k % 3
+			if mod == 1 then
+				io.write("\nvn ")
+			end
+			io.write(v.." ")
+		end
+		io.write("\no geo_complex")
+		local first_mesh_size = #slice_tab[1].triangles / 3
+		for i = 1, first_mesh_size do
+			local v = slice_tab[1].tris[i]
+			local mod = i % 3
+			if mod == 1 then
+				io.write("\nf ")
+			end
+			local i = v + offset_v
+			local i_n = v + offset_n
+			io.write(i.."//"..i_n.." ")
+		end
+		--offset_v = offset_v + first_mesh_size
+		--offset_n = offset_n + first_mesh_size
+		io.write("\no geo_simple")
+		for i = first_mesh_size + 1, #slice_tab[2].tris do
+			local v = slice_tab[2].tris[i]
+			local mod = i % 3
+			if mod == 1 then
+				io.write("\nf ")
+			end
+			local i = v + offset_v
+			local i_n = v + offset_n
+			io.write(i.."//"..i_n.." ")
+		end
+		io.close(f)
+	end
+end
+
+local function klear_export_geo_full()
+	local path = SET.default_path_model_export.."\\geo\\the_fall_geo.obj"
+	local f = G.safe_output(path)
+	if f then
+		local vert_count = {}
+		local normal_count = {}
+		io.write("# Exported from The Fall by Geomancer")
+		io.write("\no the_fall")
+		for i = -1, 999 do
+			local slice_tab = MEM.geo_data.slices[i]
+			if (not slice_tab) or (not slice_tab[1]) then break end
+			for k, v in ipairs(slice_tab[1].verts_parsed) do
+				io.write("\nv "..(-v[1]).." "..v[2].." "..(v[3] + i * 16))
+			end
+			vert_count[i] = #slice_tab[1].verts_parsed
+		end
+		for i = -1, 999 do
+			local slice_tab = MEM.geo_data.slices[i]
+			if (not slice_tab) or (not slice_tab[1]) then break end
+			for k, v in ipairs(slice_tab[1].normals_parsed) do
+				local mod = k % 3
+				if mod == 1 then
+					io.write("\nvn ")
+				end
+				io.write(v.." ")
+			end
+			for k, v in ipairs(slice_tab[2].normals_parsed) do
+				local mod = k % 3
+				if mod == 1 then
+					io.write("\nvn ")
+				end
+				io.write(v.." ")
+			end
+			normal_count[i] = #slice_tab[1].normals_parsed + #slice_tab[2].normals_parsed
+		end
+		
+		local offset_v, offset_n = 1, 1
+		io.write("\no geo_complex")
+		for i = -1, 999 do
+			local slice_tab = MEM.geo_data.slices[i]
+			if (not slice_tab) or (not slice_tab[1]) then break end
+			local first_mesh_size = #slice_tab[1].triangles / 3
+			for k = 1, first_mesh_size do
+				local v = slice_tab[1].tris[k]
+				local mod = k % 3
+				if mod == 1 then
+					io.write("\nf ")
+				end
+				local index = v + offset_v
+				local index_n = 1--v + offset_n
+				io.write(index.."//"..index_n.." ")
+			end
+			offset_v = offset_v + vert_count[i]
+			offset_n = offset_n + normal_count[i]
+		end
+
+		offset_v, offset_n = 1, 1
+		io.write("\no geo_simple")
+		for i = -1, 999 do
+			local slice_tab = MEM.geo_data.slices[i]
+			if (not slice_tab) or (not slice_tab[1]) then break end
+			local first_mesh_size = #slice_tab[1].triangles / 3
+			for k = first_mesh_size + 1, #slice_tab[2].tris do
+				local v = slice_tab[2].tris[k]
+				local mod = k % 3
+				if mod == 1 then
+					io.write("\nf ")
+				end
+				local index = v + offset_v
+				local index_n = 1--v + offset_n
+				io.write(index.."//"..index_n.." ")
+			end
+			offset_v = offset_v + vert_count[i]
+			offset_n = offset_n + normal_count[i]
+		end
+		io.close(f)
+	end
+end
+
 local function evaluate_button(button)
 	if button == "exit" then
 		os.exit(1)
 	elseif button == "klear_button" then
-		G.update_navbar("This button doesn't currently do anything. Also you are not Klear. Stop pretending.", true)
+		klear_export_geo_full()
+		if true then return end
+		for key, val in pairs(MEM.geo_data.slices) do
+			if val[1] then
+				klear_export_geo(val)
+			end
+		end
+		--G.update_navbar("This button doesn't currently do anything. Also you are not Klear. Stop pretending.", true)
 	elseif button == "map_preview" then
 		if MEM.art_data.table then
 			msg.post("#", hash("disable"))
@@ -1812,7 +1964,9 @@ local function evaluate_button(button)
 			end
 			load_time = socket.gettime()
 			timer.delay(0.01, false, function()
+				MEM.loading_in_progress = true
 				load_zip(path)
+				MEM.loading_in_progress = false
 			end)
 		end
 	elseif button == "load_dir" then
@@ -1823,7 +1977,9 @@ local function evaluate_button(button)
 			end
 			load_time = socket.gettime()
 			timer.delay(0.01, false, function()
+				MEM.loading_in_progress = true
 				load_dir(path)
+				MEM.loading_in_progress = false
 			end)
 		end
 	elseif button == "unload_all" then

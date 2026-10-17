@@ -1197,7 +1197,7 @@ nodes {
 }
 nodes {
   type: TYPE_BOX
-  texture: "UI/button_show_obstacles"
+  texture: "UI/button_fade_obstacles"
   id: "hide_obstacles/text"
   parent: "hide_obstacles/button_white"
   overridden_fields: 3

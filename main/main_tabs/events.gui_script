@@ -289,9 +289,11 @@ function on_message(self, message_id, message, sender)
 				for i = 0, message.repeats - 1 do
 					local sample = message.start_sample + (i * message.offset)
 					if sample < 0 then
-						skip_count = skip_count + 1
+						skip_count = skip_count + message.batch
 					else
-						add_event(sample, message.signal)
+						for j = 1, message.batch do
+							add_event(sample, message.signal)
+						end
 					end
 				end
 				if skip_count > 0 then
@@ -406,7 +408,7 @@ local function evaluate_button(button, item)
 		local tempo = MEM.event_data.table.tempoSections
 		local previous_time, previous_spb, previous_signature = 0, 120, 4
 		if #tempo > 0 then
-			previous_time = tempo[#tempo].startSample
+			previous_time = math.floor(tempo[#tempo].startSample + tempo[#tempo].samplesPerBeat * 4)
 			previous_spb = tempo[#tempo].samplesPerBeat
 			previous_signature = tempo[#tempo].beatsPerMeasure
 		end

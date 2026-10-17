@@ -189,7 +189,6 @@ function update(self)
 
 
     -- set states used for all the world predicates
-    render.set_blend_func(graphics.BLEND_FACTOR_ONE, graphics.BLEND_FACTOR_ONE_MINUS_SRC_ALPHA)
     render.enable_state(graphics.STATE_BLEND)
 
     render.set_camera(self.camera)
@@ -199,9 +198,13 @@ function update(self)
     render.disable_state(graphics.STATE_CULL_FACE)
 
     render.draw(predicates.model)--, camera_world.frustum)
+
     render.set_depth_mask(false)
-    
+
+    render.set_blend_func(graphics.BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA, graphics.BLEND_FACTOR_ONE_MINUS_SRC_ALPHA)
     render.draw(predicates.model_transparent)--, camera_world.frustum)
+    render.set_blend_func(graphics.BLEND_FACTOR_SRC_ALPHA, graphics.BLEND_FACTOR_ONE_MINUS_SRC_ALPHA)
+
     render.disable_state(graphics.STATE_DEPTH_TEST)
     
     render.draw(predicates.model_flash)--, camera_world.frustum)

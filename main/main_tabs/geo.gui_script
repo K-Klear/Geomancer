@@ -65,7 +65,7 @@ local function evaluate_button(button)
 			local tab = MEM.parse_json(geo_data)
 			if MEM.check(tab, "pw_geo", "Selected pw_geo file") then
 				MEM.geo_data.table.chunkData = tab.chunkData
-				MEM.geo_data.chunks = MEM.parse_slice_data(tab.chunkData)
+				MEM.geo_data.chunks = MEM.parse_chunk_data(tab.chunkData)
 				MEM.setup_culling_ranges()
 			end
 			G.update_navbar("Collision data replaced.", true)

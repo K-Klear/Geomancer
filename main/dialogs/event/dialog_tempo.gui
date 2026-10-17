@@ -22,7 +22,7 @@ nodes {
   }
   size {
     x: 640.0
-    y: 300.0
+    y: 480.0
   }
   type: TYPE_BOX
   texture: "UI/panel_green"
@@ -38,7 +38,7 @@ nodes {
 }
 nodes {
   position {
-    y: 98.0
+    y: 178.0
   }
   size {
     x: 250.0
@@ -66,7 +66,7 @@ nodes {
 nodes {
   position {
     x: -181.0
-    y: 40.0
+    y: 120.0
   }
   size {
     x: 250.0
@@ -95,7 +95,7 @@ nodes {
 nodes {
   position {
     x: -266.0
-    y: 5.0
+    y: 85.0
   }
   type: TYPE_TEMPLATE
   id: "tempo_start"
@@ -121,7 +121,7 @@ nodes {
 }
 nodes {
   position {
-    y: 40.0
+    y: 120.0
   }
   size {
     x: 250.0
@@ -150,7 +150,7 @@ nodes {
 nodes {
   position {
     x: -69.0
-    y: 5.0
+    y: 85.0
   }
   type: TYPE_TEMPLATE
   id: "tempo_BPM"
@@ -177,7 +177,7 @@ nodes {
 nodes {
   position {
     x: 180.0
-    y: 40.0
+    y: 120.0
   }
   size {
     x: 250.0
@@ -204,8 +204,204 @@ nodes {
 }
 nodes {
   position {
+    x: -181.0
+    y: 38.0
+  }
+  size {
+    x: 250.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "Start seconds"
+  font: "tab_caption"
+  id: "lbl_tempo_start_seconds"
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  line_break: true
+  parent: "edit_box"
+  layer: "text"
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+}
+nodes {
+  position {
+    x: -266.0
+    y: 3.0
+  }
+  type: TYPE_TEMPLATE
+  id: "tempo_start_seconds"
+  parent: "edit_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 170.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "tempo_start_seconds/box"
+  parent: "tempo_start_seconds"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "tempo_start_seconds/text"
+  parent: "tempo_start_seconds/box"
+  template_node_child: true
+}
+nodes {
+  position {
+    y: 38.0
+  }
+  size {
+    x: 250.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "Seconds/beat"
+  font: "tab_caption"
+  id: "lbl_tempo_SPB"
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  line_break: true
+  parent: "edit_box"
+  layer: "text"
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+}
+nodes {
+  position {
+    x: -69.0
+    y: 3.0
+  }
+  type: TYPE_TEMPLATE
+  id: "tempo_SPB"
+  parent: "edit_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 140.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "tempo_SPB/box"
+  parent: "tempo_SPB"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "tempo_SPB/text"
+  parent: "tempo_SPB/box"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -181.0
+    y: -44.0
+  }
+  size {
+    x: 250.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "Start beats"
+  font: "tab_caption"
+  id: "lbl_tempo_start_beats"
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  line_break: true
+  parent: "edit_box"
+  layer: "text"
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+}
+nodes {
+  position {
+    x: -266.0
+    y: -79.0
+  }
+  type: TYPE_TEMPLATE
+  id: "tempo_start_beats"
+  parent: "edit_box"
+  template: "/templates/text_field.gui"
+}
+nodes {
+  size {
+    x: 170.0
+    y: 40.0
+  }
+  type: TYPE_BOX
+  id: "tempo_start_beats/box"
+  parent: "tempo_start_beats"
+  overridden_fields: 4
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  id: "tempo_start_beats/text"
+  parent: "tempo_start_beats/box"
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 200.0
+    y: 84.0
+  }
+  size {
+    x: 40.0
+    y: 40.0
+  }
+  type: TYPE_TEXT
+  text: "/ 4"
+  font: "main_menu_button_small"
+  id: "lbl_tempo_singnature_2"
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  parent: "edit_box"
+  layer: "text"
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+  material: "font-df"
+}
+nodes {
+  position {
     x: 122.0
-    y: 5.0
+    y: 85.0
   }
   type: TYPE_TEMPLATE
   id: "tempo_signature"
@@ -232,7 +428,7 @@ nodes {
 nodes {
   position {
     x: -122.0
-    y: -99.0
+    y: -184.0
   }
   type: TYPE_TEMPLATE
   id: "dialog_tempo_accept"
@@ -270,7 +466,7 @@ nodes {
 nodes {
   position {
     x: 84.0
-    y: -98.0
+    y: -183.0
   }
   type: TYPE_TEMPLATE
   id: "dialog_tempo_cancel"
@@ -304,35 +500,6 @@ nodes {
   overridden_fields: 8
   overridden_fields: 20
   template_node_child: true
-}
-nodes {
-  position {
-    x: 200.0
-    y: 4.0
-  }
-  size {
-    x: 40.0
-    y: 40.0
-  }
-  type: TYPE_TEXT
-  text: "/ 4"
-  font: "main_menu_button_small"
-  id: "lbl_tempo_singnature_2"
-  outline {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-  }
-  shadow {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-  }
-  parent: "edit_box"
-  layer: "text"
-  outline_alpha: 0.0
-  shadow_alpha: 0.0
-  material: "font-df"
 }
 layers {
   name: "list_background"

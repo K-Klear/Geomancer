@@ -1,6 +1,5 @@
+local G = require "modules.global"
 local COL = {}
-
-local colour_function = {}
 
 function COL.rgb_to_hsv(colour, r, g, b)
 	r, g, b = r or colour.x, g or colour.y, b or colour.z
@@ -39,6 +38,28 @@ end
 local function hex_to_num(hex)
 	local col = tonumber("0x"..hex)
 	return col / 255
+end
+
+function COL.get_hex(vec)
+	local str_final = ""
+	local str = string.format("%x", G.round(vec.x * 255, 0))
+	if #str == 1 then
+		str_final = str_final.."0"..str
+	else
+		str_final = str_final..str
+	end
+	str = string.format("%x", G.round(vec.y * 255, 0))
+	if #str == 1 then
+		str_final = str_final.."0"..str
+	else
+		str_final = str_final..str
+	end
+	str = string.format("%x", G.round(vec.z * 255, 0))
+	if #str == 1 then
+		return str_final.."0"..str
+	else
+		return str_final..str
+	end
 end
 
 function COL.str_to_colour(str)

@@ -1,0 +1,157 @@
+script: "/main/dialogs/dialog_error.gui_script"
+fonts {
+  name: "main_menu_button"
+  font: "/assets/fonts/final/main_menu_button.font"
+}
+fonts {
+  name: "menu_text"
+  font: "/assets/fonts/final/menu_text.font"
+}
+textures {
+  name: "UI"
+  texture: "/assets/gfx/UI.atlas"
+}
+nodes {
+  position {
+    x: 640.0
+    y: 442.0
+  }
+  size {
+    x: 950.0
+    y: 640.0
+  }
+  color {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  type: TYPE_BOX
+  texture: "UI/panel_green"
+  id: "edit_box"
+  layer: "list_background"
+  slice9 {
+    x: 40.0
+    y: 40.0
+    z: 40.0
+    w: 40.0
+  }
+}
+nodes {
+  position {
+    y: 288.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  size {
+    x: 1180.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "Congratulations! You just found a bug"
+  font: "main_menu_button"
+  id: "dialog_error_title"
+  pivot: PIVOT_N
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  line_break: true
+  parent: "edit_box"
+  layer: "text"
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+}
+nodes {
+  position {
+    y: 210.0
+  }
+  scale {
+    x: 0.75
+    y: 0.75
+  }
+  size {
+    x: 1180.0
+    y: 60.0
+  }
+  type: TYPE_TEXT
+  text: "Geomancer encountered a critical error and needs to shut down. Sorry about that!\n"
+  "\n"
+  "Currently loaded map is now being exported to a temporary location."
+  font: "menu_text"
+  id: "dialog_error_body"
+  pivot: PIVOT_N
+  outline {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  shadow {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+  line_break: true
+  parent: "edit_box"
+  layer: "text"
+  outline_alpha: 0.0
+  shadow_alpha: 0.0
+}
+nodes {
+  position {
+    y: -226.0
+  }
+  type: TYPE_TEMPLATE
+  id: "dialog_error_accept"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 180.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  id: "dialog_error_accept/button_white"
+  parent: "dialog_error_accept"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Exit"
+  id: "dialog_error_accept/text"
+  parent: "dialog_error_accept/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+layers {
+  name: "list_background"
+}
+layers {
+  name: "below"
+}
+layers {
+  name: "text"
+}
+layers {
+  name: "dialog"
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_PARENT
+materials {
+  name: "font-df"
+  material: "/builtins/fonts/font-df.material"
+}

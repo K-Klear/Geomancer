@@ -799,7 +799,7 @@ local function preview_setup_tween(message, force_vacuum)
 					table.insert(MOD.props_for_preview, {t})
 					repeat_props[v.target_prop_list_index] = #MOD.props_for_preview
 				end
-				if not prop_to_show and (message.tween_index == v.target_tween_index) then
+				if not prop_to_show and message and (message.tween_index == v.target_tween_index) then
 					prop_to_show = #MOD.props_for_preview
 				end
 			end
@@ -1075,8 +1075,14 @@ local function evaluate_button(button)
 		end
 		msg.post(".", hash("hide_fog"))
 	elseif button == "hide_obstacles" then
-		if SET.hide_obstacles then
+		SET.hide_obstacles = SET.hide_obstacles + 1
+		if SET.hide_obstacles > 3 then
+			SET.hide_obstacles = 1
+		end
+		if SET.hide_obstacles == 1 then
 			gui.play_flipbook(gui.get_node("hide_obstacles/text"), "button_show_obstacles")
+		elseif SET.hide_obstacles == 2 then
+			gui.play_flipbook(gui.get_node("hide_obstacles/text"), "button_fade_obstacles")
 		else
 			gui.play_flipbook(gui.get_node("hide_obstacles/text"), "button_hide_obstacles")
 		end

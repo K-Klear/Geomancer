@@ -598,6 +598,7 @@ function evaluate_button(button, item)
 					tween_table.signal = tween_data.signal or tween_tab.signal
 					gui.set_text(gui.get_node("tween_signal/text"), tween_table.signal)
 					tween_tab.script = tween_table
+					tween_tab.signal = tween_table.signal
 					tween_actions = tween_tab.script
 
 					local legal_transforms = {}
