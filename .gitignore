@@ -12,3 +12,4 @@ log.txt
 error_logs
 builtins
 /.editor_settings
+/_crash_report_*

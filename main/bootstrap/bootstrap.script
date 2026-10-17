@@ -11,27 +11,31 @@ local debug_timer
 
 math.randomseed(os.time())
 
+local function show_BSOD(the_crash)
+	timer.cancel(debug_timer)
+	local current_tab = UI.current_tab
+	local safety = 20
+	repeat
+		if UI.tab[current_tab].child_dialog then
+			current_tab = UI.tab[current_tab].child_dialog
+		end
+		safety = safety - 1
+	until (not UI.tab[current_tab].child_dialog) or safety < 0
+	msg.post("main:/navbar#navbar", hash("release_input_focus"))
+	msg.post(UI.tab[current_tab].path, hash("release_input_focus"))
+	msg.post(UI.tab.dialog_error.path, hash("show"), {current_tab = UI.tab[current_tab].path, the_crash = the_crash})
+	UI.tab.dialog_error.render_order = 15
+	UI.tab.dialog_error.parent_name = current_tab
+	UI.tab[current_tab].child_dialog = "dialog_error"
+	msg.post("#", hash("acquire_input_focus"))
+end
+
 local function check_log()
 	local log_size_current = lfs.attributes("log.txt", "size")
 	if log_size_current > log_size then
 		for line in io.lines("log.txt") do
 			if string.sub(line, 1, 6) == "ERROR:" then
-				timer.cancel(debug_timer)
-				local current_tab = UI.current_tab
-				local safety = 20
-				repeat
-					if UI.tab[current_tab].child_dialog then
-						current_tab = UI.tab[current_tab].child_dialog
-					end
-					safety = safety - 1
-				until (not UI.tab[current_tab].child_dialog) or safety < 0
-				msg.post("main:/navbar#navbar", hash("release_input_focus"))
-				msg.post(UI.tab[current_tab].path, hash("release_input_focus"))
-				msg.post(UI.tab.dialog_error.path, hash("show"), {current_tab = UI.tab[current_tab].path})
-				UI.tab.dialog_error.render_order = 15
-				UI.tab.dialog_error.parent_name = current_tab
-				UI.tab[current_tab].child_dialog = "dialog_error"
-				msg.post("#", hash("acquire_input_focus"))
+				show_BSOD()
 				return
 			end
 		end
@@ -45,9 +49,6 @@ local function start()
 		msg.post("#main", "acquire_input_focus")
 		msg.post("@render:", hash("use_camera_mine"))
 		debug_timer = timer.delay(1, true, check_log)
-		if not SET.I_am_Klear then
-			
-		end
 	end
 end
 
@@ -258,5 +259,7 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("proxy_loaded") then
 		proxy_is_loaded = true
 		start()
+	elseif message_id == hash("trigger_BSOD") then
+		show_BSOD(true)
 	end
 end

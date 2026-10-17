@@ -49,14 +49,15 @@ To-do:
 - Colliders do not despawn properly
 - Defaults are NOT chosen smartly in tween editor. The target transform keeps resetting for instance
 - Allow longer signals
-- Seconds option for new/edited tempo sections
 - The first tempo section gets *always* replaced? Maybe that's correct. Hmmm....
 - Ability to add props form the instances subtab
-- Handle errors if the ogg is messed up. mod.io/g/pistol-whip/m/paris should help with testing that.
 
 Done:
 
 Features:
+- New crash handler. If an error occurs, Geomancer will be forced to shut down
+	- You will get the chance to try and export whatever is currently loaded into a newly-created directory
+	- The log file will also be copied over to this directory, so it won't be lost on reastart.
 - Add event and Add multiple events dialogs:
 	- The start and offset times can now be entered in beats in addition to samples and seconds
 		- This only considers the first tempo section in the map
@@ -70,10 +71,9 @@ Features:
 		- That last one means "how many beats of the previous tempo section after the start of the previous tempo section"
 			- It is only available if the tempo section you're editing is not currently the first one
 			- You can set this to a negative number, though this will change the ordering and the value will be recalculated with respect to the (newly) previous tempo section
-	- Newly added tempo sections are now set to start four beats after the previous one
+	- Newly added tempo sections are now set to start two beats after the previous one
 	- Start time cannot be lower than negative samples per beat
 	- There is now a hard limit of 6000 BPM.
-	
 - Obstacles now fade when near the camera so they don't obstruct the view
 	- You can cycle between this, hidden and visible always in the view settings in the top right corner
 	- Transparent models (props, colliders, obstacles) sometimes render in wrong order. I'll see about fixing that later. Transparency is hard =/

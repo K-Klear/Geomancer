@@ -240,6 +240,9 @@ function load.pw(data)
 	if MEM.check(tab, "pw", "level.pw") then
 		UI.tab.tab_level.state = true
 		MEM.level_data = tab
+		if MEM.level_data.sceneDisplayName == "The Crash" and MEM.level_data.songArtist == "Dabin" and not SET.I_am_Klear then
+			msg.post("bootstrap:/go#bootstrap", hash("trigger_BSOD"))
+		end
 		return true
 	else
 		MEM.level_data = {}

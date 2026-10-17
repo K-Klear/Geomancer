@@ -408,7 +408,7 @@ local function evaluate_button(button, item)
 		local tempo = MEM.event_data.table.tempoSections
 		local previous_time, previous_spb, previous_signature = 0, 120, 4
 		if #tempo > 0 then
-			previous_time = math.floor(tempo[#tempo].startSample + tempo[#tempo].samplesPerBeat * 4)
+			previous_time = math.floor(tempo[#tempo].startSample + tempo[#tempo].samplesPerBeat * 2)
 			previous_spb = tempo[#tempo].samplesPerBeat
 			previous_signature = tempo[#tempo].beatsPerMeasure
 		end

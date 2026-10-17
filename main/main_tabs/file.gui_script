@@ -1900,7 +1900,8 @@ local function evaluate_button(button)
 	if button == "exit" then
 		os.exit(1)
 	elseif button == "klear_button" then
-		klear_export_geo_full()
+		print(button.I.made.it.the.fuck.up)
+		--klear_export_geo_full()
 		if true then return end
 		for key, val in pairs(MEM.geo_data.slices) do
 			if val[1] then

@@ -109,6 +109,45 @@ nodes {
     y: -226.0
   }
   type: TYPE_TEMPLATE
+  id: "dialog_error_export"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 260.0
+    y: 84.0
+  }
+  type: TYPE_BOX
+  id: "dialog_error_export/button_white"
+  parent: "dialog_error_export"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  size {
+    x: 240.0
+    y: 70.0
+  }
+  type: TYPE_TEXT
+  text: "Attempt to export map data"
+  id: "dialog_error_export/text"
+  parent: "dialog_error_export/button_white"
+  layer: "text"
+  overridden_fields: 4
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: 300.0
+    y: -226.0
+  }
+  type: TYPE_TEMPLATE
   id: "dialog_error_accept"
   parent: "edit_box"
   template: "/templates/button_white_small.gui"
@@ -132,6 +171,40 @@ nodes {
   text: "Exit"
   id: "dialog_error_accept/text"
   parent: "dialog_error_accept/button_white"
+  layer: "text"
+  overridden_fields: 8
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  position {
+    x: -300.0
+    y: -226.0
+  }
+  type: TYPE_TEMPLATE
+  id: "dialog_open_log"
+  parent: "edit_box"
+  template: "/templates/button_white_small.gui"
+}
+nodes {
+  size {
+    x: 180.0
+    y: 64.0
+  }
+  type: TYPE_BOX
+  id: "dialog_open_log/button_white"
+  parent: "dialog_open_log"
+  layer: "below"
+  overridden_fields: 1
+  overridden_fields: 4
+  overridden_fields: 20
+  template_node_child: true
+}
+nodes {
+  type: TYPE_TEXT
+  text: "Show log"
+  id: "dialog_open_log/text"
+  parent: "dialog_open_log/button_white"
   layer: "text"
   overridden_fields: 8
   overridden_fields: 20
